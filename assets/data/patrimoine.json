@@ -1,0 +1,22 @@
+{
+  "banks": [
+    { "id": 1, "name": "BNP Paribas" },
+    { "id": 2, "name": "Boursorama" }
+  ],
+  "savingsAccounts": [
+    { "id": 1, "name": "Livret A", "interestRate": 0.024, "cap": 22950, "bankId": 2 },
+    { "id": 2, "name": "LDDS", "interestRate": 0.024, "cap": 12000, "bankId": 2 }
+  ],
+  "users": [
+    { "id": 1, "username": "lucas", "passwordHash": "hash" }
+  ],
+  "userSavingsAccounts": [
+    {
+      "id": 1,
+      "userId": 1,
+      "savingsAccountId": 1,
+      "balance": 15000,
+      "interestAccrued": 320
+    }
+  ]
+}
