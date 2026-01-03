@@ -26,6 +26,7 @@ class _HomePageState extends State<HomePage> {
   Future<void> _loadPatrimoine() async {
     final repo = LocalDatabaseRepository();
     final db = await repo.load();
+
     final service = PatrimoineService(db);
 
     final total = service.getTotalPatrimoineForUser(1);

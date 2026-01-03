@@ -6,11 +6,18 @@ class PatrimoineService {
   PatrimoineService(this.db);
 
   double getTotalPatrimoineForUser(int userId) {
-    final accounts = db.userSavingsAccounts
+    // Total épargne (balance + intérêts)
+    final savingsTotal = db.userSavingsAccounts
         .where((usa) => usa.userId == userId)
-        .toList();
+        .fold(0.0, (total, account) => total + account.balance + account.interestAccrued);
 
-    return accounts.fold(0.0, (total, account) => total + account.balance);
+
+    // Total investissements (balance)
+    final investmentsTotal = db.userInvestmentAccounts
+        .where((uia) => uia.userId == userId)
+        .fold(0.0, (total, account) => total + account.balance);
+
+    return savingsTotal + investmentsTotal;
   }
 
   List<UserSavingsAccountView> getAccountsForUser(int userId) {
