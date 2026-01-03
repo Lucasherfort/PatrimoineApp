@@ -53,7 +53,7 @@ class _HomePageState extends State<HomePage> {
           children: [
             PatrimoineHeader(patrimoineTotal: patrimoineTotal),
             SavingsAccountList(accounts: userAccounts),
-            const InvestmentList(),
+            const InvestmentList(userId: 1), // ✅ Ajout du userId
           ],
         ),
       ),

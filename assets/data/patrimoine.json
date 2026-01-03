@@ -1,29 +1,43 @@
 {
   "banks": [
-    { "id": 1, "name": "BNP Paribas" },
-    { "id": 2, "name": "Boursorama" }
+    {"id": 1, "name": "Boursorama"},
+    {"id": 2, "name": "Fortuneo"}
   ],
   "savingsAccounts": [
-    { "id": 1, "name": "Livret A", "interestRate": 0.024, "cap": 22950, "bankId": 2 },
-    { "id": 2, "name": "LDDS", "interestRate": 0.024, "cap": 12000, "bankId": 2 }
-  ],
-  "users": [
-    { "id": 1, "username": "lucas", "passwordHash": "hash" }
+    {"id": 1, "name": "Livret A", "interestRate": 3.0, "cap": 22950, "bankId": 1}
   ],
   "userSavingsAccounts": [
+    {"id": 1, "userId": 1, "savingsAccountId": 1, "balance": 15000, "interestAccrued": 450}
+  ],
+  "investmentAccounts": [
+    {"id": 1, "name": "PEA", "cap": 150000, "bankId": 1},
+    {"id": 2, "name": "Assurance Vie", "cap": 999999999, "bankId": 1}
+  ],
+  "userInvestmentAccounts": [
+    {"id": 1, "userId": 1, "investmentAccountId": 1, "balance": 25000, "latentCapitalGain": 3500}
+  ],
+  "investmentPositions": [
     {
       "id": 1,
-      "userId": 1,
-      "savingsAccountId": 1,
-      "balance": 22388.22,
-      "interestAccrued": 0
+      "userInvestmentAccountId": 1,
+      "ticker": "CW8",
+      "name": "Amundi MSCI World",
+      "type": "ETF",
+      "isinCode": "LU1681043599",
+      "quantity": 50,
+      "averagePurchasePrice": 450.00,
+      "currentPrice": null
     },
     {
       "id": 2,
-      "userId": 1,
-      "savingsAccountId": 2,
-      "balance": 0,
-      "interestAccrued": 0
+      "userInvestmentAccountId": 1,
+      "ticker": "PAEEM",
+      "name": "Amundi MSCI Emerging Markets",
+      "type": "ETF",
+      "isinCode": "FR0013412020",
+      "quantity": 30,
+      "averagePurchasePrice": 80.00,
+      "currentPrice": null
     }
   ]
 }
