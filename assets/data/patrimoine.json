@@ -15,8 +15,15 @@
       "id": 1,
       "userId": 1,
       "savingsAccountId": 1,
-      "balance": 15000,
-      "interestAccrued": 320
+      "balance": 22388.22,
+      "interestAccrued": 0
+    },
+    {
+      "id": 2,
+      "userId": 1,
+      "savingsAccountId": 2,
+      "balance": 0,
+      "interestAccrued": 0
     }
   ]
 }
