@@ -13,17 +13,15 @@ class UserSavingsAccount {
     required this.interestAccrued,
   });
 
-  factory UserSavingsAccount.fromJson(Map<String, dynamic> json) {
-    return UserSavingsAccount(
-      id: json['id'],
-      userId: json['userId'],
-      savingsAccountId: json['savingsAccountId'],
-      balance: (json['balance'] as num).toDouble(),
-      interestAccrued: (json['interestAccrued'] as num).toDouble(),
-    );
-  }
+  factory UserSavingsAccount.fromJson(Map<String, dynamic> json) =>
+      UserSavingsAccount(
+        id: json['id'],
+        userId: json['userId'],
+        savingsAccountId: json['savingsAccountId'],
+        balance: (json['balance'] as num).toDouble(),
+        interestAccrued: (json['interestAccrued'] as num).toDouble(),
+      );
 
-  /// ✅ AJOUTER CECI
   Map<String, dynamic> toJson() => {
     'id': id,
     'userId': userId,

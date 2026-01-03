@@ -6,12 +6,13 @@ class LocalDatabaseRepository {
   /// Charge la base locale depuis le JSON
   Future<LocalDatabase> load() async {
     try {
-      final jsonString =
-      await rootBundle.loadString('assets/data/patrimoine.json');
+      final jsonString = await rootBundle.loadString("assets/data/patrimoine.json");
       final jsonMap = json.decode(jsonString);
+      print("OOOOOOOOOOOOOOOOOOOOOOOO: $jsonMap");
       return LocalDatabase.fromJson(jsonMap);
     } catch (_) {
       // Si le fichier n'existe pas ou erreur, retourne une base vide
+      print("KKKKKKKKKKOOOOOOOOOOOOOOOOOOOOOOOOOO");
       return LocalDatabase.empty();
     }
   }
