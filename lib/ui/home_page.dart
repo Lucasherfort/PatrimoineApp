@@ -3,6 +3,7 @@ import '../repositories/local_database_repository.dart';
 import '../services/patrimoine_service.dart';
 import '../widgets/patrimoine_header.dart';
 import '../widgets/savings_account_list.dart';
+import '../widgets/investment_list.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -52,6 +53,7 @@ class _HomePageState extends State<HomePage> {
           children: [
             PatrimoineHeader(patrimoineTotal: patrimoineTotal),
             SavingsAccountList(accounts: userAccounts),
+            const InvestmentList(),
           ],
         ),
       ),
