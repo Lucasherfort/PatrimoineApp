@@ -1,37 +1,48 @@
 import '../models/local_database.dart';
-import '../models/user_savings_account.dart';
-import '../models/savings_account.dart';
-import '../models/bank.dart';
 
 class PatrimoineService {
   final LocalDatabase db;
 
   PatrimoineService(this.db);
 
-  // Tous les comptes d'un user
-  List<UserSavingsAccount> getAccountsForUser(int userId) {
-    return db.userSavingsAccounts
+  double getTotalPatrimoineForUser(int userId) {
+    final accounts = db.userSavingsAccounts
         .where((usa) => usa.userId == userId)
         .toList();
+
+    return accounts.fold(0.0, (total, account) => total + account.balance);
   }
 
-  // Compte épargne
-  SavingsAccount getSavingsAccountById(int id) {
-    return db.savingsAccounts.firstWhere((sa) => sa.id == id);
-  }
+  List<UserSavingsAccountView> getAccountsForUser(int userId) {
+    final accounts = db.userSavingsAccounts
+        .where((usa) => usa.userId == userId)
+        .toList();
 
-  // Banque du compte
-  Bank getBankForSavingsAccount(SavingsAccount sa) {
-    return db.banks.firstWhere((b) => b.id == sa.bankId);
+    return accounts.map((usa) {
+      final account = db.savingsAccounts
+          .firstWhere((a) => a.id == usa.savingsAccountId);
+      final bank = db.banks.firstWhere((b) => b.id == account.bankId);
+      return UserSavingsAccountView(
+        balance: usa.balance,
+        interestAccrued: usa.interestAccrued,
+        savingsAccountName: account.name,
+        bankName: bank.name,
+      );
+    }).toList();
   }
+}
 
-  // ✅ Valeur totale d'un user (balance + intérêts)
-  double getTotalPatrimoineForUser(int userId) {
-    final accounts = getAccountsForUser(userId);
-    double total = 0;
-    for (var a in accounts) {
-      total += a.balance + a.interestAccrued;
-    }
-    return total;
-  }
+// Classe view pour l'affichage
+class UserSavingsAccountView {
+  final double balance;
+  final double interestAccrued;
+  final String savingsAccountName;
+  final String bankName;
+
+  UserSavingsAccountView({
+    required this.balance,
+    required this.interestAccrued,
+    required this.savingsAccountName,
+    required this.bankName,
+  });
 }
