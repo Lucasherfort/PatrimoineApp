@@ -23,6 +23,7 @@ class InvestmentDetailPage extends StatefulWidget {
 
 class _InvestmentDetailPageState extends State<InvestmentDetailPage> {
   List<InvestmentPosition> positions = [];
+  UserInvestmentAccountView? accountView;
   bool isLoading = true;
 
   @override
@@ -37,11 +38,18 @@ class _InvestmentDetailPageState extends State<InvestmentDetailPage> {
       final db = await repo.load();
       final service = InvestmentService(db);
 
-      // Utilise la méthode avec Google Sheets
+      // Récupère les positions avec prix
       final data = await service.getPositionsWithPrices(widget.userInvestmentAccountId);
+
+      // Récupère les infos du compte pour le header
+      final accounts = service.getInvestmentAccountsForUser(1); // userId = 1
+      final account = accounts.firstWhere(
+            (acc) => acc.id == widget.userInvestmentAccountId,
+      );
 
       setState(() {
         positions = data;
+        accountView = account;
         isLoading = false;
       });
     } catch (e) {
@@ -54,12 +62,6 @@ class _InvestmentDetailPageState extends State<InvestmentDetailPage> {
 
   @override
   Widget build(BuildContext context) {
-    // Exemple de données du header (à remplacer par tes calculs réels)
-    final cashBalance = 5000.0;
-    final positionsValue = positions.fold(0.0, (sum, p) => sum + p.totalValue);
-    final cumulativeDeposits = 12000.0;
-    final totalProfitLoss = positionsValue + cashBalance - cumulativeDeposits;
-
     return Scaffold(
       appBar: AppBar(
         title: Column(
@@ -86,18 +88,21 @@ class _InvestmentDetailPageState extends State<InvestmentDetailPage> {
             ),
         ],
       ),
-      body: Column(
+      body: isLoading
+          ? const Center(child: CircularProgressIndicator())
+          : Column(
         children: [
-          InvestmentSummaryHeader(
-            cashBalance: cashBalance,
-            positionsValue: positionsValue,
-            totalProfitLoss: totalProfitLoss,
-            cumulativeDeposits: cumulativeDeposits,
-          ),
+          // Header avec résumé
+          if (accountView != null)
+            InvestmentSummaryHeader(
+              account: accountView!,
+              positions: positions,
+            ),
+          // Liste des positions
           Expanded(
             child: InvestmentPositionList(
               positions: positions,
-              isLoading: isLoading,
+              isLoading: false,
             ),
           ),
         ],

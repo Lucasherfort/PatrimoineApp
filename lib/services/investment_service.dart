@@ -70,6 +70,7 @@ class InvestmentService {
         id: uia.id,
         balance: uia.balance,
         latentCapitalGain: uia.latentCapitalGain,
+        cashBalance: uia.cashBalance, // ✅ Ajout
         investmentAccountName: account.name,
         bankName: bank.name,
         positionCount: positionCount,
@@ -98,6 +99,7 @@ class UserInvestmentAccountView {
   final int id;
   final double balance;
   final double latentCapitalGain;
+  final double cashBalance; // ✅ Nouveau champ
   final String investmentAccountName;
   final String bankName;
   final int positionCount;
@@ -106,6 +108,7 @@ class UserInvestmentAccountView {
     required this.id,
     required this.balance,
     required this.latentCapitalGain,
+    required this.cashBalance,
     required this.investmentAccountName,
     required this.bankName,
     required this.positionCount,

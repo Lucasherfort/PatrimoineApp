@@ -2,7 +2,7 @@ class InvestmentPosition {
   final int id;
   final int userInvestmentAccountId;
   final String ticker;
-  String? name; // Peut être mis à jour depuis le sheet
+  String? name; // Récupéré depuis Google Sheet
   final String type;
   final int quantity;
   final double averagePurchasePrice;
@@ -46,7 +46,7 @@ class InvestmentPosition {
         id: json['id'],
         userInvestmentAccountId: json['userInvestmentAccountId'],
         ticker: json['ticker'],
-        name: json['name'],
+        name: json['name'], // Peut être null maintenant
         type: json['type'],
         quantity: json['quantity'],
         averagePurchasePrice: (json['averagePurchasePrice'] as num).toDouble(),
@@ -67,35 +67,28 @@ class InvestmentPosition {
   };
 
   // Méthode pour mettre à jour avec les données du Google Sheet
-  void updateFromSheet(Map<String, dynamic> sheetData)
-  {
+  void updateFromSheet(Map<String, dynamic> sheetData) {
     name = sheetData['name']?.toString() ?? name;
     currency = sheetData['currency']?.toString();
 
     if (sheetData['price'] != null) {
       final priceValue = sheetData['price'].toString();
-
-      // ✅ CORRECTION: Remplace la virgule par un point AVANT de parser
       currentPrice = double.tryParse(priceValue.replaceAll(',', '.').replaceAll(' ', ''));
     }
 
-    if (sheetData['priceopen'] != null)
-    {
+    if (sheetData['priceopen'] != null) {
       final value = sheetData['priceopen'].toString();
       priceOpen = double.tryParse(value.replaceAll(',', '.').replaceAll(' ', ''));
     }
-    if (sheetData['high'] != null)
-    {
+    if (sheetData['high'] != null) {
       final value = sheetData['high'].toString();
       high = double.tryParse(value.replaceAll(',', '.').replaceAll(' ', ''));
     }
-    if (sheetData['low'] != null)
-    {
+    if (sheetData['low'] != null) {
       final value = sheetData['low'].toString();
       low = double.tryParse(value.replaceAll(',', '.').replaceAll(' ', ''));
     }
-    if (sheetData['volume'] != null)
-    {
+    if (sheetData['volume'] != null) {
       final value = sheetData['volume'].toString();
       volume = int.tryParse(value.replaceAll(',', '').replaceAll(' ', ''));
     }

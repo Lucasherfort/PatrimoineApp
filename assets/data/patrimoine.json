@@ -20,7 +20,7 @@
     {"id": 2, "name": "Assurance Vie", "cap": 999999999, "bankId": 1}
   ],
   "userInvestmentAccounts": [
-    {"id": 1, "userId": 1, "investmentAccountId": 1, "balance": 24000, "latentCapitalGain": 3500}
+    {"id": 1, "userId": 1, "investmentAccountId": 1, "balance": 24000, "latentCapitalGain": 3500, "cashBalance": 144.69}
   ],
   "investmentPositions": [
     {

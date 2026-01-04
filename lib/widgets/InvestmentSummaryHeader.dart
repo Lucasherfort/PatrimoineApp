@@ -1,18 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import '../services/investment_service.dart';
+import '../models/investment_position.dart';
 
 class InvestmentSummaryHeader extends StatelessWidget {
-  final double cashBalance;
-  final double positionsValue;
-  final double totalProfitLoss;
-  final double cumulativeDeposits;
+  final UserInvestmentAccountView account;
+  final List<InvestmentPosition> positions;
 
   const InvestmentSummaryHeader({
     super.key,
-    required this.cashBalance,
-    required this.positionsValue,
-    required this.totalProfitLoss,
-    required this.cumulativeDeposits,
+    required this.account,
+    required this.positions,
   });
 
   String _formatAmount(double amount) {
@@ -24,10 +22,25 @@ class InvestmentSummaryHeader extends StatelessWidget {
     return formatter.format(amount).trim();
   }
 
+  // Calcule la valeur totale des positions (titres)
+  double get positionsValue {
+    return positions.fold(0.0, (sum, position) => sum + position.totalValue);
+  }
+
+  // Calcule la valeur totale (espèces + titres)
+  double get totalValue => account.cashBalance + positionsValue;
+
+  // Calcule les plus-values totales
+  double get totalProfitLoss {
+    return positions.fold(0.0, (sum, position) => sum + position.latentGain);
+  }
+
+  // Calcule les versements cumulés (valeur actuelle - plus-values)
+  double get cumulativeDeposits => totalValue - totalProfitLoss;
+
   @override
   Widget build(BuildContext context) {
     final isProfit = totalProfitLoss >= 0;
-    final totalValue = cashBalance + positionsValue;
 
     return Container(
       margin: const EdgeInsets.all(16),
@@ -124,7 +137,7 @@ class InvestmentSummaryHeader extends StatelessWidget {
                   child: _buildMetric(
                     icon: Icons.account_balance_wallet,
                     label: "Espèces",
-                    value: "${_formatAmount(cashBalance)} €",
+                    value: "${_formatAmount(account.cashBalance)} €",
                   ),
                 ),
                 Container(
