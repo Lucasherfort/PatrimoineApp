@@ -17,7 +17,12 @@ class PatrimoineService {
         .where((uia) => uia.userId == userId)
         .fold(0.0, (total, account) => total + account.balance);
 
-    return savingsTotal + investmentsTotal;
+    // Total titres restaurant ✅ AJOUT
+    final vouchersTotal = db.userRestaurantVouchers
+        .where((urv) => urv.userId == userId)
+        .fold(0.0, (total, voucher) => total + voucher.balance);
+
+    return savingsTotal + investmentsTotal + vouchersTotal;
   }
 
   List<UserSavingsAccountView> getAccountsForUser(int userId) {

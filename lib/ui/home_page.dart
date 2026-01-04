@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../repositories/local_database_repository.dart';
 import '../services/patrimoine_service.dart';
 import '../widgets/patrimoine_header.dart';
+import '../widgets/restaurant_voucher_list.dart';
 import '../widgets/savings_account_list.dart';
 import '../widgets/investment_list.dart';
 
@@ -55,6 +56,7 @@ class _HomePageState extends State<HomePage> {
             PatrimoineHeader(patrimoineTotal: patrimoineTotal),
             SavingsAccountList(accounts: userAccounts),
             const InvestmentList(userId: 1), // ✅ Ajout du userId
+            RestaurantVoucherList(userId: 1), // ✅ Nouvelle section
           ],
         ),
       ),

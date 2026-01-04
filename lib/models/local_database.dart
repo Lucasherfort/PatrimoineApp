@@ -1,9 +1,11 @@
-import 'Bank.dart';
+import 'bank.dart';
 import 'savings_account.dart';
 import 'user_savings_account.dart';
 import 'investment_account.dart';
 import 'user_investment_account.dart';
 import 'investment_position.dart';
+import 'restaurant_voucher.dart';
+import 'user_restaurant_voucher.dart';
 
 class LocalDatabase {
   final List<Bank> banks;
@@ -12,6 +14,8 @@ class LocalDatabase {
   final List<InvestmentAccount> investmentAccounts;
   final List<UserInvestmentAccount> userInvestmentAccounts;
   final List<InvestmentPosition> investmentPositions;
+  final List<RestaurantVoucher> restaurantVouchers;
+  final List<UserRestaurantVoucher> userRestaurantVouchers;
 
   LocalDatabase({
     required this.banks,
@@ -20,6 +24,8 @@ class LocalDatabase {
     required this.investmentAccounts,
     required this.userInvestmentAccounts,
     required this.investmentPositions,
+    required this.restaurantVouchers,
+    required this.userRestaurantVouchers,
   });
 
   factory LocalDatabase.fromJson(Map<String, dynamic> json) {
@@ -42,6 +48,12 @@ class LocalDatabase {
       investmentPositions: (json['investmentPositions'] as List)
           .map((ip) => InvestmentPosition.fromJson(ip))
           .toList(),
+      restaurantVouchers: (json['restaurantVouchers'] as List)
+          .map((rv) => RestaurantVoucher.fromJson(rv))
+          .toList(),
+      userRestaurantVouchers: (json['userRestaurantVouchers'] as List)
+          .map((urv) => UserRestaurantVoucher.fromJson(urv))
+          .toList(),
     );
   }
 
@@ -52,9 +64,10 @@ class LocalDatabase {
     'investmentAccounts': investmentAccounts.whereType<InvestmentAccount>().map((ia) => ia.toJson()).toList(),
     'userInvestmentAccounts': userInvestmentAccounts.whereType<UserInvestmentAccount>().map((uia) => uia.toJson()).toList(),
     'investmentPositions': investmentPositions.whereType<InvestmentPosition>().map((ip) => ip.toJson()).toList(),
+    'restaurantVouchers': restaurantVouchers.whereType<RestaurantVoucher>().map((rv) => rv.toJson()).toList(),
+    'userRestaurantVouchers': userRestaurantVouchers.whereType<UserRestaurantVoucher>().map((urv) => urv.toJson()).toList(),
   };
 
-  /// Factory pour retourner une base vide (premier lancement)
   factory LocalDatabase.empty() {
     return LocalDatabase(
       banks: [],
@@ -63,6 +76,8 @@ class LocalDatabase {
       investmentAccounts: [],
       userInvestmentAccounts: [],
       investmentPositions: [],
+      restaurantVouchers: [],
+      userRestaurantVouchers: [],
     );
   }
 }
