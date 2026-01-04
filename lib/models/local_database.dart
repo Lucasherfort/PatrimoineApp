@@ -6,9 +6,13 @@ import 'user_investment_account.dart';
 import 'investment_position.dart';
 import 'restaurant_voucher.dart';
 import 'user_restaurant_voucher.dart';
+import 'cash_account.dart';
+import 'user_cash_account.dart';
 
 class LocalDatabase {
   final List<Bank> banks;
+  final List<CashAccount> cashAccounts;
+  final List<UserCashAccount> userCashAccounts;
   final List<SavingsAccount> savingsAccounts;
   final List<UserSavingsAccount> userSavingsAccounts;
   final List<InvestmentAccount> investmentAccounts;
@@ -19,6 +23,8 @@ class LocalDatabase {
 
   LocalDatabase({
     required this.banks,
+    required this.cashAccounts,
+    required this.userCashAccounts,
     required this.savingsAccounts,
     required this.userSavingsAccounts,
     required this.investmentAccounts,
@@ -32,6 +38,12 @@ class LocalDatabase {
     return LocalDatabase(
       banks: (json['banks'] as List)
           .map((b) => Bank.fromJson(b))
+          .toList(),
+      cashAccounts: (json['cashAccounts'] as List)
+          .map((ca) => CashAccount.fromJson(ca))
+          .toList(),
+      userCashAccounts: (json['userCashAccounts'] as List)
+          .map((uca) => UserCashAccount.fromJson(uca))
           .toList(),
       savingsAccounts: (json['savingsAccounts'] as List)
           .map((sa) => SavingsAccount.fromJson(sa))
@@ -59,6 +71,8 @@ class LocalDatabase {
 
   Map<String, dynamic> toJson() => {
     'banks': banks.whereType<Bank>().map((b) => b.toJson()).toList(),
+    'cashAccounts': cashAccounts.whereType<CashAccount>().map((ca) => ca.toJson()).toList(),
+    'userCashAccounts': userCashAccounts.whereType<UserCashAccount>().map((uca) => uca.toJson()).toList(),
     'savingsAccounts': savingsAccounts.whereType<SavingsAccount>().map((sa) => sa.toJson()).toList(),
     'userSavingsAccounts': userSavingsAccounts.whereType<UserSavingsAccount>().map((usa) => usa.toJson()).toList(),
     'investmentAccounts': investmentAccounts.whereType<InvestmentAccount>().map((ia) => ia.toJson()).toList(),
@@ -71,6 +85,8 @@ class LocalDatabase {
   factory LocalDatabase.empty() {
     return LocalDatabase(
       banks: [],
+      cashAccounts: [],
+      userCashAccounts: [],
       savingsAccounts: [],
       userSavingsAccounts: [],
       investmentAccounts: [],

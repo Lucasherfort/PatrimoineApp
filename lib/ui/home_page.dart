@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../repositories/local_database_repository.dart';
 import '../services/patrimoine_service.dart';
+import '../widgets/cash_account_list.dart';
 import '../widgets/patrimoine_header.dart';
 import '../widgets/restaurant_voucher_list.dart';
 import '../widgets/savings_account_list.dart';
@@ -54,6 +55,7 @@ class _HomePageState extends State<HomePage> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             PatrimoineHeader(patrimoineTotal: patrimoineTotal),
+            CashAccountList(userId: 1), // ✅ PREMIÈRE section
             SavingsAccountList(accounts: userAccounts),
             const InvestmentList(userId: 1), // ✅ Ajout du userId
             RestaurantVoucherList(userId: 1), // ✅ Nouvelle section

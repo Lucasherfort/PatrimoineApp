@@ -6,6 +6,12 @@ class PatrimoineService {
   PatrimoineService(this.db);
 
   double getTotalPatrimoineForUser(int userId) {
+
+    // Total espèces ✅ AJOUT
+    final cashTotal = db.userCashAccounts
+        .where((uca) => uca.userId == userId)
+        .fold(0.0, (total, account) => total + account.balance);
+
     // Total épargne (balance + intérêts)
     final savingsTotal = db.userSavingsAccounts
         .where((usa) => usa.userId == userId)
@@ -22,7 +28,7 @@ class PatrimoineService {
         .where((urv) => urv.userId == userId)
         .fold(0.0, (total, voucher) => total + voucher.balance);
 
-    return savingsTotal + investmentsTotal + vouchersTotal;
+    return cashTotal + savingsTotal + investmentsTotal + vouchersTotal;
   }
 
   List<UserSavingsAccountView> getAccountsForUser(int userId) {

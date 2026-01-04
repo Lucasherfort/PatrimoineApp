@@ -3,18 +3,24 @@
     {"id": 1, "name": "Boursorama"},
     {"id": 2, "name": "Fortuneo"}
   ],
+  "cashAccounts": [
+    {"id": 1, "name": "Compte espèces", "bankId": 1}
+  ],
+  "userCashAccounts": [
+    {"id": 1, "userId": 1, "cashAccountId": 1, "balance": 296.83}
+  ],
   "savingsAccounts": [
-    {"id": 1, "name": "Livret A", "interestRate": 1.7, "cap": 22950, "bankId": 1}
+    {"id": 1, "name": "Livret A", "interestRate": 3.0, "cap": 22950, "bankId": 1}
   ],
   "userSavingsAccounts": [
-    {"id": 1, "userId": 1, "savingsAccountId": 1, "balance": 22388.22, "interestAccrued": 450}
+    {"id": 1, "userId": 1, "savingsAccountId": 1, "balance": 15000, "interestAccrued": 450}
   ],
   "investmentAccounts": [
     {"id": 1, "name": "PEA", "cap": 150000, "bankId": 1},
     {"id": 2, "name": "Assurance Vie", "cap": 999999999, "bankId": 1}
   ],
   "userInvestmentAccounts": [
-    {"id": 1, "userId": 1, "investmentAccountId": 1, "balance": 24000, "latentCapitalGain": 1704.45}
+    {"id": 1, "userId": 1, "investmentAccountId": 1, "balance": 25000, "latentCapitalGain": 3500}
   ],
   "investmentPositions": [
     {
