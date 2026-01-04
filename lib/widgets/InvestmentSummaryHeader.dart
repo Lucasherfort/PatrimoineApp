@@ -35,9 +35,6 @@ class InvestmentSummaryHeader extends StatelessWidget {
     return positions.fold(0.0, (sum, position) => sum + position.latentGain);
   }
 
-  // Calcule les versements cumulés (valeur actuelle - plus-values)
-  double get cumulativeDeposits => totalValue - totalProfitLoss;
-
   @override
   Widget build(BuildContext context) {
     final isProfit = totalProfitLoss >= 0;
@@ -161,7 +158,7 @@ class InvestmentSummaryHeader extends StatelessWidget {
                   child: _buildMetric(
                     icon: Icons.savings,
                     label: "Versements",
-                    value: "${_formatAmount(cumulativeDeposits)} €",
+                    value: "${_formatAmount(account.cumulativeDeposits)} €", // ✅ Utilise la vraie valeur fixe
                   ),
                 ),
               ],

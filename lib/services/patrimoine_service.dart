@@ -7,7 +7,7 @@ class PatrimoineService {
 
   double getTotalPatrimoineForUser(int userId) {
 
-    // Total espèces ✅ AJOUT
+    // Total espèces
     final cashTotal = db.userCashAccounts
         .where((uca) => uca.userId == userId)
         .fold(0.0, (total, account) => total + account.balance);
@@ -17,18 +17,31 @@ class PatrimoineService {
         .where((usa) => usa.userId == userId)
         .fold(0.0, (total, account) => total + account.balance + account.interestAccrued);
 
-
-    // Total investissements (balance)
+    // Total investissements = versements cumulés + plus-values latentes
     final investmentsTotal = db.userInvestmentAccounts
         .where((uia) => uia.userId == userId)
-        .fold(0.0, (total, account) => total + account.balance);
+        .fold(0.0, (total, account) => total + account.cumulativeDeposits + account.latentCapitalGain);
 
-    // Total titres restaurant ✅ AJOUT
+    // Total titres restaurant
     final vouchersTotal = db.userRestaurantVouchers
         .where((urv) => urv.userId == userId)
         .fold(0.0, (total, voucher) => total + voucher.balance);
 
     return cashTotal + savingsTotal + investmentsTotal + vouchersTotal;
+  }
+
+  // Récupère le total de l'épargne uniquement
+  double getTotalSavingsForUser(int userId) {
+    return db.userSavingsAccounts
+        .where((usa) => usa.userId == userId)
+        .fold(0.0, (total, account) => total + account.balance + account.interestAccrued);
+  }
+
+  // Récupère le total des investissements uniquement (valeur actuelle)
+  double getTotalInvestmentsForUser(int userId) {
+    return db.userInvestmentAccounts
+        .where((uia) => uia.userId == userId)
+        .fold(0.0, (total, account) => total + account.cumulativeDeposits + account.latentCapitalGain);
   }
 
   List<UserSavingsAccountView> getAccountsForUser(int userId) {

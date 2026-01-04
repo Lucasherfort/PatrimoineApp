@@ -2,15 +2,15 @@ class UserInvestmentAccount {
   final int id;
   final int userId;
   final int investmentAccountId;
-  final double balance;
+  final double cumulativeDeposits; // ✅ Renommé de balance
   final double latentCapitalGain;
-  final double cashBalance; // ✅ Nouveau champ pour les espèces disponibles
+  final double cashBalance;
 
   UserInvestmentAccount({
     required this.id,
     required this.userId,
     required this.investmentAccountId,
-    required this.balance,
+    required this.cumulativeDeposits,
     required this.latentCapitalGain,
     required this.cashBalance,
   });
@@ -20,7 +20,7 @@ class UserInvestmentAccount {
       id: json['id'],
       userId: json['userId'],
       investmentAccountId: json['investmentAccountId'],
-      balance: (json['balance'] as num).toDouble(),
+      cumulativeDeposits: (json['cumulativeDeposits'] as num).toDouble(),
       latentCapitalGain: (json['latentCapitalGain'] as num).toDouble(),
       cashBalance: (json['cashBalance'] as num).toDouble(),
     );
@@ -30,7 +30,7 @@ class UserInvestmentAccount {
     'id': id,
     'userId': userId,
     'investmentAccountId': investmentAccountId,
-    'balance': balance,
+    'cumulativeDeposits': cumulativeDeposits,
     'latentCapitalGain': latentCapitalGain,
     'cashBalance': cashBalance,
   };

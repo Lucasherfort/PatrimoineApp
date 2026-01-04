@@ -115,9 +115,9 @@ class _InvestmentListState extends State<InvestmentList> {
                 name: account.investmentAccountName,
                 type: account.investmentAccountName,
                 bankName: account.bankName,
-                value: account.balance,
-                performance: account.balance > 0
-                    ? (account.latentCapitalGain / account.balance) * 100
+                value: account.cumulativeDeposits, // ✅ Changé de balance à cumulativeDeposits
+                performance: account.cumulativeDeposits > 0
+                    ? (account.latentCapitalGain / account.cumulativeDeposits) * 100
                     : 0.0,
               )),
         ],

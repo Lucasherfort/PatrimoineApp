@@ -68,9 +68,9 @@ class InvestmentService {
 
       return UserInvestmentAccountView(
         id: uia.id,
-        balance: uia.balance,
+        cumulativeDeposits: uia.cumulativeDeposits, // ✅ Changé
         latentCapitalGain: uia.latentCapitalGain,
-        cashBalance: uia.cashBalance, // ✅ Ajout
+        cashBalance: uia.cashBalance,
         investmentAccountName: account.name,
         bankName: bank.name,
         positionCount: positionCount,
@@ -83,7 +83,7 @@ class InvestmentService {
         .where((uia) => uia.userId == userId)
         .toList();
 
-    return accounts.fold(0.0, (sum, account) => sum + account.balance);
+    return accounts.fold(0.0, (sum, account) => sum + account.cumulativeDeposits); // ✅ Changé
   }
 
   double getTotalLatentCapitalGain(int userId) {
@@ -97,16 +97,16 @@ class InvestmentService {
 
 class UserInvestmentAccountView {
   final int id;
-  final double balance;
+  final double cumulativeDeposits; // ✅ Renommé de balance
   final double latentCapitalGain;
-  final double cashBalance; // ✅ Nouveau champ
+  final double cashBalance;
   final String investmentAccountName;
   final String bankName;
   final int positionCount;
 
   UserInvestmentAccountView({
     required this.id,
-    required this.balance,
+    required this.cumulativeDeposits,
     required this.latentCapitalGain,
     required this.cashBalance,
     required this.investmentAccountName,
