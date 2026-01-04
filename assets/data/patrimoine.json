@@ -26,23 +26,11 @@
     {
       "id": 1,
       "userInvestmentAccountId": 1,
-      "ticker": "CW8",
-      "name": "Amundi MSCI World",
+      "ticker": "DCAM",
+      "name": null,
       "type": "ETF",
-      "isinCode": "LU1681043599",
-      "quantity": 50,
-      "averagePurchasePrice": 450.00,
-      "currentPrice": null
-    },
-    {
-      "id": 2,
-      "userInvestmentAccountId": 1,
-      "ticker": "PAEEM",
-      "name": "Amundi MSCI Emerging Markets",
-      "type": "ETF",
-      "isinCode": "FR0013412020",
-      "quantity": 30,
-      "averagePurchasePrice": 80.00,
+      "quantity": 2370,
+      "averagePurchasePrice": 5.23,
       "currentPrice": null
     }
   ],

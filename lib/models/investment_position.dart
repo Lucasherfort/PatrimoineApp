@@ -1,24 +1,34 @@
 class InvestmentPosition {
   final int id;
   final int userInvestmentAccountId;
-  final String ticker; // Ex: "CW8", "PAEEM"
-  final String name; // Ex: "MSCI World", "Amundi MSCI EM"
-  final String type; // "ETF", "Action", "Obligation", "Fonds"
-  final String? isinCode; // Code ISIN pour récupérer le cours
+  final String ticker;
+  String? name; // Peut être mis à jour depuis le sheet
+  final String type;
   final int quantity;
-  final double averagePurchasePrice; // PRU (Prix de Revient Unitaire)
-  final double? currentPrice; // Prix actuel (peut être null avant scraping)
+  final double averagePurchasePrice;
+  double? currentPrice;
+
+  // Nouvelles infos depuis Google Sheet
+  String? currency;
+  double? priceOpen;
+  double? high;
+  double? low;
+  int? volume;
 
   InvestmentPosition({
     required this.id,
     required this.userInvestmentAccountId,
     required this.ticker,
-    required this.name,
+    this.name,
     required this.type,
-    this.isinCode,
     required this.quantity,
     required this.averagePurchasePrice,
     this.currentPrice,
+    this.currency,
+    this.priceOpen,
+    this.high,
+    this.low,
+    this.volume,
   });
 
   // Valeur totale de la position
@@ -38,7 +48,6 @@ class InvestmentPosition {
         ticker: json['ticker'],
         name: json['name'],
         type: json['type'],
-        isinCode: json['isinCode'],
         quantity: json['quantity'],
         averagePurchasePrice: (json['averagePurchasePrice'] as num).toDouble(),
         currentPrice: json['currentPrice'] != null
@@ -52,9 +61,45 @@ class InvestmentPosition {
     'ticker': ticker,
     'name': name,
     'type': type,
-    'isinCode': isinCode,
     'quantity': quantity,
     'averagePurchasePrice': averagePurchasePrice,
     'currentPrice': currentPrice,
   };
+
+  // Méthode pour mettre à jour avec les données du Google Sheet
+  void updateFromSheet(Map<String, dynamic> sheetData) {
+    print('🔄 Mise à jour position $ticker avec données: $sheetData');
+
+    name = sheetData['name']?.toString() ?? name;
+    currency = sheetData['currency']?.toString();
+
+    if (sheetData['price'] != null) {
+      final priceValue = sheetData['price'].toString();
+      print('💰 Prix brut reçu pour $ticker: "$priceValue"');
+      // ✅ CORRECTION: Remplace la virgule par un point AVANT de parser
+      currentPrice = double.tryParse(priceValue.replaceAll(',', '.').replaceAll(' ', ''));
+      print('💰 Prix converti pour $ticker: $currentPrice');
+    } else {
+      print('⚠️ Pas de prix trouvé pour $ticker');
+    }
+
+    if (sheetData['priceopen'] != null) {
+      final value = sheetData['priceopen'].toString();
+      priceOpen = double.tryParse(value.replaceAll(',', '.').replaceAll(' ', ''));
+    }
+    if (sheetData['high'] != null) {
+      final value = sheetData['high'].toString();
+      high = double.tryParse(value.replaceAll(',', '.').replaceAll(' ', ''));
+    }
+    if (sheetData['low'] != null) {
+      final value = sheetData['low'].toString();
+      low = double.tryParse(value.replaceAll(',', '.').replaceAll(' ', ''));
+    }
+    if (sheetData['volume'] != null) {
+      final value = sheetData['volume'].toString();
+      volume = int.tryParse(value.replaceAll(',', '').replaceAll(' ', ''));
+    }
+
+    print('✅ Position $ticker mise à jour - Prix actuel: $currentPrice');
+  }
 }

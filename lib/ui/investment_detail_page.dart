@@ -36,7 +36,8 @@ class _InvestmentDetailPageState extends State<InvestmentDetailPage> {
       final db = await repo.load();
       final service = InvestmentService(db);
 
-      final data = service.getPositionsForAccount(widget.userInvestmentAccountId);
+      // Utilise la méthode avec Google Sheets
+      final data = await service.getPositionsWithPrices(widget.userInvestmentAccountId);
 
       setState(() {
         positions = data;
@@ -74,7 +75,7 @@ class _InvestmentDetailPageState extends State<InvestmentDetailPage> {
                 });
                 _loadPositions();
               },
-              tooltip: 'Actualiser',
+              tooltip: 'Actualiser les cours',
             ),
         ],
       ),

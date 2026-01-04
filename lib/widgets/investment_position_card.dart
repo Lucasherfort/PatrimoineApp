@@ -24,6 +24,7 @@ class InvestmentPositionCard extends StatelessWidget {
     final hasPrice = position.currentPrice != null;
     final isPositive = position.latentGain >= 0;
 
+
     return Card(
       margin: const EdgeInsets.only(bottom: 12),
       elevation: 2,
@@ -56,7 +57,7 @@ class InvestmentPositionCard extends StatelessWidget {
                 const SizedBox(width: 8),
                 Expanded(
                   child: Text(
-                    position.name,
+                    position.name ?? position.ticker, // ✅ Correction ici
                     style: const TextStyle(
                       fontWeight: FontWeight.bold,
                       fontSize: 16,

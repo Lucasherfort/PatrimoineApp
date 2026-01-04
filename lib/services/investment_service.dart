@@ -1,16 +1,54 @@
 import '../models/local_database.dart';
 import '../models/investment_position.dart';
+import 'google_sheet_service.dart';
 
 class InvestmentService {
   final LocalDatabase db;
+  final GoogleSheetsService sheetsService;
 
-  InvestmentService(this.db);
+  InvestmentService(this.db)
+      : sheetsService = GoogleSheetsService();
 
   // Récupère les positions pour un compte d'investissement spécifique
   List<InvestmentPosition> getPositionsForAccount(int userInvestmentAccountId) {
     return db.investmentPositions
         .where((pos) => pos.userInvestmentAccountId == userInvestmentAccountId)
         .toList();
+  }
+
+  // Récupère les positions avec les prix depuis Google Sheets
+  Future<List<InvestmentPosition>> getPositionsWithPrices(int userInvestmentAccountId) async {
+    final positions = getPositionsForAccount(userInvestmentAccountId);
+
+    if (positions.isEmpty) {
+      return positions;
+    }
+
+    try {
+      // Récupère tous les ETFs depuis Google Sheets
+      final etfsData = await sheetsService.fetchEtfs();
+
+      // Crée une map pour un accès rapide par ticker
+      final etfsMap = <String, Map<String, dynamic>>{};
+      for (final etf in etfsData) {
+        final ticker = etf['ticker']?.toString().toUpperCase();
+        if (ticker != null) {
+          etfsMap[ticker] = etf;
+        }
+      }
+
+      // Met à jour chaque position avec les données du sheet
+      for (final position in positions) {
+        final etfData = etfsMap[position.ticker.toUpperCase()];
+        if (etfData != null) {
+          position.updateFromSheet(etfData);
+        }
+      }
+    } catch (e) {
+      print('Erreur lors de la récupération des données Google Sheets: $e');
+    }
+
+    return positions;
   }
 
   // Récupère les comptes d'investissement pour un utilisateur
@@ -24,7 +62,6 @@ class InvestmentService {
           .firstWhere((a) => a.id == uia.investmentAccountId);
       final bank = db.banks.firstWhere((b) => b.id == account.bankId);
 
-      // Compte le nombre de positions
       final positionCount = db.investmentPositions
           .where((pos) => pos.userInvestmentAccountId == uia.id)
           .length;
@@ -40,7 +77,6 @@ class InvestmentService {
     }).toList();
   }
 
-  // Calcule le total des investissements pour un utilisateur
   double getTotalInvestmentValue(int userId) {
     final accounts = db.userInvestmentAccounts
         .where((uia) => uia.userId == userId)
@@ -49,7 +85,6 @@ class InvestmentService {
     return accounts.fold(0.0, (sum, account) => sum + account.balance);
   }
 
-  // Calcule le total des plus-values latentes
   double getTotalLatentCapitalGain(int userId) {
     final accounts = db.userInvestmentAccounts
         .where((uia) => uia.userId == userId)
@@ -59,7 +94,6 @@ class InvestmentService {
   }
 }
 
-// Classe view pour l'affichage des comptes d'investissement
 class UserInvestmentAccountView {
   final int id;
   final double balance;
