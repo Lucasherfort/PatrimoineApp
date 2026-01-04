@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 
 class PatrimoineHeader extends StatelessWidget {
   final double patrimoineTotal;
@@ -7,6 +8,15 @@ class PatrimoineHeader extends StatelessWidget {
     super.key,
     required this.patrimoineTotal,
   });
+
+  String _formatAmount(double amount) {
+    final formatter = NumberFormat.currency(
+      locale: 'fr_FR',
+      symbol: '',
+      decimalDigits: 2,
+    );
+    return formatter.format(amount).trim();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -49,7 +59,7 @@ class PatrimoineHeader extends StatelessWidget {
               ),
               const SizedBox(height: 4),
               Text(
-                "${patrimoineTotal.toStringAsFixed(2)} €",
+                "${_formatAmount(patrimoineTotal)} €",
                 style: const TextStyle(
                   fontSize: 28,
                   fontWeight: FontWeight.bold,
