@@ -1,6 +1,4 @@
 import '../models/local_database.dart';
-import '../models/user_restaurant_voucher.dart';
-import '../models/restaurant_voucher.dart';
 
 class RestaurantVoucherService {
   final LocalDatabase db;

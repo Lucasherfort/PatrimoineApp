@@ -67,39 +67,37 @@ class InvestmentPosition {
   };
 
   // Méthode pour mettre à jour avec les données du Google Sheet
-  void updateFromSheet(Map<String, dynamic> sheetData) {
-    print('🔄 Mise à jour position $ticker avec données: $sheetData');
-
+  void updateFromSheet(Map<String, dynamic> sheetData)
+  {
     name = sheetData['name']?.toString() ?? name;
     currency = sheetData['currency']?.toString();
 
     if (sheetData['price'] != null) {
       final priceValue = sheetData['price'].toString();
-      print('💰 Prix brut reçu pour $ticker: "$priceValue"');
+
       // ✅ CORRECTION: Remplace la virgule par un point AVANT de parser
       currentPrice = double.tryParse(priceValue.replaceAll(',', '.').replaceAll(' ', ''));
-      print('💰 Prix converti pour $ticker: $currentPrice');
-    } else {
-      print('⚠️ Pas de prix trouvé pour $ticker');
     }
 
-    if (sheetData['priceopen'] != null) {
+    if (sheetData['priceopen'] != null)
+    {
       final value = sheetData['priceopen'].toString();
       priceOpen = double.tryParse(value.replaceAll(',', '.').replaceAll(' ', ''));
     }
-    if (sheetData['high'] != null) {
+    if (sheetData['high'] != null)
+    {
       final value = sheetData['high'].toString();
       high = double.tryParse(value.replaceAll(',', '.').replaceAll(' ', ''));
     }
-    if (sheetData['low'] != null) {
+    if (sheetData['low'] != null)
+    {
       final value = sheetData['low'].toString();
       low = double.tryParse(value.replaceAll(',', '.').replaceAll(' ', ''));
     }
-    if (sheetData['volume'] != null) {
+    if (sheetData['volume'] != null)
+    {
       final value = sheetData['volume'].toString();
       volume = int.tryParse(value.replaceAll(',', '').replaceAll(' ', ''));
     }
-
-    print('✅ Position $ticker mise à jour - Prix actuel: $currentPrice');
   }
 }

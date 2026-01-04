@@ -19,8 +19,6 @@ class GoogleSheetsService {
     final client = await clientViaServiceAccount(credentials, _scopes);
     final sheetsApi = SheetsApi(client);
 
-    print('📊 Récupération des données Google Sheets...');
-
     // Lecture du Sheet
     final response = await sheetsApi.spreadsheets.values.get(
       "1c51XUhRGJctsEY_Q_p2y2yTn4AQlMPveawWnQfq3Py8",
@@ -29,16 +27,13 @@ class GoogleSheetsService {
 
     final rows = response.values;
 
-    print('📊 Nombre de lignes reçues: ${rows?.length ?? 0}');
-
-    if (rows == null || rows.isEmpty) {
-      print('⚠️ Aucune donnée reçue du Google Sheet');
+    if (rows == null || rows.isEmpty)
+    {
       return [];
     }
 
     // La première ligne contient les en-têtes
     final headers = rows.first.map((e) => e.toString().toLowerCase()).toList();
-    print('📋 En-têtes détectés: $headers');
 
     // Convertir les lignes suivantes en Map
     final etfs = rows.skip(1).map((row) {
@@ -51,13 +46,6 @@ class GoogleSheetsService {
       return etf;
     }).toList();
 
-    print('📊 Nombre d\'ETFs récupérés: ${etfs.length}');
-
-    // Affiche les 3 premiers ETFs pour debug
-    for (int i = 0; i < etfs.length && i < 3; i++) {
-      print('ETF $i: ${etfs[i]}');
-    }
-
     return etfs;
   }
 
@@ -67,8 +55,8 @@ class GoogleSheetsService {
       return etfs.firstWhere(
             (etf) => etf['ticker']?.toString().toUpperCase() == ticker.toUpperCase(),
       );
-    } catch (e) {
-      print('⚠️ ETF non trouvé pour ticker: $ticker');
+    } catch (e)
+    {
       return null;
     }
   }

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../models/investment_position.dart';
 import '../services/investment_service.dart';
 import '../repositories/local_database_repository.dart';
+import '../widgets/InvestmentSummaryHeader.dart';
 import '../widgets/investment_position_list.dart';
 
 class InvestmentDetailPage extends StatefulWidget {
@@ -53,6 +54,12 @@ class _InvestmentDetailPageState extends State<InvestmentDetailPage> {
 
   @override
   Widget build(BuildContext context) {
+    // Exemple de données du header (à remplacer par tes calculs réels)
+    final cashBalance = 5000.0;
+    final positionsValue = positions.fold(0.0, (sum, p) => sum + p.totalValue);
+    final cumulativeDeposits = 12000.0;
+    final totalProfitLoss = positionsValue + cashBalance - cumulativeDeposits;
+
     return Scaffold(
       appBar: AppBar(
         title: Column(
@@ -79,9 +86,21 @@ class _InvestmentDetailPageState extends State<InvestmentDetailPage> {
             ),
         ],
       ),
-      body: InvestmentPositionList(
-        positions: positions,
-        isLoading: isLoading,
+      body: Column(
+        children: [
+          InvestmentSummaryHeader(
+            cashBalance: cashBalance,
+            positionsValue: positionsValue,
+            totalProfitLoss: totalProfitLoss,
+            cumulativeDeposits: cumulativeDeposits,
+          ),
+          Expanded(
+            child: InvestmentPositionList(
+              positions: positions,
+              isLoading: isLoading,
+            ),
+          ),
+        ],
       ),
     );
   }
