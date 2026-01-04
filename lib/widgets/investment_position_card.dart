@@ -25,13 +25,13 @@ class InvestmentPositionCard extends StatelessWidget {
     final isPositive = position.latentGain >= 0;
 
     return Card(
-      margin: const EdgeInsets.only(bottom: 12),
+      margin: const EdgeInsets.only(bottom: 10),
       elevation: 2,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(12),
       ),
       child: Padding(
-        padding: const EdgeInsets.all(16.0),
+        padding: const EdgeInsets.all(12.0),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -39,7 +39,7 @@ class InvestmentPositionCard extends StatelessWidget {
             Row(
               children: [
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                  padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 3),
                   decoration: BoxDecoration(
                     color: Colors.blue.shade50,
                     borderRadius: BorderRadius.circular(6),
@@ -49,189 +49,120 @@ class InvestmentPositionCard extends StatelessWidget {
                     style: TextStyle(
                       fontWeight: FontWeight.bold,
                       color: Colors.blue.shade700,
-                      fontSize: 14,
+                      fontSize: 12,
                     ),
                   ),
                 ),
                 const SizedBox(width: 8),
                 Expanded(
-                  child: Text(
-                    position.name ?? position.ticker, // ✅ Correction ici
-                    style: const TextStyle(
-                      fontWeight: FontWeight.bold,
-                      fontSize: 16,
-                    ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        position.name ?? position.ticker,
+                        style: const TextStyle(
+                          fontWeight: FontWeight.bold,
+                          fontSize: 14,
+                        ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                      Text(
+                        position.type,
+                        style: TextStyle(
+                          fontSize: 11,
+                          color: Colors.grey.shade600,
+                        ),
+                      ),
+                    ],
                   ),
                 ),
               ],
             ),
-            const SizedBox(height: 4),
-            Text(
-              position.type,
-              style: TextStyle(
-                fontSize: 12,
-                color: Colors.grey.shade600,
-              ),
-            ),
-            const Divider(height: 24),
+            const Divider(height: 16),
 
-            // Quantité et PRU
+            // Infos compactes en grille 2x2
             Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      "Quantité",
-                      style: TextStyle(
-                        fontSize: 12,
-                        color: Colors.grey.shade600,
-                      ),
-                    ),
-                    const SizedBox(height: 4),
-                    Text(
-                      "${position.quantity}",
-                      style: const TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
-                  ],
+                Expanded(
+                  child: _buildInfoTile(
+                    "Quantité",
+                    "${position.quantity}",
+                    Colors.black87,
+                  ),
                 ),
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.end,
-                  children: [
-                    Text(
-                      "PRU",
-                      style: TextStyle(
-                        fontSize: 12,
-                        color: Colors.grey.shade600,
-                      ),
-                    ),
-                    const SizedBox(height: 4),
-                    Text(
-                      "${_formatAmount(position.averagePurchasePrice)} €",
-                      style: const TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
-                  ],
+                Expanded(
+                  child: _buildInfoTile(
+                    "PRU",
+                    "${_formatAmount(position.averagePurchasePrice)} €",
+                    Colors.black87,
+                  ),
                 ),
               ],
             ),
-            const SizedBox(height: 12),
-
-            // Prix actuel et valeur totale
+            const SizedBox(height: 8),
             Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      "Prix actuel",
-                      style: TextStyle(
-                        fontSize: 12,
-                        color: Colors.grey.shade600,
-                      ),
-                    ),
-                    const SizedBox(height: 4),
-                    Text(
-                      hasPrice
-                          ? "${_formatAmount(position.currentPrice!)} €"
-                          : "N/A",
-                      style: TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.w600,
-                        color: hasPrice ? Colors.blue.shade700 : Colors.grey,
-                      ),
-                    ),
-                  ],
+                Expanded(
+                  child: _buildInfoTile(
+                    "Prix actuel",
+                    hasPrice ? "${_formatAmount(position.currentPrice!)} €" : "N/A",
+                    hasPrice ? Colors.blue.shade700 : Colors.grey,
+                  ),
                 ),
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.end,
-                  children: [
-                    Text(
-                      "Valeur totale",
-                      style: TextStyle(
-                        fontSize: 12,
-                        color: Colors.grey.shade600,
-                      ),
-                    ),
-                    const SizedBox(height: 4),
-                    Text(
-                      "${_formatAmount(position.totalValue)} €",
-                      style: const TextStyle(
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.green,
-                      ),
-                    ),
-                  ],
+                Expanded(
+                  child: _buildInfoTile(
+                    "Valeur",
+                    "${_formatAmount(position.totalValue)} €",
+                    Colors.green.shade700,
+                  ),
                 ),
               ],
             ),
-            const SizedBox(height: 12),
+            const SizedBox(height: 8),
 
-            // Plus-value et performance
+            // Plus-value et performance en ligne
             Container(
-              padding: const EdgeInsets.all(12),
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
               decoration: BoxDecoration(
-                color: isPositive
-                    ? Colors.green.shade50
-                    : Colors.red.shade50,
+                color: isPositive ? Colors.green.shade50 : Colors.red.shade50,
                 borderRadius: BorderRadius.circular(8),
               ),
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
+                  Row(
                     children: [
-                      Text(
-                        "Plus-value latente",
-                        style: TextStyle(
-                          fontSize: 12,
-                          color: isPositive
-                              ? Colors.green.shade700
-                              : Colors.red.shade700,
-                        ),
+                      Icon(
+                        isPositive ? Icons.trending_up : Icons.trending_down,
+                        size: 16,
+                        color: isPositive ? Colors.green.shade700 : Colors.red.shade700,
                       ),
-                      const SizedBox(height: 4),
+                      const SizedBox(width: 4),
                       Text(
                         "${isPositive ? '+' : ''}${_formatAmount(position.latentGain)} €",
                         style: TextStyle(
-                          fontSize: 16,
+                          fontSize: 14,
                           fontWeight: FontWeight.bold,
-                          color: isPositive ? Colors.green : Colors.red,
+                          color: isPositive ? Colors.green.shade700 : Colors.red.shade700,
                         ),
                       ),
                     ],
                   ),
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.end,
-                    children: [
-                      Text(
-                        "Performance",
-                        style: TextStyle(
-                          fontSize: 12,
-                          color: isPositive
-                              ? Colors.green.shade700
-                              : Colors.red.shade700,
-                        ),
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                    decoration: BoxDecoration(
+                      color: isPositive ? Colors.green.shade100 : Colors.red.shade100,
+                      borderRadius: BorderRadius.circular(6),
+                    ),
+                    child: Text(
+                      "${isPositive ? '+' : ''}${position.performance.toStringAsFixed(2)}%",
+                      style: TextStyle(
+                        fontSize: 13,
+                        fontWeight: FontWeight.bold,
+                        color: isPositive ? Colors.green.shade900 : Colors.red.shade900,
                       ),
-                      const SizedBox(height: 4),
-                      Text(
-                        "${isPositive ? '+' : ''}${position.performance.toStringAsFixed(2)}%",
-                        style: TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.bold,
-                          color: isPositive ? Colors.green : Colors.red,
-                        ),
-                      ),
-                    ],
+                    ),
                   ),
                 ],
               ),
@@ -239,6 +170,30 @@ class InvestmentPositionCard extends StatelessWidget {
           ],
         ),
       ),
+    );
+  }
+
+  Widget _buildInfoTile(String label, String value, Color valueColor) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          label,
+          style: TextStyle(
+            fontSize: 10,
+            color: Colors.grey.shade600,
+          ),
+        ),
+        const SizedBox(height: 2),
+        Text(
+          value,
+          style: TextStyle(
+            fontSize: 13,
+            fontWeight: FontWeight.w600,
+            color: valueColor,
+          ),
+        ),
+      ],
     );
   }
 }
