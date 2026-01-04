@@ -35,6 +35,12 @@ class InvestmentSummaryHeader extends StatelessWidget {
     return positions.fold(0.0, (sum, position) => sum + position.latentGain);
   }
 
+  // Calcule le rendement en % (plus-value / versements cumulés)
+  double get performancePercentage {
+    if (account.cumulativeDeposits <= 0) return 0.0;
+    return (totalProfitLoss / account.cumulativeDeposits) * 100;
+  }
+
   @override
   Widget build(BuildContext context) {
     final isProfit = totalProfitLoss >= 0;
@@ -145,8 +151,9 @@ class InvestmentSummaryHeader extends StatelessWidget {
                 Expanded(
                   child: _buildMetric(
                     icon: Icons.trending_up,
-                    label: "Titres",
-                    value: "${_formatAmount(positionsValue)} €",
+                    label: "Rendement",
+                    value: "${isProfit ? '+' : ''}${performancePercentage.toStringAsFixed(2)}%",
+                    valueColor: isProfit ? Colors.green.shade300 : Colors.red.shade300,
                   ),
                 ),
                 Container(
@@ -158,7 +165,7 @@ class InvestmentSummaryHeader extends StatelessWidget {
                   child: _buildMetric(
                     icon: Icons.savings,
                     label: "Versements",
-                    value: "${_formatAmount(account.cumulativeDeposits)} €", // ✅ Utilise la vraie valeur fixe
+                    value: "${_formatAmount(account.cumulativeDeposits)} €",
                   ),
                 ),
               ],
@@ -173,6 +180,7 @@ class InvestmentSummaryHeader extends StatelessWidget {
     required IconData icon,
     required String label,
     required String value,
+    Color? valueColor,
   }) {
     return Column(
       children: [
@@ -194,10 +202,10 @@ class InvestmentSummaryHeader extends StatelessWidget {
         const SizedBox(height: 2),
         Text(
           value,
-          style: const TextStyle(
+          style: TextStyle(
             fontSize: 13,
             fontWeight: FontWeight.bold,
-            color: Colors.white,
+            color: valueColor ?? Colors.white,
           ),
           textAlign: TextAlign.center,
         ),
