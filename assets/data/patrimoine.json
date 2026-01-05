@@ -52,6 +52,16 @@
       "quantity": 201,
       "averagePurchasePrice": 17.52,
       "currentPrice": null
+    },
+    {
+      "id": 3,
+      "userInvestmentAccountId": 1,
+      "ticker": "EPA:SAF",
+      "name": null,
+      "type": "Action",
+      "quantity": 8,
+      "averagePurchasePrice": 283.59,
+      "currentPrice": null
     }
   ],
   "restaurantVouchers": [

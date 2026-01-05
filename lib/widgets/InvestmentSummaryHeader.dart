@@ -30,15 +30,15 @@ class InvestmentSummaryHeader extends StatelessWidget {
   // Calcule la valeur totale (espèces + titres)
   double get totalValue => account.cashBalance + positionsValue;
 
-  // Calcule les plus-values totales
+  // ✅ Plus-value = valeur totale - versements
   double get totalProfitLoss {
-    return positions.fold(0.0, (sum, position) => sum + position.latentGain);
+    return totalValue - account.cumulativeDeposits;
   }
 
-  // Calcule le rendement en % (plus-value / versements cumulés)
+  // ✅ Rendement = (valeur totale - versements) / versements * 100
   double get performancePercentage {
     if (account.cumulativeDeposits <= 0) return 0.0;
-    return (totalProfitLoss / account.cumulativeDeposits) * 100;
+    return ((totalValue - account.cumulativeDeposits) / account.cumulativeDeposits) * 100;
   }
 
   @override
