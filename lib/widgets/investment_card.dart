@@ -71,7 +71,7 @@ class InvestmentCard extends StatelessWidget {
                     size: 24,
                   ),
                 ),
-                const SizedBox(width: 12),
+                const SizedBox(width: 8),
 
                 // Infos principales (nom + banque)
                 Expanded(
@@ -117,15 +117,6 @@ class InvestmentCard extends StatelessWidget {
                       ),
                     ),
                   ],
-                ),
-
-                const SizedBox(width: 8),
-
-                // Icône chevron
-                Icon(
-                  Icons.chevron_right,
-                  color: Colors.grey.shade400,
-                  size: 20,
                 ),
               ],
             ),
