@@ -51,7 +51,7 @@ class RestaurantVoucherCard extends StatelessWidget {
 
               // Montant
               Text(
-                "${voucher.balance.toStringAsFixed(2)} €",
+                "${voucher.balance.toStringAsFixed(2).replaceAll('.', ',')} €",
                 style: const TextStyle(
                   fontSize: 16,
                   fontWeight: FontWeight.bold,
