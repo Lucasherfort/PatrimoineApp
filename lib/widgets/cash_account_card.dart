@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 import '../services/cash_account_service.dart';
 
 class CashAccountCard extends StatelessWidget {
@@ -11,6 +12,9 @@ class CashAccountCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final NumberFormat currencyFormat =
+    NumberFormat.currency(locale: 'fr_FR', symbol: '€');
+
     return Container(
       width: double.infinity,
       margin: const EdgeInsets.only(bottom: 10),
@@ -38,20 +42,20 @@ class CashAccountCard extends StatelessWidget {
               ),
               const SizedBox(width: 12),
 
-              // Infos principales (banque + compte)
+              // Infos principales (compte + banque)
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      account.bankName,
+                      account.cashAccountName,
                       style: const TextStyle(
                         fontWeight: FontWeight.bold,
                         fontSize: 15,
                       ),
                     ),
                     Text(
-                      account.cashAccountName,
+                      account.bankName,
                       style: TextStyle(
                         fontSize: 12,
                         color: Colors.grey.shade600,
@@ -61,9 +65,9 @@ class CashAccountCard extends StatelessWidget {
                 ),
               ),
 
-              // Montant à droite
+              // Montant à droite (format français)
               Text(
-                "${account.balance.toStringAsFixed(2)} €",
+                currencyFormat.format(account.balance),
                 style: const TextStyle(
                   fontSize: 16,
                   fontWeight: FontWeight.bold,

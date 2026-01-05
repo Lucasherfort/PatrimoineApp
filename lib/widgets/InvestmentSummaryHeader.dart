@@ -45,13 +45,6 @@ class InvestmentSummaryHeader extends StatelessWidget {
   Widget build(BuildContext context) {
     final isProfit = totalProfitLoss >= 0;
 
-    print('🔍 [Header] Cash Balance: ${account.cashBalance}');
-    print('📈 [Header] Valeur des positions: $positionsValue');
-    print('💵 [Header] Valeur totale: $totalValue');
-    print('📊 [Header] Versements: ${account.cumulativeDeposits}');
-    print('🎯 [Header] Performance: $performancePercentage%');
-    print('---');
-
     return Container(
       margin: const EdgeInsets.all(16),
       decoration: BoxDecoration(
