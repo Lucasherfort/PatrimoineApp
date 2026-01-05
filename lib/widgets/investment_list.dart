@@ -32,7 +32,8 @@ class _InvestmentListState extends State<InvestmentList> {
       final db = await repo.load();
       final service = InvestmentService(db);
 
-      final data = service.getInvestmentAccountsForUser(widget.userId);
+      // ✅ Utilise la nouvelle méthode avec les prix à jour
+      final data = await service.getInvestmentAccountsForUserWithPrices(widget.userId);
 
       setState(() {
         accounts = data;
@@ -81,7 +82,13 @@ class _InvestmentListState extends State<InvestmentList> {
             const Center(
               child: Padding(
                 padding: EdgeInsets.all(20.0),
-                child: CircularProgressIndicator(),
+                child: Column(
+                  children: [
+                    CircularProgressIndicator(),
+                    SizedBox(height: 8),
+                    Text('Récupération des cours...'),
+                  ],
+                ),
               ),
             )
           else if (errorMessage != null)
@@ -115,10 +122,8 @@ class _InvestmentListState extends State<InvestmentList> {
                 name: account.investmentAccountName,
                 type: account.investmentAccountName,
                 bankName: account.bankName,
-                value: account.cumulativeDeposits, // ✅ Changé de balance à cumulativeDeposits
-                performance: account.cumulativeDeposits > 0
-                    ? (account.latentCapitalGain / account.cumulativeDeposits) * 100
-                    : 0.0,
+                totalValue: account.totalValue,
+                performance: account.performance,
               )),
         ],
       ),

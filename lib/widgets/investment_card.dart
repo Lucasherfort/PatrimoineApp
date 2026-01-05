@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 import '../ui/investment_detail_page.dart';
 
 class InvestmentCard extends StatelessWidget {
@@ -6,8 +7,8 @@ class InvestmentCard extends StatelessWidget {
   final String name;
   final String type;
   final String bankName;
-  final double value;
-  final double performance;
+  final double totalValue; // Valeur totale (espèces + titres)
+  final double performance; // Rendement en %
 
   const InvestmentCard({
     super.key,
@@ -15,9 +16,18 @@ class InvestmentCard extends StatelessWidget {
     required this.name,
     required this.type,
     required this.bankName,
-    required this.value,
+    required this.totalValue,
     required this.performance,
   });
+
+  String _formatAmount(double amount) {
+    final formatter = NumberFormat.currency(
+      locale: 'fr_FR',
+      symbol: '',
+      decimalDigits: 2,
+    );
+    return formatter.format(amount).trim();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -91,7 +101,7 @@ class InvestmentCard extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.end,
                   children: [
                     Text(
-                      "${value.toStringAsFixed(2)} €",
+                      "${_formatAmount(totalValue)} €",
                       style: const TextStyle(
                         fontSize: 16,
                         fontWeight: FontWeight.bold,
