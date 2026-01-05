@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 import '../services/patrimoine_service.dart';
 
 class SavingsAccountCard extends StatelessWidget {
@@ -11,6 +12,9 @@ class SavingsAccountCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final NumberFormat currencyFormat =
+    NumberFormat.currency(locale: 'fr_FR', symbol: '€');
+
     return Container(
       width: double.infinity,
       margin: const EdgeInsets.only(bottom: 10),
@@ -38,20 +42,20 @@ class SavingsAccountCard extends StatelessWidget {
               ),
               const SizedBox(width: 12),
 
-              // Infos principales (banque + compte)
+              // Infos principales (compte + banque)
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      account.bankName,
+                      account.savingsAccountName,
                       style: const TextStyle(
                         fontWeight: FontWeight.bold,
                         fontSize: 15,
                       ),
                     ),
                     Text(
-                      account.savingsAccountName,
+                      account.bankName,
                       style: TextStyle(
                         fontSize: 12,
                         color: Colors.grey.shade600,
@@ -61,12 +65,12 @@ class SavingsAccountCard extends StatelessWidget {
                 ),
               ),
 
-              // Montants à droite
+              // Montants à droite (format français avec espace)
               Column(
                 crossAxisAlignment: CrossAxisAlignment.end,
                 children: [
                   Text(
-                    "${account.balance.toStringAsFixed(2)} €",
+                    currencyFormat.format(account.balance),
                     style: const TextStyle(
                       fontSize: 16,
                       fontWeight: FontWeight.bold,
@@ -74,7 +78,7 @@ class SavingsAccountCard extends StatelessWidget {
                     ),
                   ),
                   Text(
-                    "+${account.interestAccrued.toStringAsFixed(2)} €",
+                    "+${currencyFormat.format(account.interestAccrued)}",
                     style: TextStyle(
                       fontSize: 13,
                       fontWeight: FontWeight.w500,
