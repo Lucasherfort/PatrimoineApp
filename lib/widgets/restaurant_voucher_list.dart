@@ -46,10 +46,36 @@ class _RestaurantVoucherListState extends State<RestaurantVoucherList> {
     }
   }
 
+  void _updateVoucherBalance(String voucherName, double newBalance) async {
+    try {
+      final repo = LocalDatabaseRepository();
+      final db = await repo.load();
+      final service = RestaurantVoucherService(db);
+
+      service.updateVoucherBalance(
+        userId: widget.userId,
+        voucherName: voucherName,
+        newBalance: newBalance,
+      );
+
+      // Recharge la liste avec les nouvelles valeurs
+      final updatedVouchers = service.getVouchersForUser(widget.userId);
+
+      setState(() {
+        vouchers = updatedVouchers;
+      });
+    } catch (e) {
+      // Optionnel : afficher une erreur si update échoue
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Erreur lors de la mise à jour')),
+      );
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.all(16.0),
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -60,12 +86,12 @@ class _RestaurantVoucherListState extends State<RestaurantVoucherList> {
               fontWeight: FontWeight.bold,
             ),
           ),
-          const SizedBox(height: 16),
+          const SizedBox(height: 8),
 
           if (isLoading)
             const Center(
               child: Padding(
-                padding: EdgeInsets.all(20.0),
+                padding: EdgeInsets.all(12.0),
                 child: CircularProgressIndicator(),
               ),
             )
@@ -74,7 +100,7 @@ class _RestaurantVoucherListState extends State<RestaurantVoucherList> {
               child: Column(
                 children: [
                   const Icon(Icons.error_outline, size: 48, color: Colors.red),
-                  const SizedBox(height: 8),
+                  const SizedBox(height: 6),
                   Text(
                     'Erreur de chargement',
                     style: TextStyle(color: Colors.red.shade700),
@@ -85,12 +111,19 @@ class _RestaurantVoucherListState extends State<RestaurantVoucherList> {
           else if (vouchers.isEmpty)
               const Center(
                 child: Padding(
-                  padding: EdgeInsets.all(20.0),
+                  padding: EdgeInsets.all(12.0),
                   child: Text('Aucun titre restaurant'),
                 ),
               )
             else
-              ...vouchers.map((voucher) => RestaurantVoucherCard(voucher: voucher)),
+              ...vouchers.map(
+                    (voucher) => RestaurantVoucherCard(
+                  voucher: voucher,
+                  onValueUpdated: (newValue) {
+                    _updateVoucherBalance(voucher.voucherName, newValue);
+                  },
+                ),
+              ),
         ],
       ),
     );

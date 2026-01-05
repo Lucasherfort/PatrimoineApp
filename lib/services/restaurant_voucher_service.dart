@@ -26,6 +26,23 @@ class RestaurantVoucherService {
         .where((urv) => urv.userId == userId)
         .fold(0.0, (total, voucher) => total + voucher.balance);
   }
+
+  void updateVoucherBalance({
+    required int userId,
+    required String voucherName,
+    required double newBalance,
+  }) {
+    final voucher = db.restaurantVouchers
+        .firstWhere((v) => v.name == voucherName);
+
+    final userVoucher = db.userRestaurantVouchers.firstWhere(
+          (urv) =>
+      urv.userId == userId &&
+          urv.restaurantVoucherId == voucher.id,
+    );
+
+    userVoucher.balance = newBalance;
+  }
 }
 
 class UserRestaurantVoucherView {

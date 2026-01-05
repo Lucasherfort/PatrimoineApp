@@ -2,7 +2,7 @@ class UserRestaurantVoucher {
   final int id;
   final int userId;
   final int restaurantVoucherId;
-  final double balance;
+  double balance; // ⬅️ plus final
 
   UserRestaurantVoucher({
     required this.id,
