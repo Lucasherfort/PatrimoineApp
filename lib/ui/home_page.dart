@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 import '../repositories/local_database_repository.dart';
 import '../services/patrimoine_service.dart';
-import '../widgets/cash_account_list.dart';
 import '../widgets/patrimoine_header.dart';
-import '../widgets/restaurant_voucher_list.dart';
+import '../widgets/cash_account_list.dart';
 import '../widgets/savings_account_list.dart';
 import '../widgets/investment_list.dart';
+import '../widgets/restaurant_voucher_list.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -15,6 +15,7 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> {
+  final int userId = 1;
   double patrimoineTotal = 0.0;
   bool isLoading = true;
   List<UserSavingsAccountView> userAccounts = [];
@@ -28,11 +29,11 @@ class _HomePageState extends State<HomePage> {
   Future<void> _loadPatrimoine() async {
     final repo = LocalDatabaseRepository();
     final db = await repo.load();
-
     final service = PatrimoineService(db);
 
-    final total = service.getTotalPatrimoineForUser(1);
-    final accounts = service.getAccountsForUser(1);
+    // ✅ Maintenant getTotalPatrimoineForUser est async
+    final total = await service.getTotalPatrimoineForUser(userId);
+    final accounts = service.getAccountsForUser(userId);
 
     setState(() {
       patrimoineTotal = total;
@@ -55,10 +56,10 @@ class _HomePageState extends State<HomePage> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             PatrimoineHeader(patrimoineTotal: patrimoineTotal),
-            CashAccountList(userId: 1), // ✅ PREMIÈRE section
+            CashAccountList(userId: userId),
             SavingsAccountList(accounts: userAccounts),
-            const InvestmentList(userId: 1), // ✅ Ajout du userId
-            RestaurantVoucherList(userId: 1), // ✅ Nouvelle section
+            InvestmentList(userId: userId),
+            RestaurantVoucherList(userId: userId),
           ],
         ),
       ),

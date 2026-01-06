@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import '../models/investment_position.dart';
-import '../services/investment_service.dart';
 import '../repositories/local_database_repository.dart';
+import '../services/investment_service.dart';
 import '../widgets/InvestmentSummaryHeader.dart';
 import '../widgets/investment_position_list.dart';
 
@@ -26,37 +26,52 @@ class _InvestmentDetailPageState extends State<InvestmentDetailPage> {
   UserInvestmentAccountView? accountView;
   bool isLoading = true;
 
+  late InvestmentService investmentService;
+
   @override
   void initState() {
     super.initState();
-    _loadPositions();
+    _initServiceAndLoad();
   }
 
-  Future<void> _loadPositions() async {
+  Future<void> _initServiceAndLoad() async {
     try {
       final repo = LocalDatabaseRepository();
       final db = await repo.load();
-      final service = InvestmentService(db);
+      investmentService = InvestmentService(db);
 
-      // Récupère les positions avec prix
-      final data = await service.getPositionsWithPrices(widget.userInvestmentAccountId);
+      await _loadPositionsAndAccount();
+    } catch (e) {
+      print('Erreur initialisation: $e');
+      setState(() {
+        isLoading = false;
+      });
+    }
+  }
 
-      // Récupère les infos du compte pour le header
-      final accounts = service.getInvestmentAccountsForUser(1); // userId = 1
+  Future<void> _loadPositionsAndAccount() async {
+    setState(() => isLoading = true);
+
+    try {
+      // Récupère les positions avec les prix à jour
+      final fetchedPositions = await investmentService.getInvestmentPositions(
+        widget.userInvestmentAccountId,
+      );
+
+      // Récupère la vue du compte correspondant
+      final accounts = await investmentService.getInvestmentAccountsForUserWithPrices(1); // TODO: userId dynamique
       final account = accounts.firstWhere(
             (acc) => acc.id == widget.userInvestmentAccountId,
       );
 
       setState(() {
-        positions = data;
+        positions = fetchedPositions;
         accountView = account;
         isLoading = false;
       });
     } catch (e) {
       print('Erreur chargement positions: $e');
-      setState(() {
-        isLoading = false;
-      });
+      setState(() => isLoading = false);
     }
   }
 
@@ -78,12 +93,7 @@ class _InvestmentDetailPageState extends State<InvestmentDetailPage> {
           if (!isLoading)
             IconButton(
               icon: const Icon(Icons.refresh),
-              onPressed: () {
-                setState(() {
-                  isLoading = true;
-                });
-                _loadPositions();
-              },
+              onPressed: _loadPositionsAndAccount,
               tooltip: 'Actualiser les cours',
             ),
         ],

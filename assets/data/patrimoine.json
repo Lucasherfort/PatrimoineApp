@@ -69,6 +69,6 @@
     {"id": 2, "name": "Edenred"}
   ],
   "userRestaurantVouchers": [
-    {"id": 1, "userId": 1, "restaurantVoucherId": 1, "balance": 104.75}
+    {"id": 1, "userId": 1, "restaurantVoucherId": 1, "balance": 275.75}
   ]
 }

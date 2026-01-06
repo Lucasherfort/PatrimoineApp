@@ -1,5 +1,6 @@
 import '../models/local_database.dart';
 import '../models/investment_position.dart';
+import '../models/user_investment_account.dart';
 import 'google_sheet_service.dart';
 
 class InvestmentService {
@@ -9,15 +10,18 @@ class InvestmentService {
   InvestmentService(this.db)
       : sheetsService = GoogleSheetsService();
 
-  // Récupère les positions pour un compte d'investissement spécifique
+  // ========== Méthodes de base ==========
+
   List<InvestmentPosition> getPositionsForAccount(int userInvestmentAccountId) {
     return db.investmentPositions
         .where((pos) => pos.userInvestmentAccountId == userInvestmentAccountId)
         .toList();
   }
 
-  // Récupère les positions avec les prix depuis Google Sheets
-  Future<List<InvestmentPosition>> getPositionsWithPrices(int userInvestmentAccountId) async {
+  /*
+  Récupère la liste des positions d'un compte d'investissement depuis le googel sheet
+   */
+  Future<List<InvestmentPosition>> getInvestmentPositions(int userInvestmentAccountId) async {
     final positions = getPositionsForAccount(userInvestmentAccountId);
 
     if (positions.isEmpty) {
@@ -48,7 +52,79 @@ class InvestmentService {
     return positions;
   }
 
-  // ✅ Nouvelle méthode pour obtenir les comptes avec les vrais prix
+  // ========== Méthodes de calcul ==========
+
+  /// Récupère la valeur totale des positions d'un compte
+  Future<double> getPositionsValueForAccount(UserInvestmentAccount uia) async {
+    final positions = await getInvestmentPositions(uia.id);
+
+    double result = 0;
+    for(int c = 0 ; c < positions.length ; c++)
+      {
+        result += positions[c].totalValue;
+      }
+
+    return result;
+  }
+
+  /// Récupère la valeur totale d'un compte d'investissement (espèces + titres)
+  Future<double> getTotalValueOfInvestmentAccount(UserInvestmentAccount account) async {
+    final positionsValue = await getPositionsValueForAccount(account);
+    return account.cashBalance + positionsValue;
+  }
+
+  /// Récupère la valeur totale de tous les comptes d'investissement d'un utilisateur
+  Future<double> getUserInvestmentsTotalValue(int userId) async {
+    final accounts = db.userInvestmentAccounts
+        .where((uia) => uia.userId == userId)
+        .toList();
+
+    double total = 0.0;
+
+    for (final account in accounts) {
+      total += await getTotalValueOfInvestmentAccount(account);
+    }
+
+    return total;
+  }
+
+  /// Calcule la plus-value totale d'un utilisateur
+  Future<double> getUserTotalProfitLoss(int userId) async {
+    final accounts = db.userInvestmentAccounts
+        .where((uia) => uia.userId == userId)
+        .toList();
+
+    double totalValue = 0.0;
+    double totalDeposits = 0.0;
+
+    for (final account in accounts) {
+      totalValue += await getTotalValueOfInvestmentAccount(account);
+      totalDeposits += account.cumulativeDeposits;
+    }
+
+    return totalValue - totalDeposits;
+  }
+
+  /// Calcule le rendement total d'un utilisateur en %
+  Future<double> getUserTotalPerformance(int userId) async {
+    final accounts = db.userInvestmentAccounts
+        .where((uia) => uia.userId == userId)
+        .toList();
+
+    double totalValue = 0.0;
+    double totalDeposits = 0.0;
+
+    for (final account in accounts) {
+      totalValue += await getTotalValueOfInvestmentAccount(account);
+      totalDeposits += account.cumulativeDeposits;
+    }
+
+    if (totalDeposits <= 0) return 0.0;
+    return ((totalValue - totalDeposits) / totalDeposits) * 100;
+  }
+
+  // ========== Méthodes pour les vues ==========
+
   Future<List<UserInvestmentAccountView>> getInvestmentAccountsForUserWithPrices(int userId) async {
     final accounts = db.userInvestmentAccounts
         .where((uia) => uia.userId == userId)
@@ -61,37 +137,13 @@ class InvestmentService {
           .firstWhere((a) => a.id == uia.investmentAccountId);
       final bank = db.banks.firstWhere((b) => b.id == account.bankId);
 
-      print('🔍 [InvestmentList] Compte: ${account.name}');
-      print('💰 [InvestmentList] Cash Balance: ${uia.cashBalance}');
-
-      // Récupère les positions avec les prix depuis Google Sheets
-      final positions = await getPositionsWithPrices(uia.id);
-
-      print('📊 [InvestmentList] Nombre de positions: ${positions.length}');
-
+      final positions = await getInvestmentPositions(uia.id);
       final positionCount = positions.length;
-
-      // Calcule la valeur totale des positions avec les vrais prix
-      final positionsValue = positions.fold(0.0, (sum, pos) {
-        print('   - ${pos.ticker}: qty=${pos.quantity}, price=${pos.currentPrice ?? pos.averagePurchasePrice}, total=${pos.totalValue}');
-        return sum + pos.totalValue;
-      });
-
-      print('📈 [InvestmentList] Valeur des positions: $positionsValue');
-
-      // Valeur totale = espèces + valeur des positions
+      final positionsValue = positions.fold(0.0, (sum, pos) => sum + pos.totalValue);
       final totalValue = uia.cashBalance + positionsValue;
-
-      print('💵 [InvestmentList] Valeur totale: $totalValue');
-
-      // Rendement = (valeur totale - versements) / versements * 100
       final performance = uia.cumulativeDeposits > 0
           ? ((totalValue - uia.cumulativeDeposits) / uia.cumulativeDeposits) * 100
           : 0.0;
-
-      print('📊 [InvestmentList] Versements: ${uia.cumulativeDeposits}');
-      print('🎯 [InvestmentList] Performance: $performance%');
-      print('---');
 
       result.add(UserInvestmentAccountView(
         id: uia.id,
@@ -107,65 +159,6 @@ class InvestmentService {
     }
 
     return result;
-  }
-
-  // Ancienne méthode sans les prix (garde pour compatibilité)
-  List<UserInvestmentAccountView> getInvestmentAccountsForUser(int userId) {
-    final accounts = db.userInvestmentAccounts
-        .where((uia) => uia.userId == userId)
-        .toList();
-
-    return accounts.map((uia) {
-      final account = db.investmentAccounts
-          .firstWhere((a) => a.id == uia.investmentAccountId);
-      final bank = db.banks.firstWhere((b) => b.id == account.bankId);
-
-      final positionCount = db.investmentPositions
-          .where((pos) => pos.userInvestmentAccountId == uia.id)
-          .length;
-
-      // Calcul basique sans les prix à jour
-      final positionsValue = db.investmentPositions
-          .where((pos) => pos.userInvestmentAccountId == uia.id)
-          .fold(0.0, (sum, pos) {
-        final currentPrice = pos.currentPrice ?? pos.averagePurchasePrice;
-        return sum + (currentPrice * pos.quantity);
-      });
-
-      final totalValue = uia.cashBalance + positionsValue;
-
-      final performance = uia.cumulativeDeposits > 0
-          ? ((totalValue - uia.cumulativeDeposits) / uia.cumulativeDeposits) * 100
-          : 0.0;
-
-      return UserInvestmentAccountView(
-        id: uia.id,
-        cumulativeDeposits: uia.cumulativeDeposits,
-        latentCapitalGain: uia.latentCapitalGain,
-        cashBalance: uia.cashBalance,
-        investmentAccountName: account.name,
-        bankName: bank.name,
-        positionCount: positionCount,
-        totalValue: totalValue,
-        performance: performance,
-      );
-    }).toList();
-  }
-
-  double getTotalInvestmentValue(int userId) {
-    final accounts = db.userInvestmentAccounts
-        .where((uia) => uia.userId == userId)
-        .toList();
-
-    return accounts.fold(0.0, (sum, account) => sum + account.cumulativeDeposits);
-  }
-
-  double getTotalLatentCapitalGain(int userId) {
-    final accounts = db.userInvestmentAccounts
-        .where((uia) => uia.userId == userId)
-        .toList();
-
-    return accounts.fold(0.0, (sum, account) => sum + account.latentCapitalGain);
   }
 }
 

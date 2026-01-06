@@ -1,12 +1,14 @@
 import '../models/local_database.dart';
+import 'investment_service.dart';
 
 class PatrimoineService {
   final LocalDatabase db;
+  final InvestmentService investmentService;
 
-  PatrimoineService(this.db);
+  PatrimoineService(this.db) : investmentService = InvestmentService(db);
 
-  double getTotalPatrimoineForUser(int userId) {
-
+  /// Calcule le patrimoine total d'un utilisateur
+  Future<double> getTotalPatrimoineForUser(int userId) async {
     // Total espèces
     final cashTotal = db.userCashAccounts
         .where((uca) => uca.userId == userId)
@@ -17,10 +19,8 @@ class PatrimoineService {
         .where((usa) => usa.userId == userId)
         .fold(0.0, (total, account) => total + account.balance + account.interestAccrued);
 
-    // Total investissements = versements cumulés + plus-values latentes
-    final investmentsTotal = db.userInvestmentAccounts
-        .where((uia) => uia.userId == userId)
-        .fold(0.0, (total, account) => total + account.cumulativeDeposits + account.latentCapitalGain);
+    // Total investissements (utilise InvestmentService) ✅
+    final investmentsTotal = await investmentService.getUserInvestmentsTotalValue(userId);
 
     // Total titres restaurant
     final vouchersTotal = db.userRestaurantVouchers
@@ -30,18 +30,14 @@ class PatrimoineService {
     return cashTotal + savingsTotal + investmentsTotal + vouchersTotal;
   }
 
-  // Récupère le total de l'épargne uniquement
   double getTotalSavingsForUser(int userId) {
     return db.userSavingsAccounts
         .where((usa) => usa.userId == userId)
         .fold(0.0, (total, account) => total + account.balance + account.interestAccrued);
   }
 
-  // Récupère le total des investissements uniquement (valeur actuelle)
-  double getTotalInvestmentsForUser(int userId) {
-    return db.userInvestmentAccounts
-        .where((uia) => uia.userId == userId)
-        .fold(0.0, (total, account) => total + account.cumulativeDeposits + account.latentCapitalGain);
+  Future<double> getTotalInvestmentsForUser(int userId) async {
+    return await investmentService.getUserInvestmentsTotalValue(userId);
   }
 
   List<UserSavingsAccountView> getAccountsForUser(int userId) {
@@ -63,7 +59,6 @@ class PatrimoineService {
   }
 }
 
-// Classe view pour l'affichage
 class UserSavingsAccountView {
   final double balance;
   final double interestAccrued;
