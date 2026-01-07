@@ -32,13 +32,18 @@ class RestaurantVoucherService {
 
   // ✅ Méthode pour mettre à jour le solde d'un voucher
   Future<bool> updateVoucherBalance(int voucherId, double newBalance) async {
-    // Trouve le voucher dans la liste
     final voucherIndex = db.userRestaurantVouchers
         .indexWhere((urv) => urv.id == voucherId);
 
     if (voucherIndex != -1) {
-      // Crée une nouvelle instance avec le nouveau solde
       final oldVoucher = db.userRestaurantVouchers[voucherIndex];
+
+      // ✅ Vérifie si la valeur a changé
+      if (oldVoucher.balance == newBalance) {
+        print('ℹ️ Voucher $voucherId: aucun changement (${newBalance} €)');
+        return false; // Pas de changement
+      }
+
       final updatedVoucher = UserRestaurantVoucher(
         id: oldVoucher.id,
         userId: oldVoucher.userId,
@@ -46,18 +51,16 @@ class RestaurantVoucherService {
         balance: newBalance,
       );
 
-      // Remplace dans la liste
       db.userRestaurantVouchers[voucherIndex] = updatedVoucher;
 
-      // Sauvegarde dans le fichier
       final repo = LocalDatabaseRepository();
       await repo.save(db);
 
-      print('✅ Voucher $voucherId mis à jour: $newBalance €');
-      return true; // ✅ Retourne true pour indiquer la mise à jour
+      print('✅ Voucher $voucherId mis à jour: ${oldVoucher.balance} € → $newBalance €');
+      return true;
     }
 
-    return false; // ✅ Retourne false si pas trouvé
+    return false;
   }
 }
 

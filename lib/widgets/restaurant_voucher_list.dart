@@ -54,11 +54,10 @@ class _RestaurantVoucherListState extends State<RestaurantVoucherList> {
     if (voucherService != null) {
       final success = await voucherService!.updateVoucherBalance(voucherId, newBalance);
 
+      // ✅ Ne recharge que si la valeur a changé
       if (success) {
-        // Recharge les données locales
         await _loadVouchers();
 
-        // Notifie le parent (HomePage) pour recharger le patrimoine
         if (widget.onVoucherUpdated != null) {
           widget.onVoucherUpdated!();
         }

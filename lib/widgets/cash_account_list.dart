@@ -54,6 +54,7 @@ class _CashAccountListState extends State<CashAccountList> {
     if (cashAccountService != null) {
       final success = await cashAccountService!.updateCashAccountBalance(accountId, newBalance);
 
+      // ✅ Ne recharge que si la valeur a changé
       if (success) {
         await _loadAccounts();
 

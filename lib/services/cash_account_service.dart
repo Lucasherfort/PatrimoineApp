@@ -41,6 +41,13 @@ class CashAccountService {
 
     if (accountIndex != -1) {
       final oldAccount = db.userCashAccounts[accountIndex];
+
+      // ✅ Vérifie si la valeur a changé
+      if (oldAccount.balance == newBalance) {
+        print('ℹ️ Compte espèces $accountId: aucun changement (${newBalance} €)');
+        return false; // Pas de changement
+      }
+
       final updatedAccount = UserCashAccount(
         id: oldAccount.id,
         userId: oldAccount.userId,
@@ -53,7 +60,7 @@ class CashAccountService {
       final repo = LocalDatabaseRepository();
       await repo.save(db);
 
-      print('✅ Compte espèces $accountId mis à jour: $newBalance €');
+      print('✅ Compte espèces $accountId mis à jour: ${oldAccount.balance} € → $newBalance €');
       return true;
     }
 
