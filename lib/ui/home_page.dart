@@ -50,7 +50,6 @@ class _HomePageState extends State<HomePage> {
         title: const Text("Patrimoine App"),
         elevation: 0,
         actions: [
-          // ✅ Bouton refresh manuel
           IconButton(
             icon: const Icon(Icons.refresh),
             onPressed: _loadPatrimoine,
@@ -69,19 +68,15 @@ class _HomePageState extends State<HomePage> {
             SavingsAccountList(accounts: userAccounts),
             InvestmentList(
               userId: userId,
-              onAccountTap: _onInvestmentAccountTap, // ✅ Callback
+              onAccountTap: _loadPatrimoine,
             ),
-            RestaurantVoucherList(userId: userId),
+            RestaurantVoucherList(
+              userId: userId,
+              onVoucherUpdated: _loadPatrimoine, // ✅ Recharge le patrimoine quand un voucher est modifié
+            ),
           ],
         ),
       ),
     );
-  }
-
-  // ✅ Méthode appelée quand on clique sur un compte d'investissement
-  Future<void> _onInvestmentAccountTap() async {
-    // Attend le retour de la page de détail
-    // Si elle retourne true, on recharge
-    _loadPatrimoine();
   }
 }

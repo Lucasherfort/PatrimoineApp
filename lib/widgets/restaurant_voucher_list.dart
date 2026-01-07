@@ -5,10 +5,12 @@ import 'restaurant_voucher_card.dart';
 
 class RestaurantVoucherList extends StatefulWidget {
   final int userId;
+  final VoidCallback? onVoucherUpdated; // ✅ Callback pour notifier le parent
 
   const RestaurantVoucherList({
     super.key,
     required this.userId,
+    this.onVoucherUpdated,
   });
 
   @override
@@ -19,6 +21,7 @@ class _RestaurantVoucherListState extends State<RestaurantVoucherList> {
   List<UserRestaurantVoucherView> vouchers = [];
   bool isLoading = true;
   String? errorMessage;
+  RestaurantVoucherService? voucherService;
 
   @override
   void initState() {
@@ -36,6 +39,7 @@ class _RestaurantVoucherListState extends State<RestaurantVoucherList> {
 
       setState(() {
         vouchers = data;
+        voucherService = service;
         isLoading = false;
       });
     } catch (e) {
@@ -46,36 +50,26 @@ class _RestaurantVoucherListState extends State<RestaurantVoucherList> {
     }
   }
 
-  void _updateVoucherBalance(String voucherName, double newBalance) async {
-    try {
-      final repo = LocalDatabaseRepository();
-      final db = await repo.load();
-      final service = RestaurantVoucherService(db);
+  Future<void> _updateVoucherBalance(int voucherId, double newBalance) async {
+    if (voucherService != null) {
+      final success = await voucherService!.updateVoucherBalance(voucherId, newBalance);
 
-      service.updateVoucherBalance(
-        userId: widget.userId,
-        voucherName: voucherName,
-        newBalance: newBalance,
-      );
+      if (success) {
+        // Recharge les données locales
+        await _loadVouchers();
 
-      // Recharge la liste avec les nouvelles valeurs
-      final updatedVouchers = service.getVouchersForUser(widget.userId);
-
-      setState(() {
-        vouchers = updatedVouchers;
-      });
-    } catch (e) {
-      // Optionnel : afficher une erreur si update échoue
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Erreur lors de la mise à jour')),
-      );
+        // Notifie le parent (HomePage) pour recharger le patrimoine
+        if (widget.onVoucherUpdated != null) {
+          widget.onVoucherUpdated!();
+        }
+      }
     }
   }
 
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      padding: const EdgeInsets.all(16.0),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -86,12 +80,12 @@ class _RestaurantVoucherListState extends State<RestaurantVoucherList> {
               fontWeight: FontWeight.bold,
             ),
           ),
-          const SizedBox(height: 8),
+          const SizedBox(height: 16),
 
           if (isLoading)
             const Center(
               child: Padding(
-                padding: EdgeInsets.all(12.0),
+                padding: EdgeInsets.all(20.0),
                 child: CircularProgressIndicator(),
               ),
             )
@@ -100,7 +94,7 @@ class _RestaurantVoucherListState extends State<RestaurantVoucherList> {
               child: Column(
                 children: [
                   const Icon(Icons.error_outline, size: 48, color: Colors.red),
-                  const SizedBox(height: 6),
+                  const SizedBox(height: 8),
                   Text(
                     'Erreur de chargement',
                     style: TextStyle(color: Colors.red.shade700),
@@ -111,19 +105,15 @@ class _RestaurantVoucherListState extends State<RestaurantVoucherList> {
           else if (vouchers.isEmpty)
               const Center(
                 child: Padding(
-                  padding: EdgeInsets.all(12.0),
+                  padding: EdgeInsets.all(20.0),
                   child: Text('Aucun titre restaurant'),
                 ),
               )
             else
-              ...vouchers.map(
-                    (voucher) => RestaurantVoucherCard(
-                  voucher: voucher,
-                  onValueUpdated: (newValue) {
-                    _updateVoucherBalance(voucher.voucherName, newValue);
-                  },
-                ),
-              ),
+              ...vouchers.map((voucher) => RestaurantVoucherCard(
+                voucher: voucher,
+                onValueUpdated: (newValue) => _updateVoucherBalance(voucher.id, newValue),
+              )),
         ],
       ),
     );
