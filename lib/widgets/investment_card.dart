@@ -9,7 +9,7 @@ class InvestmentCard extends StatelessWidget {
   final String bankName;
   final double totalValue;
   final double performance;
-  final VoidCallback? onTap; // ✅ Nouveau callback
+  final VoidCallback? onTap;
 
   const InvestmentCard({
     super.key,
@@ -39,8 +39,8 @@ class InvestmentCard extends StatelessWidget {
       width: double.infinity,
       margin: const EdgeInsets.only(bottom: 10),
       child: InkWell(
+        borderRadius: BorderRadius.circular(12),
         onTap: () async {
-          // ✅ Navigue et attend le retour
           final shouldReload = await Navigator.push(
             context,
             MaterialPageRoute(
@@ -52,7 +52,6 @@ class InvestmentCard extends StatelessWidget {
             ),
           );
 
-          // ✅ Si on doit recharger, appelle le callback
           if (shouldReload == true && onTap != null) {
             onTap!();
           }
@@ -122,14 +121,6 @@ class InvestmentCard extends StatelessWidget {
                       ),
                     ),
                   ],
-                ),
-
-                const SizedBox(width: 8),
-
-                Icon(
-                  Icons.chevron_right,
-                  color: Colors.grey.shade400,
-                  size: 20,
                 ),
               ],
             ),
