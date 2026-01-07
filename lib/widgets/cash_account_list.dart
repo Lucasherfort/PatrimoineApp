@@ -5,10 +5,12 @@ import 'cash_account_card.dart';
 
 class CashAccountList extends StatefulWidget {
   final int userId;
+  final VoidCallback? onAccountUpdated;
 
   const CashAccountList({
     super.key,
     required this.userId,
+    this.onAccountUpdated,
   });
 
   @override
@@ -19,6 +21,7 @@ class _CashAccountListState extends State<CashAccountList> {
   List<UserCashAccountView> accounts = [];
   bool isLoading = true;
   String? errorMessage;
+  CashAccountService? cashAccountService;
 
   @override
   void initState() {
@@ -36,6 +39,7 @@ class _CashAccountListState extends State<CashAccountList> {
 
       setState(() {
         accounts = data;
+        cashAccountService = service;
         isLoading = false;
       });
     } catch (e) {
@@ -43,6 +47,20 @@ class _CashAccountListState extends State<CashAccountList> {
         errorMessage = e.toString();
         isLoading = false;
       });
+    }
+  }
+
+  Future<void> _updateAccountBalance(int accountId, double newBalance) async {
+    if (cashAccountService != null) {
+      final success = await cashAccountService!.updateCashAccountBalance(accountId, newBalance);
+
+      if (success) {
+        await _loadAccounts();
+
+        if (widget.onAccountUpdated != null) {
+          widget.onAccountUpdated!();
+        }
+      }
     }
   }
 
@@ -90,7 +108,10 @@ class _CashAccountListState extends State<CashAccountList> {
                 ),
               )
             else
-              ...accounts.map((account) => CashAccountCard(account: account)),
+              ...accounts.map((account) => CashAccountCard(
+                account: account,
+                onValueUpdated: (newValue) => _updateAccountBalance(account.id, newValue),
+              )),
         ],
       ),
     );

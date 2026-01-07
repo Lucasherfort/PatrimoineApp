@@ -64,7 +64,10 @@ class _HomePageState extends State<HomePage> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             PatrimoineHeader(patrimoineTotal: patrimoineTotal),
-            CashAccountList(userId: userId),
+            CashAccountList(
+              userId: userId,
+              onAccountUpdated: _loadPatrimoine, // ✅ Recharge le patrimoine
+            ),
             SavingsAccountList(accounts: userAccounts),
             InvestmentList(
               userId: userId,
