@@ -83,7 +83,7 @@ class SavingsAccountService {
 
     final repo = LocalDatabaseRepository();
     await repo.save(db);
-    
+
     return SavingsAccountUpdateResult(success: true);
   }
 }

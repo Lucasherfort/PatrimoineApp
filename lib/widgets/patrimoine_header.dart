@@ -1,13 +1,20 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
-class PatrimoineHeader extends StatelessWidget {
+class PatrimoineHeader extends StatefulWidget {
   final double patrimoineTotal;
 
   const PatrimoineHeader({
     super.key,
     required this.patrimoineTotal,
   });
+
+  @override
+  State<PatrimoineHeader> createState() => _PatrimoineHeaderState();
+}
+
+class _PatrimoineHeaderState extends State<PatrimoineHeader> {
+  bool _isVisible = true; // ✅ État pour afficher/masquer le montant
 
   String _formatAmount(double amount) {
     final formatter = NumberFormat.currency(
@@ -45,41 +52,81 @@ class PatrimoineHeader extends StatelessWidget {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  "Mon patrimoine",
+                  style: TextStyle(
+                    fontSize: 14,
+                    color: Colors.white.withOpacity(0.9),
+                    fontWeight: FontWeight.w500,
+                    letterSpacing: 0.5,
+                  ),
+                ),
+                const SizedBox(height: 4),
+                // ✅ Montant avec effet de flou si masqué
+                AnimatedSwitcher(
+                  duration: const Duration(milliseconds: 200),
+                  child: _isVisible
+                      ? Text(
+                    "${_formatAmount(widget.patrimoineTotal)} €",
+                    key: const ValueKey('visible'),
+                    style: const TextStyle(
+                      fontSize: 28,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.white,
+                      letterSpacing: -0.5,
+                    ),
+                  )
+                      : Text(
+                    "• • • • • •",
+                    key: const ValueKey('hidden'),
+                    style: const TextStyle(
+                      fontSize: 28,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.white,
+                      letterSpacing: 4,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+          Row(
             children: [
-              Text(
-                "Mon patrimoine",
-                style: TextStyle(
-                  fontSize: 14,
-                  color: Colors.white.withOpacity(0.9),
-                  fontWeight: FontWeight.w500,
-                  letterSpacing: 0.5,
+              // ✅ Bouton pour afficher/masquer
+              InkWell(
+                onTap: () {
+                  setState(() {
+                    _isVisible = !_isVisible;
+                  });
+                },
+                borderRadius: BorderRadius.circular(12),
+                child: Container(
+                  padding: const EdgeInsets.all(8),
+                  child: Icon(
+                    _isVisible ? Icons.visibility : Icons.visibility_off,
+                    color: Colors.white.withOpacity(0.9),
+                    size: 22,
+                  ),
                 ),
               ),
-              const SizedBox(height: 4),
-              Text(
-                "${_formatAmount(patrimoineTotal)} €",
-                style: const TextStyle(
-                  fontSize: 28,
-                  fontWeight: FontWeight.bold,
+              const SizedBox(width: 8),
+              Container(
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: Colors.white.withOpacity(0.2),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: const Icon(
+                  Icons.account_balance_wallet,
                   color: Colors.white,
-                  letterSpacing: -0.5,
+                  size: 28,
                 ),
               ),
             ],
-          ),
-          Container(
-            padding: const EdgeInsets.all(12),
-            decoration: BoxDecoration(
-              color: Colors.white.withOpacity(0.2),
-              borderRadius: BorderRadius.circular(12),
-            ),
-            child: const Icon(
-              Icons.account_balance_wallet,
-              color: Colors.white,
-              size: 28,
-            ),
           ),
         ],
       ),

@@ -9,8 +9,8 @@ class LocalDatabaseRepository {
     try {
       // Essaie d'abord de charger depuis le stockage local
       final localDb = await _loadFromLocal();
-      if (localDb != null) {
-        print('✅ Chargé depuis le stockage local');
+      if (localDb != null)
+      {
         return localDb;
       }
     } catch (e) {
@@ -18,10 +18,9 @@ class LocalDatabaseRepository {
     }
 
     // Si pas de fichier local, charge depuis assets
-    print('📂 Chargement de assets/data/data.json...');
     final jsonString = await rootBundle.loadString('assets/data/patrimoine.json'); // ✅ Changé ici
     final jsonData = json.decode(jsonString);
-    print('✅ Chargé depuis assets');
+
     return LocalDatabase.fromJson(jsonData);
   }
 
@@ -46,6 +45,5 @@ class LocalDatabaseRepository {
     final jsonString = JsonEncoder.withIndent('  ').convert(jsonData);
 
     await file.writeAsString(jsonString);
-    print('✅ Base de données sauvegardée dans: ${file.path}');
   }
 }
