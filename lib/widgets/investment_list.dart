@@ -5,7 +5,7 @@ import 'investment_card.dart';
 
 class InvestmentList extends StatefulWidget {
   final int userId;
-  final VoidCallback? onAccountTap; // ✅ Nouveau paramètre
+  final VoidCallback? onAccountTap;
 
   const InvestmentList({
     super.key,
@@ -34,7 +34,6 @@ class _InvestmentListState extends State<InvestmentList> {
       final db = await repo.load();
       final service = InvestmentService(db);
 
-      // ✅ Utilise la nouvelle méthode avec les prix à jour
       final data = await service.getInvestmentAccountsForUserWithPrices(widget.userId);
 
       setState(() {
@@ -56,27 +55,12 @@ class _InvestmentListState extends State<InvestmentList> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              const Text(
-                "Mes placements financiers",
-                style: TextStyle(
-                  fontSize: 20,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-              if (!isLoading && errorMessage == null)
-                IconButton(
-                  icon: const Icon(Icons.refresh),
-                  onPressed: () {
-                    setState(() {
-                      isLoading = true;
-                    });
-                    _loadInvestmentAccounts();
-                  },
-                ),
-            ],
+          const Text(
+            "Mes placements financiers",
+            style: TextStyle(
+              fontSize: 20,
+              fontWeight: FontWeight.bold,
+            ),
           ),
           const SizedBox(height: 16),
 
@@ -126,7 +110,7 @@ class _InvestmentListState extends State<InvestmentList> {
                 bankName: account.bankName,
                 totalValue: account.totalValue,
                 performance: account.performance,
-                onTap: widget.onAccountTap, // ✅ Passe le callback
+                onTap: widget.onAccountTap,
               )),
         ],
       ),

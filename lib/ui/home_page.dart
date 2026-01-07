@@ -40,6 +40,13 @@ class _HomePageState extends State<HomePage> {
     });
   }
 
+  // ✅ Méthode pour rafraîchir toute la page
+  Future<void> _refreshAll() async {
+    await _loadPatrimoine();
+    // Force le rebuild de tous les widgets enfants
+    setState(() {});
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -54,9 +61,10 @@ class _HomePageState extends State<HomePage> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // ✅ Ajouté le callback onRefresh
+            // ✅ Bouton refresh qui recharge tout
             PatrimoineHeader(
               patrimoineTotal: patrimoineTotal,
+              onRefresh: _refreshAll,
             ),
             CashAccountList(
               userId: userId,

@@ -3,10 +3,12 @@ import 'package:intl/intl.dart';
 
 class PatrimoineHeader extends StatefulWidget {
   final double patrimoineTotal;
+  final VoidCallback? onRefresh;
 
   const PatrimoineHeader({
     super.key,
     required this.patrimoineTotal,
+    this.onRefresh,
   });
 
   @override
@@ -14,7 +16,7 @@ class PatrimoineHeader extends StatefulWidget {
 }
 
 class _PatrimoineHeaderState extends State<PatrimoineHeader> {
-  bool _isVisible = true; // ✅ État pour afficher/masquer le montant
+  bool _isVisible = true;
 
   String _formatAmount(double amount) {
     final formatter = NumberFormat.currency(
@@ -66,7 +68,6 @@ class _PatrimoineHeaderState extends State<PatrimoineHeader> {
                   ),
                 ),
                 const SizedBox(height: 4),
-                // ✅ Montant avec effet de flou si masqué
                 AnimatedSwitcher(
                   duration: const Duration(milliseconds: 200),
                   child: _isVisible
@@ -96,7 +97,22 @@ class _PatrimoineHeaderState extends State<PatrimoineHeader> {
           ),
           Row(
             children: [
-              // ✅ Bouton pour afficher/masquer
+              // Bouton refresh
+              if (widget.onRefresh != null)
+                InkWell(
+                  onTap: widget.onRefresh,
+                  borderRadius: BorderRadius.circular(12),
+                  child: Container(
+                    padding: const EdgeInsets.all(8),
+                    child: Icon(
+                      Icons.refresh,
+                      color: Colors.white.withOpacity(0.9),
+                      size: 22,
+                    ),
+                  ),
+                ),
+              const SizedBox(width: 4),
+              // Bouton visibilité
               InkWell(
                 onTap: () {
                   setState(() {
@@ -114,6 +130,7 @@ class _PatrimoineHeaderState extends State<PatrimoineHeader> {
                 ),
               ),
               const SizedBox(width: 8),
+              // Icône portefeuille
               Container(
                 padding: const EdgeInsets.all(12),
                 decoration: BoxDecoration(
