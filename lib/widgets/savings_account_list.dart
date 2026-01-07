@@ -52,13 +52,28 @@ class _SavingsAccountListState extends State<SavingsAccountList> {
 
   Future<void> _updateAccount(int accountId, double newBalance, double newInterest) async {
     if (savingsAccountService != null) {
-      final success = await savingsAccountService!.updateSavingsAccount(accountId, newBalance, newInterest);
+      final result = await savingsAccountService!.updateSavingsAccount(
+          accountId,
+          newBalance,
+          newInterest
+      );
 
-      if (success) {
+      if (result.success) {
         await _loadAccounts();
 
         if (widget.onAccountUpdated != null) {
           widget.onAccountUpdated!();
+        }
+      } else if (result.error != null) {
+        // ✅ Affiche un message d'erreur à l'utilisateur
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(result.error!),
+              backgroundColor: Colors.red,
+              duration: const Duration(seconds: 4),
+            ),
+          );
         }
       }
     }
