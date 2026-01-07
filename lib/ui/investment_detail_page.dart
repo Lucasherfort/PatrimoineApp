@@ -116,6 +116,8 @@ class _InvestmentDetailPageState extends State<InvestmentDetailPage> {
             child: InvestmentPositionList(
               positions: positions,
               isLoading: false,
+              investmentService: investmentService, // ✅ Passer le service
+              onPositionUpdated: _loadPositionsAndAccount, // ✅ Recharger après modification
             ),
           ),
         ],

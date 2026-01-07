@@ -1,7 +1,5 @@
 import '../models/local_database.dart';
 import '../models/user_savings_account.dart';
-import '../models/savings_account.dart';
-import '../models/bank.dart';
 import '../repositories/local_database_repository.dart';
 
 class SavingsAccountService {

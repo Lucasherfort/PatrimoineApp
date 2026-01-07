@@ -1,15 +1,20 @@
 import 'package:flutter/material.dart';
 import '../models/investment_position.dart';
+import '../services/investment_service.dart';
 import 'investment_position_card.dart';
 
 class InvestmentPositionList extends StatelessWidget {
   final List<InvestmentPosition> positions;
   final bool isLoading;
+  final InvestmentService investmentService;
+  final VoidCallback? onPositionUpdated;
 
   const InvestmentPositionList({
     super.key,
     required this.positions,
     required this.isLoading,
+    required this.investmentService,
+    this.onPositionUpdated,
   });
 
   @override
@@ -42,8 +47,61 @@ class InvestmentPositionList extends StatelessWidget {
       padding: const EdgeInsets.all(16),
       itemCount: positions.length,
       itemBuilder: (context, index) {
-        return InvestmentPositionCard(position: positions[index]);
+        return InvestmentPositionCard(
+          position: positions[index],
+          onValueUpdated: (newPru, newQuantity) {
+            _updatePosition(
+              context,
+              positions[index],
+              newPru,
+              newQuantity,
+            );
+          },
+        );
       },
     );
+  }
+
+  Future<void> _updatePosition(
+      BuildContext context,
+      InvestmentPosition position,
+      double newPru,
+      double newQuantity,
+      ) async {
+    try {
+      final hasChanged = await investmentService.updatePosition(
+        position: position,
+        averagePurchasePrice: newPru,
+        quantity: newQuantity,
+      );
+
+      if (hasChanged && onPositionUpdated != null) {
+        onPositionUpdated!();
+      }
+
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+                hasChanged
+                    ? 'Position ${position.ticker} mise à jour'
+                    : 'Position ${position.ticker} : aucun changement'
+            ),
+            backgroundColor: hasChanged ? Colors.green : Colors.blue,
+            duration: const Duration(seconds: 2),
+          ),
+        );
+      }
+    } catch (e) {
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Erreur lors de la mise à jour : $e'),
+            backgroundColor: Colors.red,
+            duration: const Duration(seconds: 3),
+          ),
+        );
+      }
+    }
   }
 }

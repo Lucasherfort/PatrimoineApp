@@ -1,6 +1,7 @@
 import '../models/local_database.dart';
 import '../models/investment_position.dart';
 import '../models/user_investment_account.dart';
+import '../repositories/local_database_repository.dart';
 import 'google_sheet_service.dart';
 
 class InvestmentService {
@@ -159,6 +160,80 @@ class InvestmentService {
     }
 
     return result;
+  }
+
+  // ========== Méthode de mise à jour ==========
+// À ajouter dans la classe InvestmentService
+
+  /// Met à jour le PRU et la quantité d'une position d'investissement
+  Future<bool> updatePosition({
+    required InvestmentPosition position,
+    required double averagePurchasePrice,
+    required double quantity,
+  }) async {
+    // Trouver l'index de la position dans la base de données
+    final index = db.investmentPositions.indexWhere((p) => p.id == position.id);
+
+    if (index == -1) {
+      throw Exception('Position non trouvée dans la base de données');
+    }
+
+    final oldPosition = db.investmentPositions[index];
+
+    // ✅ Vérifie si les valeurs ont changé
+    if (oldPosition.averagePurchasePrice == averagePurchasePrice &&
+        oldPosition.quantity == quantity) {
+      print('ℹ️ Position ${position.ticker}: aucun changement');
+      return false; // Pas de changement
+    }
+
+    // Créer une nouvelle instance avec les valeurs mises à jour
+    final updatedPosition = InvestmentPosition(
+      id: position.id,
+      userInvestmentAccountId: position.userInvestmentAccountId,
+      ticker: position.ticker,
+      name: position.name,
+      supportType: position.supportType,
+      quantity: quantity, // ✅ Nouvelle quantité
+      averagePurchasePrice: averagePurchasePrice, // ✅ Nouveau PRU
+      currentPrice: position.currentPrice,
+      currency: position.currency,
+      priceOpen: position.priceOpen,
+      high: position.high,
+      low: position.low,
+      volume: position.volume,
+    );
+
+    // Remplacer l'ancienne position par la nouvelle dans la base de données
+    db.investmentPositions[index] = updatedPosition;
+
+    // ✅ Sauvegarder dans le fichier JSON
+    final repo = LocalDatabaseRepository();
+    await repo.save(db);
+
+    print('✅ Position ${position.ticker} mise à jour: '
+        'PRU ${oldPosition.averagePurchasePrice} € → $averagePurchasePrice €, '
+        'Quantité ${oldPosition.quantity} → $quantity');
+
+    return true;
+  }
+
+  /// Variante si vous préférez passer l'ID de la position
+  Future<bool> updatePositionById({
+    required int positionId,
+    required double averagePurchasePrice,
+    required double quantity,
+  }) async {
+    final position = db.investmentPositions.firstWhere(
+          (p) => p.id == positionId,
+      orElse: () => throw Exception('Position non trouvée'),
+    );
+
+    return await updatePosition(
+      position: position,
+      averagePurchasePrice: averagePurchasePrice,
+      quantity: quantity,
+    );
   }
 }
 
