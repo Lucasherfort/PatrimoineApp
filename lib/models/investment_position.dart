@@ -3,8 +3,8 @@ class InvestmentPosition {
   final int userInvestmentAccountId;
   final String ticker;
   String? name; // Récupéré depuis Google Sheet
-  final String type;
-  final int quantity;
+  final String supportType ;
+  final double quantity;
   final double averagePurchasePrice;
   double? currentPrice;
 
@@ -20,7 +20,7 @@ class InvestmentPosition {
     required this.userInvestmentAccountId,
     required this.ticker,
     this.name,
-    required this.type,
+    required this.supportType,
     required this.quantity,
     required this.averagePurchasePrice,
     this.currentPrice,
@@ -47,8 +47,8 @@ class InvestmentPosition {
         userInvestmentAccountId: json['userInvestmentAccountId'],
         ticker: json['ticker'],
         name: json['name'], // Peut être null maintenant
-        type: json['type'],
-        quantity: json['quantity'],
+        supportType: json['type'],
+        quantity: (json['quantity'] as num).toDouble(),
         averagePurchasePrice: (json['averagePurchasePrice'] as num).toDouble(),
         currentPrice: json['currentPrice'] != null
             ? (json['currentPrice'] as num).toDouble()
@@ -60,7 +60,7 @@ class InvestmentPosition {
     'userInvestmentAccountId': userInvestmentAccountId,
     'ticker': ticker,
     'name': name,
-    'type': type,
+    'type': supportType,
     'quantity': quantity,
     'averagePurchasePrice': averagePurchasePrice,
     'currentPrice': currentPrice,

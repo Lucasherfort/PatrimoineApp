@@ -19,6 +19,17 @@ class InvestmentPositionCard extends StatelessWidget {
     return formatter.format(amount).trim();
   }
 
+  // ✅ Nouvelle méthode pour formater la quantité
+  String _formatQuantity(double quantity) {
+    if (quantity % 1 == 0) {
+      // Si c'est un entier (273.0 → 273)
+      return quantity.toInt().toString();
+    } else {
+      // Si c'est un décimal (123.456 → 123.456)
+      return quantity.toStringAsFixed(4).replaceAll(RegExp(r'\.?0+$'), '');
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final hasPrice = position.currentPrice != null;
@@ -68,7 +79,7 @@ class InvestmentPositionCard extends StatelessWidget {
                         overflow: TextOverflow.ellipsis,
                       ),
                       Text(
-                        position.type,
+                        position.supportType,
                         style: TextStyle(
                           fontSize: 11,
                           color: Colors.grey.shade600,
@@ -87,7 +98,7 @@ class InvestmentPositionCard extends StatelessWidget {
                 Expanded(
                   child: _buildInfoTile(
                     "Quantité",
-                    "${position.quantity}",
+                    _formatQuantity(position.quantity), // ✅ Utilise la nouvelle méthode
                     Colors.black87,
                   ),
                 ),

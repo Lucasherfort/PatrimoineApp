@@ -22,20 +22,25 @@ class InvestmentSummaryHeader extends StatelessWidget {
     return formatter.format(amount).trim();
   }
 
+  // Vérifie si c'est une Assurance Vie (pas d'espèces)
+  bool get isAssuranceVie => account.investmentAccountName.toLowerCase().contains('assurance');
+
   // Calcule la valeur totale des positions (titres)
   double get positionsValue {
     return positions.fold(0.0, (sum, position) => sum + position.totalValue);
   }
 
-  // Calcule la valeur totale (espèces + titres)
-  double get totalValue => account.cashBalance + positionsValue;
+  // Calcule la valeur totale (espèces + titres pour PEA, seulement titres pour AV)
+  double get totalValue => isAssuranceVie
+      ? positionsValue
+      : account.cashBalance + positionsValue;
 
-  // ✅ Plus-value = valeur totale - versements
+  // Plus-value = valeur totale - versements
   double get totalProfitLoss {
     return totalValue - account.cumulativeDeposits;
   }
 
-  // ✅ Rendement = (valeur totale - versements) / versements * 100
+  // Rendement = (valeur totale - versements) / versements * 100
   double get performancePercentage {
     if (account.cumulativeDeposits <= 0) return 0.0;
     return ((totalValue - account.cumulativeDeposits) / account.cumulativeDeposits) * 100;
@@ -133,46 +138,83 @@ class InvestmentSummaryHeader extends StatelessWidget {
               color: Colors.white.withOpacity(0.2),
             ),
             const SizedBox(height: 16),
-            // Détails en grille
-            Row(
-              children: [
-                Expanded(
-                  child: _buildMetric(
-                    icon: Icons.account_balance_wallet,
-                    label: "Espèces",
-                    value: "${_formatAmount(account.cashBalance)} €",
-                  ),
-                ),
-                Container(
-                  width: 1,
-                  height: 40,
-                  color: Colors.white.withOpacity(0.2),
-                ),
-                Expanded(
-                  child: _buildMetric(
-                    icon: Icons.trending_up,
-                    label: "Rendement",
-                    value: "${isProfit ? '+' : ''}${performancePercentage.toStringAsFixed(2)}%",
-                    valueColor: isProfit ? Colors.green.shade300 : Colors.red.shade300,
-                  ),
-                ),
-                Container(
-                  width: 1,
-                  height: 40,
-                  color: Colors.white.withOpacity(0.2),
-                ),
-                Expanded(
-                  child: _buildMetric(
-                    icon: Icons.savings,
-                    label: "Versements",
-                    value: "${_formatAmount(account.cumulativeDeposits)} €",
-                  ),
-                ),
-              ],
-            ),
+            // Détails en grille (adapté selon le type)
+            isAssuranceVie
+                ? _buildAssuranceVieMetrics()
+                : _buildPEAMetrics(isProfit),
           ],
         ),
       ),
+    );
+  }
+
+  // ✅ Métriques pour PEA (3 colonnes : Espèces | Rendement | Versements)
+  Widget _buildPEAMetrics(bool isProfit) {
+    return Row(
+      children: [
+        Expanded(
+          child: _buildMetric(
+            icon: Icons.account_balance_wallet,
+            label: "Espèces",
+            value: "${_formatAmount(account.cashBalance)} €",
+          ),
+        ),
+        Container(
+          width: 1,
+          height: 40,
+          color: Colors.white.withOpacity(0.2),
+        ),
+        Expanded(
+          child: _buildMetric(
+            icon: Icons.trending_up,
+            label: "Rendement",
+            value: "${isProfit ? '+' : ''}${performancePercentage.toStringAsFixed(2)}%",
+            valueColor: isProfit ? Colors.green.shade300 : Colors.red.shade300,
+          ),
+        ),
+        Container(
+          width: 1,
+          height: 40,
+          color: Colors.white.withOpacity(0.2),
+        ),
+        Expanded(
+          child: _buildMetric(
+            icon: Icons.savings,
+            label: "Versements",
+            value: "${_formatAmount(account.cumulativeDeposits)} €",
+          ),
+        ),
+      ],
+    );
+  }
+
+  // ✅ Métriques pour Assurance Vie (2 colonnes : Rendement | Versements)
+  Widget _buildAssuranceVieMetrics() {
+    final isProfit = totalProfitLoss >= 0;
+
+    return Row(
+      children: [
+        Expanded(
+          child: _buildMetric(
+            icon: Icons.trending_up,
+            label: "Rendement",
+            value: "${isProfit ? '+' : ''}${performancePercentage.toStringAsFixed(2)}%",
+            valueColor: isProfit ? Colors.green.shade300 : Colors.red.shade300,
+          ),
+        ),
+        Container(
+          width: 1,
+          height: 40,
+          color: Colors.white.withOpacity(0.2),
+        ),
+        Expanded(
+          child: _buildMetric(
+            icon: Icons.savings,
+            label: "Versements",
+            value: "${_formatAmount(account.cumulativeDeposits)} €",
+          ),
+        ),
+      ],
     );
   }
 
