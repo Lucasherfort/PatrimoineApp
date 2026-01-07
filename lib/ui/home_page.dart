@@ -18,7 +18,6 @@ class _HomePageState extends State<HomePage> {
   final int userId = 1;
   double patrimoineTotal = 0.0;
   bool isLoading = true;
-  List<UserSavingsAccountView> userAccounts = [];
 
   @override
   void initState() {
@@ -34,11 +33,9 @@ class _HomePageState extends State<HomePage> {
     final service = PatrimoineService(db);
 
     final total = await service.getTotalPatrimoineForUser(userId);
-    final accounts = service.getAccountsForUser(userId);
 
     setState(() {
       patrimoineTotal = total;
-      userAccounts = accounts;
       isLoading = false;
     });
   }
@@ -66,16 +63,19 @@ class _HomePageState extends State<HomePage> {
             PatrimoineHeader(patrimoineTotal: patrimoineTotal),
             CashAccountList(
               userId: userId,
-              onAccountUpdated: _loadPatrimoine, // ✅ Recharge le patrimoine
+              onAccountUpdated: _loadPatrimoine,
             ),
-            SavingsAccountList(accounts: userAccounts),
+            SavingsAccountList(
+              userId: userId, // ✅ Changé: passe userId au lieu de accounts
+              onAccountUpdated: _loadPatrimoine, // ✅ Ajouté: callback pour recharger
+            ),
             InvestmentList(
               userId: userId,
               onAccountTap: _loadPatrimoine,
             ),
             RestaurantVoucherList(
               userId: userId,
-              onVoucherUpdated: _loadPatrimoine, // ✅ Recharge le patrimoine quand un voucher est modifié
+              onVoucherUpdated: _loadPatrimoine,
             ),
           ],
         ),
