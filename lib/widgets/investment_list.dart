@@ -5,10 +5,12 @@ import 'investment_card.dart';
 
 class InvestmentList extends StatefulWidget {
   final int userId;
+  final VoidCallback? onAccountTap; // ✅ Nouveau paramètre
 
   const InvestmentList({
     super.key,
     required this.userId,
+    this.onAccountTap,
   });
 
   @override
@@ -124,6 +126,7 @@ class _InvestmentListState extends State<InvestmentList> {
                 bankName: account.bankName,
                 totalValue: account.totalValue,
                 performance: account.performance,
+                onTap: widget.onAccountTap, // ✅ Passe le callback
               )),
         ],
       ),

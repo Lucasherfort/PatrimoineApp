@@ -7,8 +7,9 @@ class InvestmentCard extends StatelessWidget {
   final String name;
   final String type;
   final String bankName;
-  final double totalValue; // Valeur totale (espèces + titres)
-  final double performance; // Rendement en %
+  final double totalValue;
+  final double performance;
+  final VoidCallback? onTap; // ✅ Nouveau callback
 
   const InvestmentCard({
     super.key,
@@ -18,6 +19,7 @@ class InvestmentCard extends StatelessWidget {
     required this.bankName,
     required this.totalValue,
     required this.performance,
+    this.onTap,
   });
 
   String _formatAmount(double amount) {
@@ -37,8 +39,9 @@ class InvestmentCard extends StatelessWidget {
       width: double.infinity,
       margin: const EdgeInsets.only(bottom: 10),
       child: InkWell(
-        onTap: () {
-          Navigator.push(
+        onTap: () async {
+          // ✅ Navigue et attend le retour
+          final shouldReload = await Navigator.push(
             context,
             MaterialPageRoute(
               builder: (context) => InvestmentDetailPage(
@@ -48,6 +51,11 @@ class InvestmentCard extends StatelessWidget {
               ),
             ),
           );
+
+          // ✅ Si on doit recharger, appelle le callback
+          if (shouldReload == true && onTap != null) {
+            onTap!();
+          }
         },
         child: Card(
           elevation: 2,
@@ -58,7 +66,6 @@ class InvestmentCard extends StatelessWidget {
             padding: const EdgeInsets.all(12.0),
             child: Row(
               children: [
-                // Icône à gauche
                 Container(
                   padding: const EdgeInsets.all(8),
                   decoration: BoxDecoration(
@@ -71,9 +78,8 @@ class InvestmentCard extends StatelessWidget {
                     size: 24,
                   ),
                 ),
-                const SizedBox(width: 8),
+                const SizedBox(width: 12),
 
-                // Infos principales (nom + banque)
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -96,7 +102,6 @@ class InvestmentCard extends StatelessWidget {
                   ),
                 ),
 
-                // Montants à droite
                 Column(
                   crossAxisAlignment: CrossAxisAlignment.end,
                   children: [
@@ -117,6 +122,14 @@ class InvestmentCard extends StatelessWidget {
                       ),
                     ),
                   ],
+                ),
+
+                const SizedBox(width: 8),
+
+                Icon(
+                  Icons.chevron_right,
+                  color: Colors.grey.shade400,
+                  size: 20,
                 ),
               ],
             ),

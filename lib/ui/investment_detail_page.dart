@@ -53,13 +53,11 @@ class _InvestmentDetailPageState extends State<InvestmentDetailPage> {
     setState(() => isLoading = true);
 
     try {
-      // Récupère les positions avec les prix à jour
       final fetchedPositions = await investmentService.getInvestmentPositions(
         widget.userInvestmentAccountId,
       );
 
-      // Récupère la vue du compte correspondant
-      final accounts = await investmentService.getInvestmentAccountsForUserWithPrices(1); // TODO: userId dynamique
+      final accounts = await investmentService.getInvestmentAccountsForUserWithPrices(1);
       final account = accounts.firstWhere(
             (acc) => acc.id == widget.userInvestmentAccountId,
       );
@@ -79,6 +77,13 @@ class _InvestmentDetailPageState extends State<InvestmentDetailPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back),
+          onPressed: () {
+            // ✅ Retourne true pour indiquer qu'il faut recharger
+            Navigator.pop(context, true);
+          },
+        ),
         title: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -102,13 +107,11 @@ class _InvestmentDetailPageState extends State<InvestmentDetailPage> {
           ? const Center(child: CircularProgressIndicator())
           : Column(
         children: [
-          // Header avec résumé
           if (accountView != null)
             InvestmentSummaryHeader(
               account: accountView!,
               positions: positions,
             ),
-          // Liste des positions
           Expanded(
             child: InvestmentPositionList(
               positions: positions,

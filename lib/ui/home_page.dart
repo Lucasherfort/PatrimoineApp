@@ -27,11 +27,12 @@ class _HomePageState extends State<HomePage> {
   }
 
   Future<void> _loadPatrimoine() async {
+    setState(() => isLoading = true);
+
     final repo = LocalDatabaseRepository();
     final db = await repo.load();
     final service = PatrimoineService(db);
 
-    // ✅ Maintenant getTotalPatrimoineForUser est async
     final total = await service.getTotalPatrimoineForUser(userId);
     final accounts = service.getAccountsForUser(userId);
 
@@ -48,6 +49,14 @@ class _HomePageState extends State<HomePage> {
       appBar: AppBar(
         title: const Text("Patrimoine App"),
         elevation: 0,
+        actions: [
+          // ✅ Bouton refresh manuel
+          IconButton(
+            icon: const Icon(Icons.refresh),
+            onPressed: _loadPatrimoine,
+            tooltip: 'Actualiser',
+          ),
+        ],
       ),
       body: isLoading
           ? const Center(child: CircularProgressIndicator())
@@ -58,11 +67,21 @@ class _HomePageState extends State<HomePage> {
             PatrimoineHeader(patrimoineTotal: patrimoineTotal),
             CashAccountList(userId: userId),
             SavingsAccountList(accounts: userAccounts),
-            InvestmentList(userId: userId),
+            InvestmentList(
+              userId: userId,
+              onAccountTap: _onInvestmentAccountTap, // ✅ Callback
+            ),
             RestaurantVoucherList(userId: userId),
           ],
         ),
       ),
     );
+  }
+
+  // ✅ Méthode appelée quand on clique sur un compte d'investissement
+  Future<void> _onInvestmentAccountTap() async {
+    // Attend le retour de la page de détail
+    // Si elle retourne true, on recharge
+    _loadPatrimoine();
   }
 }
