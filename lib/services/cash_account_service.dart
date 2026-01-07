@@ -44,7 +44,6 @@ class CashAccountService {
 
       // ✅ Vérifie si la valeur a changé
       if (oldAccount.balance == newBalance) {
-        print('ℹ️ Compte espèces $accountId: aucun changement (${newBalance} €)');
         return false; // Pas de changement
       }
 
@@ -59,8 +58,6 @@ class CashAccountService {
 
       final repo = LocalDatabaseRepository();
       await repo.save(db);
-
-      print('✅ Compte espèces $accountId mis à jour: ${oldAccount.balance} € → $newBalance €');
       return true;
     }
 

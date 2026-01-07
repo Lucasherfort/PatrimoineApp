@@ -46,7 +46,8 @@ class InvestmentService {
           position.updateFromSheet(etfData);
         }
       }
-    } catch (e) {
+    } catch (e)
+    {
       print('Erreur lors de la récupération des données Google Sheets: $e');
     }
 
@@ -183,7 +184,7 @@ class InvestmentService {
     // ✅ Vérifie si les valeurs ont changé
     if (oldPosition.averagePurchasePrice == averagePurchasePrice &&
         oldPosition.quantity == quantity) {
-      print('ℹ️ Position ${position.ticker}: aucun changement');
+
       return false; // Pas de changement
     }
 

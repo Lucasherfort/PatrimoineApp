@@ -53,8 +53,8 @@ class SavingsAccountService {
     final oldAccount = db.userSavingsAccounts[accountIndex];
 
     // Vérifie si au moins une valeur a changé
-    if (oldAccount.balance == newBalance && oldAccount.interestAccrued == newInterest) {
-      print('ℹ️ Compte épargne $accountId: aucun changement');
+    if (oldAccount.balance == newBalance && oldAccount.interestAccrued == newInterest)
+    {
       return SavingsAccountUpdateResult(success: false);
     }
 
@@ -63,8 +63,8 @@ class SavingsAccountService {
         .firstWhere((sa) => sa.id == oldAccount.savingsAccountId);
 
     // ✅ Vérifie que le solde ne dépasse pas le plafond
-    if (newBalance > savingsAccount.cap) {
-      print('⚠️ Compte épargne $accountId: plafond dépassé (${newBalance} € > ${savingsAccount.cap} €)');
+    if (newBalance > savingsAccount.cap)
+    {
       return SavingsAccountUpdateResult(
         success: false,
         error: 'Le solde (${newBalance.toStringAsFixed(2)} €) dépasse le plafond de ${savingsAccount.cap} € pour ${savingsAccount.name}',
@@ -83,11 +83,7 @@ class SavingsAccountService {
 
     final repo = LocalDatabaseRepository();
     await repo.save(db);
-
-    print('✅ Compte épargne $accountId mis à jour:');
-    print('   Balance: ${oldAccount.balance} € → $newBalance €');
-    print('   Intérêts: ${oldAccount.interestAccrued} € → $newInterest €');
-
+    
     return SavingsAccountUpdateResult(success: true);
   }
 }

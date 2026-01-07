@@ -39,8 +39,8 @@ class RestaurantVoucherService {
       final oldVoucher = db.userRestaurantVouchers[voucherIndex];
 
       // ✅ Vérifie si la valeur a changé
-      if (oldVoucher.balance == newBalance) {
-        print('ℹ️ Voucher $voucherId: aucun changement (${newBalance} €)');
+      if (oldVoucher.balance == newBalance)
+      {
         return false; // Pas de changement
       }
 
@@ -56,7 +56,6 @@ class RestaurantVoucherService {
       final repo = LocalDatabaseRepository();
       await repo.save(db);
 
-      print('✅ Voucher $voucherId mis à jour: ${oldVoucher.balance} € → $newBalance €');
       return true;
     }
 
