@@ -46,13 +46,7 @@ class _HomePageState extends State<HomePage> {
       appBar: AppBar(
         title: const Text("Patrimoine App"),
         elevation: 0,
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.refresh),
-            onPressed: _loadPatrimoine,
-            tooltip: 'Actualiser',
-          ),
-        ],
+        // ✅ Supprimé le bouton refresh d'ici
       ),
       body: isLoading
           ? const Center(child: CircularProgressIndicator())
@@ -60,14 +54,17 @@ class _HomePageState extends State<HomePage> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            PatrimoineHeader(patrimoineTotal: patrimoineTotal),
+            // ✅ Ajouté le callback onRefresh
+            PatrimoineHeader(
+              patrimoineTotal: patrimoineTotal,
+            ),
             CashAccountList(
               userId: userId,
               onAccountUpdated: _loadPatrimoine,
             ),
             SavingsAccountList(
-              userId: userId, // ✅ Changé: passe userId au lieu de accounts
-              onAccountUpdated: _loadPatrimoine, // ✅ Ajouté: callback pour recharger
+              userId: userId,
+              onAccountUpdated: _loadPatrimoine,
             ),
             InvestmentList(
               userId: userId,

@@ -88,7 +88,7 @@ class _InvestmentListState extends State<InvestmentList> {
                   children: [
                     CircularProgressIndicator(),
                     SizedBox(height: 8),
-                    Text('Récupération des cours...'),
+                    Text('Récupération des comptes...'),
                   ],
                 ),
               ),
