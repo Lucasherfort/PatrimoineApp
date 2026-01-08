@@ -236,6 +236,63 @@ class InvestmentService {
       quantity: quantity,
     );
   }
+
+  // ========== Méthode d'ajout de position ==========
+// À ajouter dans la classe InvestmentService
+
+  /// Ajoute une nouvelle position d'investissement
+  Future<InvestmentPosition> addPosition({
+    required int userInvestmentAccountId,
+    required String ticker,
+    required String name,
+    required double quantity,
+    required double averagePurchasePrice,
+    String supportType = 'ETF',
+  }) async {
+    // Trouver le prochain ID disponible
+    final maxId = db.investmentPositions.isEmpty
+        ? 0
+        : db.investmentPositions.map((p) => p.id).reduce((a, b) => a > b ? a : b);
+
+    final newId = maxId + 1;
+
+    // Créer la nouvelle position
+    final newPosition = InvestmentPosition(
+      id: newId,
+      userInvestmentAccountId: userInvestmentAccountId,
+      ticker: ticker.toUpperCase(),
+      name: name,
+      supportType: supportType,
+      quantity: quantity,
+      averagePurchasePrice: averagePurchasePrice,
+    );
+
+    // Ajouter à la base de données
+    db.investmentPositions.add(newPosition);
+
+    // Tenter de récupérer le prix actuel depuis Google Sheets
+    try {
+      final etfsData = await sheetsService.fetchEtfs();
+      final etfData = etfsData.firstWhere(
+            (etf) => etf['ticker']?.toString().toUpperCase() == ticker.toUpperCase(),
+        orElse: () => <String, dynamic>{},
+      );
+
+      if (etfData.isNotEmpty) {
+        newPosition.updateFromSheet(etfData);
+      }
+    } catch (e) {
+      print('Impossible de récupérer le prix actuel: $e');
+    }
+
+    // Sauvegarder dans le fichier JSON
+    final repo = LocalDatabaseRepository();
+    await repo.save(db);
+
+    print('✅ Position ${newPosition.ticker} ajoutée avec succès');
+
+    return newPosition;
+  }
 }
 
 class UserInvestmentAccountView {

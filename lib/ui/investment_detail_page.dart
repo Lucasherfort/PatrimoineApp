@@ -4,6 +4,7 @@ import '../repositories/local_database_repository.dart';
 import '../services/investment_service.dart';
 import '../widgets/InvestmentSummaryHeader.dart';
 import '../widgets/investment_position_list.dart';
+import '../widgets/add_position_dialog.dart';
 
 class InvestmentDetailPage extends StatefulWidget {
   final int userInvestmentAccountId;
@@ -73,6 +74,47 @@ class _InvestmentDetailPageState extends State<InvestmentDetailPage> {
     }
   }
 
+  // ✅ Méthode pour ouvrir le dialog d'ajout
+  void _openAddPositionDialog() {
+    showDialog(
+      context: context,
+      builder: (context) => AddPositionDialog(
+        onAdd: (ticker, name, quantity, pru) async {
+          try {
+            await investmentService.addPosition(
+              userInvestmentAccountId: widget.userInvestmentAccountId,
+              ticker: ticker,
+              name: name,
+              quantity: quantity,
+              averagePurchasePrice: pru,
+            );
+
+            // Recharger les positions
+            await _loadPositionsAndAccount();
+
+            if (mounted) {
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  content: Text('Position $ticker ajoutée avec succès'),
+                  backgroundColor: Colors.green,
+                ),
+              );
+            }
+          } catch (e) {
+            if (mounted) {
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  content: Text('Erreur: $e'),
+                  backgroundColor: Colors.red,
+                ),
+              );
+            }
+          }
+        },
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -80,7 +122,6 @@ class _InvestmentDetailPageState extends State<InvestmentDetailPage> {
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
           onPressed: () {
-            // ✅ Retourne true pour indiquer qu'il faut recharger
             Navigator.pop(context, true);
           },
         ),
@@ -116,11 +157,20 @@ class _InvestmentDetailPageState extends State<InvestmentDetailPage> {
             child: InvestmentPositionList(
               positions: positions,
               isLoading: false,
-              investmentService: investmentService, // ✅ Passer le service
-              onPositionUpdated: _loadPositionsAndAccount, // ✅ Recharger après modification
+              investmentService: investmentService,
+              onPositionUpdated: _loadPositionsAndAccount,
             ),
           ),
         ],
+      ),
+      // ✅ Bouton flottant pour ajouter une position
+      floatingActionButton: isLoading
+          ? null
+          : FloatingActionButton.extended(
+        onPressed: _openAddPositionDialog,
+        icon: const Icon(Icons.add),
+        label: const Text('Ajouter'),
+        tooltip: 'Ajouter une position',
       ),
     );
   }
