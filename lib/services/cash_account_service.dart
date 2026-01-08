@@ -63,6 +63,12 @@ class CashAccountService {
 
     return false;
   }
+
+  // Méthode pour créer un nouveau compte espèce
+  Future<bool> createUserCashAccount(int userId, int cashAccountId) async {
+    // TODO
+    return false;
+  }
 }
 
 class UserCashAccountView {

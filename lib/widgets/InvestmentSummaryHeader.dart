@@ -139,10 +139,23 @@ class InvestmentSummaryHeader extends StatelessWidget {
                     if ((isAssuranceVie || cash != null) &&
                         deposits != null &&
                         onValueUpdated != null) {
-                      print('✅ Appel de onValueUpdated($cash, $deposits)');
-                      onValueUpdated!(cash ?? 0.0, deposits);
-                    } else {
-                      print('❌ Validation échouée - isAV: $isAssuranceVie, cash: $cash, deposits: $deposits, callback: ${onValueUpdated != null}');
+
+                      final newCash = isAssuranceVie ? 0.0 : cash!;
+                      final newDeposits = deposits;
+
+                      final cashChanged = !isAssuranceVie &&
+                          newCash.toStringAsFixed(2) != account.cashBalance.toStringAsFixed(2);
+
+                      final depositsChanged =
+                          newDeposits.toStringAsFixed(2) !=
+                              account.cumulativeDeposits.toStringAsFixed(2);
+
+                      if (cashChanged || depositsChanged) {
+                        print('🔄 Valeurs modifiées → mise à jour');
+                        onValueUpdated!(newCash, newDeposits);
+                      } else {
+                        print('⏸️ Aucune modification → pas d’actualisation');
+                      }
                     }
 
                     Navigator.pop(context);
