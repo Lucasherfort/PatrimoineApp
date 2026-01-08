@@ -293,6 +293,29 @@ class InvestmentService {
 
     return newPosition;
   }
+
+  // ========== Méthode de suppression de position ==========
+
+  /// Supprime une position d'investissement
+  Future<bool> deletePosition(InvestmentPosition position) async {
+    // Trouver l'index de la position
+    final index = db.investmentPositions.indexWhere((p) => p.id == position.id);
+
+    if (index == -1) {
+      throw Exception('Position non trouvée');
+    }
+
+    // Supprimer de la liste
+    db.investmentPositions.removeAt(index);
+
+    // Sauvegarder dans le fichier JSON
+    final repo = LocalDatabaseRepository();
+    await repo.save(db);
+
+    print('✅ Position ${position.ticker} supprimée avec succès');
+
+    return true;
+  }
 }
 
 class UserInvestmentAccountView {

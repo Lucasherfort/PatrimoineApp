@@ -57,6 +57,9 @@ class InvestmentPositionList extends StatelessWidget {
               newQuantity,
             );
           },
+          onDelete: () {
+            _deletePosition(context, positions[index]);
+          },
         );
       },
     );
@@ -97,6 +100,40 @@ class InvestmentPositionList extends StatelessWidget {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text('Erreur lors de la mise à jour : $e'),
+            backgroundColor: Colors.red,
+            duration: const Duration(seconds: 3),
+          ),
+        );
+      }
+    }
+  }
+
+  // ✅ Méthode pour supprimer une position
+  Future<void> _deletePosition(
+      BuildContext context,
+      InvestmentPosition position,
+      ) async {
+    try {
+      await investmentService.deletePosition(position);
+
+      if (onPositionUpdated != null) {
+        onPositionUpdated!();
+      }
+
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Position ${position.ticker} supprimée'),
+            backgroundColor: Colors.orange,
+            duration: const Duration(seconds: 2),
+          ),
+        );
+      }
+    } catch (e) {
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Erreur lors de la suppression : $e'),
             backgroundColor: Colors.red,
             duration: const Duration(seconds: 3),
           ),

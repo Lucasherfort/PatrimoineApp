@@ -5,11 +5,13 @@ import '../models/investment_position.dart';
 class InvestmentPositionCard extends StatelessWidget {
   final InvestmentPosition position;
   final void Function(double newAveragePurchasePrice, double newQuantity)? onValueUpdated;
+  final VoidCallback? onDelete; // ✅ Callback pour la suppression
 
   const InvestmentPositionCard({
     super.key,
     required this.position,
     this.onValueUpdated,
+    this.onDelete,
   });
 
   String _formatAmount(double amount) {
@@ -29,6 +31,50 @@ class InvestmentPositionCard extends StatelessWidget {
     }
   }
 
+  // ✅ Méthode pour confirmer la suppression
+  void _confirmDelete(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (BuildContext dialogContext) {
+        return AlertDialog(
+          title: const Text('Supprimer la position'),
+          content: RichText(
+            text: TextSpan(
+              style: DefaultTextStyle.of(context).style,
+              children: [
+                const TextSpan(text: 'Voulez-vous vraiment supprimer la position '),
+                TextSpan(
+                  text: position.ticker,
+                  style: const TextStyle(fontWeight: FontWeight.bold),
+                ),
+                const TextSpan(text: ' ?'),
+              ],
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(dialogContext),
+              child: const Text('Annuler'),
+            ),
+            ElevatedButton(
+              onPressed: () {
+                Navigator.pop(dialogContext);
+                if (onDelete != null) {
+                  onDelete!();
+                }
+              },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.red,
+                foregroundColor: Colors.white,
+              ),
+              child: const Text('Supprimer'),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final hasPrice = position.currentPrice != null;
@@ -43,6 +89,7 @@ class InvestmentPositionCard extends StatelessWidget {
       child: InkWell(
         borderRadius: BorderRadius.circular(12),
         onTap: () => _openEditPanel(context),
+        onLongPress: () => _confirmDelete(context), // ✅ Appui long pour supprimer
         child: Padding(
           padding: const EdgeInsets.all(12.0),
           child: Column(
@@ -209,7 +256,7 @@ class InvestmentPositionCard extends StatelessWidget {
     );
   }
 
-  // ✅ Méthode pour ouvrir le modal d'édition
+  // Méthode pour ouvrir le modal d'édition
   void _openEditPanel(BuildContext context) {
     final pruController = TextEditingController(
       text: position.averagePurchasePrice.toStringAsFixed(2).replaceAll('.', ','),
