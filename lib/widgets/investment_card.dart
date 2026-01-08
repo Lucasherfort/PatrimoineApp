@@ -33,8 +33,6 @@ class InvestmentCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final isPositive = performance >= 0;
-
     return Container(
       width: double.infinity,
       margin: const EdgeInsets.only(bottom: 10),
@@ -101,26 +99,13 @@ class InvestmentCard extends StatelessWidget {
                   ),
                 ),
 
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.end,
-                  children: [
-                    Text(
-                      "${_formatAmount(totalValue)} €",
-                      style: const TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.green,
-                      ),
-                    ),
-                    Text(
-                      "${isPositive ? '+' : ''}${performance.toStringAsFixed(2)}%",
-                      style: TextStyle(
-                        fontSize: 13,
-                        fontWeight: FontWeight.w500,
-                        color: isPositive ? Colors.green : Colors.red,
-                      ),
-                    ),
-                  ],
+                Text(
+                  "${_formatAmount(totalValue)} €",
+                  style: const TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.green,
+                  ),
                 ),
               ],
             ),
