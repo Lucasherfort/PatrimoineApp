@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import '../models/investment_position.dart';
 import '../repositories/local_database_repository.dart';
 import '../services/investment_service.dart';
-import '../widgets/InvestmentSummaryHeader.dart';
+import '../widgets/investment_summary_header.dart';
 import '../widgets/investment_position_list.dart';
 import '../widgets/add_position_dialog.dart';
 
@@ -43,7 +43,6 @@ class _InvestmentDetailPageState extends State<InvestmentDetailPage> {
 
       await _loadPositionsAndAccount();
     } catch (e) {
-      print('Erreur initialisation: $e');
       setState(() {
         isLoading = false;
       });
@@ -68,8 +67,8 @@ class _InvestmentDetailPageState extends State<InvestmentDetailPage> {
         accountView = account;
         isLoading = false;
       });
-    } catch (e) {
-      print('Erreur chargement positions: $e');
+    } catch (e)
+    {
       setState(() => isLoading = false);
     }
   }
@@ -153,15 +152,12 @@ class _InvestmentDetailPageState extends State<InvestmentDetailPage> {
               account: accountView!,
               positions: positions,
               onValueUpdated: (newCash, newDeposits) async {
-                print('📝 onValueUpdated - Nouvelles valeurs: cash=$newCash, deposits=$newDeposits');
                 try {
                   final hasChanged = await investmentService.updateInvestmentAccount(
                     userInvestmentAccountId: widget.userInvestmentAccountId,
                     cashBalance: newCash,
                     cumulativeDeposits: newDeposits,
                   );
-
-                  print('📊 hasChanged: $hasChanged');
 
                   // Recharger les données
                   await _loadPositionsAndAccount();
@@ -177,8 +173,8 @@ class _InvestmentDetailPageState extends State<InvestmentDetailPage> {
                       ),
                     );
                   }
-                } catch (e) {
-                  print('❌ Erreur updateInvestmentAccount: $e');
+                } catch (e)
+                {
                   if (mounted) {
                     ScaffoldMessenger.of(context).showSnackBar(
                       SnackBar(

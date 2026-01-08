@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/services.dart';
 import 'dart:io';
 import 'package:path_provider/path_provider.dart';
@@ -13,8 +14,9 @@ class LocalDatabaseRepository {
       {
         return localDb;
       }
-    } catch (e) {
-      print('⚠️ Pas de fichier local, chargement depuis assets...');
+    } catch (e)
+    {
+      debugPrint('⚠️ Pas de fichier local, chargement depuis assets...');
     }
 
     // Si pas de fichier local, charge depuis assets

@@ -49,9 +49,8 @@ class InvestmentSummaryHeader extends StatelessWidget {
   }
 
   // ✅ Méthode pour ouvrir le panel d'édition
-  void _openEditPanel(BuildContext context) {
-    print('🔵 Panel d\'édition ouvert');
-
+  void _openEditPanel(BuildContext context)
+  {
     final cashController = TextEditingController(
       text: account.cashBalance.toStringAsFixed(2).replaceAll('.', ','),
     );
@@ -120,21 +119,15 @@ class InvestmentSummaryHeader extends StatelessWidget {
               SizedBox(
                 width: double.infinity,
                 child: ElevatedButton(
-                  onPressed: () {
-                    print('🟢 Bouton Valider cliqué');
-
+                  onPressed: ()
+                  {
                     final cashText = cashController.text.replaceAll(',', '.');
                     final depositsText = depositsController.text.replaceAll(',', '.');
-
-                    print('🔍 Valeurs saisies - Cash: "$cashText", Deposits: "$depositsText"');
 
                     final cash = isAssuranceVie
                         ? 0.0
                         : double.tryParse(cashText);
                     final deposits = double.tryParse(depositsText);
-
-                    print('🔍 Valeurs parsées - Cash: $cash, Deposits: $deposits');
-                    print('🔍 onValueUpdated null? ${onValueUpdated == null}');
 
                     if ((isAssuranceVie || cash != null) &&
                         deposits != null &&
@@ -150,11 +143,9 @@ class InvestmentSummaryHeader extends StatelessWidget {
                           newDeposits.toStringAsFixed(2) !=
                               account.cumulativeDeposits.toStringAsFixed(2);
 
-                      if (cashChanged || depositsChanged) {
-                        print('🔄 Valeurs modifiées → mise à jour');
+                      if (cashChanged || depositsChanged)
+                      {
                         onValueUpdated!(newCash, newDeposits);
-                      } else {
-                        print('⏸️ Aucune modification → pas d’actualisation');
                       }
                     }
 
@@ -191,7 +182,7 @@ class InvestmentSummaryHeader extends StatelessWidget {
           borderRadius: BorderRadius.circular(16),
           boxShadow: [
             BoxShadow(
-              color: Colors.indigo.shade200.withOpacity(0.5),
+              color: Colors.indigo.shade200.withValues(alpha: 128),
               blurRadius: 10,
               offset: const Offset(0, 4),
             ),
@@ -212,7 +203,7 @@ class InvestmentSummaryHeader extends StatelessWidget {
                         "Valeur totale",
                         style: TextStyle(
                           fontSize: 13,
-                          color: Colors.white.withOpacity(0.9),
+                          color: Colors.white.withValues(alpha: 230),
                           fontWeight: FontWeight.w500,
                         ),
                       ),
@@ -262,7 +253,7 @@ class InvestmentSummaryHeader extends StatelessWidget {
               // Séparateur
               Container(
                 height: 1,
-                color: Colors.white.withOpacity(0.2),
+                color: Colors.white.withValues(alpha: 51),
               ),
               const SizedBox(height: 16),
               // Détails en grille (adapté selon le type)
@@ -290,7 +281,7 @@ class InvestmentSummaryHeader extends StatelessWidget {
         Container(
           width: 1,
           height: 40,
-          color: Colors.white.withOpacity(0.2),
+          color: Colors.white.withValues(alpha: 51),
         ),
         Expanded(
           child: _buildMetric(
@@ -303,7 +294,7 @@ class InvestmentSummaryHeader extends StatelessWidget {
         Container(
           width: 1,
           height: 40,
-          color: Colors.white.withOpacity(0.2),
+            color: Colors.white.withValues(alpha: 51),
         ),
         Expanded(
           child: _buildMetric(
@@ -333,7 +324,7 @@ class InvestmentSummaryHeader extends StatelessWidget {
         Container(
           width: 1,
           height: 40,
-          color: Colors.white.withOpacity(0.2),
+          color: Colors.white.withValues(alpha: 51),
         ),
         Expanded(
           child: _buildMetric(
@@ -356,7 +347,7 @@ class InvestmentSummaryHeader extends StatelessWidget {
       children: [
         Icon(
           icon,
-          color: Colors.white.withOpacity(0.8),
+          color: Colors.white.withValues(alpha: 204),
           size: 20,
         ),
         const SizedBox(height: 6),
@@ -364,7 +355,7 @@ class InvestmentSummaryHeader extends StatelessWidget {
           label,
           style: TextStyle(
             fontSize: 11,
-            color: Colors.white.withOpacity(0.8),
+            color: Colors.white.withValues(alpha: 204),
             fontWeight: FontWeight.w500,
           ),
           textAlign: TextAlign.center,

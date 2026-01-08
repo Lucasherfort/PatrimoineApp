@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import '../models/local_database.dart';
 import '../models/investment_position.dart';
 import '../models/user_investment_account.dart';
@@ -46,9 +47,12 @@ class InvestmentService {
           position.updateFromSheet(etfData);
         }
       }
-    } catch (e)
-    {
-      print('Erreur lors de la récupération des données Google Sheets: $e');
+    } catch (e) {
+      if (kDebugMode)
+      {
+        debugPrint('Erreur lors de la récupération des données Google Sheets: $e',
+        );
+      }
     }
 
     return positions;
@@ -212,10 +216,6 @@ class InvestmentService {
     final repo = LocalDatabaseRepository();
     await repo.save(db);
 
-    print('✅ Position ${position.ticker} mise à jour: '
-        'PRU ${oldPosition.averagePurchasePrice} € → $averagePurchasePrice €, '
-        'Quantité ${oldPosition.quantity} → $quantity');
-
     return true;
   }
 
@@ -281,15 +281,17 @@ class InvestmentService {
       if (etfData.isNotEmpty) {
         newPosition.updateFromSheet(etfData);
       }
-    } catch (e) {
-      print('Impossible de récupérer le prix actuel: $e');
+    }catch (e, stackTrace)
+    {
+      if (kDebugMode)
+      {
+        debugPrint('Impossible de récupérer le prix actuel:\n$e\n$stackTrace');
+      }
     }
 
     // Sauvegarder dans le fichier JSON
     final repo = LocalDatabaseRepository();
     await repo.save(db);
-
-    print('✅ Position ${newPosition.ticker} ajoutée avec succès');
 
     return newPosition;
   }
@@ -312,8 +314,6 @@ class InvestmentService {
     final repo = LocalDatabaseRepository();
     await repo.save(db);
 
-    print('✅ Position ${position.ticker} supprimée avec succès');
-
     return true;
   }
 
@@ -334,7 +334,6 @@ class InvestmentService {
     // ✅ Vérifie si les valeurs ont changé
     if (account.cashBalance == cashBalance &&
         account.cumulativeDeposits == cumulativeDeposits) {
-      print('ℹ️ Compte $userInvestmentAccountId: aucun changement');
       return false;
     }
 
@@ -345,10 +344,6 @@ class InvestmentService {
     // Sauvegarder dans le fichier JSON
     final repo = LocalDatabaseRepository();
     await repo.save(db);
-
-    print('✅ Compte $userInvestmentAccountId mis à jour: '
-        'Espèces → $cashBalance €, '
-        'Versements → $cumulativeDeposits €');
 
     return true;
   }

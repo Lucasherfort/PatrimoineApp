@@ -45,7 +45,7 @@ class _PatrimoineHeaderState extends State<PatrimoineHeader> {
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
-            color: Colors.blue.shade200.withOpacity(0.5),
+            color: Colors.white.withValues(alpha: 128),
             blurRadius: 10,
             offset: const Offset(0, 4),
           ),
@@ -62,7 +62,7 @@ class _PatrimoineHeaderState extends State<PatrimoineHeader> {
                   "Mon patrimoine",
                   style: TextStyle(
                     fontSize: 14,
-                    color: Colors.white.withOpacity(0.9),
+                    color: Colors.white.withValues(alpha: 230),
                     fontWeight: FontWeight.w500,
                     letterSpacing: 0.5,
                   ),
@@ -106,7 +106,7 @@ class _PatrimoineHeaderState extends State<PatrimoineHeader> {
                     padding: const EdgeInsets.all(8),
                     child: Icon(
                       Icons.refresh,
-                      color: Colors.white.withOpacity(0.9),
+                      color: Colors.white.withValues(alpha: 230),
                       size: 22,
                     ),
                   ),
@@ -124,7 +124,7 @@ class _PatrimoineHeaderState extends State<PatrimoineHeader> {
                   padding: const EdgeInsets.all(8),
                   child: Icon(
                     _isVisible ? Icons.visibility : Icons.visibility_off,
-                    color: Colors.white.withOpacity(0.9),
+                    color: Colors.white.withValues(alpha: 230),
                     size: 22,
                   ),
                 ),
@@ -134,7 +134,7 @@ class _PatrimoineHeaderState extends State<PatrimoineHeader> {
               Container(
                 padding: const EdgeInsets.all(12),
                 decoration: BoxDecoration(
-                  color: Colors.white.withOpacity(0.2),
+                  color: Colors.white.withValues(alpha: 51),
                   borderRadius: BorderRadius.circular(12),
                 ),
                 child: const Icon(

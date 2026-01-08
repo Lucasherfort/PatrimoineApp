@@ -145,7 +145,7 @@ class _AddPositionDialogState extends State<AddPositionDialog> {
                     border: OutlineInputBorder(),
                     prefixIcon: Icon(Icons.search),
                   ),
-                  value: _selectedEtf,
+                  initialValue: _selectedEtf,
                   isExpanded: true,
                   items: _availableEtfs.map((etf) {
                     final ticker = etf['ticker']?.toString() ?? '';
