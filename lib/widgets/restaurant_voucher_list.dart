@@ -73,7 +73,7 @@ class _RestaurantVoucherListState extends State<RestaurantVoucherList> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           const Text(
-            "Mes titres restaurant",
+            "Avantages",
             style: TextStyle(
               fontSize: 20,
               fontWeight: FontWeight.bold,

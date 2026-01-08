@@ -56,7 +56,7 @@ class _InvestmentListState extends State<InvestmentList> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           const Text(
-            "Mes placements financiers",
+            "Investissements",
             style: TextStyle(
               fontSize: 20,
               fontWeight: FontWeight.bold,

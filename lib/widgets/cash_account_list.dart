@@ -73,7 +73,7 @@ class _CashAccountListState extends State<CashAccountList> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           const Text(
-            "Mes comptes espèces",
+            "Liquidités",
             style: TextStyle(
               fontSize: 20,
               fontWeight: FontWeight.bold,

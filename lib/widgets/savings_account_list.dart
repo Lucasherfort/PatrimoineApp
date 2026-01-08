@@ -87,7 +87,7 @@ class _SavingsAccountListState extends State<SavingsAccountList> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           const Text(
-            "Mon épargne",
+            "Épargne",
             style: TextStyle(
               fontSize: 20,
               fontWeight: FontWeight.bold,
