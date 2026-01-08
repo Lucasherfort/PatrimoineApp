@@ -45,7 +45,7 @@ class _PatrimoineHeaderState extends State<PatrimoineHeader> {
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
-            color: Colors.white.withValues(alpha: 128),
+            color: Colors.blue.withValues(alpha: 128),
             blurRadius: 10,
             offset: const Offset(0, 4),
           ),
@@ -130,19 +130,7 @@ class _PatrimoineHeaderState extends State<PatrimoineHeader> {
                 ),
               ),
               const SizedBox(width: 8),
-              // Icône portefeuille
-              Container(
-                padding: const EdgeInsets.all(12),
-                decoration: BoxDecoration(
-                  color: Colors.white.withValues(alpha: 51),
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: const Icon(
-                  Icons.account_balance_wallet,
-                  color: Colors.white,
-                  size: 28,
-                ),
-              ),
+              // ✂️ Icône portefeuille retirée
             ],
           ),
         ],
