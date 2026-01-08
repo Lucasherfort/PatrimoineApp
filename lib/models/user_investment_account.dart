@@ -2,9 +2,9 @@ class UserInvestmentAccount {
   final int id;
   final int userId;
   final int investmentAccountId;
-  final double cumulativeDeposits; // Cumul des versement
+  double cumulativeDeposits; // Cumul des versement
   final double latentCapitalGain;
-  final double cashBalance; // Solde en espèce
+  double cashBalance; // Solde en espèce
 
   UserInvestmentAccount({
     required this.id,

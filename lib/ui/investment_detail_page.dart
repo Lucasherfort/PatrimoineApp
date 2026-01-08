@@ -152,6 +152,44 @@ class _InvestmentDetailPageState extends State<InvestmentDetailPage> {
             InvestmentSummaryHeader(
               account: accountView!,
               positions: positions,
+              onValueUpdated: (newCash, newDeposits) async {
+                print('📝 onValueUpdated - Nouvelles valeurs: cash=$newCash, deposits=$newDeposits');
+                try {
+                  final hasChanged = await investmentService.updateInvestmentAccount(
+                    userInvestmentAccountId: widget.userInvestmentAccountId,
+                    cashBalance: newCash,
+                    cumulativeDeposits: newDeposits,
+                  );
+
+                  print('📊 hasChanged: $hasChanged');
+
+                  // Recharger les données
+                  await _loadPositionsAndAccount();
+
+                  if (mounted) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: Text(
+                          hasChanged ? 'Compte mis à jour' : 'Aucun changement détecté',
+                        ),
+                        backgroundColor: hasChanged ? Colors.green : Colors.blue,
+                        duration: const Duration(seconds: 2),
+                      ),
+                    );
+                  }
+                } catch (e) {
+                  print('❌ Erreur updateInvestmentAccount: $e');
+                  if (mounted) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: Text('Erreur: $e'),
+                        backgroundColor: Colors.red,
+                        duration: const Duration(seconds: 3),
+                      ),
+                    );
+                  }
+                }
+              },
             ),
           Expanded(
             child: InvestmentPositionList(

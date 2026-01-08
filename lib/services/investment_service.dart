@@ -316,6 +316,43 @@ class InvestmentService {
 
     return true;
   }
+
+  // ========== Méthode de mise à jour du compte ==========
+
+  /// Met à jour les espèces et les versements cumulés d'un compte d'investissement
+  Future<bool> updateInvestmentAccount({
+    required int userInvestmentAccountId,
+    required double cashBalance,
+    required double cumulativeDeposits,
+  }) async {
+    // Trouver le compte utilisateur
+    final account = db.userInvestmentAccounts.firstWhere(
+          (uia) => uia.id == userInvestmentAccountId,
+      orElse: () => throw Exception('Compte d\'investissement non trouvé'),
+    );
+
+    // ✅ Vérifie si les valeurs ont changé
+    if (account.cashBalance == cashBalance &&
+        account.cumulativeDeposits == cumulativeDeposits) {
+      print('ℹ️ Compte $userInvestmentAccountId: aucun changement');
+      return false;
+    }
+
+    // Mettre à jour directement les propriétés
+    account.cashBalance = cashBalance;
+    account.cumulativeDeposits = cumulativeDeposits;
+
+    // Sauvegarder dans le fichier JSON
+    final repo = LocalDatabaseRepository();
+    await repo.save(db);
+
+    print('✅ Compte $userInvestmentAccountId mis à jour: '
+        'Espèces → $cashBalance €, '
+        'Versements → $cumulativeDeposits €');
+
+    return true;
+  }
+
 }
 
 class UserInvestmentAccountView {
