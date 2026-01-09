@@ -95,6 +95,35 @@ class SavingsAccountService {
 
     return true;
   }
+
+  // -------------------------------
+// 🟢 CRÉER UN COMPTE ÉPARGNE
+// -------------------------------
+  Future<bool> createUserSavingsAccount({
+    required int userId,
+    required int savingsAccountId,
+    required double balance,
+    double interestAccrued = 0,
+  }) async {
+    final newId = db.userSavingsAccounts.isEmpty
+        ? 1
+        : db.userSavingsAccounts.map((u) => u.id).reduce((a, b) => a > b ? a : b) + 1;
+
+    db.userSavingsAccounts.add(
+      UserSavingsAccount(
+        id: newId,
+        userId: userId,
+        savingsAccountId: savingsAccountId,
+        balance: balance,
+        interestAccrued: interestAccrued,
+      ),
+    );
+
+    final repo = LocalDatabaseRepository();
+    await repo.save(db);
+
+    return true;
+  }
 }
 
 // ✅ Classe pour le résultat de la mise à jour
