@@ -26,7 +26,7 @@ class TypeStep extends StatelessWidget {
         labelText: "Type de compte",
         border: OutlineInputBorder(),
       ),
-      value: selectedType,
+      initialValue: selectedType,
       items: types
           .map((t) => DropdownMenuItem(
         value: t,

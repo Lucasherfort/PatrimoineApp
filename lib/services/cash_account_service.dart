@@ -87,7 +87,6 @@ class CashAccountService {
         cashAccount = db.cashAccounts.firstWhere(
               (ca) => ca.bankId == bankId,
         );
-        print('✅ CashAccount existant trouvé: ${cashAccount.name} (id: ${cashAccount.id})');
       } catch (e) {
         // 2️⃣ Si le CashAccount n'existe pas, le créer
         final newCashAccountId = db.cashAccounts.isEmpty
@@ -101,7 +100,6 @@ class CashAccountService {
         );
 
         db.cashAccounts.add(cashAccount);
-        print('✅ Nouveau CashAccount créé: ${cashAccount.name} (id: ${cashAccount.id})');
       }
 
       // 3️⃣ Créer le UserCashAccount
@@ -122,10 +120,10 @@ class CashAccountService {
       final repo = LocalDatabaseRepository();
       await repo.save(db);
 
-      print('✅ UserCashAccount créé avec succès (id: $newUserCashAccountId, balance: $initialBalance €)');
       return true;
-    } catch (e) {
-      print('❌ Erreur création UserCashAccount: $e');
+    }
+    catch (e)
+    {
       return false;
     }
   }

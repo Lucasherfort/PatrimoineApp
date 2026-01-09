@@ -62,13 +62,15 @@ class _InvestmentDetailPageState extends State<InvestmentDetailPage> {
             (acc) => acc.id == widget.userInvestmentAccountId,
       );
 
+      if (!mounted) return;
+
       setState(() {
         positions = fetchedPositions;
         accountView = account;
         isLoading = false;
       });
-    } catch (e)
-    {
+    } catch (e) {
+      if (!mounted) return;
       setState(() => isLoading = false);
     }
   }
@@ -91,23 +93,26 @@ class _InvestmentDetailPageState extends State<InvestmentDetailPage> {
             // Recharger les positions
             await _loadPositionsAndAccount();
 
-            if (mounted) {
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(
-                  content: Text('Position $ticker ajoutée avec succès'),
-                  backgroundColor: Colors.green,
-                ),
-              );
-            }
+            if (!mounted) return;
+
+            // Capturer le ScaffoldMessengerState après l'await
+            final messenger = ScaffoldMessenger.of(context);
+            messenger.showSnackBar(
+              SnackBar(
+                content: Text('Position $ticker ajoutée avec succès'),
+                backgroundColor: Colors.green,
+              ),
+            );
           } catch (e) {
-            if (mounted) {
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(
-                  content: Text('Erreur: $e'),
-                  backgroundColor: Colors.red,
-                ),
-              );
-            }
+            if (!mounted) return;
+
+            final messenger = ScaffoldMessenger.of(context);
+            messenger.showSnackBar(
+              SnackBar(
+                content: Text('Erreur: $e'),
+                backgroundColor: Colors.red,
+              ),
+            );
           }
         },
       ),
@@ -159,31 +164,31 @@ class _InvestmentDetailPageState extends State<InvestmentDetailPage> {
                     cumulativeDeposits: newDeposits,
                   );
 
-                  // Recharger les données
                   await _loadPositionsAndAccount();
 
-                  if (mounted) {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(
-                        content: Text(
-                          hasChanged ? 'Compte mis à jour' : 'Aucun changement détecté',
-                        ),
-                        backgroundColor: hasChanged ? Colors.green : Colors.blue,
-                        duration: const Duration(seconds: 2),
+                  if (!mounted) return;
+
+                  final messenger = ScaffoldMessenger.of(context);
+                  messenger.showSnackBar(
+                    SnackBar(
+                      content: Text(
+                        hasChanged ? 'Compte mis à jour' : 'Aucun changement détecté',
                       ),
-                    );
-                  }
-                } catch (e)
-                {
-                  if (mounted) {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(
-                        content: Text('Erreur: $e'),
-                        backgroundColor: Colors.red,
-                        duration: const Duration(seconds: 3),
-                      ),
-                    );
-                  }
+                      backgroundColor: hasChanged ? Colors.green : Colors.blue,
+                      duration: const Duration(seconds: 2),
+                    ),
+                  );
+                } catch (e) {
+                  if (!mounted) return;
+
+                  final messenger = ScaffoldMessenger.of(context);
+                  messenger.showSnackBar(
+                    SnackBar(
+                      content: Text('Erreur: $e'),
+                      backgroundColor: Colors.red,
+                      duration: const Duration(seconds: 3),
+                    ),
+                  );
                 }
               },
             ),
@@ -197,7 +202,6 @@ class _InvestmentDetailPageState extends State<InvestmentDetailPage> {
           ),
         ],
       ),
-      // ✅ Bouton flottant pour ajouter une position
       floatingActionButton: isLoading
           ? null
           : FloatingActionButton.extended(

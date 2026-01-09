@@ -23,7 +23,7 @@ class CategoryStep extends StatelessWidget {
         labelText: "Catégorie",
         border: OutlineInputBorder(),
       ),
-      value: selectedCategory,
+      initialValue: selectedCategory,
       items: catalog.categories
           .map((cat) => DropdownMenuItem(
         value: cat,

@@ -112,7 +112,7 @@ class _AddPatrimoineWizardState extends State<AddPatrimoineWizard> {
                           : "Banque",
                       border: const OutlineInputBorder(),
                     ),
-                    value: selectedType!.entityType == 'restaurantVoucher'
+                    initialValue: selectedType!.entityType == 'restaurantVoucher'
                         ? selectedVoucher
                         : selectedBank,
                     items: _buildBankItems(

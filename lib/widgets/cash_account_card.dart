@@ -71,8 +71,7 @@ class CashAccountCard extends StatelessWidget {
                   ),
                 ),
                 Text(
-                  NumberFormat.currency(locale: 'fr_FR', symbol: '€')
-                      .format(account.balance),
+                  currencyFormat.format(account.balance),
                   style: const TextStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.bold,

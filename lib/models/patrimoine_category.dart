@@ -27,7 +27,7 @@ class PatrimoineCategory {
     'name': name,
     'icon': icon,
     'color':
-    '0x${color.value.toRadixString(16).padLeft(8, '0').toUpperCase()}',
+    '0x${color.toARGB32().toRadixString(16).padLeft(8, '0').toUpperCase()}',
   };
 
   IconData getIconData() {

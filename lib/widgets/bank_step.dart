@@ -41,7 +41,7 @@ class BankStep extends StatelessWidget {
         labelText: type.entityType == 'restaurantVoucher' ? "Plateforme" : "Banque",
         border: const OutlineInputBorder(),
       ),
-      value: type.entityType == 'restaurantVoucher' ? selectedVoucher : selectedBank,
+      initialValue: type.entityType == 'restaurantVoucher' ? selectedVoucher : selectedBank,
       items: items,
       onChanged: (value) {
         if (value is Bank) {
