@@ -71,31 +71,39 @@ class _HomePageState extends State<HomePage> {
       ),
       body: isLoading
           ? const Center(child: CircularProgressIndicator())
-          : SingleChildScrollView(
-        child: Column(
-          children: [
-            PatrimoineHeader(
-              patrimoineTotal: patrimoineTotal,
-              onRefresh: _refreshAll,
+          : Column(
+        children: [
+          // ✅ HEADER FIXE
+          PatrimoineHeader(
+            patrimoineTotal: patrimoineTotal,
+            onRefresh: _refreshAll,
+          ),
+
+          // ✅ CONTENU SCROLLABLE
+          Expanded(
+            child: ListView(
+              padding: const EdgeInsets.only(bottom: 80),
+              children: [
+                CashAccountList(
+                  userId: userId,
+                  onAccountUpdated: _refreshAll,
+                ),
+                SavingsAccountList(
+                  userId: userId,
+                  onAccountUpdated: _refreshAll,
+                ),
+                InvestmentList(
+                  userId: userId,
+                  onAccountTap: _refreshAll,
+                ),
+                RestaurantVoucherList(
+                  userId: userId,
+                  onVoucherUpdated: _refreshAll,
+                ),
+              ],
             ),
-            CashAccountList(
-              userId: userId,
-              onAccountUpdated: _refreshAll,
-            ),
-            SavingsAccountList(
-              userId: userId,
-              onAccountUpdated: _refreshAll,
-            ),
-            InvestmentList(
-              userId: userId,
-              onAccountTap: _refreshAll,
-            ),
-            RestaurantVoucherList(
-              userId: userId,
-              onVoucherUpdated: _refreshAll,
-            ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }
