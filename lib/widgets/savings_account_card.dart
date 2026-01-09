@@ -9,7 +9,7 @@ class SavingsAccountCard extends StatelessWidget {
   const SavingsAccountCard({
     super.key,
     required this.account,
-    this.onValueUpdated, // ✅ Ajouté ici
+    this.onValueUpdated,
   });
 
   @override
@@ -22,7 +22,7 @@ class SavingsAccountCard extends StatelessWidget {
       margin: const EdgeInsets.only(bottom: 10),
       child: InkWell(
         borderRadius: BorderRadius.circular(12),
-        onTap: () => _openEditPanel(context), // ✅ Ajouté pour ouvrir le modal
+        onTap: () => _openEditPanel(context),
         child: Card(
           elevation: 2,
           shape: RoundedRectangleBorder(
@@ -32,7 +32,7 @@ class SavingsAccountCard extends StatelessWidget {
             padding: const EdgeInsets.all(12.0),
             child: Row(
               children: [
-                // Icône à gauche
+                // Icône
                 Container(
                   padding: const EdgeInsets.all(8),
                   decoration: BoxDecoration(
@@ -47,7 +47,7 @@ class SavingsAccountCard extends StatelessWidget {
                 ),
                 const SizedBox(width: 12),
 
-                // Infos principales (compte + banque)
+                // Nom du compte + banque
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -70,27 +70,14 @@ class SavingsAccountCard extends StatelessWidget {
                   ),
                 ),
 
-                // Montants à droite (format français avec espace)
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.end,
-                  children: [
-                    Text(
-                      currencyFormat.format(account.balance),
-                      style: const TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.green,
-                      ),
-                    ),
-                    Text(
-                      "+${currencyFormat.format(account.interestAccrued)}",
-                      style: TextStyle(
-                        fontSize: 13,
-                        fontWeight: FontWeight.w500,
-                        color: Colors.blue.shade700,
-                      ),
-                    ),
-                  ],
+                // ✅ UN SEUL affichage : le solde
+                Text(
+                  currencyFormat.format(account.balance),
+                  style: const TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.green,
+                  ),
                 ),
               ],
             ),
@@ -100,7 +87,9 @@ class SavingsAccountCard extends StatelessWidget {
     );
   }
 
-  // ✅ Méthode pour ouvrir le modal d'édition
+  // ---------------------------
+  // Modal d'édition (inchangé)
+  // ---------------------------
   void _openEditPanel(BuildContext context) {
     final balanceController = TextEditingController(
       text: account.balance.toStringAsFixed(2).replaceAll('.', ','),
@@ -138,7 +127,8 @@ class SavingsAccountCard extends StatelessWidget {
 
               TextField(
                 controller: balanceController,
-                keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                keyboardType:
+                const TextInputType.numberWithOptions(decimal: true),
                 decoration: const InputDecoration(
                   labelText: "Solde",
                   suffixText: "€",
@@ -150,7 +140,8 @@ class SavingsAccountCard extends StatelessWidget {
 
               TextField(
                 controller: interestController,
-                keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                keyboardType:
+                const TextInputType.numberWithOptions(decimal: true),
                 decoration: const InputDecoration(
                   labelText: "Intérêts accumulés",
                   suffixText: "€",
@@ -171,7 +162,9 @@ class SavingsAccountCard extends StatelessWidget {
                       interestController.text.replaceAll(',', '.'),
                     );
 
-                    if (balance != null && interest != null && onValueUpdated != null) {
+                    if (balance != null &&
+                        interest != null &&
+                        onValueUpdated != null) {
                       onValueUpdated!(balance, interest);
                     }
 
