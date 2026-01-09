@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../repositories/local_database_repository.dart';
 import '../services/patrimoine_service.dart';
+import '../widgets/add_patrimoine_wizard.dart';
 import '../widgets/patrimoine_header.dart';
 import '../widgets/cash_account_list.dart';
 import '../widgets/savings_account_list.dart';
@@ -40,47 +41,58 @@ class _HomePageState extends State<HomePage> {
     });
   }
 
-  // ✅ Méthode pour rafraîchir toute la page
   Future<void> _refreshAll() async {
     await _loadPatrimoine();
-    // Force le rebuild de tous les widgets enfants
-    setState(() {});
+    setState(() {}); // pour forcer le rebuild
+  }
+
+  void _openAddPatrimoinePanel() async {
+    final result = await showModalBottomSheet<bool>(
+      context: context,
+      isScrollControlled: true,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (_) => const AddPatrimoineWizard(),
+    );
+
+    if (result == true) {
+      await _refreshAll();
+    }
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text("Patrimoine App"),
-        elevation: 0,
-        // ✅ Supprimé le bouton refresh d'ici
+      appBar: AppBar(title: const Text("Patrimoine App")),
+      floatingActionButton: FloatingActionButton(
+        onPressed: _openAddPatrimoinePanel,
+        child: const Icon(Icons.add),
       ),
       body: isLoading
           ? const Center(child: CircularProgressIndicator())
           : SingleChildScrollView(
         child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // ✅ Bouton refresh qui recharge tout
             PatrimoineHeader(
               patrimoineTotal: patrimoineTotal,
               onRefresh: _refreshAll,
             ),
             CashAccountList(
               userId: userId,
-              onAccountUpdated: _loadPatrimoine,
+              onAccountUpdated: _refreshAll,
             ),
             SavingsAccountList(
               userId: userId,
-              onAccountUpdated: _loadPatrimoine,
+              onAccountUpdated: _refreshAll,
             ),
             InvestmentList(
               userId: userId,
-              onAccountTap: _loadPatrimoine,
+              onAccountTap: _refreshAll,
             ),
             RestaurantVoucherList(
               userId: userId,
-              onVoucherUpdated: _loadPatrimoine,
+              onVoucherUpdated: _refreshAll,
             ),
           ],
         ),

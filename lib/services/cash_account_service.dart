@@ -1,3 +1,4 @@
+import '../models/cash_account.dart';
 import '../models/local_database.dart';
 import '../models/user_cash_account.dart';
 import '../repositories/local_database_repository.dart';
@@ -32,6 +33,16 @@ class CashAccountService {
         .fold(0.0, (total, account) => total + account.balance);
   }
 
+  Future<bool> deleteCashAccount(int accountId) async {
+    final index =
+    db.userCashAccounts.indexWhere((uca) => uca.id == accountId);
+    if (index != -1) {
+      db.userCashAccounts.removeAt(index);
+      await LocalDatabaseRepository().save(db);
+      return true;
+    }
+    return false;
+  }
   // ✅ Méthode pour mettre à jour le solde d'un compte espèces
   Future<bool> updateCashAccountBalance(int accountId, double newBalance) async {
     final accountIndex = db.userCashAccounts
@@ -41,7 +52,8 @@ class CashAccountService {
       final oldAccount = db.userCashAccounts[accountIndex];
 
       // ✅ Vérifie si la valeur a changé
-      if (oldAccount.balance == newBalance) {
+      if (oldAccount.balance == newBalance)
+      {
         return false; // Pas de changement
       }
 
@@ -62,11 +74,62 @@ class CashAccountService {
     return false;
   }
 
-  // Méthode pour créer un nouveau compte espèce
-  Future<bool> createUserCashAccount(int userId, int cashAccountId) async {
-    // TODO
-    return false;
+  /// Crée un nouveau compte espèces pour un utilisateur
+  Future<bool> createUserCashAccount({
+    required int userId,
+    required int bankId,
+    required double initialBalance,
+  }) async {
+    try {
+      // 1️⃣ Vérifier si un CashAccount existe pour cette banque
+      CashAccount? cashAccount;
+      try {
+        cashAccount = db.cashAccounts.firstWhere(
+              (ca) => ca.bankId == bankId,
+        );
+        print('✅ CashAccount existant trouvé: ${cashAccount.name} (id: ${cashAccount.id})');
+      } catch (e) {
+        // 2️⃣ Si le CashAccount n'existe pas, le créer
+        final newCashAccountId = db.cashAccounts.isEmpty
+            ? 1
+            : db.cashAccounts.map((ca) => ca.id).reduce((a, b) => a > b ? a : b) + 1;
+
+        cashAccount = CashAccount(
+          id: newCashAccountId,
+          name: 'Compte espèces',
+          bankId: bankId,
+        );
+
+        db.cashAccounts.add(cashAccount);
+        print('✅ Nouveau CashAccount créé: ${cashAccount.name} (id: ${cashAccount.id})');
+      }
+
+      // 3️⃣ Créer le UserCashAccount
+      final newUserCashAccountId = db.userCashAccounts.isEmpty
+          ? 1
+          : db.userCashAccounts.map((uca) => uca.id).reduce((a, b) => a > b ? a : b) + 1;
+
+      final newUserCashAccount = UserCashAccount(
+        id: newUserCashAccountId,
+        userId: userId,
+        cashAccountId: cashAccount.id,
+        balance: initialBalance,
+      );
+
+      db.userCashAccounts.add(newUserCashAccount);
+
+      // 4️⃣ Sauvegarder dans le JSON
+      final repo = LocalDatabaseRepository();
+      await repo.save(db);
+
+      print('✅ UserCashAccount créé avec succès (id: $newUserCashAccountId, balance: $initialBalance €)');
+      return true;
+    } catch (e) {
+      print('❌ Erreur création UserCashAccount: $e');
+      return false;
+    }
   }
+
 }
 
 class UserCashAccountView {

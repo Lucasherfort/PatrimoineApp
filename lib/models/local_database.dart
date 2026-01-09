@@ -1,13 +1,14 @@
+// 📁 models/local_database.dart
+
 import 'bank.dart';
+import 'cash_account.dart';
+import 'user_cash_account.dart';
 import 'savings_account.dart';
 import 'user_savings_account.dart';
 import 'investment_account.dart';
 import 'user_investment_account.dart';
 import 'investment_position.dart';
-import 'restaurant_voucher.dart';
 import 'user_restaurant_voucher.dart';
-import 'cash_account.dart';
-import 'user_cash_account.dart';
 
 class LocalDatabase {
   final List<Bank> banks;
@@ -34,54 +35,74 @@ class LocalDatabase {
     required this.userRestaurantVouchers,
   });
 
+  /// 🔹 Crée un LocalDatabase à partir d'un JSON
   factory LocalDatabase.fromJson(Map<String, dynamic> json) {
     return LocalDatabase(
-      banks: (json['banks'] as List)
-          .map((b) => Bank.fromJson(b))
-          .toList(),
-      cashAccounts: (json['cashAccounts'] as List)
-          .map((ca) => CashAccount.fromJson(ca))
-          .toList(),
-      userCashAccounts: (json['userCashAccounts'] as List)
-          .map((uca) => UserCashAccount.fromJson(uca))
-          .toList(),
-      savingsAccounts: (json['savingsAccounts'] as List)
-          .map((sa) => SavingsAccount.fromJson(sa))
-          .toList(),
-      userSavingsAccounts: (json['userSavingsAccounts'] as List)
-          .map((usa) => UserSavingsAccount.fromJson(usa))
-          .toList(),
-      investmentAccounts: (json['investmentAccounts'] as List)
-          .map((ia) => InvestmentAccount.fromJson(ia))
-          .toList(),
-      userInvestmentAccounts: (json['userInvestmentAccounts'] as List)
-          .map((uia) => UserInvestmentAccount.fromJson(uia))
-          .toList(),
-      investmentPositions: (json['investmentPositions'] as List)
-          .map((ip) => InvestmentPosition.fromJson(ip))
-          .toList(),
-      restaurantVouchers: (json['restaurantVouchers'] as List)
-          .map((rv) => RestaurantVoucher.fromJson(rv))
-          .toList(),
-      userRestaurantVouchers: (json['userRestaurantVouchers'] as List)
-          .map((urv) => UserRestaurantVoucher.fromJson(urv))
-          .toList(),
+      banks: (json['banks'] as List<dynamic>?)
+          ?.map((b) => Bank.fromJson(b))
+          .toList() ??
+          [],
+      cashAccounts: (json['cashAccounts'] as List<dynamic>?)
+          ?.map((ca) => CashAccount.fromJson(ca))
+          .toList() ??
+          [],
+      userCashAccounts: (json['userCashAccounts'] as List<dynamic>?)
+          ?.map((uca) => UserCashAccount.fromJson(uca))
+          .toList() ??
+          [],
+      savingsAccounts: (json['savingsAccounts'] as List<dynamic>?)
+          ?.map((sa) => SavingsAccount.fromJson(sa))
+          .toList() ??
+          [],
+      userSavingsAccounts: (json['userSavingsAccounts'] as List<dynamic>?)
+          ?.map((usa) => UserSavingsAccount.fromJson(usa))
+          .toList() ??
+          [],
+      investmentAccounts: (json['investmentAccounts'] as List<dynamic>?)
+          ?.map((ia) => InvestmentAccount.fromJson(ia))
+          .toList() ??
+          [],
+      userInvestmentAccounts: (json['userInvestmentAccounts'] as List<dynamic>?)
+          ?.map((uia) => UserInvestmentAccount.fromJson(uia))
+          .toList() ??
+          [],
+      investmentPositions: (json['investmentPositions'] as List<dynamic>?)
+          ?.map((ip) => InvestmentPosition.fromJson(ip))
+          .toList() ??
+          [],
+      restaurantVouchers: (json['restaurantVouchers'] as List<dynamic>?)
+          ?.map((rv) => RestaurantVoucher.fromJson(rv))
+          .toList() ??
+          [],
+      userRestaurantVouchers:
+      (json['userRestaurantVouchers'] as List<dynamic>?)
+          ?.map((urv) => UserRestaurantVoucher.fromJson(urv))
+          .toList() ??
+          [],
     );
   }
 
+  /// 🔹 Convertit LocalDatabase en JSON
   Map<String, dynamic> toJson() => {
-    'banks': banks.whereType<Bank>().map((b) => b.toJson()).toList(),
-    'cashAccounts': cashAccounts.whereType<CashAccount>().map((ca) => ca.toJson()).toList(),
-    'userCashAccounts': userCashAccounts.whereType<UserCashAccount>().map((uca) => uca.toJson()).toList(),
-    'savingsAccounts': savingsAccounts.whereType<SavingsAccount>().map((sa) => sa.toJson()).toList(),
-    'userSavingsAccounts': userSavingsAccounts.whereType<UserSavingsAccount>().map((usa) => usa.toJson()).toList(),
-    'investmentAccounts': investmentAccounts.whereType<InvestmentAccount>().map((ia) => ia.toJson()).toList(),
-    'userInvestmentAccounts': userInvestmentAccounts.whereType<UserInvestmentAccount>().map((uia) => uia.toJson()).toList(),
-    'investmentPositions': investmentPositions.whereType<InvestmentPosition>().map((ip) => ip.toJson()).toList(),
-    'restaurantVouchers': restaurantVouchers.whereType<RestaurantVoucher>().map((rv) => rv.toJson()).toList(),
-    'userRestaurantVouchers': userRestaurantVouchers.whereType<UserRestaurantVoucher>().map((urv) => urv.toJson()).toList(),
+    'banks': banks.map((b) => b.toJson()).toList(),
+    'cashAccounts': cashAccounts.map((ca) => ca.toJson()).toList(),
+    'userCashAccounts': userCashAccounts.map((uca) => uca.toJson()).toList(),
+    'savingsAccounts': savingsAccounts.map((sa) => sa.toJson()).toList(),
+    'userSavingsAccounts':
+    userSavingsAccounts.map((usa) => usa.toJson()).toList(),
+    'investmentAccounts':
+    investmentAccounts.map((ia) => ia.toJson()).toList(),
+    'userInvestmentAccounts':
+    userInvestmentAccounts.map((uia) => uia.toJson()).toList(),
+    'investmentPositions':
+    investmentPositions.map((ip) => ip.toJson()).toList(),
+    'restaurantVouchers':
+    restaurantVouchers.map((rv) => rv.toJson()).toList(),
+    'userRestaurantVouchers':
+    userRestaurantVouchers.map((urv) => urv.toJson()).toList(),
   };
 
+  /// 🔹 Crée un LocalDatabase vide
   factory LocalDatabase.empty() {
     return LocalDatabase(
       banks: [],

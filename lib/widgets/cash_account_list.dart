@@ -34,7 +34,6 @@ class _CashAccountListState extends State<CashAccountList> {
       final repo = LocalDatabaseRepository();
       final db = await repo.load();
       final service = CashAccountService(db);
-
       final data = service.getAccountsForUser(widget.userId);
 
       setState(() {
@@ -52,9 +51,9 @@ class _CashAccountListState extends State<CashAccountList> {
 
   Future<void> _updateAccountBalance(int accountId, double newBalance) async {
     if (cashAccountService != null) {
-      final success = await cashAccountService!.updateCashAccountBalance(accountId, newBalance);
+      final success =
+      await cashAccountService!.updateCashAccountBalance(accountId, newBalance);
 
-      // ✅ Ne recharge que si la valeur a changé
       if (success) {
         await _loadAccounts();
 
@@ -67,6 +66,8 @@ class _CashAccountListState extends State<CashAccountList> {
 
   @override
   Widget build(BuildContext context) {
+    if (!isLoading && accounts.isEmpty) return const SizedBox.shrink();
+
     return Padding(
       padding: const EdgeInsets.all(16.0),
       child: Column(
@@ -80,14 +81,8 @@ class _CashAccountListState extends State<CashAccountList> {
             ),
           ),
           const SizedBox(height: 16),
-
           if (isLoading)
-            const Center(
-              child: Padding(
-                padding: EdgeInsets.all(20.0),
-                child: CircularProgressIndicator(),
-              ),
-            )
+            const Center(child: CircularProgressIndicator())
           else if (errorMessage != null)
             Center(
               child: Column(
@@ -101,18 +96,24 @@ class _CashAccountListState extends State<CashAccountList> {
                 ],
               ),
             )
-          else if (accounts.isEmpty)
-              const Center(
-                child: Padding(
-                  padding: EdgeInsets.all(20.0),
-                  child: Text('Aucun compte espèces'),
-                ),
-              )
-            else
-              ...accounts.map((account) => CashAccountCard(
+          else
+            ...accounts.map(
+                  (account) => CashAccountCard(
                 account: account,
-                onValueUpdated: (newValue) => _updateAccountBalance(account.id, newValue),
-              )),
+                onValueUpdated: (newValue) =>
+                    _updateAccountBalance(account.id, newValue),
+
+                // ✅ NOUVEAU
+                onDeleted: () async {
+                  await _loadAccounts();
+
+                  // ✅ Rafraîchir le patrimoine global
+                  if (widget.onAccountUpdated != null) {
+                    widget.onAccountUpdated!();
+                  }
+                },
+              ),
+            ),
         ],
       ),
     );

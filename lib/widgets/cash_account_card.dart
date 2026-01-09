@@ -1,15 +1,18 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import '../repositories/local_database_repository.dart';
 import '../services/cash_account_service.dart';
 
 class CashAccountCard extends StatelessWidget {
   final UserCashAccountView account;
   final void Function(double newValue)? onValueUpdated;
+  final VoidCallback? onDeleted; // ✅ AJOUT
 
   const CashAccountCard({
     super.key,
     required this.account,
     this.onValueUpdated,
+    this.onDeleted,
   });
 
   @override
@@ -23,6 +26,7 @@ class CashAccountCard extends StatelessWidget {
       child: InkWell(
         borderRadius: BorderRadius.circular(12),
         onTap: () => _openEditPanel(context),
+        onLongPress: () => _confirmDelete(context), // ✅ Appui long
         child: Card(
           elevation: 2,
           shape: RoundedRectangleBorder(
@@ -32,7 +36,6 @@ class CashAccountCard extends StatelessWidget {
             padding: const EdgeInsets.all(12.0),
             child: Row(
               children: [
-                // Icône à gauche
                 Container(
                   padding: const EdgeInsets.all(8),
                   decoration: BoxDecoration(
@@ -46,8 +49,6 @@ class CashAccountCard extends StatelessWidget {
                   ),
                 ),
                 const SizedBox(width: 12),
-
-                // Infos principales (compte + banque)
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -69,10 +70,9 @@ class CashAccountCard extends StatelessWidget {
                     ],
                   ),
                 ),
-
-                // Montant à droite (format français)
                 Text(
-                  currencyFormat.format(account.balance),
+                  NumberFormat.currency(locale: 'fr_FR', symbol: '€')
+                      .format(account.balance),
                   style: const TextStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.bold,
@@ -150,6 +150,51 @@ class CashAccountCard extends StatelessWidget {
               ),
             ],
           ),
+        );
+      },
+    );
+  }
+
+  void _confirmDelete(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: const Text("Supprimer le compte"),
+          content: Text(
+              "Voulez-vous vraiment supprimer le compte ${account.cashAccountName} ?"),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text("Annuler"),
+            ),
+            ElevatedButton(
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.red,
+              ),
+              onPressed: () async {
+                final service = CashAccountService(
+                  await LocalDatabaseRepository().load(),
+                );
+
+                await service.deleteCashAccount(account.id);
+
+                Navigator.pop(context);
+
+                // ✅ NOTIFIER LE PARENT
+                onDeleted?.call();
+
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text(
+                      "Compte ${account.cashAccountName} supprimé.",
+                    ),
+                  ),
+                );
+              },
+              child: const Text("Supprimer"),
+            ),
+          ],
         );
       },
     );
