@@ -23,7 +23,7 @@ class SavingsAccountService {
         interestAccrued: usa.interestAccrued,
         savingsAccountName: account.name,
         bankName: bank.name,
-        cap: account.cap, // ✅ Ajout du plafond
+        cap: account.cap,
       );
     }).toList();
   }
@@ -34,7 +34,6 @@ class SavingsAccountService {
         .fold(0.0, (total, account) => total + account.balance + account.interestAccrued);
   }
 
-  // ✅ Méthode pour mettre à jour un compte épargne avec validation du plafond
   Future<SavingsAccountUpdateResult> updateSavingsAccount(
       int accountId,
       double newBalance,
@@ -52,19 +51,14 @@ class SavingsAccountService {
 
     final oldAccount = db.userSavingsAccounts[accountIndex];
 
-    // Vérifie si au moins une valeur a changé
-    if (oldAccount.balance == newBalance && oldAccount.interestAccrued == newInterest)
-    {
+    if (oldAccount.balance == newBalance && oldAccount.interestAccrued == newInterest) {
       return SavingsAccountUpdateResult(success: false);
     }
 
-    // ✅ Récupère le plafond du compte
     final savingsAccount = db.savingsAccounts
         .firstWhere((sa) => sa.id == oldAccount.savingsAccountId);
 
-    // ✅ Vérifie que le solde ne dépasse pas le plafond
-    if (newBalance > savingsAccount.cap)
-    {
+    if (newBalance > savingsAccount.cap) {
       return SavingsAccountUpdateResult(
         success: false,
         error: 'Le solde (${newBalance.toStringAsFixed(2)} €) dépasse le plafond de ${savingsAccount.cap} € pour ${savingsAccount.name}',
@@ -85,6 +79,21 @@ class SavingsAccountService {
     await repo.save(db);
 
     return SavingsAccountUpdateResult(success: true);
+  }
+
+  // -------------------------------
+  // 🗑️ SUPPRESSION D'UN COMPTE
+  // -------------------------------
+  Future<bool> deleteSavingsAccount(int userSavingsAccountId) async {
+    final index = db.userSavingsAccounts.indexWhere((u) => u.id == userSavingsAccountId);
+    if (index == -1) return false;
+
+    db.userSavingsAccounts.removeAt(index);
+
+    final repo = LocalDatabaseRepository();
+    await repo.save(db);
+
+    return true;
   }
 }
 

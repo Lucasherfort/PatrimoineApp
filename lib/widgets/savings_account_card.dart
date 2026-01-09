@@ -1,15 +1,18 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import '../repositories/local_database_repository.dart';
 import '../services/savings_account_service.dart';
 
 class SavingsAccountCard extends StatelessWidget {
   final UserSavingsAccountView account;
   final void Function(double newBalance, double newInterest)? onValueUpdated;
+  final VoidCallback? onDeleted; // ✅ Callback pour suppression
 
   const SavingsAccountCard({
     super.key,
     required this.account,
     this.onValueUpdated,
+    this.onDeleted,
   });
 
   @override
@@ -23,6 +26,7 @@ class SavingsAccountCard extends StatelessWidget {
       child: InkWell(
         borderRadius: BorderRadius.circular(12),
         onTap: () => _openEditPanel(context),
+        onLongPress: () => _confirmDelete(context), // ✅ Appui long pour supprimer
         child: Card(
           elevation: 2,
           shape: RoundedRectangleBorder(
@@ -70,7 +74,7 @@ class SavingsAccountCard extends StatelessWidget {
                   ),
                 ),
 
-                // ✅ UN SEUL affichage : le solde
+                // Solde uniquement
                 Text(
                   currencyFormat.format(account.balance),
                   style: const TextStyle(
@@ -88,7 +92,7 @@ class SavingsAccountCard extends StatelessWidget {
   }
 
   // ---------------------------
-  // Modal d'édition (inchangé)
+  // Modal d'édition
   // ---------------------------
   void _openEditPanel(BuildContext context) {
     final balanceController = TextEditingController(
@@ -175,6 +179,57 @@ class SavingsAccountCard extends StatelessWidget {
               ),
             ],
           ),
+        );
+      },
+    );
+  }
+
+  // ---------------------------
+  // Confirmation de suppression
+  // ---------------------------
+  void _confirmDelete(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: const Text("Supprimer le compte"),
+          content: Text(
+              "Voulez-vous vraiment supprimer le compte ${account.savingsAccountName} ?"),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text("Annuler"),
+            ),
+            ElevatedButton(
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.red,
+              ),
+              onPressed: () async {
+                final service = SavingsAccountService(
+                  await LocalDatabaseRepository().load(),
+                );
+
+                final success = await service.deleteSavingsAccount(account.id);
+
+                Navigator.pop(context);
+
+                if (success) {
+                  // ✅ notifier le parent pour rafraîchir la liste et le patrimoine
+                  onDeleted?.call();
+
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text(
+                        "Compte ${account.savingsAccountName} supprimé.",
+                      ),
+                      backgroundColor: Colors.green,
+                    ),
+                  );
+                }
+              },
+              child: const Text("Supprimer"),
+            ),
+          ],
         );
       },
     );

@@ -50,22 +50,19 @@ class _SavingsAccountListState extends State<SavingsAccountList> {
     }
   }
 
-  Future<void> _updateAccount(int accountId, double newBalance, double newInterest) async {
+  Future<void> _updateAccount(
+      int accountId, double newBalance, double newInterest) async {
     if (savingsAccountService != null) {
       final result = await savingsAccountService!.updateSavingsAccount(
-          accountId,
-          newBalance,
-          newInterest
+        accountId,
+        newBalance,
+        newInterest,
       );
 
       if (result.success) {
         await _loadAccounts();
-
-        if (widget.onAccountUpdated != null) {
-          widget.onAccountUpdated!();
-        }
+        widget.onAccountUpdated?.call();
       } else if (result.error != null) {
-        // ✅ Affiche un message d'erreur à l'utilisateur
         if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
@@ -79,8 +76,19 @@ class _SavingsAccountListState extends State<SavingsAccountList> {
     }
   }
 
+  Future<void> _deleteAccount(int accountId) async {
+    if (savingsAccountService != null) {
+      await savingsAccountService!.deleteSavingsAccount(accountId);
+      await _loadAccounts();
+      widget.onAccountUpdated?.call();
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
+    // ✅ Si aucun compte, ne rien afficher
+    if (!isLoading && accounts.isEmpty) return const SizedBox.shrink();
+
     return Padding(
       padding: const EdgeInsets.all(16.0),
       child: Column(
@@ -94,13 +102,9 @@ class _SavingsAccountListState extends State<SavingsAccountList> {
             ),
           ),
           const SizedBox(height: 16),
-
           if (isLoading)
             const Center(
-              child: Padding(
-                padding: EdgeInsets.all(20.0),
-                child: CircularProgressIndicator(),
-              ),
+              child: CircularProgressIndicator(),
             )
           else if (errorMessage != null)
             Center(
@@ -115,19 +119,15 @@ class _SavingsAccountListState extends State<SavingsAccountList> {
                 ],
               ),
             )
-          else if (accounts.isEmpty)
-              const Center(
-                child: Padding(
-                  padding: EdgeInsets.all(20.0),
-                  child: Text('Aucun compte épargne'),
-                ),
-              )
-            else
-              ...accounts.map((account) => SavingsAccountCard(
+          else
+            ...accounts.map(
+                  (account) => SavingsAccountCard(
                 account: account,
                 onValueUpdated: (newBalance, newInterest) =>
                     _updateAccount(account.id, newBalance, newInterest),
-              )),
+                onDeleted: () => _deleteAccount(account.id),
+              ),
+            ),
         ],
       ),
     );
