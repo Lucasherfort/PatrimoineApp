@@ -3,6 +3,7 @@
 import 'bank.dart';
 import 'cash_account.dart';
 import 'user_cash_account.dart';
+import 'savings_account_type.dart'; // ✅ AJOUTÉ
 import 'savings_account.dart';
 import 'user_savings_account.dart';
 import 'investment_account.dart';
@@ -14,6 +15,7 @@ class LocalDatabase {
   final List<Bank> banks;
   final List<CashAccount> cashAccounts;
   final List<UserCashAccount> userCashAccounts;
+  final List<SavingsAccountType> savingsAccountTypes; // ✅ AJOUTÉ
   final List<SavingsAccount> savingsAccounts;
   final List<UserSavingsAccount> userSavingsAccounts;
   final List<InvestmentAccount> investmentAccounts;
@@ -26,6 +28,7 @@ class LocalDatabase {
     required this.banks,
     required this.cashAccounts,
     required this.userCashAccounts,
+    required this.savingsAccountTypes, // ✅ AJOUTÉ
     required this.savingsAccounts,
     required this.userSavingsAccounts,
     required this.investmentAccounts,
@@ -48,6 +51,11 @@ class LocalDatabase {
           [],
       userCashAccounts: (json['userCashAccounts'] as List<dynamic>?)
           ?.map((uca) => UserCashAccount.fromJson(uca))
+          .toList() ??
+          [],
+      // ✅ AJOUTÉ
+      savingsAccountTypes: (json['savingsAccountTypes'] as List<dynamic>?)
+          ?.map((sat) => SavingsAccountType.fromJson(sat))
           .toList() ??
           [],
       savingsAccounts: (json['savingsAccounts'] as List<dynamic>?)
@@ -87,6 +95,7 @@ class LocalDatabase {
     'banks': banks.map((b) => b.toJson()).toList(),
     'cashAccounts': cashAccounts.map((ca) => ca.toJson()).toList(),
     'userCashAccounts': userCashAccounts.map((uca) => uca.toJson()).toList(),
+    'savingsAccountTypes': savingsAccountTypes.map((sat) => sat.toJson()).toList(), // ✅ AJOUTÉ
     'savingsAccounts': savingsAccounts.map((sa) => sa.toJson()).toList(),
     'userSavingsAccounts':
     userSavingsAccounts.map((usa) => usa.toJson()).toList(),
@@ -108,6 +117,7 @@ class LocalDatabase {
       banks: [],
       cashAccounts: [],
       userCashAccounts: [],
+      savingsAccountTypes: [], // ✅ AJOUTÉ
       savingsAccounts: [],
       userSavingsAccounts: [],
       investmentAccounts: [],

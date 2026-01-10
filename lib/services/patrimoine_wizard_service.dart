@@ -2,7 +2,9 @@ import 'package:flutter/cupertino.dart';
 
 import '../models/bank.dart';
 import '../models/patrimoine_type.dart';
+import '../models/savings_account.dart';
 import '../repositories/local_database_repository.dart';
+import 'bank_service.dart';
 import 'cash_account_service.dart';
 import 'savings_account_service.dart';
 
@@ -19,6 +21,7 @@ class PatrimoineWizardService {
     required int userId,
   }) async {
     final db = await repo.load();
+    final bankService = BankService(db.banks);
     bool success = false;
 
     switch (type.entityType) {
@@ -32,22 +35,57 @@ class PatrimoineWizardService {
         break;
 
       case 'savingsAccount':
-        final savingsService = SavingsAccountService(db);
+        final bankService = BankService(db.banks);
+        final savingsService = SavingsAccountService(db,bankService);
 
-        // ✅ On prend le premier compte épargne disponible (ou gérer la sélection dans le wizard)
-        final savingsAccountId = db.savingsAccounts.first.id;
+        // ✅ 1. Trouver le SavingsAccountType par nom
+        final savingsAccountType = db.savingsAccountTypes.firstWhere(
+              (sat) => sat.name == type.name,
+          orElse: () => throw Exception('Type de compte épargne "${type.name}" introuvable'),
+        );
 
+        print("IIIIIIIIIIICIIIIIIIIII : "+savingsAccountType.name);
+
+        // ✅ 2. Trouver le SavingsAccount qui correspond au type ET à la banque
+        SavingsAccount? savingsAccount;
+        try {
+          savingsAccount = db.savingsAccounts.firstWhere(
+                (sa) => sa.savingsAccountTypeId == savingsAccountType.id && sa.bankId == bank!.id,
+          );
+          debugPrint('✅ SavingsAccount trouvé: id=${savingsAccount.id}');
+        } catch (e) {
+          // ✅ 3. Si pas trouvé, créer le SavingsAccount
+          final newId = db.savingsAccounts.isEmpty
+              ? 1
+              : db.savingsAccounts.map((sa) => sa.id).reduce((a, b) => a > b ? a : b) + 1;
+
+          savingsAccount = SavingsAccount(
+            id: newId,
+            savingsAccountTypeId: savingsAccountType.id,
+            bankId: bank!.id,
+          );
+
+          db.savingsAccounts.add(savingsAccount);
+          debugPrint('✅ SavingsAccount créé: id=$newId, type=${savingsAccountType.name}, banque=${bank.name}');
+        }
+
+        // ✅ 4. Créer le UserSavingsAccount
         success = await savingsService.createUserSavingsAccount(
           userId: userId,
-          savingsAccountId: savingsAccountId,
+          savingsAccountId: savingsAccount.id,
           balance: balance,
-          interestAccrued: 0, // par défaut
+          interestAccrued: 0,
         );
         break;
 
       case 'investmentAccount':
+      // TODO: Implémenter la création de compte d'investissement
+        debugPrint('⚠️ Création InvestmentAccount non implémentée');
+        break;
+
       case 'restaurantVoucher':
-        debugPrint('⚠️ Création pour $type non implémentée');
+      // TODO: Implémenter la création de titres restaurant
+        debugPrint('⚠️ Création RestaurantVoucher non implémentée');
         break;
     }
 

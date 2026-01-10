@@ -119,6 +119,7 @@ class _AddPatrimoineWizardState extends State<AddPatrimoineWizard> {
                       selectedType!,
                       db.banks,
                       db.restaurantVouchers,
+                      db
                     ),
                     onChanged: (value) {
                       setState(() {
@@ -168,30 +169,82 @@ class _AddPatrimoineWizardState extends State<AddPatrimoineWizard> {
     );
   }
 
-  // 🔁 Items banque / plateforme
+// 🔁 Crée les items pour la dropdown Banque / Plateforme
+  /// Filtre les banques selon le type sélectionné
   List<DropdownMenuItem<Object>> _buildBankItems(
       PatrimoineType type,
-      List<Bank> banks,
+      List<Bank> allBanks,
       List<RestaurantVoucher> vouchers,
+      LocalDatabase db,
       ) {
     if (type.entityType == 'restaurantVoucher') {
       return vouchers
-          .map(
-            (v) => DropdownMenuItem<Object>(
-          value: v,
-          child: Text(v.name),
-        ),
-      )
+          .map((v) => DropdownMenuItem<Object>(
+        value: v,
+        child: Text(v.name),
+      ))
           .toList();
     }
 
-    return banks
-        .map(
-          (b) => DropdownMenuItem<Object>(
-        value: b,
-        child: Text(b.name),
-      ),
-    )
+    // ✅ Filtrer les banques selon le type de compte
+    List<int> availableBankIds = [];
+
+    switch (type.entityType) {
+      case 'cashAccount':
+      // Pour les comptes espèces, on peut utiliser n'importe quelle banque
+        availableBankIds = allBanks.map((b) => b.id).toList();
+        break;
+
+      case 'savingsAccount':
+      // ✅ Pour l'épargne, ne montrer que les banques qui ont ce type
+
+      // 1. Trouver le SavingsAccountType correspondant
+        final savingsAccountType = db.savingsAccountTypes.firstWhere(
+              (sat) => sat.name == type.name,
+          orElse: () => throw Exception('Type épargne "${type.name}" introuvable'),
+        );
+
+        // 2. Trouver les SavingsAccount de ce type
+        final matchingSavingsAccounts = db.savingsAccounts.where(
+              (sa) => sa.savingsAccountTypeId == savingsAccountType.id,
+        );
+
+        // 3. Extraire les bankId
+        availableBankIds = matchingSavingsAccounts
+            .map((sa) => sa.bankId)
+            .toSet() // Éviter les doublons
+            .toList();
+        break;
+
+      case 'investmentAccount':
+      // ✅ Pour les investissements, ne montrer que les banques qui ont ce type
+        final matchingInvestmentAccounts = db.investmentAccounts.where(
+              (ia) => ia.name == type.name,
+        );
+
+        availableBankIds = matchingInvestmentAccounts
+            .map((ia) => ia.bankId)
+            .toSet()
+            .toList();
+        break;
+
+      default:
+        availableBankIds = allBanks.map((b) => b.id).toList();
+    }
+
+    // ✅ Si aucune banque n'a ce type, montrer toutes les banques
+    // (le service créera automatiquement le compte)
+    if (availableBankIds.isEmpty) {
+      availableBankIds = allBanks.map((b) => b.id).toList();
+    }
+
+    // ✅ Filtrer et retourner les banques disponibles
+    return allBanks
+        .where((b) => availableBankIds.contains(b.id))
+        .map((b) => DropdownMenuItem<Object>(
+      value: b,
+      child: Text(b.name),
+    ))
         .toList();
   }
 

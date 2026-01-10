@@ -9,8 +9,15 @@
   "userCashAccounts": [
     {"id": 1, "userId": 1, "cashAccountId": 1, "balance": 296.83}
   ],
+  "savingsAccountTypes": [
+    {"id": 1, "name": "Livret A", "interestRate": 3.0, "cap": 22950},
+    {"id": 2, "name": "LDDS", "interestRate": 3.0, "cap": 12000},
+    {"id": 3, "name": "LEP", "interestRate": 5.0, "cap": 10000}
+  ],
   "savingsAccounts": [
-    {"id": 1, "name": "Livret A", "interestRate": 3.0, "cap": 22950, "bankId": 1}
+    {"id": 1, "savingsAccountTypeId": 1, "bankId": 1},
+    {"id": 2, "savingsAccountTypeId": 2, "bankId": 1},
+    {"id": 3, "savingsAccountTypeId": 2, "bankId": 2}
   ],
   "userSavingsAccounts": [
     {"id": 1, "userId": 1, "savingsAccountId": 1, "balance": 22388.22, "interestAccrued": 0}

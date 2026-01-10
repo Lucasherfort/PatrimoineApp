@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../repositories/local_database_repository.dart';
+import '../services/bank_service.dart';
 import '../services/savings_account_service.dart';
 import 'savings_account_card.dart';
 
@@ -33,7 +34,12 @@ class _SavingsAccountListState extends State<SavingsAccountList> {
     try {
       final repo = LocalDatabaseRepository();
       final db = await repo.load();
-      final service = SavingsAccountService(db);
+
+      // ✅ Créer BankService
+      final bankService = BankService(db.banks);
+
+      // ✅ Créer SavingsAccountService avec db + bankService
+      final service = SavingsAccountService(db, bankService);
 
       final data = service.getAccountsForUser(widget.userId);
 
@@ -53,25 +59,16 @@ class _SavingsAccountListState extends State<SavingsAccountList> {
   Future<void> _updateAccount(
       int accountId, double newBalance, double newInterest) async {
     if (savingsAccountService != null) {
-      final result = await savingsAccountService!.updateSavingsAccount(
-        accountId,
-        newBalance,
-        newInterest,
+      // ✅ Utiliser des paramètres nommés
+      final success = await savingsAccountService!.updateSavingsAccount(
+        accountId: accountId,           // ✅ Avec le nom
+        balance: newBalance,             // ✅ Avec le nom
+        interestAccrued: newInterest,    // ✅ Avec le nom
       );
 
-      if (result.success) {
+      if (success) {
         await _loadAccounts();
         widget.onAccountUpdated?.call();
-      } else if (result.error != null) {
-        if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text(result.error!),
-              backgroundColor: Colors.red,
-              duration: const Duration(seconds: 4),
-            ),
-          );
-        }
       }
     }
   }

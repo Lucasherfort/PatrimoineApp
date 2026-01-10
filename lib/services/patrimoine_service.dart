@@ -46,29 +46,47 @@ class PatrimoineService {
         .toList();
 
     return accounts.map((usa) {
-      final account = db.savingsAccounts
-          .firstWhere((a) => a.id == usa.savingsAccountId);
-      final bank = db.banks.firstWhere((b) => b.id == account.bankId);
+      // 1. Récupérer le SavingsAccount
+      final savingsAccount = db.savingsAccounts
+          .firstWhere((sa) => sa.id == usa.savingsAccountId);
+
+      // 2. Récupérer le SavingsAccountType pour avoir le nom
+      final savingsAccountType = db.savingsAccountTypes
+          .firstWhere((sat) => sat.id == savingsAccount.savingsAccountTypeId);
+
+      // 3. Récupérer la Bank
+      final bank = db.banks
+          .firstWhere((b) => b.id == savingsAccount.bankId);
+
       return UserSavingsAccountView(
+        id: usa.id,
         balance: usa.balance,
         interestAccrued: usa.interestAccrued,
-        savingsAccountName: account.name,
+        savingsAccountName: savingsAccountType.name, // ✅ Nom du type
         bankName: bank.name,
+        interestRate: savingsAccountType.interestRate,
+        cap: savingsAccountType.cap,
       );
     }).toList();
   }
 }
 
 class UserSavingsAccountView {
+  final int id;
   final double balance;
   final double interestAccrued;
   final String savingsAccountName;
   final String bankName;
+  final double interestRate;
+  final double cap;
 
   UserSavingsAccountView({
+    required this.id,
     required this.balance,
     required this.interestAccrued,
     required this.savingsAccountName,
     required this.bankName,
+    required this.interestRate,
+    required this.cap,
   });
 }

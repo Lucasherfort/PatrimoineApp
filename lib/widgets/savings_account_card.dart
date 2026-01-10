@@ -204,28 +204,9 @@ class SavingsAccountCard extends StatelessWidget {
               style: ElevatedButton.styleFrom(
                 backgroundColor: Colors.red,
               ),
-              onPressed: () async {
-                final service = SavingsAccountService(
-                  await LocalDatabaseRepository().load(),
-                );
-
-                final success = await service.deleteSavingsAccount(account.id);
-
+              onPressed: () {
                 Navigator.pop(context);
-
-                if (success) {
-                  // ✅ notifier le parent pour rafraîchir la liste et le patrimoine
-                  onDeleted?.call();
-
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(
-                      content: Text(
-                        "Compte ${account.savingsAccountName} supprimé.",
-                      ),
-                      backgroundColor: Colors.green,
-                    ),
-                  );
-                }
+                onDeleted?.call(); // parent s’occupe de la suppression
               },
               child: const Text("Supprimer"),
             ),
