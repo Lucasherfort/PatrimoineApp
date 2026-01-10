@@ -1,7 +1,8 @@
 {
   "banks": [
     {"id": 1, "name": "Boursorama"},
-    {"id": 2, "name": "Fortuneo"}
+    {"id": 2, "name": "Fortuneo"},
+    {"id": 3, "name": "Bourse Direct"}
   ],
   "cashAccounts": [
     {"id": 1, "name": "Compte espèces", "bankId": 1}
@@ -22,7 +23,9 @@
   ],
   "investmentAccounts": [
     {"id": 1, "name": "PEA", "cap": 150000, "bankId": 1},
-    {"id": 2, "name": "Assurance Vie", "cap": 999999999999999, "bankId": 1}
+    {"id": 2, "name": "Assurance Vie", "cap": 999999999999999, "bankId": 1},
+    {"id": 3, "name": "PEA", "cap": 150000, "bankId": 3},
+    {"id": 4, "name": "Assurance Vie", "cap": 999999999999999, "bankId": 3}
   ],
   "userInvestmentAccounts": [
   ],

@@ -81,26 +81,33 @@ class PatrimoineWizardService {
         break;
 
       case 'investmentAccount':
-      // 1️⃣ Trouver l'InvestmentAccount correspondant au type choisi
-        InvestmentAccount investmentAccount;
+      // ✅ 1. Trouver ou créer l'InvestmentAccount correspondant au type ET à la banque
+        InvestmentAccount? investmentAccount;
+
         try {
+          // Chercher par nom ET bankId
           investmentAccount = db.investmentAccounts.firstWhere(
-                (ia) => ia.name == type.name,
+                (ia) => ia.name == type.name && ia.bankId == bank!.id,
           );
+          print('✅ InvestmentAccount trouvé: id=${investmentAccount.id}, name=${investmentAccount.name}, bankId=${investmentAccount.bankId}');
         } catch (e) {
-          throw Exception('InvestmentAccount "${type.name}" introuvable');
+          // Si pas trouvé, créer un nouveau InvestmentAccount
+          final newId = db.investmentAccounts.isEmpty
+              ? 1
+              : db.investmentAccounts.map((ia) => ia.id).reduce((a, b) => a > b ? a : b) + 1;
+
+          investmentAccount = InvestmentAccount(
+            id: newId,
+            name: type.name,
+            cap: _getDefaultInvestmentCap(type.name),
+            bankId: bank!.id,
+          );
+
+          db.investmentAccounts.add(investmentAccount);
+          print('✅ InvestmentAccount créé: id=$newId, name=${type.name}, bankId=${bank.id}');
         }
 
-        // 2️⃣ Vérifier si l'utilisateur possède déjà ce compte
-        bool exists = db.userInvestmentAccounts.any(
-                (uia) => uia.userId == userId && uia.investmentAccountId == investmentAccount.id
-        );
-
-        if (exists) {
-          throw Exception('L\'utilisateur possède déjà un compte d\'investissement "${type.name}"');
-        }
-
-        // 3️⃣ Créer le UserInvestmentAccount
+        // ✅ 3. Créer le UserInvestmentAccount
         final newId = db.userInvestmentAccounts.isEmpty
             ? 1
             : db.userInvestmentAccounts.map((uia) => uia.id).reduce((a, b) => a > b ? a : b) + 1;
@@ -109,15 +116,15 @@ class PatrimoineWizardService {
           id: newId,
           userId: userId,
           investmentAccountId: investmentAccount.id,
-          cumulativeDeposits: 0.0,
+          cumulativeDeposits: balance, // ✅ Utiliser le solde initial
           latentCapitalGain: 0.0,
           cashBalance: 0.0,
         );
 
         db.userInvestmentAccounts.add(userInvestmentAccount);
-
         success = true;
         break;
+
 
       case 'restaurantVoucher':
         if (voucher == null) {
@@ -167,11 +174,12 @@ class PatrimoineWizardService {
     final db = await repo.load();
     final bankService = BankService(db.banks);
 
+    print('🔍 Type: ${type.name}, entityType: ${type.entityType}');
+
     if (type.entityType == 'savingsAccount') {
       final savingsType = db.savingsAccountTypes.firstWhere(
             (sat) => sat.name == type.name,
-        orElse: () =>
-        throw Exception('Type épargne "${type.name}" introuvable'),
+        orElse: () => throw Exception('Type épargne "${type.name}" introuvable'),
       );
 
       final bankIds = db.savingsAccounts
@@ -180,15 +188,28 @@ class PatrimoineWizardService {
           .toSet()
           .toList();
 
-      return bankService.getByIds(bankIds);
+      print('📊 SavingsAccount - bankIds trouvés: $bankIds');
+      final result = bankService.getByIds(bankIds);
+      print('🏦 Banques retournées: ${result.map((b) => b.name).toList()}');
+      return result;
+
     } else if (type.entityType == 'investmentAccount') {
-      final bankIds = db.investmentAccounts
+
+
+      final matchingAccounts = db.investmentAccounts
           .where((ia) => ia.name == type.name)
+          .toList();
+
+
+      final bankIds = matchingAccounts
           .map((ia) => ia.bankId)
           .toSet()
           .toList();
 
-      return bankService.getByIds(bankIds);
+      final result = bankService.getByIds(bankIds);
+      print('🏦 Banques retournées: ${result.map((b) => b.name).toList()}');
+      return result;
+
     } else if (type.entityType == 'cashAccount') {
       return db.banks;
     } else {
@@ -200,5 +221,22 @@ class PatrimoineWizardService {
   Future<List<RestaurantVoucher>> getAvailableVouchers() async {
     final db = await repo.load();
     return db.restaurantVouchers;
+  }
+
+  // ========== Méthode helper pour les plafonds ==========
+// À ajouter à la fin de la classe
+
+  int _getDefaultInvestmentCap(String accountName) {
+    switch (accountName) {
+      case 'PEA':
+        return 150000;
+      case 'PEA-PME':
+        return 225000;
+      case 'Assurance Vie':
+      case 'CTO':
+        return 999999999999999;
+      default:
+        return 999999999;
+    }
   }
 }
