@@ -83,14 +83,27 @@ class RestaurantVoucherCard extends StatelessWidget {
                 ),
                 const SizedBox(width: 12),
 
-                // Nom
+                // Infos : type et plateforme
                 Expanded(
-                  child: Text(
-                    voucher.voucherName,
-                    style: const TextStyle(
-                      fontWeight: FontWeight.bold,
-                      fontSize: 15,
-                    ),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        "Titre restaurant", // type de compte
+                        style: const TextStyle(
+                          fontWeight: FontWeight.bold,
+                          fontSize: 15,
+                        ),
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        voucher.voucherName, // plateforme
+                        style: const TextStyle(
+                          fontSize: 13,
+                          color: Colors.grey,
+                        ),
+                      ),
+                    ],
                   ),
                 ),
 

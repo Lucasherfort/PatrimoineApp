@@ -7,6 +7,7 @@ import '../models/patrimoine_type.dart';
 import '../models/savings_account.dart';
 import '../models/restaurant_voucher.dart';
 import '../models/user_investment_account.dart';
+import '../models/user_restaurant_voucher.dart';
 import '../repositories/local_database_repository.dart';
 import 'bank_service.dart';
 import 'cash_account_service.dart';
@@ -122,7 +123,34 @@ class PatrimoineWizardService {
         break;
 
       case 'restaurantVoucher':
-        debugPrint('⚠️ Création RestaurantVoucher non implémentée');
+        if (voucher == null) {
+          throw Exception('Aucune plateforme sélectionnée pour le titre restaurant');
+        }
+
+        // Vérifier si l'utilisateur possède déjà ce voucher
+        bool exists = db.userRestaurantVouchers.any(
+                (urv) => urv.userId == userId && urv.restaurantVoucherId == voucher.id
+        );
+
+        if (exists) {
+          throw Exception(
+              'L\'utilisateur possède déjà un titre restaurant "${voucher.name}"');
+        }
+
+        // Créer le UserRestaurantVoucher
+        final newId = db.userRestaurantVouchers.isEmpty
+            ? 1
+            : db.userRestaurantVouchers.map((urv) => urv.id).reduce((a, b) => a > b ? a : b) + 1;
+
+        final userVoucher = UserRestaurantVoucher(
+          id: newId,
+          userId: userId,
+          restaurantVoucherId: voucher.id,
+          balance: 0.0, // Toujours 0 par défaut
+        );
+
+        db.userRestaurantVouchers.add(userVoucher);
+        success = true;
         break;
     }
 

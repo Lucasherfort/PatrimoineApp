@@ -145,15 +145,19 @@ class _RestaurantVoucherListState extends State<RestaurantVoucherList> {
             ),
           ),
           const SizedBox(height: 16),
-          ...vouchers.map(
-                (voucher) => GestureDetector(
-              onLongPress: () => _deleteVoucher(voucher.id), // 🔹 Appui long pour suppression
-              child: RestaurantVoucherCard(
-                voucher: voucher,
-                onValueUpdated: (newValue) => _updateVoucherBalance(voucher.id, newValue),
-              ),
-            ),
-          ),
+          ...vouchers.map((voucher) => RestaurantVoucherCard(
+            voucher: voucher,
+            onValueUpdated: (newValue) => _updateVoucherBalance(voucher.id, newValue),
+            onDeleted: () async {
+              if (voucherService != null) {
+                await voucherService! .deleteUserVoucher(voucher.id); // supprimer dans la DB
+                await _loadVouchers(); // recharger la liste
+                if (widget.onVoucherUpdated != null) {
+                  widget.onVoucherUpdated!(); // mettre à jour le patrimoine
+                }
+              }
+            },
+          )),
         ],
       ),
     );
