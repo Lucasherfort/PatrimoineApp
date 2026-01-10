@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:supabase_flutter/supabase_flutter.dart';
 import '../services/patrimoine_service.dart';
 import '../widgets/add_patrimoine_wizard.dart';
 import '../widgets/patrimoine_header.dart';
@@ -14,6 +13,9 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> {
+  // ✅ Simple instanciation sans dépendance Supabase
+  final PatrimoineService _service = PatrimoineService();
+
   double patrimoineTotal = 0.0;
   bool isLoading = true;
 
@@ -22,93 +24,85 @@ class _HomePageState extends State<HomePage> {
   bool hasInvestmentAccounts = false;
   bool hasVouchers = false;
 
-  late final PatrimoineService patrimoineService;
-
   @override
   void initState() {
     super.initState();
-    patrimoineService = PatrimoineService(Supabase.instance.client);
     _loadPatrimoine();
   }
 
   Future<void> _loadPatrimoine() async {
     setState(() => isLoading = true);
 
-    // 🔹 Total cash via Supabase RPC
-    final totalCash = await patrimoineService.getPatrimoine();
+    try {
+      final total = await _service.getPatrimoine();
 
-    // 🔹 Pour l'instant, on suppose que les autres comptes sont absents
-    final totalOther = 0.0;
+      setState(() {
+        patrimoineTotal = total;
+        isLoading = false;
+      });
+    } catch (e) {
+      print('Erreur lors du chargement du patrimoine: $e');
+      setState(() {
+        isLoading = false;
+      });
 
-    setState(() {
-      patrimoineTotal = totalCash + totalOther;
-      hasCashAccounts = totalCash > 0;
-      hasSavingsAccounts = false;
-      hasInvestmentAccounts = false;
-      hasVouchers = false;
-      isLoading = false;
-    });
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Erreur: $e')),
+        );
+      }
+    }
   }
 
   Future<void> _refreshAll() async {
     await _loadPatrimoine();
+    setState(() {});
   }
 
-  void _openAddPatrimoinePanel() async {
-    final result = await showModalBottomSheet<bool>(
-      context: context,
-      isScrollControlled: true,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-      ),
-      builder: (_) => const AddPatrimoineWizard(),
-    );
-
-    if (result == true) {
-      await _refreshAll();
-    }
-  }
 
   @override
   Widget build(BuildContext context) {
-    if (isLoading) return const Scaffold(body: Center(child: CircularProgressIndicator()));
+    if (isLoading) {
+      return const Scaffold(
+        body: Center(child: CircularProgressIndicator()),
+      );
+    }
 
-    final hasAnyAccount =
-        hasCashAccounts || hasSavingsAccounts || hasInvestmentAccounts || hasVouchers;
+    final hasAnyAccount = hasCashAccounts ||
+        hasSavingsAccounts ||
+        hasInvestmentAccounts ||
+        hasVouchers;
 
     return Scaffold(
       appBar: AppBar(title: const Text("Patrimoine App")),
+      /*
       floatingActionButton: FloatingActionButton(
         onPressed: _openAddPatrimoinePanel,
         child: const Icon(Icons.add),
       ),
+
+       */
       body: Column(
         children: [
+          // ✅ HEADER FIXE
           PatrimoineHeader(
             patrimoineTotal: patrimoineTotal,
             onRefresh: _refreshAll,
           ),
+
+          // ✅ CONTENU SCROLLABLE
           Expanded(
             child: hasAnyAccount
                 ? ListView(
               padding: const EdgeInsets.only(bottom: 80),
-              children: [
-                if (hasCashAccounts)
-                  CashAccountList(
-                    userId: 1,
-                    onAccountUpdated: _refreshAll,
-                  ),
-                if (hasSavingsAccounts)
-                  SavingsAccountList(
-                    userId: 1,
-                    onAccountUpdated: _refreshAll,
-                  ),
-              ],
             )
                 : const Center(
               child: Text(
                 "Aucun compte disponible",
-                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                style: TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                ),
               ),
             ),
           ),
