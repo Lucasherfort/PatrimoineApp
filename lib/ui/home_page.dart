@@ -20,6 +20,12 @@ class _HomePageState extends State<HomePage> {
   double patrimoineTotal = 0.0;
   bool isLoading = true;
 
+  // ✅ Suivi des comptes par catégorie
+  bool hasCashAccounts = false;
+  bool hasSavingsAccounts = false;
+  bool hasInvestmentAccounts = false;
+  bool hasVouchers = false;
+
   @override
   void initState() {
     super.initState();
@@ -33,7 +39,14 @@ class _HomePageState extends State<HomePage> {
     final db = await repo.load();
     final service = PatrimoineService(db);
 
+    // 🔹 Total patrimoine
     final total = await service.getTotalPatrimoineForUser(userId);
+
+    // 🔹 Vérifier présence des comptes
+    hasCashAccounts = db.userCashAccounts.any((ua) => ua.userId == userId);
+    hasSavingsAccounts = db.userSavingsAccounts.any((ua) => ua.userId == userId);
+    hasInvestmentAccounts = db.userInvestmentAccounts.any((ua) => ua.userId == userId);
+    hasVouchers = db.userRestaurantVouchers.any((ua) => ua.userId == userId);
 
     setState(() {
       patrimoineTotal = total;
@@ -43,7 +56,7 @@ class _HomePageState extends State<HomePage> {
 
   Future<void> _refreshAll() async {
     await _loadPatrimoine();
-    setState(() {}); // pour forcer le rebuild
+    setState(() {}); // rebuild pour rafraîchir l'affichage
   }
 
   void _openAddPatrimoinePanel() async {
@@ -63,15 +76,22 @@ class _HomePageState extends State<HomePage> {
 
   @override
   Widget build(BuildContext context) {
+    if (isLoading) {
+      return const Scaffold(
+        body: Center(child: CircularProgressIndicator()),
+      );
+    }
+
+    final hasAnyAccount =
+        hasCashAccounts || hasSavingsAccounts || hasInvestmentAccounts || hasVouchers;
+
     return Scaffold(
       appBar: AppBar(title: const Text("Patrimoine App")),
       floatingActionButton: FloatingActionButton(
         onPressed: _openAddPatrimoinePanel,
         child: const Icon(Icons.add),
       ),
-      body: isLoading
-          ? const Center(child: CircularProgressIndicator())
-          : Column(
+      body: Column(
         children: [
           // ✅ HEADER FIXE
           PatrimoineHeader(
@@ -81,26 +101,38 @@ class _HomePageState extends State<HomePage> {
 
           // ✅ CONTENU SCROLLABLE
           Expanded(
-            child: ListView(
+            child: hasAnyAccount
+                ? ListView(
               padding: const EdgeInsets.only(bottom: 80),
               children: [
-                CashAccountList(
-                  userId: userId,
-                  onAccountUpdated: _refreshAll,
-                ),
-                SavingsAccountList(
-                  userId: userId,
-                  onAccountUpdated: _refreshAll,
-                ),
-                InvestmentList(
-                  userId: userId,
-                  onAccountTap: _refreshAll,
-                ),
-                RestaurantVoucherList(
-                  userId: userId,
-                  onVoucherUpdated: _refreshAll,
-                ),
+                if (hasCashAccounts)
+                  CashAccountList(
+                    userId: userId,
+                    onAccountUpdated: _refreshAll,
+                  ),
+                if (hasSavingsAccounts)
+                  SavingsAccountList(
+                    userId: userId,
+                    onAccountUpdated: _refreshAll,
+                  ),
+                if (hasInvestmentAccounts)
+                  InvestmentList(
+                    userId: userId,
+                    onAccountTap: _refreshAll,
+                    onAccountUpdated: _refreshAll,
+                  ),
+                if (hasVouchers)
+                  RestaurantVoucherList(
+                    userId: userId,
+                    onVoucherUpdated: _refreshAll,
+                  ),
               ],
+            )
+                : const Center(
+              child: Text(
+                "Aucun compte disponible",
+                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+              ),
             ),
           ),
         ],

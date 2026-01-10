@@ -187,20 +187,6 @@ class _AddPatrimoineWizardState extends State<AddPatrimoineWizard> {
               ),
             const SizedBox(height: 16),
 
-            // 4️⃣ Solde
-            if (selectedType != null)
-              TextFormField(
-                keyboardType: const TextInputType.numberWithOptions(decimal: true),
-                decoration: const InputDecoration(
-                  labelText: "Solde initial (€)",
-                  border: OutlineInputBorder(),
-                ),
-                onChanged: (value) {
-                  initialBalance = double.tryParse(value.replaceAll(',', '.'));
-                },
-              ),
-            const SizedBox(height: 24),
-
             // 5️⃣ Bouton créer
             SizedBox(
               width: double.infinity,
@@ -215,20 +201,26 @@ class _AddPatrimoineWizardState extends State<AddPatrimoineWizard> {
     );
   }
 
+  // -------------------
+// Méthode _canSubmit
+// -------------------
   bool _canSubmit() {
-    if (selectedType == null || initialBalance == null) return false;
+    if (selectedType == null) return false;
     if (selectedType!.entityType == 'restaurantVoucher') return selectedVoucher != null;
     return selectedBank != null;
   }
 
+// -------------------
+// Méthode _submit
+// -------------------
   Future<void> _submit() async {
-    if (selectedType == null || initialBalance == null) return;
+    if (selectedType == null) return;
 
     final success = await wizardService.createPatrimoine(
       type: selectedType!,
       bank: selectedBank,
       voucher: selectedVoucher,
-      balance: initialBalance!,
+      balance: 0, // ✅ Toujours 0 par défaut
       userId: 1,
     );
 

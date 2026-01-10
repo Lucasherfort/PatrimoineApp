@@ -40,8 +40,28 @@ class InvestmentCard extends StatelessWidget {
       margin: const EdgeInsets.only(bottom: 10),
       child: InkWell(
         borderRadius: BorderRadius.circular(12),
-        onTap: onTap,
-        onLongPress: onDelete, // 🔹 Appui long déclenche la suppression
+        onTap: () async {
+          // 🔹 Navigation vers InvestmentDetailPage
+          final shouldReload = await Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (_) => InvestmentDetailPage(
+                userInvestmentAccountId: userInvestmentAccountId,
+                accountName: name,
+                bankName: bankName,
+              ),
+            ),
+          );
+
+          if (shouldReload == true && onTap != null) {
+            onTap!();
+          }
+        },
+        onLongPress: () async {
+          if (onDelete != null) {
+            onDelete!();
+          }
+        },
         child: Card(
           elevation: 2,
           shape: RoundedRectangleBorder(
@@ -64,7 +84,6 @@ class InvestmentCard extends StatelessWidget {
                   ),
                 ),
                 const SizedBox(width: 12),
-
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -86,7 +105,6 @@ class InvestmentCard extends StatelessWidget {
                     ],
                   ),
                 ),
-
                 Text(
                   "${_formatAmount(totalValue)} €",
                   style: const TextStyle(

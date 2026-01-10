@@ -2,9 +2,11 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 
 import '../models/bank.dart';
+import '../models/investment_account.dart';
 import '../models/patrimoine_type.dart';
 import '../models/savings_account.dart';
 import '../models/restaurant_voucher.dart';
+import '../models/user_investment_account.dart';
 import '../repositories/local_database_repository.dart';
 import 'bank_service.dart';
 import 'cash_account_service.dart';
@@ -81,7 +83,43 @@ class PatrimoineWizardService {
         break;
 
       case 'investmentAccount':
-        debugPrint('⚠️ Création InvestmentAccount non implémentée');
+      case 'investmentAccount':
+      // 1️⃣ Trouver l'InvestmentAccount correspondant au type choisi
+        InvestmentAccount investmentAccount;
+        try {
+          investmentAccount = db.investmentAccounts.firstWhere(
+                (ia) => ia.name == type.name,
+          );
+        } catch (e) {
+          throw Exception('InvestmentAccount "${type.name}" introuvable');
+        }
+
+        // 2️⃣ Vérifier si l'utilisateur possède déjà ce compte
+        bool exists = db.userInvestmentAccounts.any(
+                (uia) => uia.userId == userId && uia.investmentAccountId == investmentAccount.id
+        );
+
+        if (exists) {
+          throw Exception('L\'utilisateur possède déjà un compte d\'investissement "${type.name}"');
+        }
+
+        // 3️⃣ Créer le UserInvestmentAccount
+        final newId = db.userInvestmentAccounts.isEmpty
+            ? 1
+            : db.userInvestmentAccounts.map((uia) => uia.id).reduce((a, b) => a > b ? a : b) + 1;
+
+        final userInvestmentAccount = UserInvestmentAccount(
+          id: newId,
+          userId: userId,
+          investmentAccountId: investmentAccount.id,
+          cumulativeDeposits: 0.0,
+          latentCapitalGain: 0.0,
+          cashBalance: 0.0,
+        );
+
+        db.userInvestmentAccounts.add(userInvestmentAccount);
+
+        success = true;
         break;
 
       case 'restaurantVoucher':
@@ -106,7 +144,6 @@ class PatrimoineWizardService {
     final bankService = BankService(db.banks);
 
     if (type.entityType == 'savingsAccount') {
-      // Filtrer les banques qui proposent le type d'épargne choisi
       final savingsType = db.savingsAccountTypes.firstWhere(
             (sat) => sat.name == type.name,
         orElse: () =>
@@ -121,7 +158,6 @@ class PatrimoineWizardService {
 
       return bankService.getByIds(bankIds);
     } else if (type.entityType == 'investmentAccount') {
-      // Filtrer les banques qui proposent ce type d'investissement
       final bankIds = db.investmentAccounts
           .where((ia) => ia.name == type.name)
           .map((ia) => ia.bankId)
@@ -130,7 +166,6 @@ class PatrimoineWizardService {
 
       return bankService.getByIds(bankIds);
     } else if (type.entityType == 'cashAccount') {
-      // Toutes les banques sont possibles pour un compte cash
       return db.banks;
     } else {
       return [];

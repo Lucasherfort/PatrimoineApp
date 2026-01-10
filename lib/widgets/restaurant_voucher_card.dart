@@ -1,14 +1,17 @@
 import 'package:flutter/material.dart';
+import '../repositories/local_database_repository.dart';
 import '../services/restaurant_voucher_service.dart';
 
 class RestaurantVoucherCard extends StatelessWidget {
   final UserRestaurantVoucherView voucher;
   final void Function(double newValue)? onValueUpdated;
+  final VoidCallback? onDeleted; // 🔹 Callback pour suppression
 
   const RestaurantVoucherCard({
     super.key,
     required this.voucher,
     this.onValueUpdated,
+    this.onDeleted,
   });
 
   @override
@@ -19,6 +22,43 @@ class RestaurantVoucherCard extends StatelessWidget {
       child: InkWell(
         borderRadius: BorderRadius.circular(12),
         onTap: () => _openEditPanel(context),
+        onLongPress: () async {
+          final confirmed = await showDialog<bool>(
+            context: context,
+            builder: (ctx) => AlertDialog(
+              title: const Text('Confirmer la suppression'),
+              content: const Text(
+                  'Voulez-vous vraiment supprimer ce titre restaurant ?'),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.of(ctx).pop(false),
+                  child: const Text('Annuler'),
+                ),
+                TextButton(
+                  onPressed: () => Navigator.of(ctx).pop(true),
+                  child: const Text('Supprimer'),
+                ),
+              ],
+            ),
+          );
+
+          if (confirmed == true) {
+            final repo = LocalDatabaseRepository();
+            final db = await repo.load();
+            final service = RestaurantVoucherService(db);
+            await service.deleteUserVoucher(voucher.id);
+
+            ScaffoldMessenger.of(context).showSnackBar(
+              const SnackBar(
+                content: Text('Titre restaurant supprimé'),
+                backgroundColor: Colors.green,
+              ),
+            );
+
+            // 🔹 Notifier le parent pour mettre à jour le patrimoine
+            onDeleted?.call();
+          }
+        },
         child: Card(
           elevation: 2,
           shape: RoundedRectangleBorder(

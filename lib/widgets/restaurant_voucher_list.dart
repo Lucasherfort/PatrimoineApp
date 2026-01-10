@@ -5,7 +5,7 @@ import 'restaurant_voucher_card.dart';
 
 class RestaurantVoucherList extends StatefulWidget {
   final int userId;
-  final VoidCallback? onVoucherUpdated; // ✅ Callback pour notifier le parent
+  final VoidCallback? onVoucherUpdated; // Callback pour notifier le parent / patrimoine global
 
   const RestaurantVoucherList({
     super.key,
@@ -22,6 +22,7 @@ class _RestaurantVoucherListState extends State<RestaurantVoucherList> {
   bool isLoading = true;
   String? errorMessage;
   RestaurantVoucherService? voucherService;
+  LocalDatabaseRepository? repo;
 
   @override
   void initState() {
@@ -30,11 +31,15 @@ class _RestaurantVoucherListState extends State<RestaurantVoucherList> {
   }
 
   Future<void> _loadVouchers() async {
-    try {
-      final repo = LocalDatabaseRepository();
-      final db = await repo.load();
-      final service = RestaurantVoucherService(db);
+    setState(() {
+      isLoading = true;
+      errorMessage = null;
+    });
 
+    try {
+      repo ??= LocalDatabaseRepository();
+      final db = await repo!.load();
+      final service = RestaurantVoucherService(db);
       final data = service.getVouchersForUser(widget.userId);
 
       setState(() {
@@ -53,20 +58,80 @@ class _RestaurantVoucherListState extends State<RestaurantVoucherList> {
   Future<void> _updateVoucherBalance(int voucherId, double newBalance) async {
     if (voucherService != null) {
       final success = await voucherService!.updateVoucherBalance(voucherId, newBalance);
-
-      // ✅ Ne recharge que si la valeur a changé
       if (success) {
         await _loadVouchers();
-
-        if (widget.onVoucherUpdated != null) {
-          widget.onVoucherUpdated!();
-        }
+        widget.onVoucherUpdated?.call();
       }
+    }
+  }
+
+  Future<void> _deleteVoucher(int voucherId) async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('Confirmer la suppression'),
+        content: const Text('Voulez-vous vraiment supprimer ce titre restaurant ?'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(ctx).pop(false),
+            child: const Text('Annuler'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.of(ctx).pop(true),
+            child: const Text('Supprimer'),
+          ),
+        ],
+      ),
+    );
+
+    if (confirmed != true) return;
+
+    if (voucherService != null && repo != null) {
+      final db = await repo!.load();
+      final service = RestaurantVoucherService(db);
+      await service.deleteUserVoucher(voucherId);
+
+      await _loadVouchers();
+      widget.onVoucherUpdated?.call();
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Titre restaurant supprimé'),
+          backgroundColor: Colors.green,
+        ),
+      );
     }
   }
 
   @override
   Widget build(BuildContext context) {
+    if (isLoading) {
+      return const Center(
+        child: Padding(
+          padding: EdgeInsets.all(20.0),
+          child: CircularProgressIndicator(),
+        ),
+      );
+    }
+
+    if (errorMessage != null) {
+      return Center(
+        child: Column(
+          children: [
+            const Icon(Icons.error_outline, size: 48, color: Colors.red),
+            const SizedBox(height: 8),
+            Text(
+              errorMessage!,
+              style: const TextStyle(fontSize: 14, color: Colors.red),
+              textAlign: TextAlign.center,
+            ),
+          ],
+        ),
+      );
+    }
+
+    if (vouchers.isEmpty) return const SizedBox.shrink(); // 🔹 Pas de catégorie si vide
+
     return Padding(
       padding: const EdgeInsets.all(16.0),
       child: Column(
@@ -80,39 +145,15 @@ class _RestaurantVoucherListState extends State<RestaurantVoucherList> {
             ),
           ),
           const SizedBox(height: 16),
-
-          if (isLoading)
-            const Center(
-              child: Padding(
-                padding: EdgeInsets.all(20.0),
-                child: CircularProgressIndicator(),
-              ),
-            )
-          else if (errorMessage != null)
-            Center(
-              child: Column(
-                children: [
-                  const Icon(Icons.error_outline, size: 48, color: Colors.red),
-                  const SizedBox(height: 8),
-                  Text(
-                    'Erreur de chargement',
-                    style: TextStyle(color: Colors.red.shade700),
-                  ),
-                ],
-              ),
-            )
-          else if (vouchers.isEmpty)
-              const Center(
-                child: Padding(
-                  padding: EdgeInsets.all(20.0),
-                  child: Text('Aucun titre restaurant'),
-                ),
-              )
-            else
-              ...vouchers.map((voucher) => RestaurantVoucherCard(
+          ...vouchers.map(
+                (voucher) => GestureDetector(
+              onLongPress: () => _deleteVoucher(voucher.id), // 🔹 Appui long pour suppression
+              child: RestaurantVoucherCard(
                 voucher: voucher,
                 onValueUpdated: (newValue) => _updateVoucherBalance(voucher.id, newValue),
-              )),
+              ),
+            ),
+          ),
         ],
       ),
     );

@@ -61,6 +61,20 @@ class RestaurantVoucherService {
 
     return false;
   }
+
+  /// Supprime un titre restaurant d'un utilisateur
+  Future<bool> deleteUserVoucher(int voucherId) async {
+    final index = db.userRestaurantVouchers.indexWhere((urv) => urv.id == voucherId);
+
+    if (index == -1) return false;
+
+    db.userRestaurantVouchers.removeAt(index);
+
+    final repo = LocalDatabaseRepository();
+    await repo.save(db);
+
+    return true;
+  }
 }
 
 class UserRestaurantVoucherView {

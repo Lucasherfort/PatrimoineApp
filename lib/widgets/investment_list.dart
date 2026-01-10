@@ -6,7 +6,7 @@ import 'investment_card.dart';
 class InvestmentList extends StatefulWidget {
   final int userId;
   final VoidCallback? onAccountTap;
-  final VoidCallback? onAccountUpdated; // 🔹 Callback pour mettre à jour le patrimoine global
+  final VoidCallback? onAccountUpdated;
 
   const InvestmentList({
     super.key,
@@ -82,65 +82,80 @@ class _InvestmentListState extends State<InvestmentList> {
       );
     }
 
+    // 🔹 Rien si aucun compte
     if (accounts.isEmpty) {
-      return const SizedBox.shrink(); // 🔹 Rien n'est affiché si la liste est vide
+      return const SizedBox.shrink();
     }
 
-    return Column(
-      children: accounts.map(
-            (account) => InvestmentCard(
-          userInvestmentAccountId: account.id,
-          name: account.investmentAccountName,
-          type: account.investmentAccountName,
-          bankName: account.bankName,
-          totalValue: account.totalValue,
-          performance: account.performance,
-          onTap: widget.onAccountTap,
-          onDelete: () async {
-            final confirmed = await showDialog<bool>(
-              context: context,
-              builder: (ctx) => AlertDialog(
-                title: const Text('Confirmer la suppression'),
-                content: const Text(
-                    'Voulez-vous vraiment supprimer ce compte et toutes ses positions ?'),
-                actions: [
-                  TextButton(
-                    onPressed: () => Navigator.of(ctx).pop(false),
-                    child: const Text('Annuler'),
+    // 🔹 Sinon, on affiche le label + les cartes
+    return Padding(
+      padding: const EdgeInsets.all(16.0),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Text(
+            "Investissements",
+            style: TextStyle(
+              fontSize: 20,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+          const SizedBox(height: 16),
+          ...accounts.map(
+                (account) => InvestmentCard(
+              userInvestmentAccountId: account.id,
+              name: account.investmentAccountName,
+              type: account.investmentAccountName,
+              bankName: account.bankName,
+              totalValue: account.totalValue,
+              performance: account.performance,
+              onTap: widget.onAccountTap,
+              onDelete: () async {
+                final confirmed = await showDialog<bool>(
+                  context: context,
+                  builder: (ctx) => AlertDialog(
+                    title: const Text('Confirmer la suppression'),
+                    content: const Text(
+                        'Voulez-vous vraiment supprimer ce compte et toutes ses positions ?'),
+                    actions: [
+                      TextButton(
+                        onPressed: () => Navigator.of(ctx).pop(false),
+                        child: const Text('Annuler'),
+                      ),
+                      TextButton(
+                        onPressed: () => Navigator.of(ctx).pop(true),
+                        child: const Text('Supprimer'),
+                      ),
+                    ],
                   ),
-                  TextButton(
-                    onPressed: () => Navigator.of(ctx).pop(true),
-                    child: const Text('Supprimer'),
-                  ),
-                ],
-              ),
-            );
+                );
 
-            if (confirmed == true) {
-              final repo = LocalDatabaseRepository();
-              final db = await repo.load();
-              final service = InvestmentService(db);
+                if (confirmed == true) {
+                  final repo = LocalDatabaseRepository();
+                  final db = await repo.load();
+                  final service = InvestmentService(db);
 
-              await service.deleteUserInvestmentAccount(account.id);
+                  await service.deleteUserInvestmentAccount(account.id);
 
-              // 🔹 Recharger la liste locale
-              await _loadInvestmentAccounts();
+                  // 🔹 Recharger la liste locale
+                  await _loadInvestmentAccounts();
 
-              // 🔹 Notifier le parent / le patrimoine global
-              if (widget.onAccountUpdated != null) {
-                widget.onAccountUpdated!();
-              }
+                  // 🔹 Rafraîchir le patrimoine global via callback
+                  widget.onAccountUpdated?.call();
 
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(
-                  content: Text('Compte supprimé avec succès'),
-                  backgroundColor: Colors.green,
-                ),
-              );
-            }
-          },
-        ),
-      ).toList(),
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                      content: Text('Compte supprimé avec succès'),
+                      backgroundColor: Colors.green,
+                    ),
+                  );
+                }
+              },
+            ),
+          ).toList(),
+        ],
+      ),
     );
   }
 }
+
