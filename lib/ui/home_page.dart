@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import '../repositories/local_database_repository.dart';
 import '../services/patrimoine_service.dart';
 import '../widgets/add_patrimoine_wizard.dart';
 import '../widgets/patrimoine_header.dart';
@@ -35,18 +34,17 @@ class _HomePageState extends State<HomePage> {
   Future<void> _loadPatrimoine() async {
     setState(() => isLoading = true);
 
-    final repo = LocalDatabaseRepository();
-    final db = await repo.load();
-    final service = PatrimoineService(db);
-
     // 🔹 Total patrimoine
     final total = await service.getTotalPatrimoineForUser(userId);
 
     // 🔹 Vérifier présence des comptes
+
     hasCashAccounts = db.userCashAccounts.any((ua) => ua.userId == userId);
     hasSavingsAccounts = db.userSavingsAccounts.any((ua) => ua.userId == userId);
     hasInvestmentAccounts = db.userInvestmentAccounts.any((ua) => ua.userId == userId);
     hasVouchers = db.userRestaurantVouchers.any((ua) => ua.userId == userId);
+
+
 
     setState(() {
       patrimoineTotal = total;

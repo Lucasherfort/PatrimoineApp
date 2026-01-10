@@ -2,7 +2,7 @@
 import 'package:flutter/material.dart';
 
 import '../models/patrimoine_catalog.dart';
-import '../models/patrimoine_category.dart';
+import '../models/patrimoine/patrimoine_category.dart';
 
 class CategoryStep extends StatelessWidget {
   final PatrimoineCatalog catalog;

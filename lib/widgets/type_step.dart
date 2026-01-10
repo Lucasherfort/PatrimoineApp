@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import '../models/patrimoine_category.dart';
+import '../models/patrimoine/patrimoine_category.dart';
 import '../models/patrimoine_type.dart';
 import '../models/patrimoine_catalog.dart';
 
