@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
-import '../repositories/local_database_repository.dart';
 import '../services/savings_account_service.dart';
 
 class SavingsAccountCard extends StatelessWidget {

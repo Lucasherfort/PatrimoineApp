@@ -83,7 +83,6 @@ class PatrimoineWizardService {
         break;
 
       case 'investmentAccount':
-      case 'investmentAccount':
       // 1️⃣ Trouver l'InvestmentAccount correspondant au type choisi
         InvestmentAccount investmentAccount;
         try {
