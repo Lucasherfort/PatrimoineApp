@@ -65,44 +65,6 @@ class _RestaurantVoucherListState extends State<RestaurantVoucherList> {
     }
   }
 
-  Future<void> _deleteVoucher(int voucherId) async {
-    final confirmed = await showDialog<bool>(
-      context: context,
-      builder: (ctx) => AlertDialog(
-        title: const Text('Confirmer la suppression'),
-        content: const Text('Voulez-vous vraiment supprimer ce titre restaurant ?'),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(ctx).pop(false),
-            child: const Text('Annuler'),
-          ),
-          TextButton(
-            onPressed: () => Navigator.of(ctx).pop(true),
-            child: const Text('Supprimer'),
-          ),
-        ],
-      ),
-    );
-
-    if (confirmed != true) return;
-
-    if (voucherService != null && repo != null) {
-      final db = await repo!.load();
-      final service = RestaurantVoucherService(db);
-      await service.deleteUserVoucher(voucherId);
-
-      await _loadVouchers();
-      widget.onVoucherUpdated?.call();
-
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Titre restaurant supprimé'),
-          backgroundColor: Colors.green,
-        ),
-      );
-    }
-  }
-
   @override
   Widget build(BuildContext context) {
     if (isLoading) {

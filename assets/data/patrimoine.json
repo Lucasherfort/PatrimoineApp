@@ -7,7 +7,6 @@
     {"id": 1, "name": "Compte espèces", "bankId": 1}
   ],
   "userCashAccounts": [
-    {"id": 1, "userId": 1, "cashAccountId": 1, "balance": 296.83}
   ],
   "savingsAccountTypes": [
     {"id": 1, "name": "Livret A", "interestRate": 3.0, "cap": 22950},
@@ -20,74 +19,19 @@
     {"id": 3, "savingsAccountTypeId": 2, "bankId": 2}
   ],
   "userSavingsAccounts": [
-    {"id": 1, "userId": 1, "savingsAccountId": 1, "balance": 22388.22, "interestAccrued": 0}
-
   ],
   "investmentAccounts": [
     {"id": 1, "name": "PEA", "cap": 150000, "bankId": 1},
     {"id": 2, "name": "Assurance Vie", "cap": 999999999999999, "bankId": 1}
   ],
   "userInvestmentAccounts": [
-    {"id": 1, "userId": 1, "investmentAccountId": 1, "cumulativeDeposits": 24000, "latentCapitalGain": 3500, "cashBalance": 144.69},
-    {"id": 2, "userId": 1, "investmentAccountId": 2, "cumulativeDeposits": 13500, "latentCapitalGain": 0, "cashBalance": 0}
   ],
   "investmentPositions": [
-    {
-      "id": 1,
-      "userInvestmentAccountId": 1,
-      "ticker": "EPA:DCAM",
-      "name": null,
-      "type": "ETF",
-      "quantity": 2370,
-      "averagePurchasePrice": 5.23,
-      "currentPrice": null
-    },
-    {
-      "id": 2,
-      "userInvestmentAccountId": 1,
-      "ticker": "EPA:ESE",
-      "name": null,
-      "type": "ETF",
-      "quantity": 218,
-      "averagePurchasePrice": 28.57,
-      "currentPrice": null
-    },
-    {
-      "id": 3,
-      "userInvestmentAccountId": 1,
-      "ticker": "EPA:ETZ",
-      "name": null,
-      "type": "ETF",
-      "quantity": 201,
-      "averagePurchasePrice": 17.52,
-      "currentPrice": null
-    },
-    {
-      "id": 3,
-      "userInvestmentAccountId": 1,
-      "ticker": "EPA:SAF",
-      "name": null,
-      "type": "Action",
-      "quantity": 8,
-      "averagePurchasePrice": 283.59,
-      "currentPrice": null
-    },
-    {
-      "id": 4,
-      "userInvestmentAccountId": 2,
-      "ticker": "EPA:ACWI",
-      "name": null,
-      "type": "Action",
-      "quantity": 27.8376,
-      "averagePurchasePrice": 499.72,
-      "currentPrice": null
-    }
   ],
   "restaurantVouchers": [
     {"id": 1, "name": "Swile"},
     {"id": 2, "name": "Edenred"}
   ],
   "userRestaurantVouchers": [
-    {"id": 1, "userId": 1, "restaurantVoucherId": 1, "balance": 268.85}
   ]
 }

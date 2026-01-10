@@ -135,7 +135,7 @@ class _AddPatrimoineWizardState extends State<AddPatrimoineWizard> {
                       labelText: "Banque",
                       border: OutlineInputBorder(),
                     ),
-                    value: selectedBank?.id,
+                    initialValue: selectedBank?.id,
                     items: banks.map((b) {
                       return DropdownMenuItem<int>(
                         value: b.id,
@@ -169,7 +169,7 @@ class _AddPatrimoineWizardState extends State<AddPatrimoineWizard> {
                       labelText: "Plateforme",
                       border: OutlineInputBorder(),
                     ),
-                    value: selectedVoucher?.id,
+                    initialValue: selectedVoucher?.id,
                     items: vouchers.map((v) {
                       return DropdownMenuItem<int>(
                         value: v.id,

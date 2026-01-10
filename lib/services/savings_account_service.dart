@@ -79,10 +79,8 @@ class SavingsAccountService {
       final repo = LocalDatabaseRepository();
       await repo.save(db);
 
-      print('✅ UserSavingsAccount créé (id: $newId, balance: $balance €)');
       return true;
     } catch (e) {
-      print('❌ Erreur création UserSavingsAccount: $e');
       return false;
     }
   }
@@ -118,7 +116,6 @@ class SavingsAccountService {
       final repo = LocalDatabaseRepository();
       await repo.save(db);
 
-      print('✅ UserSavingsAccount mis à jour (id: $accountId)');
       return true;
     }
 
@@ -136,7 +133,6 @@ class SavingsAccountService {
       final repo = LocalDatabaseRepository();
       await repo.save(db);
 
-      print('✅ UserSavingsAccount supprimé (id: $accountId)');
       return true;
     }
 

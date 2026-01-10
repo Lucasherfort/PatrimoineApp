@@ -152,7 +152,7 @@ class _InvestmentListState extends State<InvestmentList> {
                 }
               },
             ),
-          ).toList(),
+          ),
         ],
       ),
     );

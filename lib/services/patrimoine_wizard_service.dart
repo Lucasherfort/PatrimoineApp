@@ -1,6 +1,3 @@
-import 'package:flutter/cupertino.dart';
-import 'package:flutter/material.dart';
-
 import '../models/bank.dart';
 import '../models/investment_account.dart';
 import '../models/patrimoine_type.dart';
