@@ -348,6 +348,24 @@ class InvestmentService {
     return true;
   }
 
+  /// Supprime un compte utilisateur et toutes ses positions
+  Future<bool> deleteUserInvestmentAccount(int userInvestmentAccountId) async {
+    // Supprimer les positions
+    db.investmentPositions
+        .removeWhere((pos) => pos.userInvestmentAccountId == userInvestmentAccountId);
+
+    // Supprimer le compte
+    db.userInvestmentAccounts
+        .removeWhere((uac) => uac.id == userInvestmentAccountId);
+
+    // Sauvegarder la DB
+    final repo = LocalDatabaseRepository();
+    await repo.save(db);
+
+    return true;
+  }
+
+
 }
 
 class UserInvestmentAccountView {

@@ -10,6 +10,7 @@ class InvestmentCard extends StatelessWidget {
   final double totalValue;
   final double performance;
   final VoidCallback? onTap;
+  final VoidCallback? onDelete;
 
   const InvestmentCard({
     super.key,
@@ -20,6 +21,7 @@ class InvestmentCard extends StatelessWidget {
     required this.totalValue,
     required this.performance,
     this.onTap,
+    this.onDelete,
   });
 
   String _formatAmount(double amount) {
@@ -38,22 +40,8 @@ class InvestmentCard extends StatelessWidget {
       margin: const EdgeInsets.only(bottom: 10),
       child: InkWell(
         borderRadius: BorderRadius.circular(12),
-        onTap: () async {
-          final shouldReload = await Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (context) => InvestmentDetailPage(
-                userInvestmentAccountId: userInvestmentAccountId,
-                accountName: name,
-                bankName: bankName,
-              ),
-            ),
-          );
-
-          if (shouldReload == true && onTap != null) {
-            onTap!();
-          }
-        },
+        onTap: onTap,
+        onLongPress: onDelete, // 🔹 Appui long déclenche la suppression
         child: Card(
           elevation: 2,
           shape: RoundedRectangleBorder(

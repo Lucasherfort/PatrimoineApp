@@ -6,11 +6,13 @@ import 'investment_card.dart';
 class InvestmentList extends StatefulWidget {
   final int userId;
   final VoidCallback? onAccountTap;
+  final VoidCallback? onAccountUpdated; // 🔹 Callback pour mettre à jour le patrimoine global
 
   const InvestmentList({
     super.key,
     required this.userId,
     this.onAccountTap,
+    this.onAccountUpdated,
   });
 
   @override
@@ -29,6 +31,11 @@ class _InvestmentListState extends State<InvestmentList> {
   }
 
   Future<void> _loadInvestmentAccounts() async {
+    setState(() {
+      isLoading = true;
+      errorMessage = null;
+    });
+
     try {
       final repo = LocalDatabaseRepository();
       final db = await repo.load();
@@ -50,70 +57,90 @@ class _InvestmentListState extends State<InvestmentList> {
 
   @override
   Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.all(16.0),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          const Text(
-            "Investissements",
-            style: TextStyle(
-              fontSize: 20,
-              fontWeight: FontWeight.bold,
-            ),
-          ),
-          const SizedBox(height: 16),
+    if (isLoading) {
+      return const Center(
+        child: Padding(
+          padding: EdgeInsets.all(20.0),
+          child: CircularProgressIndicator(),
+        ),
+      );
+    }
 
-          if (isLoading)
-            const Center(
-              child: Padding(
-                padding: EdgeInsets.all(20.0),
-                child: Column(
-                  children: [
-                    CircularProgressIndicator(),
-                    SizedBox(height: 8),
-                    Text('Récupération des comptes...'),
-                  ],
-                ),
-              ),
-            )
-          else if (errorMessage != null)
-            Center(
-              child: Column(
-                children: [
-                  const Icon(Icons.error_outline, size: 48, color: Colors.red),
-                  const SizedBox(height: 8),
-                  Text(
-                    'Erreur de chargement',
-                    style: TextStyle(color: Colors.red.shade700),
+    if (errorMessage != null) {
+      return Center(
+        child: Column(
+          children: [
+            const Icon(Icons.error_outline, size: 48, color: Colors.red),
+            const SizedBox(height: 8),
+            Text(
+              errorMessage!,
+              style: const TextStyle(fontSize: 14, color: Colors.red),
+              textAlign: TextAlign.center,
+            ),
+          ],
+        ),
+      );
+    }
+
+    if (accounts.isEmpty) {
+      return const SizedBox.shrink(); // 🔹 Rien n'est affiché si la liste est vide
+    }
+
+    return Column(
+      children: accounts.map(
+            (account) => InvestmentCard(
+          userInvestmentAccountId: account.id,
+          name: account.investmentAccountName,
+          type: account.investmentAccountName,
+          bankName: account.bankName,
+          totalValue: account.totalValue,
+          performance: account.performance,
+          onTap: widget.onAccountTap,
+          onDelete: () async {
+            final confirmed = await showDialog<bool>(
+              context: context,
+              builder: (ctx) => AlertDialog(
+                title: const Text('Confirmer la suppression'),
+                content: const Text(
+                    'Voulez-vous vraiment supprimer ce compte et toutes ses positions ?'),
+                actions: [
+                  TextButton(
+                    onPressed: () => Navigator.of(ctx).pop(false),
+                    child: const Text('Annuler'),
                   ),
-                  Text(
-                    errorMessage!,
-                    style: const TextStyle(fontSize: 12),
-                    textAlign: TextAlign.center,
+                  TextButton(
+                    onPressed: () => Navigator.of(ctx).pop(true),
+                    child: const Text('Supprimer'),
                   ),
                 ],
               ),
-            )
-          else if (accounts.isEmpty)
-              const Center(
-                child: Padding(
-                  padding: EdgeInsets.all(20.0),
-                  child: Text('Aucun placement disponible'),
+            );
+
+            if (confirmed == true) {
+              final repo = LocalDatabaseRepository();
+              final db = await repo.load();
+              final service = InvestmentService(db);
+
+              await service.deleteUserInvestmentAccount(account.id);
+
+              // 🔹 Recharger la liste locale
+              await _loadInvestmentAccounts();
+
+              // 🔹 Notifier le parent / le patrimoine global
+              if (widget.onAccountUpdated != null) {
+                widget.onAccountUpdated!();
+              }
+
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(
+                  content: Text('Compte supprimé avec succès'),
+                  backgroundColor: Colors.green,
                 ),
-              )
-            else
-              ...accounts.map((account) => InvestmentCard(
-                userInvestmentAccountId: account.id,
-                name: account.investmentAccountName,
-                type: account.investmentAccountName,
-                bankName: account.bankName,
-                totalValue: account.totalValue,
-                performance: account.performance,
-                onTap: widget.onAccountTap,
-              )),
-        ],
-      ),
+              );
+            }
+          },
+        ),
+      ).toList(),
     );
   }
 }
