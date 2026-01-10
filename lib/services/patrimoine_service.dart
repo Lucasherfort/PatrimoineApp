@@ -1,4 +1,6 @@
+import '../models/bank.dart';
 import '../models/local_database.dart';
+import '../models/patrimoine_type.dart';
 import 'investment_service.dart';
 
 class PatrimoineService {
@@ -68,6 +70,31 @@ class PatrimoineService {
         cap: savingsAccountType.cap,
       );
     }).toList();
+  }
+
+  List<Bank> getAvailableBanksForType(PatrimoineType type) {
+    switch (type.entityType) {
+      case 'cashAccount':
+        return db.banks;
+      case 'savingsAccount':
+        final savingsType = db.savingsAccountTypes.firstWhere(
+              (sat) => sat.name == type.name,
+          orElse: () => throw Exception('Type épargne "${type.name}" introuvable'),
+        );
+        final bankIds = db.savingsAccounts
+            .where((sa) => sa.savingsAccountTypeId == savingsType.id)
+            .map((sa) => sa.bankId)
+            .toSet();
+        return db.banks.where((b) => bankIds.contains(b.id)).toList();
+      case 'investmentAccount':
+        final bankIds = db.investmentAccounts
+            .where((ia) => ia.name == type.name)
+            .map((ia) => ia.bankId)
+            .toSet();
+        return db.banks.where((b) => bankIds.contains(b.id)).toList();
+      default:
+        return db.banks;
+    }
   }
 }
 

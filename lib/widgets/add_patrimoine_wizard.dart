@@ -1,15 +1,16 @@
 import 'package:flutter/material.dart';
-import 'package:patrimoine/widgets/type_step.dart';
 import '../models/patrimoine_catalog.dart';
 import '../models/patrimoine_category.dart';
 import '../models/patrimoine_type.dart';
 import '../models/local_database.dart';
+import '../models/restaurant_voucher.dart';
 import '../repositories/local_database_repository.dart';
 import '../services/patrimoine_catalog_service.dart';
+import '../services/patrimoine_service.dart';
 import '../services/patrimoine_wizard_service.dart';
 import '../models/bank.dart';
 import 'category_step.dart';
-
+import 'type_step.dart';
 
 class AddPatrimoineWizard extends StatefulWidget {
   const AddPatrimoineWizard({super.key});
@@ -19,246 +20,210 @@ class AddPatrimoineWizard extends StatefulWidget {
 }
 
 class _AddPatrimoineWizardState extends State<AddPatrimoineWizard> {
-  final _catalogService = PatrimoineCatalogService();
   final _repo = LocalDatabaseRepository();
+  final _catalogService = PatrimoineCatalogService();
 
-  late final PatrimoineWizardService wizardService =
-  PatrimoineWizardService(_repo);
+  late final PatrimoineWizardService wizardService;
+  PatrimoineService? patrimoineService;
 
+  PatrimoineCatalog? catalog;
   PatrimoineCategory? selectedCategory;
   PatrimoineType? selectedType;
-
   Bank? selectedBank;
   RestaurantVoucher? selectedVoucher;
-
   double? initialBalance;
+
+  bool isLoading = true;
+  String? errorMessage;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadData();
+  }
+
+  Future<void> _loadData() async {
+    try {
+      final results = await Future.wait([
+        _catalogService.getCatalog(),
+        _repo.load(),
+      ]);
+
+      catalog = results[0] as PatrimoineCatalog;
+      final LocalDatabase db = results[1] as LocalDatabase;
+
+      patrimoineService = PatrimoineService(db);
+      wizardService = PatrimoineWizardService(_repo);
+
+      setState(() {
+        isLoading = false;
+      });
+    } catch (e) {
+      setState(() {
+        errorMessage = e.toString();
+        isLoading = false;
+      });
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
-    return FutureBuilder<List<Object>>(
-      future: Future.wait([
-        _catalogService.getCatalog(),
-        _repo.load(),
-      ]),
-      builder: (context, snapshot) {
-        if (!snapshot.hasData) {
-          return const Padding(
-            padding: EdgeInsets.all(24),
-            child: CircularProgressIndicator(),
-          );
-        }
+    if (isLoading) return const Center(child: CircularProgressIndicator());
+    if (errorMessage != null) return Center(child: Text("Erreur: $errorMessage"));
 
-        final PatrimoineCatalog catalog =
-        snapshot.data![0] as PatrimoineCatalog;
-        final LocalDatabase db = snapshot.data![1] as LocalDatabase;
+    return Padding(
+      padding: EdgeInsets.fromLTRB(
+        16,
+        16,
+        16,
+        MediaQuery.of(context).viewInsets.bottom + 16,
+      ),
+      child: SingleChildScrollView(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text("Ajouter un élément",
+                style: Theme.of(context).textTheme.titleLarge),
+            const SizedBox(height: 24),
 
-        return Padding(
-          padding: EdgeInsets.fromLTRB(
-            16,
-            16,
-            16,
-            MediaQuery.of(context).viewInsets.bottom + 16,
-          ),
-          child: SingleChildScrollView(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  "Ajouter un élément",
-                  style: Theme.of(context).textTheme.titleLarge,
-                ),
-                const SizedBox(height: 24),
+            // 1️⃣ Catégorie
+            if (catalog != null)
+              CategoryStep(
+                catalog: catalog!,
+                selectedCategory: selectedCategory,
+                onChanged: (category) {
+                  setState(() {
+                    selectedCategory = category;
+                    selectedType = null;
+                    selectedBank = null;
+                    selectedVoucher = null;
+                  });
+                },
+              ),
+            const SizedBox(height: 16),
 
-                // 1️⃣ CATÉGORIE
-                CategoryStep(
-                  catalog: catalog,
-                  selectedCategory: selectedCategory,
-                  onChanged: (category) {
-                    setState(() {
-                      selectedCategory = category;
-                      selectedType = null;
-                      selectedBank = null;
-                      selectedVoucher = null;
-                    });
-                  },
-                ),
+            // 2️⃣ Type
+            if (selectedCategory != null)
+              TypeStep(
+                category: selectedCategory!,
+                catalog: catalog!,
+                selectedType: selectedType,
+                onChanged: (type) {
+                  setState(() {
+                    selectedType = type;
+                    selectedBank = null;
+                    selectedVoucher = null;
+                  });
+                },
+              ),
+            const SizedBox(height: 16),
 
-                const SizedBox(height: 16),
-
-                // 2️⃣ TYPE
-                if (selectedCategory != null)
-                  TypeStep(
-                    category: selectedCategory!,
-                    catalog: catalog,
-                    selectedType: selectedType,
-                    onChanged: (type) {
+            // 3️⃣ Dropdown Banque (si type bancaire)
+            if (selectedType != null && selectedType!.entityType != 'restaurantVoucher')
+              FutureBuilder<List<Bank>>(
+                future: wizardService.getAvailableBanksForType(selectedType!),
+                builder: (context, snapshot) {
+                  if (!snapshot.hasData) {
+                    return const Padding(
+                      padding: EdgeInsets.symmetric(vertical: 8.0),
+                      child: CircularProgressIndicator(),
+                    );
+                  }
+                  final banks = snapshot.data!;
+                  return DropdownButtonFormField<int>(
+                    decoration: const InputDecoration(
+                      labelText: "Banque",
+                      border: OutlineInputBorder(),
+                    ),
+                    value: selectedBank?.id,
+                    items: banks.map((b) {
+                      return DropdownMenuItem<int>(
+                        value: b.id,
+                        child: Text(b.name),
+                      );
+                    }).toList(),
+                    onChanged: (id) {
                       setState(() {
-                        selectedType = type;
-                        selectedBank = null;
+                        selectedBank = banks.firstWhere((b) => b.id == id);
                         selectedVoucher = null;
                       });
                     },
-                  ),
+                  );
+                },
+              ),
 
-                const SizedBox(height: 16),
-
-                // 3️⃣ BANQUE / PLATEFORME
-                if (selectedType != null)
-                  DropdownButtonFormField<Object>(
-                    decoration: InputDecoration(
-                      labelText: selectedType!.entityType ==
-                          'restaurantVoucher'
-                          ? "Plateforme"
-                          : "Banque",
-                      border: const OutlineInputBorder(),
-                    ),
-                    initialValue: selectedType!.entityType == 'restaurantVoucher'
-                        ? selectedVoucher
-                        : selectedBank,
-                    items: _buildBankItems(
-                      selectedType!,
-                      db.banks,
-                      db.restaurantVouchers,
-                      db
-                    ),
-                    onChanged: (value) {
-                      setState(() {
-                        if (value is Bank) {
-                          selectedBank = value;
-                          selectedVoucher = null;
-                        } else if (value is RestaurantVoucher) {
-                          selectedVoucher = value;
-                          selectedBank = null;
-                        }
-                      });
-                    },
-                  ),
-
-                const SizedBox(height: 16),
-
-                // 4️⃣ SOLDE
-                if (selectedType != null)
-                  TextFormField(
-                    keyboardType: const TextInputType.numberWithOptions(
-                        decimal: true),
+            // 3️⃣ Dropdown Plateforme (si titres restaurant)
+            if (selectedType != null && selectedType!.entityType == 'restaurantVoucher')
+              FutureBuilder<List<RestaurantVoucher>>(
+                future: wizardService.getAvailableVouchers(),
+                builder: (context, snapshot) {
+                  if (!snapshot.hasData) {
+                    return const Padding(
+                      padding: EdgeInsets.symmetric(vertical: 8.0),
+                      child: CircularProgressIndicator(),
+                    );
+                  }
+                  final vouchers = snapshot.data!;
+                  return DropdownButtonFormField<int>(
                     decoration: const InputDecoration(
-                      labelText: "Solde initial (€)",
+                      labelText: "Plateforme",
                       border: OutlineInputBorder(),
                     ),
-                    onChanged: (value) {
-                      initialBalance =
-                          double.tryParse(value.replaceAll(',', '.'));
+                    value: selectedVoucher?.id,
+                    items: vouchers.map((v) {
+                      return DropdownMenuItem<int>(
+                        value: v.id,
+                        child: Text(v.name),
+                      );
+                    }).toList(),
+                    onChanged: (id) {
+                      setState(() {
+                        selectedVoucher = vouchers.firstWhere((v) => v.id == id);
+                        selectedBank = null;
+                      });
                     },
-                  ),
+                  );
+                },
+              ),
+            const SizedBox(height: 16),
 
-                const SizedBox(height: 24),
-
-                // 5️⃣ CRÉER
-                SizedBox(
-                  width: double.infinity,
-                  child: ElevatedButton(
-                    onPressed: _canSubmit() ? _submit : null,
-                    child: const Text("Créer"),
-                  ),
+            // 4️⃣ Solde
+            if (selectedType != null)
+              TextFormField(
+                keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                decoration: const InputDecoration(
+                  labelText: "Solde initial (€)",
+                  border: OutlineInputBorder(),
                 ),
-              ],
+                onChanged: (value) {
+                  initialBalance = double.tryParse(value.replaceAll(',', '.'));
+                },
+              ),
+            const SizedBox(height: 24),
+
+            // 5️⃣ Bouton créer
+            SizedBox(
+              width: double.infinity,
+              child: ElevatedButton(
+                onPressed: _canSubmit() ? _submit : null,
+                child: const Text("Créer"),
+              ),
             ),
-          ),
-        );
-      },
+          ],
+        ),
+      ),
     );
-  }
-
-// 🔁 Crée les items pour la dropdown Banque / Plateforme
-  /// Filtre les banques selon le type sélectionné
-  List<DropdownMenuItem<Object>> _buildBankItems(
-      PatrimoineType type,
-      List<Bank> allBanks,
-      List<RestaurantVoucher> vouchers,
-      LocalDatabase db,
-      ) {
-    if (type.entityType == 'restaurantVoucher') {
-      return vouchers
-          .map((v) => DropdownMenuItem<Object>(
-        value: v,
-        child: Text(v.name),
-      ))
-          .toList();
-    }
-
-    // ✅ Filtrer les banques selon le type de compte
-    List<int> availableBankIds = [];
-
-    switch (type.entityType) {
-      case 'cashAccount':
-      // Pour les comptes espèces, on peut utiliser n'importe quelle banque
-        availableBankIds = allBanks.map((b) => b.id).toList();
-        break;
-
-      case 'savingsAccount':
-      // ✅ Pour l'épargne, ne montrer que les banques qui ont ce type
-
-      // 1. Trouver le SavingsAccountType correspondant
-        final savingsAccountType = db.savingsAccountTypes.firstWhere(
-              (sat) => sat.name == type.name,
-          orElse: () => throw Exception('Type épargne "${type.name}" introuvable'),
-        );
-
-        // 2. Trouver les SavingsAccount de ce type
-        final matchingSavingsAccounts = db.savingsAccounts.where(
-              (sa) => sa.savingsAccountTypeId == savingsAccountType.id,
-        );
-
-        // 3. Extraire les bankId
-        availableBankIds = matchingSavingsAccounts
-            .map((sa) => sa.bankId)
-            .toSet() // Éviter les doublons
-            .toList();
-        break;
-
-      case 'investmentAccount':
-      // ✅ Pour les investissements, ne montrer que les banques qui ont ce type
-        final matchingInvestmentAccounts = db.investmentAccounts.where(
-              (ia) => ia.name == type.name,
-        );
-
-        availableBankIds = matchingInvestmentAccounts
-            .map((ia) => ia.bankId)
-            .toSet()
-            .toList();
-        break;
-
-      default:
-        availableBankIds = allBanks.map((b) => b.id).toList();
-    }
-
-    // ✅ Si aucune banque n'a ce type, montrer toutes les banques
-    // (le service créera automatiquement le compte)
-    if (availableBankIds.isEmpty) {
-      availableBankIds = allBanks.map((b) => b.id).toList();
-    }
-
-    // ✅ Filtrer et retourner les banques disponibles
-    return allBanks
-        .where((b) => availableBankIds.contains(b.id))
-        .map((b) => DropdownMenuItem<Object>(
-      value: b,
-      child: Text(b.name),
-    ))
-        .toList();
   }
 
   bool _canSubmit() {
     if (selectedType == null || initialBalance == null) return false;
-
-    if (selectedType!.entityType == 'restaurantVoucher') {
-      return selectedVoucher != null;
-    }
-
+    if (selectedType!.entityType == 'restaurantVoucher') return selectedVoucher != null;
     return selectedBank != null;
   }
 
   Future<void> _submit() async {
+    if (selectedType == null || initialBalance == null) return;
+
     final success = await wizardService.createPatrimoine(
       type: selectedType!,
       bank: selectedBank,
@@ -269,21 +234,15 @@ class _AddPatrimoineWizardState extends State<AddPatrimoineWizard> {
 
     if (!mounted) return;
 
-    if (success) {
-      Navigator.pop(context, true);
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('${selectedType!.name} créé avec succès'),
-          backgroundColor: Colors.green,
-        ),
-      );
-    } else {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Erreur lors de la création'),
-          backgroundColor: Colors.red,
-        ),
-      );
-    }
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(success
+            ? '${selectedType!.name} créé avec succès'
+            : 'Erreur lors de la création'),
+        backgroundColor: success ? Colors.green : Colors.red,
+      ),
+    );
+
+    if (success) Navigator.pop(context, true);
   }
 }

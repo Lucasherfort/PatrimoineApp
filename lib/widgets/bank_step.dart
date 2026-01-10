@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../models/bank.dart';
 import '../models/patrimoine_type.dart';
+import '../models/restaurant_voucher.dart';
 
 class BankStep extends StatelessWidget {
   final PatrimoineType type;

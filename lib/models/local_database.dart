@@ -1,5 +1,7 @@
 // 📁 models/local_database.dart
 
+import 'package:patrimoine/models/restaurant_voucher.dart';
+
 import 'bank.dart';
 import 'cash_account.dart';
 import 'user_cash_account.dart';
