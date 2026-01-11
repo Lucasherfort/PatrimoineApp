@@ -35,9 +35,11 @@ class PatrimoineWizardService {
       PatrimoineCategory category
       ) async {
     try {
-      final categoryName = category.name.toLowerCase();
+      final categoryName = category.name;
 
-      if (categoryName.contains('liquid') || categoryName.contains('cash')) {
+
+      if (categoryName == 'Cash')
+      {
         final response = await _supabase
             .from(DatabaseTables.liquiditySource)
             .select('id, name, type, bank_id, category_id')
@@ -47,19 +49,38 @@ class PatrimoineWizardService {
         return response.map((item) =>
             SourceItem.fromLiquiditySource(item)).toList();
 
-      } else if (categoryName.contains('saving') ||
-          categoryName.contains('épargne') ||
-          categoryName.contains('epargne')) {
+      }
+      else if (categoryName.contains('Saving'))
+      {
         final response = await _supabase
-            .from('savings_category')
-            .select('id, name, interest_rate, ceiling')
-            .order('name');
+            .from(DatabaseTables.savingsCategory)
+            .select('id, name, interest_rate, ceiling');
 
 
         return response.map((item) =>
             SourceItem.fromSavingsCategory(item)).toList();
 
-      } else {
+      }
+
+      else if(categoryName.contains('Investments'))
+        {
+          final response = await _supabase
+              .from(DatabaseTables.investmentCategory)
+              .select('id, name');
+
+
+          return response.map((item) =>
+              SourceItem.fromInvestmentCategory(item)).toList();
+        }
+/*
+      else if(categoryName.contains('Benefits'))
+      {
+
+      }
+
+ */
+      else
+      {
         return [];
       }
     } catch (e) {
@@ -105,10 +126,30 @@ class PatrimoineWizardService {
     required int savingsCategoryId,
   }) async {
     final response = await _supabase
-        .from('savings_source')
+        .from(DatabaseTables.savingsSource)
         .select('bank_id, banks ( id, name )')
         .eq('category_id', categoryId)
         .eq('savings_category_id', savingsCategoryId);
+
+    return response
+        .map<Bank>((item) => Bank(
+      id: item['banks']['id'] as int,
+      name: item['banks']['name'] as String,
+    ))
+        .toList();
+  }
+
+  // Récupère la liste des banques selon le type d'investissement
+  Future<List<Bank>> getBanksForInvestmentSource(
+  {
+    required int categoryId,
+    required int investmentCategoryId,
+  }) async {
+    final response = await _supabase
+        .from(DatabaseTables.investmentSource)
+        .select('bank_id, banks ( id, name )')
+        .eq('category_id', categoryId)
+        .eq('investment_category_id', investmentCategoryId);
 
     return response
         .map<Bank>((item) => Bank(

@@ -1,5 +1,6 @@
 // lib/widgets/add_patrimoine_wizard.dart
 import 'package:flutter/material.dart';
+import 'package:patrimoine/bdd/database_tables.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../models/patrimoine/patrimoine_category.dart';
 import '../models/source_item.dart';
@@ -97,7 +98,8 @@ class _AddPatrimoineWizardState extends State<AddPatrimoineWizard> {
     }
   }
 
-  void _onCategorySelected(PatrimoineCategory? category) {
+  void _onCategorySelected(PatrimoineCategory? category)
+  {
     setState(() {
       selectedCategory = category;
       selectedSource = null;
@@ -124,14 +126,27 @@ class _AddPatrimoineWizardState extends State<AddPatrimoineWizard> {
     try {
       List<Bank> loadedBanks;
 
+      print("SOURCE : "+source.type);
+
       if (source.type == 'liquidity') {
         loadedBanks = await _wizardService.getBanksForLiquiditySource(source);
-      } else if (source.type == 'savings') {
+      }
+      else if (source.type == 'savings')
+      {
         loadedBanks = await _wizardService.getBanksForSavingsSource(
           categoryId: selectedCategory!.id,
           savingsCategoryId: source.id,
         );
-      } else {
+      }
+      else if(source.type == 'investment')
+        {
+          loadedBanks = await _wizardService.getBanksForInvestmentSource(
+              categoryId: selectedCategory!.id,
+              investmentCategoryId: source.id,
+          );
+        }
+      else
+      {
         loadedBanks = [];
       }
 
@@ -196,7 +211,9 @@ class _AddPatrimoineWizardState extends State<AddPatrimoineWizard> {
           'liquidity_source_id': selectedSource!.id,
           'amount': 0,
         });
-      } else if (selectedSource!.type == 'savings') {
+      }
+      else if (selectedSource!.type == 'savings')
+      {
         // 1️⃣ Cherche si savings_source existe
         final existing = await Supabase.instance.client
             .from('savings_source')
@@ -207,31 +224,50 @@ class _AddPatrimoineWizardState extends State<AddPatrimoineWizard> {
             .maybeSingle();
 
         int savingsSourceId;
-        if (existing != null) {
+        if (existing != null)
+        {
           savingsSourceId = existing['id'] as int;
-        } else {
-          // 2️⃣ Sinon, créer et récupérer l'id
-          final inserted = await Supabase.instance.client
-              .from('savings_source')
-              .insert({
-            'bank_id': selectedBank!.id,
-            'category_id': selectedCategory!.id,
-            'savings_category_id': selectedSource!.id,
-          })
-              .select('id'); // retourne List<Map<String, dynamic>>
-          savingsSourceId = inserted.first['id'] as int;
-        }
 
-        // 3️⃣ Crée le user_savings_account
-        await Supabase.instance.client
-            .from('user_savings_account')
-            .insert({
-          'user_id': user.id,
-          'savings_source_id': savingsSourceId,
-          'principal': 0,
-          'interest': 0,
-        });
+          // 3️⃣ Crée le user_savings_account
+          await Supabase.instance.client
+              .from('user_savings_account')
+              .insert({
+            'user_id': user.id,
+            'savings_source_id': savingsSourceId,
+            'principal': 0,
+            'interest': 0,
+          });
+        }
       }
+      else if (selectedSource!.type == 'investment')
+      {
+        // 1️⃣ Cherche si savings_source existe
+        final existing = await Supabase.instance.client
+            .from(DatabaseTables.investmentSource)
+            .select('id')
+            .eq('bank_id', selectedBank!.id)
+            .eq('category_id', selectedCategory!.id)
+            .eq('investment_category_id', selectedSource!.id)
+            .maybeSingle();
+
+        int savingsSourceId;
+        if (existing != null)
+        {
+          savingsSourceId = existing['id'] as int;
+
+          // 3️⃣ Crée le user_savings_account
+          await Supabase.instance.client
+              .from(DatabaseTables.userInvestmentAccount)
+              .insert({
+            'user_id': user.id,
+            'investment_source_id': savingsSourceId,
+            'total_contribution': 0,
+            'cash_balance': 0,
+            'amount': 0
+          });
+        }
+      }
+
 
       _showSuccess('Compte créé avec succès');
       if (mounted) Navigator.pop(context, true);

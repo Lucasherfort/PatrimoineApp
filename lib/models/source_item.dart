@@ -35,12 +35,16 @@ class SourceItem {
       id: row['id'] as int,
       name: row['name'] as String,
       type: 'savings',
-      interestRate: row['interest_rate'] != null
-          ? (row['interest_rate'] as num).toDouble()
-          : null,
-      ceiling: row['ceiling'] != null
-          ? (row['ceiling'] as num).toDouble()
-          : null,
+      interestRate: row['interest_rate'] != null ? (row['interest_rate'] as num).toDouble() : null,
+      ceiling: row['ceiling'] != null ? (row['ceiling'] as num).toDouble() : null,
+    );
+  }
+
+  factory SourceItem.fromInvestmentCategory(Map<String, dynamic> row) {
+    return SourceItem(
+      id: row['id'] as int,
+      name: row['name'] as String,
+      type: 'investment',
     );
   }
 }
