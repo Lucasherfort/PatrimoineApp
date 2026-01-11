@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../services/patrimoine_service.dart';
+import '../widgets/Savings/savings_account_list.dart';
 import '../widgets/add_patrimoine_wizard.dart';
 import '../widgets/Liquidity/liquidity_account_list.dart';
 import '../widgets/patrimoine_header.dart';
@@ -112,15 +113,10 @@ class _HomePageState extends State<HomePage> {
                   LiquidityAccountList(
                     onAccountUpdated: _refreshAll,
                   ),
-/*
                 if (hasSavingsAccounts)
                   SavingsAccountList(
                     onAccountUpdated: _refreshAll,
                   ),
-
- */
-
-
               ],
             )
                 : const Center(

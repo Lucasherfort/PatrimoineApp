@@ -1,15 +1,15 @@
-import 'package:patrimoine/models/savings/savings_source.dart';
-
 class UserSavingsAccountView {
   final int id;
+  final String sourceName;
+  final String bankName;
   final double principal;
-  final double interestAccrued;
-  final SavingsSource source;
+  final double interest;
 
   UserSavingsAccountView({
     required this.id,
+    required this.sourceName,
+    required this.bankName,
     required this.principal,
-    required this.interestAccrued,
-    required this.source,
+    required this.interest
   });
 }

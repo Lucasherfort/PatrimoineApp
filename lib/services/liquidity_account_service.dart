@@ -31,8 +31,7 @@ class LiquidityAccountService {
         id: item['id'] as int,
         amount: (item['amount'] as num).toDouble(),
         sourceName: item['liquidity_source']['name'] as String,
-        bankName:
-        item['liquidity_source']['banks']['name'] as String,
+        bankName: item['liquidity_source']['banks']['name'] as String,
       );
     }).toList();
   }
