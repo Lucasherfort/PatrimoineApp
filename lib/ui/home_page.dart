@@ -2,8 +2,6 @@ import 'package:flutter/material.dart';
 import '../services/patrimoine_service.dart';
 import '../widgets/add_patrimoine_wizard.dart';
 import '../widgets/patrimoine_header.dart';
-import '../widgets/cash_account_list.dart';
-import '../widgets/savings_account_list.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -59,6 +57,21 @@ class _HomePageState extends State<HomePage> {
     setState(() {});
   }
 
+  void _openAddPatrimoinePanel() async {
+    final result = await showModalBottomSheet<bool>(
+      context: context,
+      isScrollControlled: true,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (_) => const AddPatrimoineWizard(),
+    );
+
+    if (result == true) {
+      await _refreshAll();
+    }
+  }
+
 
   @override
   Widget build(BuildContext context) {
@@ -75,13 +88,12 @@ class _HomePageState extends State<HomePage> {
 
     return Scaffold(
       appBar: AppBar(title: const Text("Patrimoine App")),
-      /*
+
       floatingActionButton: FloatingActionButton(
         onPressed: _openAddPatrimoinePanel,
         child: const Icon(Icons.add),
       ),
 
-       */
       body: Column(
         children: [
           // ✅ HEADER FIXE

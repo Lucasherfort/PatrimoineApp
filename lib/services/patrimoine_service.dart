@@ -1,4 +1,5 @@
 import 'package:supabase_flutter/supabase_flutter.dart';
+import '../bdd/database_tables.dart';
 import '../models/bank.dart';
 import '../models/patrimoine/patrimoine_category.dart';
 import '../models/restaurant_voucher.dart';
@@ -20,7 +21,7 @@ class PatrimoineService {
     try {
       // ✅ Requête SQL classique au lieu de RPC
       final response = await _supabase
-          .from('user_cash_account') // nom de votre table
+          .from(DatabaseTables.userLiquidityAccounts) // nom de votre table
           .select('amount') // ou la colonne appropriée
           .eq('user_id', user.id);
 
@@ -41,30 +42,27 @@ class PatrimoineService {
   /// Récupère toutes les catégories de patrimoine
   Future<List<PatrimoineCategory>> getPatrimoineCategories() async {
     try {
-      // ✅ SELECT simple au lieu de RPC
+      // ✅ Vérifier l'utilisateur connecté
+      final user = _supabase.auth.currentUser;
+      print('User connecté: ${user?.id ?? "NON CONNECTÉ"}');
+
       final response = await _supabase
-          .from('patrimoine_categories')
+          .from(DatabaseTables.patrimoineCategory)
           .select('id, name, label')
           .order('name');
 
-      print("response type: ${response.runtimeType}");
-      print("response content: $response");
-
-      if (response.isEmpty) {
-        print('Response is empty');
+      if (response.isEmpty)
+      {
         return [];
       }
 
-      return response.map((item) {
-        print("item: $item");
-        return PatrimoineCategory(
-          id: item['id'] as int,
-          name: item['name'] as String,
-          label: item['label'] as String? ?? '',
-        );
-      }).toList();
-    } catch (e) {
-      print('Erreur getPatrimoineCategories: $e');
+      return response.map((item) => PatrimoineCategory(
+        id: item['id'] as int,
+        name: item['name'] as String,
+        label: item['label'] as String? ?? '',
+      )).toList();
+    } catch (e)
+    {
       rethrow;
     }
   }
@@ -82,8 +80,8 @@ class PatrimoineService {
         id: item['id'] as int,
         name: item['name'] as String,
       )).toList();
-    } catch (e) {
-      print('Erreur getBanksForType: $e');
+    } catch (e)
+    {
       rethrow;
     }
   }
@@ -100,8 +98,8 @@ class PatrimoineService {
         id: item['id'] as int,
         name: item['name'] as String,
       )).toList();
-    } catch (e) {
-      print('Erreur getRestaurantVouchers: $e');
+    } catch (e)
+    {
       rethrow;
     }
   }
