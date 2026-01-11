@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
+import '../../ui/investment_detail_page.dart';
+
 class InvestmentCard extends StatelessWidget {
   final int userInvestmentAccountId;
   final String type; // PEA / AV / CTO
@@ -90,7 +92,23 @@ class InvestmentCard extends StatelessWidget {
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
       child: InkWell(
         borderRadius: BorderRadius.circular(12),
-        onTap: onTap,
+        onTap: () async {
+          // 🔹 Navigation vers InvestmentDetailPage
+          final shouldReload = await Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (_) => InvestmentDetailPage(
+                userInvestmentAccountId: userInvestmentAccountId,
+                accountName: type,
+                bankName: bankName,
+              ),
+            ),
+          );
+
+          if (shouldReload == true && onTap != null) {
+            onTap!();
+          }
+        },
         onLongPress: () => _confirmDelete(context),
         child: Card(
           elevation: 2,

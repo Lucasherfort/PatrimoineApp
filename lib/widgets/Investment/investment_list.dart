@@ -35,17 +35,6 @@ class _InvestmentListState extends State<InvestmentList> {
     setState(_loadAccounts);
   }
 
-  Future<void> _updateAccount(
-      int accountId, double newValue, double newPerformance) async {
-    await _service.updateInvestmentAccount(
-      accountId: accountId,
-      totalValue: newValue,
-      performance: newPerformance,
-    );
-    widget.onAccountUpdated();
-    setState(_loadAccounts);
-  }
-
   @override
   Widget build(BuildContext context) {
     return FutureBuilder<List<UserInvestmentAccountView>>(
@@ -92,7 +81,7 @@ class _InvestmentListState extends State<InvestmentList> {
                 userInvestmentAccountId: account.id,
                 type: account.sourceName,
                 bankName: account.bankName,
-                totalValue: account.totalValue,
+                totalValue: account.amount,
                 onDelete: () => _deleteAccount(account.id),
               ),
             ),

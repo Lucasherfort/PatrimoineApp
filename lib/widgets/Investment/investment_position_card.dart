@@ -127,6 +127,7 @@ class InvestmentPositionCard extends StatelessWidget {
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
                         ),
+                        /*
                         Text(
                           position.supportType,
                           style: TextStyle(
@@ -134,6 +135,8 @@ class InvestmentPositionCard extends StatelessWidget {
                             color: Colors.grey.shade600,
                           ),
                         ),
+
+                         */
                       ],
                     ),
                   ),
@@ -153,7 +156,7 @@ class InvestmentPositionCard extends StatelessWidget {
                   Expanded(
                     child: _buildInfoTile(
                       "PRU",
-                      "${_formatAmount(position.averagePurchasePrice)} €",
+                      "${_formatAmount(position.pru)} €",
                       Colors.black87,
                     ),
                   ),
@@ -259,7 +262,7 @@ class InvestmentPositionCard extends StatelessWidget {
   // Méthode pour ouvrir le modal d'édition
   void _openEditPanel(BuildContext context) {
     final pruController = TextEditingController(
-      text: position.averagePurchasePrice.toStringAsFixed(2).replaceAll('.', ','),
+      text: position.pru.toStringAsFixed(2).replaceAll('.', ','),
     );
     final quantityController = TextEditingController(
       text: _formatQuantity(position.quantity).replaceAll('.', ','),

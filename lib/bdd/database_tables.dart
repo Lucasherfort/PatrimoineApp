@@ -17,6 +17,7 @@ class DatabaseTables {
   static const String userLiquidityAccounts = 'user_liquidity_account';
   static const String userSavingsAccounts = 'user_savings_account';
   static const String userInvestmentAccount = 'user_investment_account';
+  static const String userInvestmentPosition = 'user_investment_position';
 
   // Autres tables
   static const String banks = 'banks';
