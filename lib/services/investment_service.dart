@@ -53,10 +53,7 @@ class InvestmentService {
     }
   }
 
-  /// Récupère les positions d'un compte investissement
-  Future<List<InvestmentPosition>> getInvestmentPositions(
-      int userInvestmentAccountId
-      ) async {
+  Future<List<InvestmentPosition>> getInvestmentPositions(int userInvestmentAccountId) async {
     try {
       final response = await _supabase
           .from(DatabaseTables.userInvestmentPosition)
@@ -64,12 +61,21 @@ class InvestmentService {
           .eq('user_investment_account_id', userInvestmentAccountId)
           .order('ticker');
 
-      return response.map<InvestmentPosition>(
-              (item) => InvestmentPosition.fromDatabase(item)
-      ).toList();
+      return (response as List<dynamic>).map<InvestmentPosition>((item) {
+
+        return InvestmentPosition(
+          id: item['id'] as int,
+          userInvestmentAccountId: item['user_investment_account_id'] as int,
+          ticker: item['ticker'] as String,
+          quantity: (item['quantity'] as num).toDouble(),
+          pru: (item['pru'] as num).toDouble(),
+          supportType: "",
+          // currentPrice et name restent null pour l'instant (on mettra à jour depuis Google Sheet)
+        );
+      }).toList();
     } catch (e) {
       print('Erreur getInvestmentPositions: $e');
-      rethrow;
+      return [];
     }
   }
 
@@ -187,4 +193,6 @@ class InvestmentService {
       rethrow;
     }
   }
+
+
 }
