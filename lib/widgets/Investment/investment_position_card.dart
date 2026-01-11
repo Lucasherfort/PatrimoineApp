@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
-import '../models/investment_position.dart';
+import '../../models/investment_position.dart';
 
 class InvestmentPositionCard extends StatelessWidget {
   final InvestmentPosition position;

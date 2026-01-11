@@ -91,8 +91,15 @@ class PatrimoineService {
   }
 
   Future<bool> hasInvestmentAccounts() async {
-    // 🔜 À implémenter plus tard
-    return false;
+    final userId = _requireUserId();
+
+    final response = await _supabase
+        .from(DatabaseTables.userInvestmentAccount)
+        .select('id')
+        .eq('user_id', userId)
+        .limit(1);
+
+    return response.isNotEmpty;
   }
 
   Future<bool> hasRestaurantVouchers() async {

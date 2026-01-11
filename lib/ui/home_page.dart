@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../services/patrimoine_service.dart';
+import '../widgets/Investment/investment_list.dart';
 import '../widgets/Savings/savings_account_list.dart';
 import '../widgets/add_patrimoine_wizard.dart';
 import '../widgets/Liquidity/liquidity_account_list.dart';
@@ -37,11 +38,13 @@ class _HomePageState extends State<HomePage> {
 
       final liquidity = await _service.hasLiquidityAccounts();
       final savings = await _service.hasSavingsAccounts();
+      final investments = await _service.hasInvestmentAccounts();
 
       setState(() {
         patrimoineTotal = total;
         hasLiquidityAccounts = liquidity;
         hasSavingsAccounts = savings;
+        hasInvestmentAccounts = investments;
         isLoading = false;
       });
     } catch (e) {
@@ -115,6 +118,10 @@ class _HomePageState extends State<HomePage> {
                   ),
                 if (hasSavingsAccounts)
                   SavingsAccountList(
+                    onAccountUpdated: _refreshAll,
+                  ),
+                if (hasInvestmentAccounts)
+                  InvestmentList(
                     onAccountUpdated: _refreshAll,
                   ),
               ],

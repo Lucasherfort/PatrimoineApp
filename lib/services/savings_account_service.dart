@@ -25,8 +25,6 @@ class SavingsAccountService {
         ''')
           .eq('user_id', user.id);
 
-      if (response is! List) return [];
-
       return response.map<UserSavingsAccountView>((item) {
         final source = item['savings_source'];
         final bank = source['banks'];
@@ -40,8 +38,8 @@ class SavingsAccountService {
           interest: (item['interest'] as num).toDouble(),
         );
       }).toList();
-    } catch (e) {
-      print('Erreur getUserSavingsAccounts: $e');
+    } catch (e)
+    {
       return [];
     }
   }
@@ -65,8 +63,8 @@ class SavingsAccountService {
           .eq('id', accountId);
 
       return response.error == null;
-    } catch (e) {
-      print('Erreur updateSavingsAccount: $e');
+    } catch (e)
+    {
       return false;
     }
   }
@@ -82,8 +80,8 @@ class SavingsAccountService {
           .eq('id', accountId);
 
       return response.error == null;
-    } catch (e) {
-      print('Erreur deleteSavingsAccount: $e');
+    } catch (e)
+    {
       return false;
     }
   }
@@ -135,8 +133,8 @@ class SavingsAccountService {
           .single();
 
       return account['id'] as int;
-    } catch (e) {
-      print('Erreur createSavingsAccount: $e');
+    } catch (e)
+    {
       return null;
     }
   }

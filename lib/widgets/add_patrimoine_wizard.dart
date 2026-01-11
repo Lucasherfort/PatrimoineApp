@@ -126,8 +126,6 @@ class _AddPatrimoineWizardState extends State<AddPatrimoineWizard> {
     try {
       List<Bank> loadedBanks;
 
-      print("SOURCE : "+source.type);
-
       if (source.type == 'liquidity') {
         loadedBanks = await _wizardService.getBanksForLiquiditySource(source);
       }
@@ -272,8 +270,8 @@ class _AddPatrimoineWizardState extends State<AddPatrimoineWizard> {
       _showSuccess('Compte créé avec succès');
       if (mounted) Navigator.pop(context, true);
 
-    } catch (e) {
-      print('Erreur lors de la création: $e');
+    } catch (e)
+    {
       _showError('Erreur lors de la création: $e');
     } finally {
       setState(() => isSaving = false);
