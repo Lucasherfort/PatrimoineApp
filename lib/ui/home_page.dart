@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import '../services/patrimoine_service.dart';
 import '../widgets/add_patrimoine_wizard.dart';
-import '../widgets/liquidity_account_list.dart';
+import '../widgets/Liquidity/liquidity_account_list.dart';
 import '../widgets/patrimoine_header.dart';
 
 class HomePage extends StatefulWidget {

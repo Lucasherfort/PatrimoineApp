@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import '../services/liquidity_account_service.dart';
-import '../models/liquidity/user_liquidity_account_view.dart';
+import '../../services/liquidity_account_service.dart';
+import '../../models/liquidity/user_liquidity_account_view.dart';
 import 'liquidity_account_card.dart';
 
 class LiquidityAccountList extends StatefulWidget {

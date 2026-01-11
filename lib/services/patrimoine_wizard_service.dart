@@ -26,7 +26,6 @@ class PatrimoineWizardService {
         label: item['label'] as String? ?? '',
       )).toList();
     } catch (e) {
-      print('Erreur getPatrimoineCategories: $e');
       rethrow;
     }
   }
@@ -37,41 +36,33 @@ class PatrimoineWizardService {
       ) async {
     try {
       final categoryName = category.name.toLowerCase();
-      print('🔍 Service: recherche pour catégorie "$categoryName" (ID: ${category.id})');
 
       if (categoryName.contains('liquid') || categoryName.contains('cash')) {
-        print('📦 Chargement depuis liquidity_source');
         final response = await _supabase
             .from(DatabaseTables.liquiditySource)
             .select('id, name, type, bank_id, category_id')
             .eq('category_id', category.id)
             .order('name');
 
-        print('✅ Réponse: ${response.length} éléments');
         return response.map((item) =>
             SourceItem.fromLiquiditySource(item)).toList();
 
       } else if (categoryName.contains('saving') ||
           categoryName.contains('épargne') ||
           categoryName.contains('epargne')) {
-        print('📦 Chargement depuis savings_category');
         final response = await _supabase
             .from('savings_category')
             .select('id, name, interest_rate, ceiling')
             .order('name');
 
-        print('✅ Réponse: ${response.length} éléments');
-        print('📋 Détails de la réponse: $response');
 
         return response.map((item) =>
             SourceItem.fromSavingsCategory(item)).toList();
 
       } else {
-        print('⚠️ Catégorie non gérée: ${category.name}');
         return [];
       }
     } catch (e) {
-      print('❌ Erreur getSourcesForCategory: $e');
       rethrow;
     }
   }
@@ -88,7 +79,6 @@ class PatrimoineWizardService {
         name: item['name'] as String,
       )).toList();
     } catch (e) {
-      print('Erreur getBanks: $e');
       rethrow;
     }
   }

@@ -52,24 +52,15 @@ class _AddPatrimoineWizardState extends State<AddPatrimoineWizard> {
         isLoading = false;
       });
     } catch (e) {
-      print('Erreur lors du chargement des catégories: $e');
       setState(() => isLoading = false);
-      _showError('Erreur lors du chargement des catégories: $e');
     }
   }
 
   Future<void> _loadSourcesForCategory(PatrimoineCategory category) async {
-    print('🔍 _loadSourcesForCategory appelé pour: ${category.name}');
     setState(() => isLoading = true);
 
     try {
-      print('📡 Appel du service...');
       final loadedSources = await _wizardService.getSourcesForCategory(category);
-      print('✅ Sources chargées: ${loadedSources.length}');
-
-      for (var source in loadedSources) {
-        print('  - ${source.name} (type: ${source.type})');
-      }
 
       setState(() {
         sources = loadedSources;
@@ -79,9 +70,8 @@ class _AddPatrimoineWizardState extends State<AddPatrimoineWizard> {
       });
 
     } catch (e) {
-      print('❌ Erreur lors du chargement des sources: $e');
       setState(() => isLoading = false);
-      _showError('Erreur lors du chargement des sources: $e');
+
     }
   }
 
@@ -206,9 +196,9 @@ class _AddPatrimoineWizardState extends State<AddPatrimoineWizard> {
           'liquidity_source_id': selectedSource!.id,
           'amount': 0,
         });
-
       } else if (selectedSource!.type == 'savings') {
-        final savingsSource = await Supabase.instance.client
+        // 1️⃣ Cherche si savings_source existe
+        final existing = await Supabase.instance.client
             .from('savings_source')
             .select('id')
             .eq('bank_id', selectedBank!.id)
@@ -216,17 +206,23 @@ class _AddPatrimoineWizardState extends State<AddPatrimoineWizard> {
             .eq('savings_category_id', selectedSource!.id)
             .maybeSingle();
 
-        final savingsSourceId = savingsSource?['id'] ??
-            (await Supabase.instance.client
-                .from('savings_source')
-                .insert({
-              'bank_id': selectedBank!.id,
-              'category_id': selectedCategory!.id,
-              'savings_category_id': selectedSource!.id,
-            })
-                .select('id')
-                .single())['id'];
+        int savingsSourceId;
+        if (existing != null) {
+          savingsSourceId = existing['id'] as int;
+        } else {
+          // 2️⃣ Sinon, créer et récupérer l'id
+          final inserted = await Supabase.instance.client
+              .from('savings_source')
+              .insert({
+            'bank_id': selectedBank!.id,
+            'category_id': selectedCategory!.id,
+            'savings_category_id': selectedSource!.id,
+          })
+              .select('id'); // retourne List<Map<String, dynamic>>
+          savingsSourceId = inserted.first['id'] as int;
+        }
 
+        // 3️⃣ Crée le user_savings_account
         await Supabase.instance.client
             .from('user_savings_account')
             .insert({
@@ -238,10 +234,10 @@ class _AddPatrimoineWizardState extends State<AddPatrimoineWizard> {
       }
 
       _showSuccess('Compte créé avec succès');
-
       if (mounted) Navigator.pop(context, true);
 
     } catch (e) {
+      print('Erreur lors de la création: $e');
       _showError('Erreur lors de la création: $e');
     } finally {
       setState(() => isSaving = false);
@@ -509,32 +505,6 @@ class _AddPatrimoineWizardState extends State<AddPatrimoineWizard> {
             onChanged: _onBankSelected,
           ),
       ],
-    );
-  }
-
-
-  Widget _buildRecapLine(String label, String value) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 8),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          Text(
-            label,
-            style: const TextStyle(
-              color: Colors.grey,
-              fontSize: 14,
-            ),
-          ),
-          Text(
-            value,
-            style: const TextStyle(
-              fontWeight: FontWeight.w600,
-              fontSize: 14,
-            ),
-          ),
-        ],
-      ),
     );
   }
 

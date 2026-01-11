@@ -58,7 +58,6 @@ class PatrimoineService {
 
       return total;
     } catch (e) {
-      print('❌ Erreur getPatrimoine: $e');
       rethrow;
     }
   }
@@ -118,7 +117,6 @@ class PatrimoineService {
         label: item['label'] as String? ?? '',
       )).toList();
     } catch (e) {
-      print('❌ Erreur getPatrimoineCategories: $e');
       rethrow;
     }
   }
