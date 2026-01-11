@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../models/investment_position.dart';
 import '../models/investments/UserInvestmentAccountView.dart';
 import '../services/investment_service.dart';
+import '../widgets/Investment/investment_position_list.dart';
 import '../widgets/Investment/investment_summary_header.dart';
 import '../widgets/add_position_dialog.dart';
 
@@ -194,7 +195,6 @@ class _InvestmentDetailPageState extends State<InvestmentDetailPage> {
                 }
               },
             ),
-          /*
           Expanded(
             child: InvestmentPositionList(
               positions: positions,
@@ -203,8 +203,6 @@ class _InvestmentDetailPageState extends State<InvestmentDetailPage> {
               onPositionUpdated: _loadPositionsAndAccount,
             ),
           ),
-
-           */
         ],
       ),
       floatingActionButton: isLoading

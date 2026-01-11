@@ -101,20 +101,25 @@ class InvestmentService {
     }
   }
 
-  /// Met à jour une position existante
-  Future<void> updatePosition({
+  /// Met à jour une position existante et retourne true si la ligne a été modifiée
+  Future<bool> updatePosition({
     required int positionId,
     required double quantity,
-    required double averagePurchasePrice,
-    int? positionCategoryId,
+    required double pru,
   }) async {
     try {
-      await _supabase.from(DatabaseTables.userInvestmentPosition).update({
+      final response = await _supabase
+          .from(DatabaseTables.userInvestmentPosition)
+          .update({
         'quantity': quantity,
-        'pru': averagePurchasePrice,
-        'position_category_id': positionCategoryId,
+        'pru': pru,
         'updated_at': DateTime.now().toIso8601String(),
-      }).eq('id', positionId);
+      })
+          .eq('id', positionId)
+          .select(); // récupère les lignes affectées
+
+      // Supabase retourne une liste des lignes modifiées
+      return response != null && response.isNotEmpty;
     } catch (e) {
       print('Erreur updatePosition: $e');
       rethrow;
@@ -144,12 +149,12 @@ class InvestmentService {
       // Récupérer les valeurs actuelles
       final current = await _supabase
           .from(DatabaseTables.userInvestmentAccount)
-          .select('cash_balance, cumulative_deposits')
+          .select('cash_balance, total_contribution')
           .eq('id', userInvestmentAccountId)
           .single();
 
       final currentCash = (current['cash_balance'] as num?)?.toDouble() ?? 0.0;
-      final currentDeposits = (current['cumulative_deposits'] as num?)?.toDouble() ?? 0.0;
+      final currentDeposits = (current['total_contribution'] as num?)?.toDouble() ?? 0.0;
 
       // Vérifier s'il y a un changement
       if (currentCash == cashBalance && currentDeposits == cumulativeDeposits) {
@@ -159,7 +164,7 @@ class InvestmentService {
       // Mettre à jour
       await _supabase.from(DatabaseTables.userInvestmentAccount).update({
         'cash_balance': cashBalance,
-        'cumulative_deposits': cumulativeDeposits,
+        'total_contribution': cumulativeDeposits,
         'updated_at': DateTime.now().toIso8601String(),
       }).eq('id', userInvestmentAccountId);
 
