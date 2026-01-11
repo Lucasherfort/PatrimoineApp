@@ -1,105 +1,124 @@
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../bdd/database_tables.dart';
-import '../models/bank.dart';
 import '../models/patrimoine/patrimoine_category.dart';
-import '../models/restaurant_voucher.dart';
 
 class PatrimoineService {
-  // ✅ Le service gère Supabase en interne
   final SupabaseClient _supabase = Supabase.instance.client;
 
-  // ✅ Singleton pour éviter les multiples instances
+  // ✅ Singleton
   static final PatrimoineService _instance = PatrimoineService._internal();
   factory PatrimoineService() => _instance;
   PatrimoineService._internal();
 
-  /// Récupère le total patrimoine du user connecté
-  Future<double> getPatrimoine() async {
+  // ─────────────────────────────────────────────
+  // 🔐 Utils
+  // ─────────────────────────────────────────────
+
+  String _requireUserId() {
     final user = _supabase.auth.currentUser;
-    if (user == null) throw Exception('Utilisateur non connecté');
+    if (user == null) {
+      throw Exception('Utilisateur non connecté');
+    }
+    return user.id;
+  }
+
+  // ─────────────────────────────────────────────
+  // 💰 TOTAL PATRIMOINE
+  // ─────────────────────────────────────────────
+
+  Future<double> getPatrimoine() async {
+    final userId = _requireUserId();
 
     try {
-      // ✅ Requête SQL classique au lieu de RPC
-      final response = await _supabase
-          .from(DatabaseTables.userLiquidityAccounts) // nom de votre table
-          .select('amount') // ou la colonne appropriée
-          .eq('user_id', user.id);
+      double total = 0;
 
-      // Calculer le total côté client
-      double total = 0.0;
-      for (var item in response)
-      {
-        total += (item['amount'] as num).toDouble();
+      // 🔹 Liquidité
+      final liquidity = await _supabase
+          .from(DatabaseTables.userLiquidityAccounts)
+          .select('amount')
+          .eq('user_id', userId);
+
+      for (final row in liquidity) {
+        total += (row['amount'] as num?)?.toDouble() ?? 0;
       }
+
+      // 🔹 Épargne
+      final savings = await _supabase
+          .from(DatabaseTables.userSavingsAccounts)
+          .select('principal, interest')
+          .eq('user_id', userId);
+
+      for (final row in savings) {
+        total +=
+            ((row['principal'] as num?)?.toDouble() ?? 0) +
+                ((row['interest'] as num?)?.toDouble() ?? 0);
+      }
+
+      // 🔹 (Investissements & vouchers plus tard)
 
       return total;
     } catch (e) {
-      print('Erreur getPatrimoine: $e');
+      print('❌ Erreur getPatrimoine: $e');
       rethrow;
     }
   }
 
-  /// Récupère toutes les catégories de patrimoine
+  // ─────────────────────────────────────────────
+  // 📊 PRÉSENCE DES COMPTES
+  // ─────────────────────────────────────────────
+
+  Future<bool> hasLiquidityAccounts() async {
+    final userId = _requireUserId();
+
+    final response = await _supabase
+        .from(DatabaseTables.userLiquidityAccounts)
+        .select('id')
+        .eq('user_id', userId)
+        .limit(1);
+
+    return response.isNotEmpty;
+  }
+
+  Future<bool> hasSavingsAccounts() async {
+    final userId = _requireUserId();
+
+    final response = await _supabase
+        .from(DatabaseTables.userSavingsAccounts)
+        .select('id')
+        .eq('user_id', userId)
+        .limit(1);
+
+    return response.isNotEmpty;
+  }
+
+  Future<bool> hasInvestmentAccounts() async {
+    // 🔜 À implémenter plus tard
+    return false;
+  }
+
+  Future<bool> hasRestaurantVouchers() async {
+    // 🔜 À implémenter plus tard
+    return false;
+  }
+
+  // ─────────────────────────────────────────────
+  // 📂 CATÉGORIES
+  // ─────────────────────────────────────────────
+
   Future<List<PatrimoineCategory>> getPatrimoineCategories() async {
     try {
-      // ✅ Vérifier l'utilisateur connecté
-      final user = _supabase.auth.currentUser;
-      print('User connecté: ${user?.id ?? "NON CONNECTÉ"}');
-
       final response = await _supabase
           .from(DatabaseTables.patrimoineCategory)
           .select('id, name, label')
           .order('name');
-
-      if (response.isEmpty)
-      {
-        return [];
-      }
 
       return response.map((item) => PatrimoineCategory(
         id: item['id'] as int,
         name: item['name'] as String,
         label: item['label'] as String? ?? '',
       )).toList();
-    } catch (e)
-    {
-      rethrow;
-    }
-  }
-
-  /// Récupère les banques pour un type
-  Future<List<Bank>> getBanksForType(int typeId) async {
-    try {
-      final response = await _supabase
-          .from('banks')
-          .select('id, name')
-          .eq('type_id', typeId) // ou la condition appropriée selon votre schéma
-          .order('name');
-
-      return response.map((item) => Bank(
-        id: item['id'] as int,
-        name: item['name'] as String,
-      )).toList();
-    } catch (e)
-    {
-      rethrow;
-    }
-  }
-
-  /// Récupère les titres restaurant
-  Future<List<RestaurantVoucher>> getRestaurantVouchers() async {
-    try {
-      final response = await _supabase
-          .from('restaurant_vouchers')
-          .select('id, name')
-          .order('name');
-
-      return response.map((item) => RestaurantVoucher(
-        id: item['id'] as int,
-        name: item['name'] as String,
-      )).toList();
-    } catch (e)
-    {
+    } catch (e) {
+      print('❌ Erreur getPatrimoineCategories: $e');
       rethrow;
     }
   }

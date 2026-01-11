@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../services/patrimoine_service.dart';
 import '../widgets/add_patrimoine_wizard.dart';
+import '../widgets/liquidity_account_list.dart';
 import '../widgets/patrimoine_header.dart';
 
 class HomePage extends StatefulWidget {
@@ -11,13 +12,12 @@ class HomePage extends StatefulWidget {
 }
 
 class _HomePageState extends State<HomePage> {
-  // ✅ Simple instanciation sans dépendance Supabase
   final PatrimoineService _service = PatrimoineService();
 
   double patrimoineTotal = 0.0;
   bool isLoading = true;
 
-  bool hasCashAccounts = false;
+  bool hasLiquidityAccounts = false;
   bool hasSavingsAccounts = false;
   bool hasInvestmentAccounts = false;
   bool hasVouchers = false;
@@ -34,19 +34,21 @@ class _HomePageState extends State<HomePage> {
     try {
       final total = await _service.getPatrimoine();
 
+      final liquidity = await _service.hasLiquidityAccounts();
+      final savings = await _service.hasSavingsAccounts();
+
       setState(() {
         patrimoineTotal = total;
+        hasLiquidityAccounts = liquidity;
+        hasSavingsAccounts = savings;
         isLoading = false;
       });
     } catch (e) {
-      print('Erreur lors du chargement du patrimoine: $e');
-      setState(() {
-        isLoading = false;
-      });
+      setState(() => isLoading = false);
 
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Erreur: $e')),
+          SnackBar(content: Text('Erreur chargement patrimoine: $e')),
         );
       }
     }
@@ -54,7 +56,6 @@ class _HomePageState extends State<HomePage> {
 
   Future<void> _refreshAll() async {
     await _loadPatrimoine();
-    setState(() {});
   }
 
   void _openAddPatrimoinePanel() async {
@@ -72,7 +73,6 @@ class _HomePageState extends State<HomePage> {
     }
   }
 
-
   @override
   Widget build(BuildContext context) {
     if (isLoading) {
@@ -81,7 +81,7 @@ class _HomePageState extends State<HomePage> {
       );
     }
 
-    final hasAnyAccount = hasCashAccounts ||
+    final hasAnyAccount = hasLiquidityAccounts ||
         hasSavingsAccounts ||
         hasInvestmentAccounts ||
         hasVouchers;
@@ -96,17 +96,32 @@ class _HomePageState extends State<HomePage> {
 
       body: Column(
         children: [
-          // ✅ HEADER FIXE
+          // ✅ HEADER
           PatrimoineHeader(
             patrimoineTotal: patrimoineTotal,
             onRefresh: _refreshAll,
           ),
 
-          // ✅ CONTENU SCROLLABLE
+          // ✅ LISTES
           Expanded(
             child: hasAnyAccount
                 ? ListView(
               padding: const EdgeInsets.only(bottom: 80),
+              children: [
+                if (hasLiquidityAccounts)
+                  LiquidityAccountList(
+                    onAccountUpdated: _refreshAll,
+                  ),
+/*
+                if (hasSavingsAccounts)
+                  SavingsAccountList(
+                    onAccountUpdated: _refreshAll,
+                  ),
+
+ */
+
+
+              ],
             )
                 : const Center(
               child: Text(

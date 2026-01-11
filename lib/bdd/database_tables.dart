@@ -10,6 +10,7 @@ class DatabaseTables {
 
   // Tables users
   static const String userLiquidityAccounts = 'user_liquidity_account';
+  static const String userSavingsAccounts = 'user_savings_account';
 
   // Autres tables
   static const String banks = 'banks';
