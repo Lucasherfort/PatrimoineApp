@@ -1,12 +1,18 @@
 // lib/services/investment_service.dart
+import 'package:flutter/foundation.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../bdd/database_tables.dart';
 import '../models/investments/UserInvestmentAccountView.dart';
 import '../models/investment_position.dart';
+import '../models/user_investment_account.dart';
+import 'google_sheet_service.dart';
 
 class InvestmentService {
+  // Création interne de GoogleSheetsService
   final SupabaseClient _supabase = Supabase.instance.client;
+  final GoogleSheetsService _sheetsService = GoogleSheetsService();
 
+  // Singleton classique
   static final InvestmentService _instance = InvestmentService._internal();
   factory InvestmentService() => _instance;
   InvestmentService._internal();
@@ -53,31 +59,61 @@ class InvestmentService {
     }
   }
 
-  Future<List<InvestmentPosition>> getInvestmentPositions(int userInvestmentAccountId) async {
-    try {
-      final response = await _supabase
-          .from(DatabaseTables.userInvestmentPosition)
-          .select('*')
-          .eq('user_investment_account_id', userInvestmentAccountId)
-          .order('ticker');
+  Future<List<InvestmentPosition>> getPositionsForAccount(int accountId) async {
+    final response = await _supabase
+        .from(DatabaseTables.userInvestmentPosition)
+        .select()
+        .eq('user_investment_account_id', accountId)
+        .order('created_at');
 
-      return (response as List<dynamic>).map<InvestmentPosition>((item) {
-
-        return InvestmentPosition(
-          id: item['id'] as int,
-          userInvestmentAccountId: item['user_investment_account_id'] as int,
-          ticker: item['ticker'] as String,
-          quantity: (item['quantity'] as num).toDouble(),
-          pru: (item['pru'] as num).toDouble(),
-          supportType: "",
-          // currentPrice et name restent null pour l'instant (on mettra à jour depuis Google Sheet)
-        );
-      }).toList();
-    } catch (e) {
-      print('Erreur getInvestmentPositions: $e');
-      return [];
-    }
+    return response
+        .map<InvestmentPosition>((e) => InvestmentPosition.fromMap(e))
+        .toList();
   }
+
+/*
+ Récupère la liste des positions d'un compte d'investissement
+ et les met à jour avec les données Google Sheet
+*/
+  Future<List<InvestmentPosition>> getInvestmentPositions(int userInvestmentAccountId) async {
+
+    final positions = await getPositionsForAccount(userInvestmentAccountId);
+
+    if (positions.isEmpty) {
+      return positions;
+    }
+
+    try {
+      // Lecture Google Sheet
+      final etfsData = await _sheetsService.fetchEtfs();
+
+      // Indexation par ticker
+      final Map<String, Map<String, dynamic>> etfsMap = {};
+      for (final etf in etfsData) {
+        final ticker = etf['ticker']?.toString().toUpperCase();
+        if (ticker != null) {
+          etfsMap[ticker] = etf;
+        }
+      }
+
+      // Mise à jour des positions avec les données Sheet
+      for (final position in positions) {
+        final etfData = etfsMap[position.ticker.toUpperCase()];
+        if (etfData != null) {
+          position.updateFromSheet(etfData);
+        }
+      }
+    } catch (e) {
+      if (kDebugMode) {
+        debugPrint(
+          'Erreur lors de la récupération des données Google Sheets: $e',
+        );
+      }
+    }
+
+    return positions;
+  }
+
 
   /// Ajoute une nouvelle position
   Future<void> addPosition({
@@ -194,5 +230,63 @@ class InvestmentService {
     }
   }
 
+  /// Récupère la valeur totale de tous les comptes d'investissement d'un utilisateur
+  Future<double> getUserInvestmentsTotalValue() async {
+
+    final UIAs = await getUserInvestmentAccounts();
+
+    double totalValue = 0.0;
+
+    for (final account in UIAs)
+    {
+      totalValue += await getTotalValueOfInvestmentAccount(account);
+    }
+
+    return totalValue;
+
+    // on récupère les comptes d'investissemnts du user (UserInvestmentAccount)
+
+    // pour chaque UserInvestmentAccount on récupère les postions actualisées (InvestmentPosition)
+
+  }
+
+  Future<List<UserInvestmentAccount>> getUserInvestmentAccounts() async {
+    try {
+      final response = await _supabase
+          .from(DatabaseTables.userInvestmentAccount)
+          .select();
+
+      return response
+          .map<UserInvestmentAccount>(
+            (e) => UserInvestmentAccount.fromMap(e),
+      )
+          .toList();
+    } catch (e) {
+      print('Erreur getUserInvestmentAccounts: $e');
+      rethrow;
+    }
+  }
+
+  /// Récupère la valeur totale d'un compte d'investissement (espèces + titres)
+  Future<double> getTotalValueOfInvestmentAccount(UserInvestmentAccount account) async
+  {
+    final positionsValue = await getPositionsValueForAccount(account.id);
+    return account.cashBalance + positionsValue;
+  }
+
+  /// Récupère la valeur totale des positions d'un compte
+  Future<double> getPositionsValueForAccount(int userInvestmentAccountId) async {
+
+    // Les positions sont DÉJÀ à jour via Google Sheet
+    final positions = await getInvestmentPositions(userInvestmentAccountId);
+
+    double result = 0.0;
+    for (final position in positions)
+    {
+      result += position.totalValue;
+    }
+
+    return result;
+  }
 
 }

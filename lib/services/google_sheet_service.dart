@@ -48,16 +48,4 @@ class GoogleSheetsService {
 
     return etfs;
   }
-
-  Future<Map<String, dynamic>?> fetchEtfByTicker(String ticker) async {
-    final etfs = await fetchEtfs();
-    try {
-      return etfs.firstWhere(
-            (etf) => etf['ticker']?.toString().toUpperCase() == ticker.toUpperCase(),
-      );
-    } catch (e)
-    {
-      return null;
-    }
-  }
 }

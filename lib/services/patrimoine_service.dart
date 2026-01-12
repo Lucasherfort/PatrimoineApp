@@ -1,6 +1,7 @@
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../bdd/database_tables.dart';
 import '../models/patrimoine/patrimoine_category.dart';
+import 'investment_service.dart';
 
 class PatrimoineService {
   final SupabaseClient _supabase = Supabase.instance.client;
@@ -9,6 +10,7 @@ class PatrimoineService {
   static final PatrimoineService _instance = PatrimoineService._internal();
   factory PatrimoineService() => _instance;
   PatrimoineService._internal();
+  final InvestmentService _investmentService = InvestmentService();
 
   // ─────────────────────────────────────────────
   // 🔐 Utils
@@ -55,6 +57,7 @@ class PatrimoineService {
       }
 
       // 🔹 (Investissements & vouchers plus tard)
+      total += await _investmentService.getUserInvestmentsTotalValue();
 
       return total;
     } catch (e) {

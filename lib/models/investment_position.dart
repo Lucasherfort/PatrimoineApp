@@ -3,7 +3,7 @@ class InvestmentPosition {
   final int userInvestmentAccountId;
   final String ticker;
   String? name; // Récupéré depuis Google Sheet
-  final String supportType ;
+  final String supportType;
   final double quantity;
   final double pru;
   double? currentPrice;
@@ -48,7 +48,8 @@ class InvestmentPosition {
 
     if (sheetData['price'] != null) {
       final priceValue = sheetData['price'].toString();
-      currentPrice = double.tryParse(priceValue.replaceAll(',', '.').replaceAll(' ', ''));
+      currentPrice =
+          double.tryParse(priceValue.replaceAll(',', '.').replaceAll(' ', ''));
     }
 
     if (sheetData['priceopen'] != null) {
@@ -68,4 +69,30 @@ class InvestmentPosition {
       volume = int.tryParse(value.replaceAll(',', '').replaceAll(' ', ''));
     }
   }
+
+  // ✅ Nouvelle méthode fromMap pour créer l'objet depuis la BDD / Supabase
+  factory InvestmentPosition.fromMap(Map<String, dynamic> map) {
+    return InvestmentPosition(
+      id: map['id'] as int,
+      userInvestmentAccountId: map['user_investment_account_id'] as int,
+      ticker: map['ticker']?.toString() ?? '',
+      name: map['name']?.toString(),
+      supportType: map['position_category_id']?.toString() ?? 'unknown',
+      quantity: (map['quantity'] as num?)?.toDouble() ?? 0.0,
+      pru: (map['pru'] as num?)?.toDouble() ?? 0.0,
+      currentPrice: (map['current_price'] as num?)?.toDouble(),
+    );
+  }
+
+  // Optionnel : toMap pour l'insert / update
+  Map<String, dynamic> toMap() => {
+    'id': id,
+    'user_investment_account_id': userInvestmentAccountId,
+    'ticker': ticker,
+    'name': name,
+    'position_category_id': supportType,
+    'quantity': quantity,
+    'pru': pru,
+    'current_price': currentPrice,
+  };
 }
