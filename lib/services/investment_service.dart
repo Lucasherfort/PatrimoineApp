@@ -289,4 +289,45 @@ class InvestmentService {
     return result;
   }
 
+  Future<List<UserInvestmentAccountView>> getUserInvestmentAccountsView() async {
+    final uiaList = await getUserInvestmentAccounts();
+    final List<UserInvestmentAccountView> views = [];
+
+    for (final uia in uiaList) {
+      // Récupérer la source
+      final source = await _supabase
+          .from(DatabaseTables.investmentSource)
+          .select('*')
+          .eq('id', uia.investmentSourceId!)
+          .single();
+
+      // Récupérer le nom de la banque
+      final bank = await _supabase
+          .from(DatabaseTables.banks)
+          .select('name')
+          .eq('id', source['bank_id'])
+          .single();
+
+      // Récupérer le type de compte / catégorie
+      final category = await _supabase
+          .from(DatabaseTables.investmentCategory)
+          .select('name')
+          .eq('id', source['investment_category_id'])
+          .single();
+
+      // Calculer la valeur totale du compte (cash + positions)
+      final totalAmount = await getTotalValueOfInvestmentAccount(uia);
+
+      views.add(UserInvestmentAccountView(
+        id: uia.id,
+        sourceName: category['name'] as String,
+        bankName: bank['name'] as String,
+        totalContribution: uia.cumulativeDeposits,
+        cashBalance: uia.cashBalance,
+        amount: totalAmount,
+      ));
+    }
+
+    return views;
+  }
 }

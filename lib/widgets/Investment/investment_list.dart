@@ -26,7 +26,7 @@ class _InvestmentListState extends State<InvestmentList> {
   }
 
   void _loadAccounts() {
-    _accountsFuture = _service.getInvestmentAccountsForUserWithPrices();
+    _accountsFuture = _service.getUserInvestmentAccountsView();
   }
 
   Future<void> _deleteAccount(int accountId) async {
