@@ -82,6 +82,8 @@ class _InvestmentListState extends State<InvestmentList> {
                 type: account.sourceName,
                 bankName: account.bankName,
                 totalValue: account.amount,
+                totalContribution: account.totalContribution, // ✅ Ajoutez cette ligne
+                onTap: widget.onAccountUpdated,
                 onDelete: () => _deleteAccount(account.id),
               ),
             ),

@@ -16,7 +16,7 @@ class InvestmentDetailPage extends StatefulWidget {
     super.key,
     required this.userInvestmentAccountId,
     required this.accountName,
-    required this.bankName,
+    required this.bankName
   });
 
   @override

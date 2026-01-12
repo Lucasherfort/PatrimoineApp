@@ -8,8 +8,9 @@ class InvestmentCard extends StatelessWidget {
   final String type; // PEA / AV / CTO
   final String bankName;
   final double totalValue;
-  final VoidCallback? onTap;
-  final VoidCallback? onDelete;
+  final double totalContribution; // ✅ Ajouté pour calculer la performance
+  final VoidCallback? onTap;    // 🔹 callback pour rafraîchir HomePage
+  final VoidCallback? onDelete; // 🔹 callback suppression
 
   const InvestmentCard({
     super.key,
@@ -17,6 +18,7 @@ class InvestmentCard extends StatelessWidget {
     required this.type,
     required this.bankName,
     required this.totalValue,
+    required this.totalContribution, // ✅ Ajouté
     this.onTap,
     this.onDelete,
   });
@@ -28,6 +30,18 @@ class InvestmentCard extends StatelessWidget {
       decimalDigits: 2,
     );
     return formatter.format(amount);
+  }
+
+  // ✅ Calcul de la couleur selon la performance
+  Color _getValueColor() {
+    final performance = totalValue - totalContribution;
+    if (performance > 0) {
+      return Colors.green;
+    } else if (performance < 0) {
+      return Colors.red;
+    } else {
+      return Colors.black;
+    }
   }
 
   Future<void> _confirmDelete(BuildContext context) async {
@@ -94,7 +108,7 @@ class InvestmentCard extends StatelessWidget {
         borderRadius: BorderRadius.circular(12),
         onTap: () async {
           // 🔹 Navigation vers InvestmentDetailPage
-          final shouldReload = await Navigator.push(
+          final shouldReload = await Navigator.push<bool>(
             context,
             MaterialPageRoute(
               builder: (_) => InvestmentDetailPage(
@@ -105,6 +119,7 @@ class InvestmentCard extends StatelessWidget {
             ),
           );
 
+          // 🔹 Si InvestmentDetailPage a renvoyé true, appeler le callback pour rafraîchir
           if (shouldReload == true && onTap != null) {
             onTap!();
           }
@@ -158,12 +173,13 @@ class InvestmentCard extends StatelessWidget {
                   ),
                 ),
 
-                /// Valeur à droite
+                /// Valeur à droite avec couleur dynamique ✅
                 Text(
                   _formatAmount(totalValue),
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.bold,
+                    color: _getValueColor(), // ✅ Couleur selon performance
                   ),
                 ),
               ],
