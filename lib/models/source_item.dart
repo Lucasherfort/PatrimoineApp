@@ -47,4 +47,12 @@ class SourceItem {
       type: 'investment',
     );
   }
+
+  factory SourceItem.fromAdvantageCategory(Map<String, dynamic> row) {
+    return SourceItem(
+      id: row['id'] as int,
+      name: row['name'] as String,
+      type: 'advantage',
+    );
+  }
 }

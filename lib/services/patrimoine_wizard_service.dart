@@ -1,9 +1,9 @@
-// lib/services/patrimoine_wizard_service.dart
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../bdd/database_tables.dart';
 import '../models/patrimoine/patrimoine_category.dart';
 import '../models/source_item.dart';
 import '../models/bank.dart';
+import '../models/advantage/provider.dart';
 
 class PatrimoineWizardService {
   final SupabaseClient _supabase = Supabase.instance.client;
@@ -158,4 +158,29 @@ class PatrimoineWizardService {
     ))
         .toList();
   }
+
+
+// Récupère la liste des fournisseurs selon le type d'avantage
+  Future<List<Provider>> getProvidersForAdvantageSource({
+    required int categoryId,
+    required int advantageCategoryId,
+  }) async {
+    final response = await _supabase
+        .from(DatabaseTables.advantageSource)
+        .select('provider_id, advantage_provider ( id, name, label )')
+        .eq('category_id', categoryId)
+        .eq('advantage_type_id', advantageCategoryId);
+
+    return response
+        .map<Provider>((item) {
+      final provider = item['advantage_provider'];
+
+      return Provider(
+        id: provider['id'] as int,
+        name: provider['name'] as String,
+      );
+    })
+        .toList();
+  }
+
 }

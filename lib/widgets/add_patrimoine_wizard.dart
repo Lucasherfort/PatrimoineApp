@@ -1,7 +1,7 @@
-// lib/widgets/add_patrimoine_wizard.dart
 import 'package:flutter/material.dart';
 import 'package:patrimoine/bdd/database_tables.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import '../models/advantage/provider.dart';
 import '../models/patrimoine/patrimoine_category.dart';
 import '../models/source_item.dart';
 import '../models/bank.dart';
@@ -32,9 +32,12 @@ class _AddPatrimoineWizardState extends State<AddPatrimoineWizard> {
   List<SourceItem> sources = [];
   SourceItem? selectedSource;
 
-  // Étape 3 : Banques
+  // Étape 3 : Banques ou fournisseurs
   List<Bank> banks = [];
   Bank? selectedBank;
+
+  List<Provider> providers = [];
+  Provider? selectedProvider;
 
   @override
   void initState() {
@@ -106,6 +109,7 @@ class _AddPatrimoineWizardState extends State<AddPatrimoineWizard> {
       selectedBank = null;
       sources = [];
       banks = [];
+      providers = [];
     });
 
     if (category != null) {
@@ -121,10 +125,13 @@ class _AddPatrimoineWizardState extends State<AddPatrimoineWizard> {
       isLoading = true;
       banks = [];
       selectedBank = null;
+      providers = [];
+      selectedProvider = null;
     });
 
     try {
       List<Bank> loadedBanks;
+      List<Provider> loadProviders;
 
       if (source.type == 'liquidity') {
         loadedBanks = await _wizardService.getBanksForLiquiditySource(source);
@@ -143,9 +150,17 @@ class _AddPatrimoineWizardState extends State<AddPatrimoineWizard> {
               investmentCategoryId: source.id,
           );
         }
+      else if(source.type == 'advantage')
+      {
+        loadProviders = await _wizardService.getProvidersForAdvantageSource(
+          categoryId: selectedCategory!.id,
+          advantageCategoryId: source.id,
+        );
+      }
       else
       {
         loadedBanks = [];
+        loadProviders = [];
       }
 
       setState(() {

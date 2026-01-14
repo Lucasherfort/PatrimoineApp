@@ -12,6 +12,7 @@ class DatabaseTables {
   // Tables source
   static const String savingsSource = 'savings_source';
   static const String investmentSource = 'investment_source';
+  static const String advantageSource = "advantage_source";
 
   // Tables users
   static const String userLiquidityAccounts = 'user_liquidity_account';
