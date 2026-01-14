@@ -1,4 +1,3 @@
-// lib/pages/investment_detail_page.dart
 import 'package:flutter/material.dart';
 import '../models/investment_position.dart';
 import '../models/investments/user_investment_account_view.dart';

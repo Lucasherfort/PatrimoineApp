@@ -34,11 +34,9 @@ class _LiquidityAccountListState extends State<LiquidityAccountList> {
     return FutureBuilder<List<UserLiquidityAccountView>>(
       future: _accountsFuture,
       builder: (context, snapshot) {
+        // 👇 Retirer le loading indicator
         if (snapshot.connectionState == ConnectionState.waiting) {
-          return const Padding(
-            padding: EdgeInsets.all(16),
-            child: Center(child: CircularProgressIndicator()),
-          );
+          return const SizedBox(); // Rien pendant le chargement
         }
 
         if (snapshot.hasError) {
@@ -54,7 +52,7 @@ class _LiquidityAccountListState extends State<LiquidityAccountList> {
         final accounts = snapshot.data ?? [];
 
         if (accounts.isEmpty) {
-          return const SizedBox(); // pas d’affichage si vide
+          return const SizedBox(); // pas d'affichage si vide
         }
 
         return Column(

@@ -51,11 +51,9 @@ class _SavingsAccountListState extends State<SavingsAccountList> {
     return FutureBuilder<List<UserSavingsAccountView>>(
       future: _accountsFuture,
       builder: (context, snapshot) {
+        // 👇 Retirer le loading indicator
         if (snapshot.connectionState == ConnectionState.waiting) {
-          return const Padding(
-            padding: EdgeInsets.all(16),
-            child: Center(child: CircularProgressIndicator()),
-          );
+          return const SizedBox(); // Rien pendant le chargement
         }
 
         if (snapshot.hasError) {
