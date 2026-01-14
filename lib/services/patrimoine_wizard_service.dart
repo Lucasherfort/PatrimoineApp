@@ -30,57 +30,42 @@ class PatrimoineWizardService {
     }
   }
 
-// Dans patrimoine_wizard_service.dart
-  Future<List<SourceItem>> getSourcesForCategory(
-      PatrimoineCategory category
-      ) async {
+  Future<List<SourceItem>> getSourcesForCategory(PatrimoineCategory category) async {
     try {
       final categoryName = category.name;
 
-
-      if (categoryName == 'Cash')
-      {
+      if (categoryName == 'Cash') {
         final response = await _supabase
             .from(DatabaseTables.liquiditySource)
             .select('id, name, type, bank_id, category_id')
             .eq('category_id', category.id)
             .order('name');
 
-        return response.map((item) =>
-            SourceItem.fromLiquiditySource(item)).toList();
-
+        return response.map((item) => SourceItem.fromLiquiditySource(item)).toList();
       }
-      else if (categoryName.contains('Saving'))
-      {
+      else if (categoryName.contains('Saving')) {
         final response = await _supabase
             .from(DatabaseTables.savingsCategory)
             .select('id, name, interest_rate, ceiling');
 
-
-        return response.map((item) =>
-            SourceItem.fromSavingsCategory(item)).toList();
-
+        return response.map((item) => SourceItem.fromSavingsCategory(item)).toList();
       }
+      else if (categoryName.contains('Investments')) {
+        final response = await _supabase
+            .from(DatabaseTables.investmentCategory)
+            .select('id, name');
 
-      else if(categoryName.contains('Investments'))
-        {
-          final response = await _supabase
-              .from(DatabaseTables.investmentCategory)
-              .select('id, name');
-
-
-          return response.map((item) =>
-              SourceItem.fromInvestmentCategory(item)).toList();
-        }
-/*
-      else if(categoryName.contains('Benefits'))
-      {
-
+        return response.map((item) => SourceItem.fromInvestmentCategory(item)).toList();
       }
+      else if (categoryName.contains('Benefits')) {
+        // 🔹 Nouvelle logique pour les avantages
+        final response = await _supabase
+            .from(DatabaseTables.advantageCategory)
+            .select('id, name');
 
- */
-      else
-      {
+        return response.map((item) => SourceItem.fromAdvantageCategory(item)).toList();
+      }
+      else {
         return [];
       }
     } catch (e) {
@@ -167,9 +152,9 @@ class PatrimoineWizardService {
   }) async {
     final response = await _supabase
         .from(DatabaseTables.advantageSource)
-        .select('provider_id, advantage_provider ( id, name, label )')
+        .select('provider_id, advantage_provider ( id, name )')
         .eq('category_id', categoryId)
-        .eq('advantage_type_id', advantageCategoryId);
+        .eq('advantage_category_id', advantageCategoryId);
 
     return response
         .map<Provider>((item) {

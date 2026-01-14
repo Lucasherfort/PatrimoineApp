@@ -32,12 +32,17 @@ class _AddPatrimoineWizardState extends State<AddPatrimoineWizard> {
   List<SourceItem> sources = [];
   SourceItem? selectedSource;
 
-  // Étape 3 : Banques ou fournisseurs
+// Étape 3 : Banques
   List<Bank> banks = [];
   Bank? selectedBank;
 
+// Étape 3 : Fournisseurs
   List<Provider> providers = [];
   Provider? selectedProvider;
+
+// Type de sélection du step 3
+  Step3SelectionType? step3SelectionType;
+
 
   @override
   void initState() {
@@ -124,53 +129,33 @@ class _AddPatrimoineWizardState extends State<AddPatrimoineWizard> {
       selectedSource = source;
       isLoading = true;
       banks = [];
-      selectedBank = null;
       providers = [];
+      selectedBank = null;
       selectedProvider = null;
+      step3SelectionType = null;
     });
 
     try {
-      List<Bank> loadedBanks;
-      List<Provider> loadProviders;
+      List<Bank> loadedBanks = await _loadBanksBySourceType(source);
+      List<Provider> loadedProviders = await _loadProvidersBySourceType(source);
 
-      if (source.type == 'liquidity') {
-        loadedBanks = await _wizardService.getBanksForLiquiditySource(source);
-      }
-      else if (source.type == 'savings')
-      {
-        loadedBanks = await _wizardService.getBanksForSavingsSource(
-          categoryId: selectedCategory!.id,
-          savingsCategoryId: source.id,
-        );
-      }
-      else if(source.type == 'investment')
-        {
-          loadedBanks = await _wizardService.getBanksForInvestmentSource(
-              categoryId: selectedCategory!.id,
-              investmentCategoryId: source.id,
-          );
-        }
-      else if(source.type == 'advantage')
-      {
-        loadProviders = await _wizardService.getProvidersForAdvantageSource(
-          categoryId: selectedCategory!.id,
-          advantageCategoryId: source.id,
-        );
-      }
-      else
-      {
-        loadedBanks = [];
-        loadProviders = [];
-      }
+      print('Loaded providers: ${loadedProviders.length}');
 
       setState(() {
-        banks = loadedBanks;
+        if (source.type == 'advantage') {
+          providers = loadedProviders;
+          step3SelectionType = Step3SelectionType.provider;
+        } else {
+          banks = loadedBanks;
+          step3SelectionType = Step3SelectionType.bank;
+        }
+
+        currentStep = 2;
         isLoading = false;
-        currentStep = 2; // 🔥 PASSAGE AUTOMATIQUE
       });
     } catch (e) {
       setState(() => isLoading = false);
-      _showError('Erreur chargement banques: $e');
+      _showError('Erreur chargement étape 3: $e');
     }
   }
 
@@ -200,7 +185,13 @@ class _AddPatrimoineWizardState extends State<AddPatrimoineWizard> {
       case 1:
         return selectedSource != null;
       case 2:
-        return selectedBank != null;
+        if (step3SelectionType == Step3SelectionType.bank) {
+          return selectedBank != null;
+        }
+        if (step3SelectionType == Step3SelectionType.provider) {
+          return selectedProvider != null;
+        }
+        return false;
       default:
         return false;
     }
@@ -279,6 +270,16 @@ class _AddPatrimoineWizardState extends State<AddPatrimoineWizard> {
             'amount': 0
           });
         }
+      }
+      else if (selectedSource!.type == 'advantage') {
+        await Supabase.instance.client
+            .from('advantage_account')
+            .insert({
+          'user_id': user.id,
+          'advantage_type_id': selectedSource!.id,
+          'provider_id': selectedProvider!.id,
+          'value': 0,
+        });
       }
 
 
@@ -384,7 +385,7 @@ class _AddPatrimoineWizardState extends State<AddPatrimoineWizard> {
       case 1:
         return _buildSourceStep();
       case 2:
-        return _buildBankStep();
+        return _buildStep3(); // ✅ ICI
       default:
         return const SizedBox();
     }
@@ -602,6 +603,88 @@ class _AddPatrimoineWizardState extends State<AddPatrimoineWizard> {
       ],
     );
   }
+
+  Future<List<Bank>> _loadBanksBySourceType(SourceItem source) {
+    switch (source.type) {
+      case 'liquidity':
+        return _wizardService.getBanksForLiquiditySource(source);
+
+      case 'savings':
+        return _wizardService.getBanksForSavingsSource(
+          categoryId: selectedCategory!.id,
+          savingsCategoryId: source.id,
+        );
+
+      case 'investment':
+        return _wizardService.getBanksForInvestmentSource(
+          categoryId: selectedCategory!.id,
+          investmentCategoryId: source.id,
+        );
+
+      default:
+        return Future.value([]);
+    }
+  }
+
+  Widget _buildStep3() {
+    if (step3SelectionType == Step3SelectionType.bank) {
+      return _buildBankStep();
+    }
+
+    if (step3SelectionType == Step3SelectionType.provider) {
+      return _buildProviderStep();
+    }
+
+    return const SizedBox();
+  }
+
+  Widget _buildProviderStep() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const Text('Étape 3 : Fournisseur', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.blue)),
+        const SizedBox(height: 8),
+        const Text('Sélectionnez le fournisseur de votre avantage', style: TextStyle(fontSize: 14, color: Colors.grey)),
+        const SizedBox(height: 20),
+        if (providers.isEmpty)
+          const Padding(
+            padding: EdgeInsets.all(20),
+            child: Center(
+              child: Text('Aucun fournisseur disponible', style: TextStyle(color: Colors.grey)),
+            ),
+          )
+        else
+          DropdownButtonFormField<Provider>(
+            value: selectedProvider,
+            decoration: InputDecoration(
+              border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
+              contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+              labelText: 'Fournisseur',
+              hintText: 'Sélectionnez un fournisseur',
+              prefixIcon: const Icon(Icons.store),
+            ),
+            items: providers.map((provider) {
+              return DropdownMenuItem(value: provider, child: Text(provider.name));
+            }).toList(),
+            onChanged: (p) => setState(() => selectedProvider = p),
+          ),
+      ],
+    );
+  }
+
+  Future<List<Provider>> _loadProvidersBySourceType(SourceItem source) {
+    switch (source.type) {
+      case 'advantage':
+        return _wizardService.getProvidersForAdvantageSource(
+          categoryId: selectedCategory!.id,
+          advantageCategoryId: source.id,
+        );
+
+      default:
+        return Future.value([]);
+    }
+  }
+
 }
 
 // Extension helper pour firstWhereOrNull
@@ -612,4 +695,8 @@ extension IterableExtension<T> on Iterable<T> {
     }
     return null;
   }
+}
+enum Step3SelectionType {
+  bank,
+  provider,
 }

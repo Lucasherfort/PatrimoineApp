@@ -8,6 +8,7 @@ class DatabaseTables {
   static const String liquiditySource = 'liquidity_source';
   static const String savingsCategory = 'savings_category';
   static const String investmentCategory = 'investment_category';
+  static const String advantageCategory = 'advantage_category';
 
   // Tables source
   static const String savingsSource = 'savings_source';
