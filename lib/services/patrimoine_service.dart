@@ -56,8 +56,19 @@ class PatrimoineService {
                 ((row['interest'] as num?)?.toDouble() ?? 0);
       }
 
-      // 🔹 (Investissements & vouchers plus tard)
+      // 🔹 (Investissements
       total += await _investmentService.getUserInvestmentsTotalValue();
+
+      // Advantage
+      final advantage = await _supabase
+          .from(DatabaseTables.userAdvantageAccount)
+          .select('value')
+          .eq('user_id', userId);
+
+      for (final row in advantage)
+      {
+        total += ((row['value'] as num?)?.toDouble() ?? 0);
+      }
 
       return total;
     } catch (e) {
