@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:package_info_plus/package_info_plus.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 import '../services/patrimoine_service.dart';
 import '../widgets/Investment/investment_list.dart';
 import '../widgets/Savings/savings_account_list.dart';
@@ -20,7 +21,7 @@ class _HomePageState extends State<HomePage> {
 
   double patrimoineTotal = 0.0;
   bool isLoading = true;
-  String appVersion = ''; // 👈 Nouvelle variable
+  String appVersion = '';
 
   bool hasLiquidityAccounts = false;
   bool hasSavingsAccounts = false;
@@ -34,17 +35,17 @@ class _HomePageState extends State<HomePage> {
   }
 
   Future<void> _initialize() async {
-    // Charger la version en premier
     await _loadAppVersion();
-    // Puis charger le reste
     await _loadPatrimoine();
   }
 
   Future<void> _loadAppVersion() async {
     final packageInfo = await PackageInfo.fromPlatform();
-    setState(() {
-      appVersion = 'v${packageInfo.version}';
-    });
+    if (mounted) {
+      setState(() {
+        appVersion = 'v${packageInfo.version}';
+      });
+    }
   }
 
   Future<void> _loadPatrimoine() async {
@@ -58,18 +59,20 @@ class _HomePageState extends State<HomePage> {
       final investments = await _service.hasInvestmentAccounts();
       final advantages = await _service.hasAdvantageAccounts();
 
-      setState(() {
-        patrimoineTotal = total;
-        hasLiquidityAccounts = liquidity;
-        hasSavingsAccounts = savings;
-        hasInvestmentAccounts = investments;
-        hasAdvantageAccounts = advantages;
-        isLoading = false;
-      });
-    } catch (e) {
-      setState(() => isLoading = false);
-
       if (mounted) {
+        setState(() {
+          patrimoineTotal = total;
+          hasLiquidityAccounts = liquidity;
+          hasSavingsAccounts = savings;
+          hasInvestmentAccounts = investments;
+          hasAdvantageAccounts = advantages;
+          isLoading = false;
+        });
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() => isLoading = false);
+
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text('Erreur chargement patrimoine: $e')),
         );
@@ -93,6 +96,36 @@ class _HomePageState extends State<HomePage> {
 
     if (result == true) {
       await _refreshAll();
+    }
+  }
+
+  // 👇 Nouvelle méthode de déconnexion
+  Future<void> _logout() async {
+    final shouldLogout = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Déconnexion'),
+        content: const Text('Voulez-vous vraiment vous déconnecter ?'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text('Annuler'),
+          ),
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.red,
+            ),
+            onPressed: () => Navigator.pop(context, true),
+            child: const Text('Déconnexion'),
+          ),
+        ],
+      ),
+    );
+
+    if (shouldLogout == true) {
+      await Supabase.instance.client.auth.signOut();
+      // La redirection vers LoginPage se fait automatiquement
+      // grâce au StreamBuilder dans main.dart
     }
   }
 
@@ -131,6 +164,14 @@ class _HomePageState extends State<HomePage> {
             ),
           ],
         ),
+        // 👇 Bouton de déconnexion
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.logout),
+            tooltip: 'Déconnexion',
+            onPressed: _logout,
+          ),
+        ],
       ),
 
       floatingActionButton: FloatingActionButton(
