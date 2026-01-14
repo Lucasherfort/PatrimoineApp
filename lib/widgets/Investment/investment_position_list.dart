@@ -1,19 +1,19 @@
 import 'package:flutter/material.dart';
+import 'package:patrimoine/services/position_service.dart';
 import '../../models/investment_position.dart';
-import '../../services/investment_service.dart';
 import 'investment_position_card.dart';
 
 class InvestmentPositionList extends StatelessWidget {
   final List<InvestmentPosition> positions;
   final bool isLoading;
-  final InvestmentService investmentService;
+  final PositionService positionService;
   final VoidCallback? onPositionUpdated;
 
   const InvestmentPositionList({
     super.key,
     required this.positions,
     required this.isLoading,
-    required this.investmentService,
+    required this.positionService,
     this.onPositionUpdated,
   });
 
@@ -72,7 +72,7 @@ class InvestmentPositionList extends StatelessWidget {
       double newQuantity,
       ) async {
     try {
-      final hasChanged = await investmentService.updatePosition(
+      final hasChanged = await positionService.updatePosition(
         positionId: position.id,
         pru: newPru,
         quantity: newQuantity,
@@ -114,7 +114,7 @@ class InvestmentPositionList extends StatelessWidget {
       InvestmentPosition position,
       ) async {
     try {
-      await investmentService.deletePosition(position.id);
+      await positionService.deletePosition(position.id);
 
       if (onPositionUpdated != null) {
         onPositionUpdated!();

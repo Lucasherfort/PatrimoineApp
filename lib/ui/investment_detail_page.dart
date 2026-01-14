@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:patrimoine/services/position_service.dart';
 import '../models/investment_position.dart';
 import '../models/investments/user_investment_account_view.dart';
 import '../services/investment_service.dart';
@@ -24,6 +25,8 @@ class InvestmentDetailPage extends StatefulWidget {
 
 class _InvestmentDetailPageState extends State<InvestmentDetailPage> {
   final InvestmentService _investmentService = InvestmentService();
+  final PositionService _positionService = PositionService();
+
 
   List<InvestmentPosition> positions = [];
   UserInvestmentAccountView? accountView;
@@ -89,7 +92,7 @@ class _InvestmentDetailPageState extends State<InvestmentDetailPage> {
           final scaffoldMessenger = ScaffoldMessenger.of(context);
 
           try {
-            await _investmentService.addPosition(
+            await _positionService.addPosition(
               userInvestmentAccountId: widget.userInvestmentAccountId,
               ticker: ticker,
               name: name,
@@ -206,7 +209,7 @@ class _InvestmentDetailPageState extends State<InvestmentDetailPage> {
             child: InvestmentPositionList(
               positions: positions,
               isLoading: false,
-              investmentService: _investmentService,
+              positionService: _positionService,
               onPositionUpdated: _loadPositionsAndAccount,
             ),
           ),

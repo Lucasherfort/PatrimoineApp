@@ -1,5 +1,6 @@
 // lib/services/investment_service.dart
 import 'package:flutter/foundation.dart';
+import 'package:patrimoine/services/position_service.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../bdd/database_tables.dart';
 import '../models/investments/user_investment_account_view.dart';
@@ -11,6 +12,7 @@ class InvestmentService {
   // Création interne de GoogleSheetsService
   final SupabaseClient _supabase = Supabase.instance.client;
   final GoogleSheetsService _sheetsService = GoogleSheetsService();
+  final PositionService _positionService = PositionService();
 
   // Singleton classique
   static final InvestmentService _instance = InvestmentService._internal();
@@ -58,25 +60,13 @@ class InvestmentService {
     }
   }
 
-  Future<List<InvestmentPosition>> getPositionsForAccount(int accountId) async {
-    final response = await _supabase
-        .from(DatabaseTables.userInvestmentPosition)
-        .select()
-        .eq('user_investment_account_id', accountId)
-        .order('created_at');
-
-    return response
-        .map<InvestmentPosition>((e) => InvestmentPosition.fromMap(e))
-        .toList();
-  }
-
 /*
  Récupère la liste des positions d'un compte d'investissement
  et les met à jour avec les données Google Sheet
 */
   Future<List<InvestmentPosition>> getInvestmentPositions(int userInvestmentAccountId) async {
 
-    final positions = await getPositionsForAccount(userInvestmentAccountId);
+    final positions = await _positionService.getPositionsForAccount(userInvestmentAccountId);
 
     if (positions.isEmpty) {
       return positions;
@@ -113,69 +103,6 @@ class InvestmentService {
     return positions;
   }
 
-
-  /// Ajoute une nouvelle position
-  Future<void> addPosition({
-    required int userInvestmentAccountId,
-    required String ticker,
-    required String name, // Sera stocké en mémoire, pas en BDD
-    required double quantity,
-    required double averagePurchasePrice,
-    int? positionCategoryId,
-  }) async {
-    try {
-      final user = _supabase.auth.currentUser;
-      if (user == null) throw Exception('Utilisateur non connecté');
-
-      await _supabase.from(DatabaseTables.userInvestmentPosition).insert({
-        'user_investment_account_id': userInvestmentAccountId,
-        'ticker': ticker.toUpperCase(),
-        'position_category_id': positionCategoryId,
-        'quantity': quantity,
-        'pru': averagePurchasePrice,
-        'created_at': DateTime.now().toIso8601String(),
-        'updated_at': DateTime.now().toIso8601String(),
-      });
-    } catch (e) {
-      rethrow;
-    }
-  }
-
-  /// Met à jour une position existante et retourne true si la ligne a été modifiée
-  Future<bool> updatePosition({
-    required int positionId,
-    required double quantity,
-    required double pru,
-  }) async {
-    try {
-      final response = await _supabase
-          .from(DatabaseTables.userInvestmentPosition)
-          .update({
-        'quantity': quantity,
-        'pru': pru,
-        'updated_at': DateTime.now().toIso8601String(),
-      })
-          .eq('id', positionId)
-          .select(); // récupère les lignes affectées
-
-      // Supabase retourne une liste des lignes modifiées
-      return response.isNotEmpty;
-    } catch (e) {
-      rethrow;
-    }
-  }
-
-  /// Supprime une position
-  Future<void> deletePosition(int positionId) async {
-    try {
-      await _supabase
-          .from(DatabaseTables.userInvestmentPosition)
-          .delete()
-          .eq('id', positionId);
-    } catch (e) {
-      rethrow;
-    }
-  }
 
   /// Met à jour un compte investissement
   Future<bool> updateInvestmentAccount({
@@ -237,11 +164,6 @@ class InvestmentService {
     }
 
     return totalValue;
-
-    // on récupère les comptes d'investissemnts du user (UserInvestmentAccount)
-
-    // pour chaque UserInvestmentAccount on récupère les postions actualisées (InvestmentPosition)
-
   }
 
   Future<List<UserInvestmentAccount>> getUserInvestmentAccounts() async {

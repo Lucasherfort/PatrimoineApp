@@ -126,9 +126,7 @@ class SavingsAccountService {
         'user_id': user.id,
         'savings_source_id': sourceId,
         'principal': 0,
-        'interest': 0,
-        'created_at': DateTime.now().toUtc().toIso8601String(),  // 👈 Ajout de .toUtc()
-        'updated_at': DateTime.now().toUtc().toIso8601String(),  // 👈 Ajout de .toUtc()
+        'interest': 0
       })
           .select('id')
           .single();
