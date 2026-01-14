@@ -105,9 +105,16 @@ class PatrimoineService {
     return response.isNotEmpty;
   }
 
-  Future<bool> hasRestaurantVouchers() async {
-    // 🔜 À implémenter plus tard
-    return false;
+  Future<bool> hasAdvantageAccounts() async {
+    final userId = _requireUserId();
+
+    final response = await _supabase
+        .from(DatabaseTables.userAdvantageAccount)
+        .select('id')
+        .eq('user_id', userId)
+        .limit(1);
+
+    return response.isNotEmpty;
   }
 
   // ─────────────────────────────────────────────

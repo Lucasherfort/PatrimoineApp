@@ -5,7 +5,7 @@ import '../models/investments/UserInvestmentAccountView.dart';
 import '../services/investment_service.dart';
 import '../widgets/Investment/investment_position_list.dart';
 import '../widgets/Investment/investment_summary_header.dart';
-import '../widgets/add_position_dialog.dart';
+import '../widgets/position/add_position_dialog.dart';
 
 class InvestmentDetailPage extends StatefulWidget {
   final int userInvestmentAccountId;

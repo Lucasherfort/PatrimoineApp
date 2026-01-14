@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:patrimoine/bdd/database_tables.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
-import '../models/advantage/provider.dart';
-import '../models/patrimoine/patrimoine_category.dart';
-import '../models/source_item.dart';
-import '../models/bank.dart';
-import '../services/patrimoine_wizard_service.dart';
+import '../../models/advantage/provider.dart';
+import '../../models/patrimoine/patrimoine_category.dart';
+import '../../models/source_item.dart';
+import '../../models/bank.dart';
+import '../../services/patrimoine_wizard_service.dart';
 
 class AddPatrimoineWizard extends StatefulWidget {
   const AddPatrimoineWizard({super.key});

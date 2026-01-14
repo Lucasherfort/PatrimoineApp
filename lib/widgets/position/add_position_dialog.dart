@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import '../services/google_sheet_service.dart';
+import '../../services/google_sheet_service.dart';
 
 class AddPositionDialog extends StatefulWidget {
   final Function(String ticker, String name, double quantity, double pru) onAdd;

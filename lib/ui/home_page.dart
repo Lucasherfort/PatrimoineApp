@@ -2,9 +2,10 @@ import 'package:flutter/material.dart';
 import '../services/patrimoine_service.dart';
 import '../widgets/Investment/investment_list.dart';
 import '../widgets/Savings/savings_account_list.dart';
-import '../widgets/add_patrimoine_wizard.dart';
+import '../widgets/advantage/advantage_account_list.dart';
+import '../widgets/patrimoine/add_patrimoine_wizard.dart';
 import '../widgets/Liquidity/liquidity_account_list.dart';
-import '../widgets/patrimoine_header.dart';
+import '../widgets/patrimoine/patrimoine_header.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -22,7 +23,7 @@ class _HomePageState extends State<HomePage> {
   bool hasLiquidityAccounts = false;
   bool hasSavingsAccounts = false;
   bool hasInvestmentAccounts = false;
-  bool hasVouchers = false;
+  bool hasAdvantageAccounts = false;
 
   @override
   void initState() {
@@ -39,12 +40,14 @@ class _HomePageState extends State<HomePage> {
       final liquidity = await _service.hasLiquidityAccounts();
       final savings = await _service.hasSavingsAccounts();
       final investments = await _service.hasInvestmentAccounts();
+      final advantages = await _service.hasAdvantageAccounts();
 
       setState(() {
         patrimoineTotal = total;
         hasLiquidityAccounts = liquidity;
         hasSavingsAccounts = savings;
         hasInvestmentAccounts = investments;
+        hasAdvantageAccounts = advantages;
         isLoading = false;
       });
     } catch (e) {
@@ -88,7 +91,7 @@ class _HomePageState extends State<HomePage> {
     final hasAnyAccount = hasLiquidityAccounts ||
         hasSavingsAccounts ||
         hasInvestmentAccounts ||
-        hasVouchers;
+        hasAdvantageAccounts;
 
     return Scaffold(
       appBar: AppBar(title: const Text("Patrimoine App")),
@@ -122,6 +125,10 @@ class _HomePageState extends State<HomePage> {
                   ),
                 if (hasInvestmentAccounts)
                   InvestmentList(
+                    onAccountUpdated: _refreshAll,
+                  ),
+                if (hasAdvantageAccounts)
+                  AdvantageAccountList(
                     onAccountUpdated: _refreshAll,
                   ),
               ],
