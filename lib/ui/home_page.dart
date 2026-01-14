@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:package_info_plus/package_info_plus.dart';
 import '../services/patrimoine_service.dart';
 import '../widgets/Investment/investment_list.dart';
 import '../widgets/Savings/savings_account_list.dart';
@@ -19,6 +20,7 @@ class _HomePageState extends State<HomePage> {
 
   double patrimoineTotal = 0.0;
   bool isLoading = true;
+  String appVersion = ''; // 👈 Nouvelle variable
 
   bool hasLiquidityAccounts = false;
   bool hasSavingsAccounts = false;
@@ -28,7 +30,22 @@ class _HomePageState extends State<HomePage> {
   @override
   void initState() {
     super.initState();
-    _loadPatrimoine();
+    _initialize();
+  }
+
+  Future<void> _initialize() async {
+    // Charger la version en premier
+    await _loadAppVersion();
+    // Puis charger le reste
+    await _loadPatrimoine();
+  }
+
+  Future<void> _loadAppVersion() async {
+    final packageInfo = await PackageInfo.fromPlatform();
+    print('Version récupérée: ${packageInfo.version}'); // 👈 Debug
+    setState(() {
+      appVersion = 'v${packageInfo.version}';
+    });
   }
 
   Future<void> _loadPatrimoine() async {
@@ -94,7 +111,28 @@ class _HomePageState extends State<HomePage> {
         hasAdvantageAccounts;
 
     return Scaffold(
-      appBar: AppBar(title: const Text("Patrimoine App")),
+      appBar: AppBar(
+        title: Row(
+          children: [
+            const Text("Patrimoine App"),
+            const SizedBox(width: 8),
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+              decoration: BoxDecoration(
+                color: Colors.black26,
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Text(
+                appVersion,
+                style: const TextStyle(
+                  fontSize: 12,
+                  fontWeight: FontWeight.normal,
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
 
       floatingActionButton: FloatingActionButton(
         onPressed: _openAddPatrimoinePanel,
@@ -103,13 +141,11 @@ class _HomePageState extends State<HomePage> {
 
       body: Column(
         children: [
-          // ✅ HEADER
           PatrimoineHeader(
             patrimoineTotal: patrimoineTotal,
             onRefresh: _refreshAll,
           ),
 
-          // ✅ LISTES
           Expanded(
             child: hasAnyAccount
                 ? ListView(
