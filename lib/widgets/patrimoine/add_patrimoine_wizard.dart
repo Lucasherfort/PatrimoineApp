@@ -139,8 +139,6 @@ class _AddPatrimoineWizardState extends State<AddPatrimoineWizard> {
       List<Bank> loadedBanks = await _loadBanksBySourceType(source);
       List<Provider> loadedProviders = await _loadProvidersBySourceType(source);
 
-      print('Loaded providers: ${loadedProviders.length}');
-
       setState(() {
         if (source.type == 'advantage') {
           providers = loadedProviders;
@@ -420,7 +418,7 @@ class _AddPatrimoineWizardState extends State<AddPatrimoineWizard> {
           )
         else
           DropdownButtonFormField<PatrimoineCategory>(
-            value: selectedCategory,
+            initialValue: selectedCategory,
             decoration: InputDecoration(
               border: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(8),
@@ -477,7 +475,7 @@ class _AddPatrimoineWizardState extends State<AddPatrimoineWizard> {
           )
         else
           DropdownButtonFormField<SourceItem>(
-            value: selectedSource,
+            initialValue: selectedSource,
             decoration: InputDecoration(
               border: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(8),
@@ -532,7 +530,7 @@ class _AddPatrimoineWizardState extends State<AddPatrimoineWizard> {
           )
         else
           DropdownButtonFormField<Bank>(
-            value: selectedBank,
+            initialValue: selectedBank,
             decoration: InputDecoration(
               border: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(8),
@@ -654,7 +652,7 @@ class _AddPatrimoineWizardState extends State<AddPatrimoineWizard> {
           )
         else
           DropdownButtonFormField<Provider>(
-            value: selectedProvider,
+            initialValue: selectedProvider,
             decoration: InputDecoration(
               border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
               contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),

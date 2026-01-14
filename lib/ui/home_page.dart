@@ -42,7 +42,6 @@ class _HomePageState extends State<HomePage> {
 
   Future<void> _loadAppVersion() async {
     final packageInfo = await PackageInfo.fromPlatform();
-    print('Version récupérée: ${packageInfo.version}'); // 👈 Debug
     setState(() {
       appVersion = 'v${packageInfo.version}';
     });

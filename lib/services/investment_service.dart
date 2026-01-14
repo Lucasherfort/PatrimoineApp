@@ -2,7 +2,7 @@
 import 'package:flutter/foundation.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../bdd/database_tables.dart';
-import '../models/investments/UserInvestmentAccountView.dart';
+import '../models/investments/user_investment_account_view.dart';
 import '../models/investment_position.dart';
 import '../models/user_investment_account.dart';
 import 'google_sheet_service.dart';
@@ -54,7 +54,6 @@ class InvestmentService {
         );
       }).toList();
     } catch (e) {
-      print('Erreur getInvestmentAccountsForUserWithPrices: $e');
       return [];
     }
   }
@@ -138,7 +137,6 @@ class InvestmentService {
         'updated_at': DateTime.now().toIso8601String(),
       });
     } catch (e) {
-      print('Erreur addPosition: $e');
       rethrow;
     }
   }
@@ -161,9 +159,8 @@ class InvestmentService {
           .select(); // récupère les lignes affectées
 
       // Supabase retourne une liste des lignes modifiées
-      return response != null && response.isNotEmpty;
+      return response.isNotEmpty;
     } catch (e) {
-      print('Erreur updatePosition: $e');
       rethrow;
     }
   }
@@ -176,7 +173,6 @@ class InvestmentService {
           .delete()
           .eq('id', positionId);
     } catch (e) {
-      print('Erreur deletePosition: $e');
       rethrow;
     }
   }
@@ -212,7 +208,6 @@ class InvestmentService {
 
       return true; // Changement effectué
     } catch (e) {
-      print('Erreur updateInvestmentAccount: $e');
       rethrow;
     }
   }
@@ -225,7 +220,6 @@ class InvestmentService {
           .delete()
           .eq('id', accountId);
     } catch (e) {
-      print('Erreur deleteUserInvestmentAccount: $e');
       rethrow;
     }
   }
@@ -233,11 +227,11 @@ class InvestmentService {
   /// Récupère la valeur totale de tous les comptes d'investissement d'un utilisateur
   Future<double> getUserInvestmentsTotalValue() async {
 
-    final UIAs = await getUserInvestmentAccounts();
+    final uias = await getUserInvestmentAccounts();
 
     double totalValue = 0.0;
 
-    for (final account in UIAs)
+    for (final account in uias)
     {
       totalValue += await getTotalValueOfInvestmentAccount(account);
     }
@@ -262,7 +256,6 @@ class InvestmentService {
       )
           .toList();
     } catch (e) {
-      print('Erreur getUserInvestmentAccounts: $e');
       rethrow;
     }
   }

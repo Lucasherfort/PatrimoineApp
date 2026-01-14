@@ -168,15 +168,22 @@ class LiquidityAccountCard extends StatelessWidget {
                 backgroundColor: Colors.red,
               ),
               onPressed: () async {
+                // 👇 Capturer les références AVANT l'async
+                final navigator = Navigator.of(context);
+                final scaffoldMessenger = ScaffoldMessenger.of(context);
+
+                // Fermer le dialogue
+                navigator.pop();
+
+                // Opération async
                 final service = LiquidityAccountService();
                 await service.deleteAccount(account.id);
-
-                Navigator.pop(context);
 
                 // ✅ Notifier le parent
                 onDeleted?.call();
 
-                ScaffoldMessenger.of(context).showSnackBar(
+                // 👇 Utiliser les références capturées
+                scaffoldMessenger.showSnackBar(
                   SnackBar(
                     content: Text(
                       "Compte ${account.sourceName} supprimé.",

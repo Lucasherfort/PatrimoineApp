@@ -154,7 +154,7 @@ class AdvantageAccountCard extends StatelessWidget {
       context: context,
       builder: (context) {
         return AlertDialog(
-          title: const Text("Supprimer l’avantage"),
+          title: const Text("Supprimer l'avantage"),
           content: Text(
               "Voulez-vous vraiment supprimer ${account.sourceName} - ${account.providerName} ?"),
           actions: [
@@ -167,15 +167,22 @@ class AdvantageAccountCard extends StatelessWidget {
                 backgroundColor: Colors.red,
               ),
               onPressed: () async {
+                // 👇 Capturer les navigators et scaffolds AVANT l'async
+                final navigator = Navigator.of(context);
+                final scaffoldMessenger = ScaffoldMessenger.of(context);
+
+                // Fermer le dialogue immédiatement
+                navigator.pop();
+
+                // Opération async
                 final service = AdvantageService();
                 await service.deleteAccount(account.id);
-
-                Navigator.pop(context);
 
                 // ✅ Notifier le parent
                 onDeleted?.call();
 
-                ScaffoldMessenger.of(context).showSnackBar(
+                // 👇 Utiliser les références capturées (pas context direct)
+                scaffoldMessenger.showSnackBar(
                   SnackBar(
                     content: Text(
                       "Avantage ${account.sourceName} - ${account.providerName} supprimé.",

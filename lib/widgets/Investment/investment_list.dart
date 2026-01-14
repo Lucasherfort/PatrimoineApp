@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import '../../models/investments/UserInvestmentAccountView.dart';
+import '../../models/investments/user_investment_account_view.dart';
 import '../../services/investment_service.dart';
 import 'investment_card.dart';
 

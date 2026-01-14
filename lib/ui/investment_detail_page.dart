@@ -1,7 +1,7 @@
 // lib/pages/investment_detail_page.dart
 import 'package:flutter/material.dart';
 import '../models/investment_position.dart';
-import '../models/investments/UserInvestmentAccountView.dart';
+import '../models/investments/user_investment_account_view.dart';
 import '../services/investment_service.dart';
 import '../widgets/Investment/investment_position_list.dart';
 import '../widgets/Investment/investment_summary_header.dart';
@@ -65,12 +65,14 @@ class _InvestmentDetailPageState extends State<InvestmentDetailPage> {
         isLoading = false;
       });
     } catch (e) {
-      print('Erreur _loadPositionsAndAccount: $e');
       if (!mounted) return;
 
       setState(() => isLoading = false);
 
-      ScaffoldMessenger.of(context).showSnackBar(
+      // 👇 Capturer ScaffoldMessenger AVANT l'utilisation
+      final scaffoldMessenger = ScaffoldMessenger.of(context);
+
+      scaffoldMessenger.showSnackBar(
         SnackBar(
           content: Text('Erreur de chargement: $e'),
           backgroundColor: Colors.red,
@@ -84,6 +86,9 @@ class _InvestmentDetailPageState extends State<InvestmentDetailPage> {
       context: context,
       builder: (context) => AddPositionDialog(
         onAdd: (ticker, name, quantity, pru) async {
+          // 👇 Capturer ScaffoldMessenger AVANT l'async
+          final scaffoldMessenger = ScaffoldMessenger.of(context);
+
           try {
             await _investmentService.addPosition(
               userInvestmentAccountId: widget.userInvestmentAccountId,
@@ -98,7 +103,7 @@ class _InvestmentDetailPageState extends State<InvestmentDetailPage> {
 
             if (!mounted) return;
 
-            ScaffoldMessenger.of(context).showSnackBar(
+            scaffoldMessenger.showSnackBar(
               SnackBar(
                 content: Text('Position $ticker ajoutée avec succès'),
                 backgroundColor: Colors.green,
@@ -107,7 +112,7 @@ class _InvestmentDetailPageState extends State<InvestmentDetailPage> {
           } catch (e) {
             if (!mounted) return;
 
-            ScaffoldMessenger.of(context).showSnackBar(
+            scaffoldMessenger.showSnackBar(
               SnackBar(
                 content: Text('Erreur: $e'),
                 backgroundColor: Colors.red,
@@ -158,6 +163,9 @@ class _InvestmentDetailPageState extends State<InvestmentDetailPage> {
               account: accountView!,
               positions: positions,
               onValueUpdated: (newCash, newDeposits) async {
+                // 👇 Capturer ScaffoldMessenger AVANT l'async
+                final scaffoldMessenger = ScaffoldMessenger.of(context);
+
                 try {
                   final hasChanged = await _investmentService.updateInvestmentAccount(
                     userInvestmentAccountId: widget.userInvestmentAccountId,
@@ -169,7 +177,7 @@ class _InvestmentDetailPageState extends State<InvestmentDetailPage> {
 
                   if (!mounted) return;
 
-                  ScaffoldMessenger.of(context).showSnackBar(
+                  scaffoldMessenger.showSnackBar(
                     SnackBar(
                       content: Text(
                         hasChanged
@@ -185,7 +193,7 @@ class _InvestmentDetailPageState extends State<InvestmentDetailPage> {
                 } catch (e) {
                   if (!mounted) return;
 
-                  ScaffoldMessenger.of(context).showSnackBar(
+                  scaffoldMessenger.showSnackBar(
                     SnackBar(
                       content: Text('Erreur: $e'),
                       backgroundColor: Colors.red,

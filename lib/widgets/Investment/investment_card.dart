@@ -65,7 +65,7 @@ class InvestmentCard extends StatelessWidget {
               children: [
                 const TextSpan(text: 'Êtes-vous sûr de vouloir supprimer le compte '),
                 TextSpan(
-                  text: '$type',
+                  text: type,
                   style: const TextStyle(fontWeight: FontWeight.bold),
                 ),
                 const TextSpan(text: ' de '),

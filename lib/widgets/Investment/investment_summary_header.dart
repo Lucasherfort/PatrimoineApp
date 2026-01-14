@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import '../../models/investment_position.dart';
-import '../../models/investments/UserInvestmentAccountView.dart';
+import '../../models/investments/user_investment_account_view.dart';
 
 class InvestmentSummaryHeader extends StatelessWidget {
   final UserInvestmentAccountView account;

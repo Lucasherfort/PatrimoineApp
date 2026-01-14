@@ -28,15 +28,22 @@ class _LoginPageState extends State<LoginPage> {
         password: _passwordController.text,
       );
     } catch (e) {
-      setState(() {
-        errorMessage = e.toString().replaceFirst('Exception: ', '');
-      });
+      if (mounted) {  // 👈 Vérifier que le widget est toujours monté
+        setState(() {
+          errorMessage = e.toString().replaceFirst('Exception: ', '');
+        });
+      }
     } finally {
-      setState(() => isLoading = false);
+      if (mounted) {  // 👈 Vérifier que le widget est toujours monté
+        setState(() => isLoading = false);
+      }
     }
   }
 
   Future<void> _signup() async {
+    // 👇 Capturer le ScaffoldMessenger AVANT l'opération async
+    final scaffoldMessenger = ScaffoldMessenger.of(context);
+
     setState(() {
       isLoading = true;
       errorMessage = null;
@@ -48,17 +55,22 @@ class _LoginPageState extends State<LoginPage> {
         password: _passwordController.text,
       );
 
-      ScaffoldMessenger.of(context).showSnackBar(
+      // 👇 Utiliser la référence capturée au lieu de context
+      scaffoldMessenger.showSnackBar(
         const SnackBar(
           content: Text('Compte créé, vérifie tes emails'),
         ),
       );
     } catch (e) {
-      setState(() {
-        errorMessage = e.toString().replaceFirst('Exception: ', '');
-      });
+      if (mounted) {  // 👈 Vérifier que le widget est toujours monté
+        setState(() {
+          errorMessage = e.toString().replaceFirst('Exception: ', '');
+        });
+      }
     } finally {
-      setState(() => isLoading = false);
+      if (mounted) {  // 👈 Vérifier que le widget est toujours monté
+        setState(() => isLoading = false);
+      }
     }
   }
 
