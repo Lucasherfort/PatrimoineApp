@@ -1,3 +1,4 @@
+import 'package:patrimoine/bdd/database_tables.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../models/liquidity/user_liquidity_account_view.dart';
 
@@ -14,7 +15,7 @@ class LiquidityAccountService {
     }
 
     final response = await _supabase
-        .from('user_liquidity_account')
+        .from(DatabaseTables.userLiquidityAccounts)
         .select('''
           id,
           amount,
@@ -47,7 +48,7 @@ class LiquidityAccountService {
       throw Exception('Utilisateur non connecté');
     }
 
-    await _supabase.from('user_liquidity_account').insert({
+    await _supabase.from(DatabaseTables.userLiquidityAccounts).insert({
       'user_id': user.id,
       'liquidity_source_id': liquiditySourceId,
       'amount': 0,
@@ -64,7 +65,7 @@ class LiquidityAccountService {
     required double amount,
   }) async {
     await _supabase
-        .from('user_liquidity_account')
+        .from(DatabaseTables.userLiquidityAccounts)
         .update({
       'amount': amount,
       'updated_at': DateTime.now().toIso8601String(),
@@ -77,7 +78,7 @@ class LiquidityAccountService {
   // ─────────────────────────────────────────────
   Future<void> deleteAccount(int accountId) async {
     await _supabase
-        .from('user_liquidity_account')
+        .from(DatabaseTables.userLiquidityAccounts)
         .delete()
         .eq('id', accountId);
   }
