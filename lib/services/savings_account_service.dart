@@ -1,4 +1,5 @@
 import 'package:supabase_flutter/supabase_flutter.dart';
+import '../bdd/database_tables.dart';
 import '../models/savings/user_savings_account_view.dart';
 
 class SavingsAccountService {
@@ -10,7 +11,7 @@ class SavingsAccountService {
 
     try {
       final response = await _supabase
-          .from('user_savings_account')
+          .from(DatabaseTables.userSavingsAccounts)
           .select('''
           id,
           principal,
@@ -54,7 +55,7 @@ class SavingsAccountService {
   }) async {
     try {
       final response = await _supabase
-          .from('user_savings_account')
+          .from(DatabaseTables.userSavingsAccounts)
           .update({
         'principal': balance,
         'interest': interestAccrued,
@@ -75,7 +76,7 @@ class SavingsAccountService {
   Future<bool> deleteSavingsAccount(int accountId) async {
     try {
       final response = await _supabase
-          .from('user_savings_account')
+          .from(DatabaseTables.userSavingsAccounts)
           .delete()
           .eq('id', accountId);
 
@@ -100,7 +101,7 @@ class SavingsAccountService {
     try {
       // Vérifie si le savings_source existe déjà
       final existingSource = await _supabase
-          .from('savings_source')
+          .from(DatabaseTables.savingsSource)
           .select('id')
           .eq('bank_id', bankId)
           .eq('category_id', categoryId)
@@ -109,7 +110,7 @@ class SavingsAccountService {
 
       final sourceId = existingSource?['id'] ??
           (await _supabase
-              .from('savings_source')
+              .from(DatabaseTables.savingsSource)
               .insert({
             'bank_id': bankId,
             'category_id': categoryId,
@@ -120,14 +121,14 @@ class SavingsAccountService {
 
       // Crée le user_savings_account avec solde 0 et intérêts 0
       final account = await _supabase
-          .from('user_savings_account')
+          .from(DatabaseTables.userSavingsAccounts)
           .insert({
         'user_id': user.id,
         'savings_source_id': sourceId,
         'principal': 0,
         'interest': 0,
-        'created_at': DateTime.now().toIso8601String(),
-        'updated_at': DateTime.now().toIso8601String(),
+        'created_at': DateTime.now().toUtc().toIso8601String(),  // 👈 Ajout de .toUtc()
+        'updated_at': DateTime.now().toUtc().toIso8601String(),  // 👈 Ajout de .toUtc()
       })
           .select('id')
           .single();
