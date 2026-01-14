@@ -273,11 +273,10 @@ class _AddPatrimoineWizardState extends State<AddPatrimoineWizard> {
       }
       else if (selectedSource!.type == 'advantage') {
         await Supabase.instance.client
-            .from('advantage_account')
+            .from(DatabaseTables.userAdvantageAccount)
             .insert({
           'user_id': user.id,
-          'advantage_type_id': selectedSource!.id,
-          'provider_id': selectedProvider!.id,
+          'advantage_source_id': selectedSource!.id,
           'value': 0,
         });
       }
