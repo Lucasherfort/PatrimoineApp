@@ -98,13 +98,13 @@ class SavingsAccountCard extends StatelessWidget {
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
       ),
-      builder: (_) {
+      builder: (context) {  // 👈 Changé de (_) en (context)
         return Padding(
           padding: EdgeInsets.only(
             left: 16,
             right: 16,
             top: 16,
-            bottom: MediaQuery.of(context).viewInsets.bottom + 16,
+            bottom: MediaQuery.of(context).viewInsets.bottom + 16,  // 👈 Maintenant ça fonctionne
           ),
           child: Column(
             mainAxisSize: MainAxisSize.min,
