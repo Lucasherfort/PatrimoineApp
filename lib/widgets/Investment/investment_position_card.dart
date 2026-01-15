@@ -319,6 +319,16 @@ class InvestmentPositionCard extends StatelessWidget {
               ),
               const SizedBox(height: 16),
               TextField(
+                controller: quantityController,
+                keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                decoration: const InputDecoration(
+                  labelText: "Quantité",
+                  border: OutlineInputBorder(),
+                  helperText: "Nombre d'actions/parts détenues",
+                ),
+              ),
+              const SizedBox(height: 12),
+              TextField(
                 controller: pruController,
                 keyboardType: const TextInputType.numberWithOptions(decimal: true),
                 decoration: const InputDecoration(
@@ -326,16 +336,6 @@ class InvestmentPositionCard extends StatelessWidget {
                   suffixText: "€",
                   border: OutlineInputBorder(),
                   helperText: "Prix moyen d'achat par unité",
-                ),
-              ),
-              const SizedBox(height: 12),
-              TextField(
-                controller: quantityController,
-                keyboardType: const TextInputType.numberWithOptions(decimal: true),
-                decoration: const InputDecoration(
-                  labelText: "Quantité",
-                  border: OutlineInputBorder(),
-                  helperText: "Nombre d'actions/parts détenues",
                 ),
               ),
               const SizedBox(height: 16),
