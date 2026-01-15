@@ -33,8 +33,6 @@ class AppVersionService {
     try {
       final config = await getVersionConfig();
 
-      print("ICI : "+config.apkUrl.toString());
-
       // Mode maintenance
       if (config.isMaintenance) {
         return AppStatus(

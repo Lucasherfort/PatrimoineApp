@@ -22,6 +22,7 @@ class _HomePageState extends State<HomePage> {
   double patrimoineTotal = 0.0;
   bool isLoading = true;
   String appVersion = '';
+  String appName = 'Patrimoine 360'; // valeur par défaut au cas où
 
   bool hasLiquidityAccounts = false;
   bool hasSavingsAccounts = false;
@@ -35,16 +36,22 @@ class _HomePageState extends State<HomePage> {
   }
 
   Future<void> _initialize() async {
-    await _loadAppVersion();
+    await _loadAppInfo();
     await _loadPatrimoine();
   }
 
-  Future<void> _loadAppVersion() async {
-    final packageInfo = await PackageInfo.fromPlatform();
-    if (mounted) {
-      setState(() {
-        appVersion = 'v${packageInfo.version}';
-      });
+  /// Charge le nom de l'application et sa version
+  Future<void> _loadAppInfo() async {
+    try {
+      final packageInfo = await PackageInfo.fromPlatform();
+      if (mounted) {
+        setState(() {
+          appName = packageInfo.appName;
+          appVersion = 'v${packageInfo.version}';
+        });
+      }
+    } catch (e) {
+      debugPrint('Erreur récupération infos application: $e');
     }
   }
 
@@ -72,7 +79,6 @@ class _HomePageState extends State<HomePage> {
     } catch (e) {
       if (mounted) {
         setState(() => isLoading = false);
-
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text('Erreur chargement patrimoine: $e')),
         );
@@ -99,7 +105,7 @@ class _HomePageState extends State<HomePage> {
     }
   }
 
-  // 👇 Nouvelle méthode de déconnexion
+  /// Déconnexion
   Future<void> _logout() async {
     final shouldLogout = await showDialog<bool>(
       context: context,
@@ -124,8 +130,7 @@ class _HomePageState extends State<HomePage> {
 
     if (shouldLogout == true) {
       await Supabase.instance.client.auth.signOut();
-      // La redirection vers LoginPage se fait automatiquement
-      // grâce au StreamBuilder dans main.dart
+      // La redirection vers LoginPage se fait automatiquement grâce au StreamBuilder dans main.dart
     }
   }
 
@@ -146,7 +151,7 @@ class _HomePageState extends State<HomePage> {
       appBar: AppBar(
         title: Row(
           children: [
-            const Text("Patrimoine 360"),
+            Text(appName), // ← nom dynamique
             const SizedBox(width: 8),
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
@@ -164,7 +169,6 @@ class _HomePageState extends State<HomePage> {
             ),
           ],
         ),
-        // 👇 Bouton de déconnexion
         actions: [
           IconButton(
             icon: const Icon(Icons.logout),
@@ -173,40 +177,29 @@ class _HomePageState extends State<HomePage> {
           ),
         ],
       ),
-
       floatingActionButton: FloatingActionButton(
         onPressed: _openAddPatrimoinePanel,
         child: const Icon(Icons.add),
       ),
-
       body: Column(
         children: [
           PatrimoineHeader(
             patrimoineTotal: patrimoineTotal,
             onRefresh: _refreshAll,
           ),
-
           Expanded(
             child: hasAnyAccount
                 ? ListView(
               padding: const EdgeInsets.only(bottom: 80),
               children: [
                 if (hasLiquidityAccounts)
-                  LiquidityAccountList(
-                    onAccountUpdated: _refreshAll,
-                  ),
+                  LiquidityAccountList(onAccountUpdated: _refreshAll),
                 if (hasSavingsAccounts)
-                  SavingsAccountList(
-                    onAccountUpdated: _refreshAll,
-                  ),
+                  SavingsAccountList(onAccountUpdated: _refreshAll),
                 if (hasInvestmentAccounts)
-                  InvestmentList(
-                    onAccountUpdated: _refreshAll,
-                  ),
+                  InvestmentList(onAccountUpdated: _refreshAll),
                 if (hasAdvantageAccounts)
-                  AdvantageAccountList(
-                    onAccountUpdated: _refreshAll,
-                  ),
+                  AdvantageAccountList(onAccountUpdated: _refreshAll),
               ],
             )
                 : const Center(
