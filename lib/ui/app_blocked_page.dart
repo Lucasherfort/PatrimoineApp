@@ -5,10 +5,12 @@ import '../services/app_version_service.dart';
 
 class AppBlockedPage extends StatelessWidget {
   final AppStatus appStatus;
+  final VoidCallback? onRetry;
 
   const AppBlockedPage({
     super.key,
     required this.appStatus,
+    this.onRetry,
   });
 
   @override
@@ -92,7 +94,7 @@ class AppBlockedPage extends StatelessWidget {
                   // Bouton d'action
                   if (appStatus.status == AppStatusType.updateRequired)
                     ElevatedButton.icon(
-                      onPressed: _openStore,
+                      onPressed: _openApkDownload, // 👈 Changé ici
                       style: ElevatedButton.styleFrom(
                         backgroundColor: Colors.white,
                         foregroundColor: Colors.red.shade700,
@@ -116,11 +118,7 @@ class AppBlockedPage extends StatelessWidget {
 
                   if (appStatus.status == AppStatusType.maintenance)
                     ElevatedButton(
-                      onPressed: () {
-                        // Forcer la fermeture de l'app
-                        // Note: Sur iOS, cela n'est pas recommandé par Apple
-                        // SystemNavigator.pop();
-                      },
+                      onPressed: onRetry,
                       style: ElevatedButton.styleFrom(
                         backgroundColor: Colors.white,
                         foregroundColor: Colors.orange.shade700,
@@ -160,17 +158,12 @@ class AppBlockedPage extends StatelessWidget {
     }
   }
 
-  Future<void> _openStore() async {
-    // TODO: Remplacer par vos vrais liens de stores
-    final Uri url = Uri.parse(
-      // Android
-      'https://play.google.com/store/apps/details?id=votre.package.name',
-      // iOS
-      // 'https://apps.apple.com/app/id123456789',
+  // 👇 Nouvelle méthode qui utilise apkUrl
+  Future<void> _openApkDownload() async {
+    final url = Uri.parse(appStatus.apkUrl!);
+    await launchUrl(
+      url,
+      mode: LaunchMode.externalApplication,
     );
-
-    if (await canLaunchUrl(url)) {
-      await launchUrl(url, mode: LaunchMode.externalApplication);
-    }
   }
 }

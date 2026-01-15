@@ -33,12 +33,15 @@ class AppVersionService {
     try {
       final config = await getVersionConfig();
 
+      print("ICI : "+config.apkUrl.toString());
+
       // Mode maintenance
       if (config.isMaintenance) {
         return AppStatus(
           status: AppStatusType.maintenance,
           message: config.maintenanceMessage ??
               'L\'application est en maintenance. Veuillez réessayer plus tard.',
+          apkUrl: config.apkUrl, // 👈 Ajouter ici
         );
       }
 
@@ -49,6 +52,7 @@ class AppVersionService {
           message: config.updateMessage ??
               'Une mise à jour obligatoire est disponible. Veuillez mettre à jour l\'application.',
           latestVersion: config.currentVersion,
+          apkUrl: config.apkUrl, // 👈 Ajouter ici
         );
       }
 
@@ -59,13 +63,13 @@ class AppVersionService {
           message: config.updateMessage ??
               'Une nouvelle version est disponible.',
           latestVersion: config.currentVersion,
+          apkUrl: config.apkUrl, // 👈 Ajouter ici
         );
       }
 
       // Tout va bien
       return AppStatus(status: AppStatusType.ok);
     } catch (e) {
-      // En cas d'erreur, laisser passer l'utilisateur
       return AppStatus(status: AppStatusType.ok);
     }
   }
@@ -82,10 +86,12 @@ class AppStatus {
   final AppStatusType status;
   final String? message;
   final String? latestVersion;
+  final String? apkUrl; // 👈 Nouveau champ
 
   AppStatus({
     required this.status,
     this.message,
     this.latestVersion,
+    this.apkUrl, // 👈 Nouveau champ
   });
 }

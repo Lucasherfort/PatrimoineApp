@@ -1,4 +1,4 @@
-// lib/models/app_version_config.dart
+// lib/models/config/app_version_config.dart
 
 class AppVersionConfig {
   final String currentVersion;
@@ -6,6 +6,7 @@ class AppVersionConfig {
   final bool isMaintenance;
   final String? maintenanceMessage;
   final String? updateMessage;
+  final String? apkUrl; // 👈 Ajouter ce champ
 
   AppVersionConfig({
     required this.currentVersion,
@@ -13,6 +14,7 @@ class AppVersionConfig {
     required this.isMaintenance,
     this.maintenanceMessage,
     this.updateMessage,
+    this.apkUrl, // 👈 Ajouter ce paramètre
   });
 
   factory AppVersionConfig.fromMap(Map<String, dynamic> map) {
@@ -22,6 +24,7 @@ class AppVersionConfig {
       isMaintenance: map['is_maintenance'] as bool? ?? false,
       maintenanceMessage: map['maintenance_message'] as String?,
       updateMessage: map['update_message'] as String?,
+      apkUrl: map['apk_url'] as String?, // 👈 Ajouter cette ligne
     );
   }
 

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:package_info_plus/package_info_plus.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 import 'ui/home_page.dart';
 import 'ui/login_page.dart';
@@ -90,6 +91,13 @@ class _AppVersionCheckerState extends State<AppVersionChecker> {
     }
   }
 
+  void _handleRetry() {
+    setState(() {
+      _isChecking = true;
+    });
+    _checkVersion();
+  }
+
   @override
   Widget build(BuildContext context) {
     if (_isChecking) {
@@ -101,7 +109,10 @@ class _AppVersionCheckerState extends State<AppVersionChecker> {
     // Bloquer l'accès si maintenance ou mise à jour obligatoire
     if (_appStatus?.status == AppStatusType.maintenance ||
         _appStatus?.status == AppStatusType.updateRequired) {
-      return AppBlockedPage(appStatus: _appStatus!);
+      return AppBlockedPage(
+        appStatus: _appStatus!,
+        onRetry: _handleRetry,
+      );
     }
 
     // Afficher l'app normalement
@@ -143,11 +154,16 @@ class _AppVersionCheckerState extends State<AppVersionChecker> {
             child: const Text('Plus tard'),
           ),
           ElevatedButton(
-            onPressed: () {
+            onPressed: () async {
               Navigator.pop(context);
-              // TODO: Ouvrir le store avec url_launcher
-              // final Uri url = Uri.parse('https://play.google.com/store/apps/details?id=...');
-              // launchUrl(url, mode: LaunchMode.externalApplication);
+
+              // Ouvrir le lien de téléchargement si disponible
+              if (_appStatus?.apkUrl != null) {
+                final Uri url = Uri.parse(_appStatus!.apkUrl!);
+                if (await canLaunchUrl(url)) {
+                  await launchUrl(url, mode: LaunchMode.externalApplication);
+                }
+              }
             },
             child: const Text('Mettre à jour'),
           ),
