@@ -40,6 +40,14 @@ class _AddPositionDialogState extends State<AddPositionDialog> {
   Future<void> _loadAvailableEtfs() async {
     try {
       final etfs = await _sheetsService.fetchEtfs();
+
+      // 🔹 Tri alphabétique par name
+      etfs.sort((a, b) {
+        final nameA = (a['name'] ?? '').toString().toLowerCase();
+        final nameB = (b['name'] ?? '').toString().toLowerCase();
+        return nameA.compareTo(nameB);
+      });
+
       setState(() {
         _availableEtfs = etfs;
         _isLoadingEtfs = false;
@@ -156,26 +164,27 @@ class _AddPositionDialogState extends State<AddPositionDialog> {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         mainAxisSize: MainAxisSize.min,
                         children: [
+                          // 🔹 Nom en gras
                           Text(
-                            ticker,
+                            name,
                             style: const TextStyle(
                               fontWeight: FontWeight.bold,
                               fontSize: 14,
                             ),
                           ),
+                          // 🔹 Ticker en petit en dessous
                           Text(
-                            name,
+                            ticker,
                             style: TextStyle(
                               fontSize: 12,
                               color: Colors.grey.shade600,
                             ),
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
                           ),
                         ],
                       ),
                     );
                   }).toList(),
+
                   onChanged: (value) {
                     setState(() {
                       _selectedEtf = value;
