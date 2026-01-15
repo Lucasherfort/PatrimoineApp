@@ -26,7 +26,7 @@ class InvestmentDetailPage extends StatefulWidget {
 class _InvestmentDetailPageState extends State<InvestmentDetailPage> {
   final InvestmentService _investmentService = InvestmentService();
   final PositionService _positionService = PositionService();
-  
+
   List<InvestmentPosition> positions = [];
   UserInvestmentAccountView? accountView;
   bool isLoading = true;

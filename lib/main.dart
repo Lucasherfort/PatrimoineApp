@@ -1,8 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:package_info_plus/package_info_plus.dart';
 
 import 'ui/home_page.dart';
 import 'ui/login_page.dart';
+import 'ui/app_blocked_page.dart';
+import 'services/app_version_service.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -38,20 +41,117 @@ class PatrimoineApp extends StatelessWidget {
       theme: ThemeData(
         primarySwatch: Colors.blue,
       ),
+      home: const AppVersionChecker(),
+    );
+  }
+}
 
-      /// 🔐 Redirection automatique selon l'état d'auth
-      home: StreamBuilder<AuthState>(
-        stream: Supabase.instance.client.auth.onAuthStateChange,
-        builder: (context, snapshot) {
-          final session = snapshot.data?.session;
+class AppVersionChecker extends StatefulWidget {
+  const AppVersionChecker({super.key});
 
-          if (session == null)
-          {
-            return const LoginPage();
-          }
+  @override
+  State<AppVersionChecker> createState() => _AppVersionCheckerState();
+}
 
-          return const HomePage();
-        },
+class _AppVersionCheckerState extends State<AppVersionChecker> {
+  final AppVersionService _versionService = AppVersionService();
+  bool _isChecking = true;
+  AppStatus? _appStatus;
+
+  @override
+  void initState() {
+    super.initState();
+    _checkVersion();
+  }
+
+  Future<void> _checkVersion() async {
+    try {
+      // Récupérer la version de l'app
+      final packageInfo = await PackageInfo.fromPlatform();
+      final currentVersion = packageInfo.version;
+
+      // Vérifier le statut
+      final status = await _versionService.checkAppStatus(currentVersion);
+
+      if (mounted) {
+        setState(() {
+          _appStatus = status;
+          _isChecking = false;
+        });
+      }
+    } catch (e) {
+      // En cas d'erreur, laisser passer
+      if (mounted) {
+        setState(() {
+          _appStatus = AppStatus(status: AppStatusType.ok);
+          _isChecking = false;
+        });
+      }
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    if (_isChecking) {
+      return const Scaffold(
+        body: Center(child: CircularProgressIndicator()),
+      );
+    }
+
+    // Bloquer l'accès si maintenance ou mise à jour obligatoire
+    if (_appStatus?.status == AppStatusType.maintenance ||
+        _appStatus?.status == AppStatusType.updateRequired) {
+      return AppBlockedPage(appStatus: _appStatus!);
+    }
+
+    // Afficher l'app normalement
+    return StreamBuilder<AuthState>(
+      stream: Supabase.instance.client.auth.onAuthStateChange,
+      builder: (context, snapshot) {
+        final session = snapshot.data?.session;
+
+        // Afficher une notification si mise à jour disponible (optionnelle)
+        if (_appStatus?.status == AppStatusType.updateAvailable) {
+          WidgetsBinding.instance.addPostFrameCallback((_) {
+            if (mounted) {
+              _showUpdateAvailableDialog(context);
+            }
+          });
+        }
+
+        if (session == null) {
+          return const LoginPage();
+        }
+
+        return const HomePage();
+      },
+    );
+  }
+
+  void _showUpdateAvailableDialog(BuildContext context) {
+    showDialog(
+      context: context,
+      barrierDismissible: true,
+      builder: (context) => AlertDialog(
+        title: const Text('Mise à jour disponible'),
+        content: Text(
+          _appStatus?.message ?? 'Une nouvelle version est disponible.',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Plus tard'),
+          ),
+          ElevatedButton(
+            onPressed: () {
+              Navigator.pop(context);
+              // TODO: Ouvrir le store avec url_launcher
+              // final Uri url = Uri.parse('https://play.google.com/store/apps/details?id=...');
+              // launchUrl(url, mode: LaunchMode.externalApplication);
+            },
+            child: const Text('Mettre à jour'),
+          ),
+        ],
       ),
     );
   }
