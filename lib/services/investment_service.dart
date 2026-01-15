@@ -168,9 +168,15 @@ class InvestmentService {
 
   Future<List<UserInvestmentAccount>> getUserInvestmentAccounts() async {
     try {
+      final user = _supabase.auth.currentUser;
+      if (user == null) {
+        throw Exception('Utilisateur non connecté');
+      }
+
       final response = await _supabase
           .from(DatabaseTables.userInvestmentAccount)
-          .select();
+          .select()
+          .eq('user_id', user.id);
 
       return response
           .map<UserInvestmentAccount>(
