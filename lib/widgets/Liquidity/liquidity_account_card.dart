@@ -21,7 +21,7 @@ class LiquidityAccountCard extends StatelessWidget {
     NumberFormat.currency(locale: 'fr_FR', symbol: '€');
 
     return Container(
-      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 5), // ← ici
+      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 5),
       child: InkWell(
         borderRadius: BorderRadius.circular(12),
         onTap: () => _openEditPanel(context),
@@ -35,16 +35,18 @@ class LiquidityAccountCard extends StatelessWidget {
             padding: const EdgeInsets.all(12.0),
             child: Row(
               children: [
+                // Widget pour afficher le logo de la banque
                 Container(
-                  padding: const EdgeInsets.all(8),
+                  width: 40,
+                  height: 40,
+                  padding: const EdgeInsets.all(4),
                   decoration: BoxDecoration(
-                    color: Colors.green.shade50,
+                    color: Colors.grey.shade50,
                     borderRadius: BorderRadius.circular(8),
                   ),
-                  child: Icon(
-                    Icons.account_balance_wallet,
-                    color: Colors.green.shade700,
-                    size: 24,
+                  child: ClipRRect(
+                    borderRadius: BorderRadius.circular(6),
+                    child: _buildBankLogo(),
                   ),
                 ),
                 const SizedBox(width: 12),
@@ -82,6 +84,42 @@ class LiquidityAccountCard extends StatelessWidget {
           ),
         ),
       ),
+    );
+  }
+
+  Widget _buildBankLogo() {
+    // Si pas de logo, afficher l'icône par défaut
+    if (account.logoUrl.isEmpty) {
+      return Icon(
+        Icons.account_balance_wallet,
+        color: Colors.green.shade700,
+        size: 24,
+      );
+    }
+
+    // Afficher l'image (PNG, JPG, etc.)
+    return Image.network(
+      account.logoUrl,
+      fit: BoxFit.contain,
+      errorBuilder: (context, error, stackTrace) {
+        print('Erreur chargement image: $error');
+        return Icon(
+          Icons.account_balance_wallet,
+          color: Colors.green.shade700,
+          size: 24,
+        );
+      },
+      loadingBuilder: (context, child, loadingProgress) {
+        if (loadingProgress == null) return child;
+        return SizedBox(
+          width: 24,
+          height: 24,
+          child: CircularProgressIndicator(
+            strokeWidth: 2,
+            valueColor: AlwaysStoppedAnimation<Color>(Colors.green.shade700),
+          ),
+        );
+      },
     );
   }
 
@@ -168,21 +206,16 @@ class LiquidityAccountCard extends StatelessWidget {
                 backgroundColor: Colors.red,
               ),
               onPressed: () async {
-                // 👇 Capturer les références AVANT l'async
                 final navigator = Navigator.of(context);
                 final scaffoldMessenger = ScaffoldMessenger.of(context);
 
-                // Fermer le dialogue
                 navigator.pop();
 
-                // Opération async
                 final service = LiquidityAccountService();
                 await service.deleteAccount(account.id);
 
-                // ✅ Notifier le parent
                 onDeleted?.call();
 
-                // 👇 Utiliser les références capturées
                 scaffoldMessenger.showSnackBar(
                   SnackBar(
                     content: Text(

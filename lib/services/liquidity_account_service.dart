@@ -17,22 +17,35 @@ class LiquidityAccountService {
     final response = await _supabase
         .from(DatabaseTables.userLiquidityAccounts)
         .select('''
-          id,
-          amount,
-          liquidity_source (
-            name,
-            banks ( name )
-          )
-        ''')
+        id,
+        amount,
+        liquidity_source (
+          name,
+          banks ( name, icon )
+        )
+      ''')
         .eq('user_id', user.id)
         .order('id');
 
     return response.map<UserLiquidityAccountView>((item) {
+      final source = item['liquidity_source'];
+      final bank = source['banks'];
+
+      // Construire l'URL publique complète pour l'icône
+      final iconPath = bank['icon'] as String?;
+      String logoUrl = '';
+      if (iconPath != null && iconPath.isNotEmpty) {
+        logoUrl = _supabase.storage
+            .from('banks-icons')
+            .getPublicUrl(iconPath);
+      }
+
       return UserLiquidityAccountView(
         id: item['id'] as int,
         amount: (item['amount'] as num).toDouble(),
-        sourceName: item['liquidity_source']['name'] as String,
-        bankName: item['liquidity_source']['banks']['name'] as String,
+        sourceName: source['name'] as String,
+        bankName: bank['name'] as String,
+        logoUrl: logoUrl, // 👈 Ajout du logo
       );
     }).toList();
   }
