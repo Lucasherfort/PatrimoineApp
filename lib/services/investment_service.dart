@@ -28,17 +28,17 @@ class InvestmentService {
       final response = await _supabase
           .from(DatabaseTables.userInvestmentAccount)
           .select('''
+          id,
+          total_contribution,
+          cash_balance,
+          amount,
+          investment_source (
             id,
-            total_contribution,
-            cash_balance,
-            amount,
-            investment_source (
-              id,
-              bank_id,
-              banks (id, name),
-              investment_category (name)
-            )
-          ''')
+            bank_id,
+            banks (id, name, icon),
+            investment_category (name)
+          )
+        ''')
           .eq('user_id', user.id);
 
       return response.map<UserInvestmentAccountView>((item) {
@@ -46,10 +46,20 @@ class InvestmentService {
         final bank = source['banks'];
         final category = source['investment_category'];
 
+        // Construire l'URL publique complète pour l'icône
+        final iconPath = bank['icon'] as String?;
+        String logoUrl = '';
+        if (iconPath != null && iconPath.isNotEmpty) {
+          logoUrl = _supabase.storage
+              .from('banks-icons')
+              .getPublicUrl(iconPath);
+        }
+
         return UserInvestmentAccountView(
           id: item['id'] as int,
           sourceName: category['name'] as String,
           bankName: bank['name'] as String,
+          logoUrl: logoUrl, // 👈 Ajout du logo
           totalContribution: (item['total_contribution'] as num?)?.toDouble() ?? 0.0,
           cashBalance: (item['cash_balance'] as num?)?.toDouble() ?? 0.0,
           amount: (item['amount'] as num?)?.toDouble() ?? 0.0,
@@ -215,18 +225,14 @@ class InvestmentService {
     final List<UserInvestmentAccountView> views = [];
 
     for (final uia in uiaList) {
-      // Récupérer la source
+      // Récupérer la source avec la banque et son icône
       final source = await _supabase
           .from(DatabaseTables.investmentSource)
-          .select('*')
+          .select('''
+          *,
+          banks (name, icon)
+        ''')
           .eq('id', uia.investmentSourceId!)
-          .single();
-
-      // Récupérer le nom de la banque
-      final bank = await _supabase
-          .from(DatabaseTables.banks)
-          .select('name')
-          .eq('id', source['bank_id'])
           .single();
 
       // Récupérer le type de compte / catégorie
@@ -236,6 +242,16 @@ class InvestmentService {
           .eq('id', source['investment_category_id'])
           .single();
 
+      // Construire l'URL publique complète pour l'icône
+      final bank = source['banks'];
+      final iconPath = bank['icon'] as String?;
+      String logoUrl = '';
+      if (iconPath != null && iconPath.isNotEmpty) {
+        logoUrl = _supabase.storage
+            .from('banks-icons')
+            .getPublicUrl(iconPath);
+      }
+
       // Calculer la valeur totale du compte (cash + positions)
       final totalAmount = await getTotalValueOfInvestmentAccount(uia);
 
@@ -243,6 +259,7 @@ class InvestmentService {
         id: uia.id,
         sourceName: category['name'] as String,
         bankName: bank['name'] as String,
+        logoUrl: logoUrl, // 👈 Ajout du logo
         totalContribution: uia.cumulativeDeposits,
         cashBalance: uia.cashBalance,
         amount: totalAmount,

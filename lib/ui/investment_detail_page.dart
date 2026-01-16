@@ -54,7 +54,7 @@ class _InvestmentDetailPageState extends State<InvestmentDetailPage> {
           bankName: widget.bankName,
           totalContribution: 0,
           cashBalance: 0,
-          amount: 0,
+          amount: 0, logoUrl: '',
         ),
       );
 

@@ -2,6 +2,7 @@ class UserInvestmentAccountView {
   final int id;
   final String sourceName; // PEA ou AV ou CTO
   final String bankName;
+  final String logoUrl; // 👈 Nouveau champ
   final double totalContribution; // cumul des versements
   final double cashBalance; // solde espèce
   final double amount; // valeur totale
@@ -10,6 +11,7 @@ class UserInvestmentAccountView {
     required this.id,
     required this.sourceName,
     required this.bankName,
+    required this.logoUrl, // 👈 Ajouté
     required this.totalContribution,
     required this.cashBalance,
     required this.amount

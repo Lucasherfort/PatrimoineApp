@@ -7,18 +7,20 @@ class InvestmentCard extends StatelessWidget {
   final int userInvestmentAccountId;
   final String type; // PEA / AV / CTO
   final String bankName;
+  final String logoUrl; // 👈 Nouveau champ
   final double totalValue;
-  final double totalContribution; // ✅ Ajouté pour calculer la performance
-  final VoidCallback? onTap;    // 🔹 callback pour rafraîchir HomePage
-  final VoidCallback? onDelete; // 🔹 callback suppression
+  final double totalContribution;
+  final VoidCallback? onTap;
+  final VoidCallback? onDelete;
 
   const InvestmentCard({
     super.key,
     required this.userInvestmentAccountId,
     required this.type,
     required this.bankName,
+    required this.logoUrl, // 👈 Ajouté
     required this.totalValue,
-    required this.totalContribution, // ✅ Ajouté
+    required this.totalContribution,
     this.onTap,
     this.onDelete,
   });
@@ -32,7 +34,6 @@ class InvestmentCard extends StatelessWidget {
     return formatter.format(amount);
   }
 
-  // ✅ Calcul de la couleur selon la performance
   Color _getValueColor() {
     final performance = totalValue - totalContribution;
     if (performance > 0) {
@@ -100,6 +101,42 @@ class InvestmentCard extends StatelessWidget {
     }
   }
 
+  Widget _buildBankLogo() {
+    // Si pas de logo, afficher l'icône par défaut
+    if (logoUrl.isEmpty) {
+      return Icon(
+        Icons.trending_up,
+        color: Colors.purple.shade700,
+        size: 24,
+      );
+    }
+
+    // Afficher l'image (PNG, JPG, etc.)
+    return Image.network(
+      logoUrl,
+      fit: BoxFit.contain,
+      errorBuilder: (context, error, stackTrace) {
+        print('Erreur chargement image: $error');
+        return Icon(
+          Icons.trending_up,
+          color: Colors.purple.shade700,
+          size: 24,
+        );
+      },
+      loadingBuilder: (context, child, loadingProgress) {
+        if (loadingProgress == null) return child;
+        return SizedBox(
+          width: 24,
+          height: 24,
+          child: CircularProgressIndicator(
+            strokeWidth: 2,
+            valueColor: AlwaysStoppedAnimation<Color>(Colors.purple.shade700),
+          ),
+        );
+      },
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Padding(
@@ -107,7 +144,6 @@ class InvestmentCard extends StatelessWidget {
       child: InkWell(
         borderRadius: BorderRadius.circular(12),
         onTap: () async {
-          // 🔹 Navigation vers InvestmentDetailPage
           final shouldReload = await Navigator.push<bool>(
             context,
             MaterialPageRoute(
@@ -119,7 +155,6 @@ class InvestmentCard extends StatelessWidget {
             ),
           );
 
-          // 🔹 Si InvestmentDetailPage a renvoyé true, appeler le callback pour rafraîchir
           if (shouldReload == true && onTap != null) {
             onTap!();
           }
@@ -134,17 +169,18 @@ class InvestmentCard extends StatelessWidget {
             padding: const EdgeInsets.all(12),
             child: Row(
               children: [
-                /// Icône
+                /// Logo de la banque
                 Container(
-                  padding: const EdgeInsets.all(8),
+                  width: 40,
+                  height: 40,
+                  padding: const EdgeInsets.all(4),
                   decoration: BoxDecoration(
-                    color: Colors.purple.shade50,
+                    color: Colors.grey.shade50,
                     borderRadius: BorderRadius.circular(8),
                   ),
-                  child: Icon(
-                    Icons.trending_up,
-                    color: Colors.purple.shade700,
-                    size: 24,
+                  child: ClipRRect(
+                    borderRadius: BorderRadius.circular(6),
+                    child: _buildBankLogo(),
                   ),
                 ),
                 const SizedBox(width: 12),
@@ -173,13 +209,13 @@ class InvestmentCard extends StatelessWidget {
                   ),
                 ),
 
-                /// Valeur à droite avec couleur dynamique ✅
+                /// Valeur à droite avec couleur dynamique
                 Text(
                   _formatAmount(totalValue),
                   style: TextStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.bold,
-                    color: _getValueColor(), // ✅ Couleur selon performance
+                    color: _getValueColor(),
                   ),
                 ),
               ],
