@@ -20,7 +20,7 @@ class SavingsAccountCard extends StatelessWidget {
     NumberFormat.currency(locale: 'fr_FR', symbol: '€');
 
     return Container(
-      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 5), // ← ajouté horizontal
+      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 5),
       child: InkWell(
         borderRadius: BorderRadius.circular(12),
         onTap: () => _openEditPanel(context),
@@ -34,16 +34,19 @@ class SavingsAccountCard extends StatelessWidget {
             padding: const EdgeInsets.all(12.0),
             child: Row(
               children: [
+                // Widget pour afficher le logo de la banque
                 Container(
-                  padding: const EdgeInsets.all(8),
+                  width: 40,
+                  height: 40,
+                  padding: const EdgeInsets.all(4),
                   decoration: BoxDecoration(
-                    color: Colors.blue.shade50,
+                    color: Colors.white,
                     borderRadius: BorderRadius.circular(8),
+                    border: Border.all(color: Colors.grey.shade200),
                   ),
-                  child: Icon(
-                    Icons.account_balance,
-                    color: Colors.blue.shade700,
-                    size: 24,
+                  child: ClipRRect(
+                    borderRadius: BorderRadius.circular(6),
+                    child: _buildBankLogo(),
                   ),
                 ),
                 const SizedBox(width: 12),
@@ -59,7 +62,7 @@ class SavingsAccountCard extends StatelessWidget {
                         ),
                       ),
                       Text(
-                        account.bankName, // corrigé : afficher le nom de la banque
+                        account.bankName,
                         style: TextStyle(
                           fontSize: 12,
                           color: Colors.grey.shade600,
@@ -84,6 +87,42 @@ class SavingsAccountCard extends StatelessWidget {
     );
   }
 
+  Widget _buildBankLogo() {
+    // Si pas de logo, afficher l'icône par défaut
+    if (account.logoUrl.isEmpty) {
+      return Icon(
+        Icons.account_balance,
+        color: Colors.blue.shade700,
+        size: 24,
+      );
+    }
+
+    // Afficher l'image (PNG, JPG, etc.)
+    return Image.network(
+      account.logoUrl,
+      fit: BoxFit.contain,
+      errorBuilder: (context, error, stackTrace) {
+        print('Erreur chargement image: $error');
+        return Icon(
+          Icons.account_balance,
+          color: Colors.blue.shade700,
+          size: 24,
+        );
+      },
+      loadingBuilder: (context, child, loadingProgress) {
+        if (loadingProgress == null) return child;
+        return SizedBox(
+          width: 24,
+          height: 24,
+          child: CircularProgressIndicator(
+            strokeWidth: 2,
+            valueColor: AlwaysStoppedAnimation<Color>(Colors.blue.shade700),
+          ),
+        );
+      },
+    );
+  }
+
   void _openEditPanel(BuildContext context) {
     final balanceController = TextEditingController(
       text: account.principal.toStringAsFixed(2).replaceAll('.', ','),
@@ -98,13 +137,13 @@ class SavingsAccountCard extends StatelessWidget {
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
       ),
-      builder: (context) {  // 👈 Changé de (_) en (context)
+      builder: (context) {
         return Padding(
           padding: EdgeInsets.only(
             left: 16,
             right: 16,
             top: 16,
-            bottom: MediaQuery.of(context).viewInsets.bottom + 16,  // 👈 Maintenant ça fonctionne
+            bottom: MediaQuery.of(context).viewInsets.bottom + 16,
           ),
           child: Column(
             mainAxisSize: MainAxisSize.min,

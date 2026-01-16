@@ -13,17 +13,17 @@ class SavingsAccountService {
       final response = await _supabase
           .from(DatabaseTables.userSavingsAccounts)
           .select('''
+        id,
+        principal,
+        interest,
+        savings_source (
           id,
-          principal,
-          interest,
-          savings_source (
-            id,
-            savings_category_id,
-            bank_id,
-            banks (id, name),
-            savings_category(name)
-          )
-        ''')
+          savings_category_id,
+          bank_id,
+          banks (id, name, icon),
+          savings_category(name)
+        )
+      ''')
           .eq('user_id', user.id);
 
       return response.map<UserSavingsAccountView>((item) {
@@ -31,16 +31,25 @@ class SavingsAccountService {
         final bank = source['banks'];
         final category = source['savings_category'];
 
+        // 👇 Construire l'URL publique complète pour l'icône
+        final iconPath = bank['icon'] as String?;
+        String logoUrl = '';
+        if (iconPath != null && iconPath.isNotEmpty) {
+          logoUrl = _supabase.storage
+              .from('banks-icons') // 👈 Nom correct de votre bucket
+              .getPublicUrl(iconPath);
+        }
+
         return UserSavingsAccountView(
           id: item['id'] as int,
           sourceName: category['name'] as String,
           bankName: bank['name'] as String,
+          logoUrl: logoUrl,
           principal: (item['principal'] as num).toDouble(),
           interest: (item['interest'] as num).toDouble(),
         );
       }).toList();
-    } catch (e)
-    {
+    } catch (e) {
       return [];
     }
   }
