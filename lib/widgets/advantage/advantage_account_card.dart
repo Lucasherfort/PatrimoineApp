@@ -34,16 +34,18 @@ class AdvantageAccountCard extends StatelessWidget {
             padding: const EdgeInsets.all(12.0),
             child: Row(
               children: [
+                // Widget pour afficher le logo du fournisseur
                 Container(
-                  padding: const EdgeInsets.all(8),
+                  width: 40,
+                  height: 40,
+                  padding: const EdgeInsets.all(4),
                   decoration: BoxDecoration(
-                    color: Colors.blue.shade50,
+                    color: Colors.grey.shade50,
                     borderRadius: BorderRadius.circular(8),
                   ),
-                  child: Icon(
-                    Icons.card_giftcard,
-                    color: Colors.blue.shade700,
-                    size: 24,
+                  child: ClipRRect(
+                    borderRadius: BorderRadius.circular(6),
+                    child: _buildProviderLogo(),
                   ),
                 ),
                 const SizedBox(width: 12),
@@ -81,6 +83,42 @@ class AdvantageAccountCard extends StatelessWidget {
           ),
         ),
       ),
+    );
+  }
+
+  Widget _buildProviderLogo() {
+    // Si pas de logo, afficher l'icône par défaut
+    if (account.logoUrl.isEmpty) {
+      return Icon(
+        Icons.card_giftcard,
+        color: Colors.blue.shade700,
+        size: 24,
+      );
+    }
+
+    // Afficher l'image (PNG, JPG, etc.)
+    return Image.network(
+      account.logoUrl,
+      fit: BoxFit.contain,
+      errorBuilder: (context, error, stackTrace) {
+        print('Erreur chargement image: $error');
+        return Icon(
+          Icons.card_giftcard,
+          color: Colors.blue.shade700,
+          size: 24,
+        );
+      },
+      loadingBuilder: (context, child, loadingProgress) {
+        if (loadingProgress == null) return child;
+        return SizedBox(
+          width: 24,
+          height: 24,
+          child: CircularProgressIndicator(
+            strokeWidth: 2,
+            valueColor: AlwaysStoppedAnimation<Color>(Colors.blue.shade700),
+          ),
+        );
+      },
     );
   }
 
@@ -167,21 +205,16 @@ class AdvantageAccountCard extends StatelessWidget {
                 backgroundColor: Colors.red,
               ),
               onPressed: () async {
-                // 👇 Capturer les navigators et scaffolds AVANT l'async
                 final navigator = Navigator.of(context);
                 final scaffoldMessenger = ScaffoldMessenger.of(context);
 
-                // Fermer le dialogue immédiatement
                 navigator.pop();
 
-                // Opération async
                 final service = AdvantageService();
                 await service.deleteAccount(account.id);
 
-                // ✅ Notifier le parent
                 onDeleted?.call();
 
-                // 👇 Utiliser les références capturées (pas context direct)
                 scaffoldMessenger.showSnackBar(
                   SnackBar(
                     content: Text(

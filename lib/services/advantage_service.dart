@@ -14,16 +14,16 @@ class AdvantageService {
       final response = await _supabase
           .from(DatabaseTables.userAdvantageAccount)
           .select('''
+        id,
+        value,
+        advantage_source (
           id,
-          value,
-          advantage_source (
-            id,
-            advantage_category_id,
-            provider_id,
-            advantage_provider (id, name),
-            advantage_category(name)
-          )
-        ''')
+          advantage_category_id,
+          provider_id,
+          advantage_provider (id, name, icon),
+          advantage_category(name)
+        )
+      ''')
           .eq('user_id', user.id);
 
       return response.map<UserAdvantageAccountView>((item) {
@@ -31,15 +31,24 @@ class AdvantageService {
         final provider = source['advantage_provider'];
         final category = source['advantage_category'];
 
+        // Construire l'URL publique complète pour l'icône
+        final iconPath = provider['icon'] as String?;
+        String logoUrl = '';
+        if (iconPath != null && iconPath.isNotEmpty) {
+          logoUrl = _supabase.storage
+              .from('banks-icons') // 👈 Même bucket que les banques
+              .getPublicUrl(iconPath);
+        }
+
         return UserAdvantageAccountView(
           id: item['id'] as int,
           sourceName: category['name'] as String,
           providerName: provider['name'] as String,
-          value: (item['value'] as num).toDouble()
+          logoUrl: logoUrl, // 👈 Ajout du logo
+          value: (item['value'] as num).toDouble(),
         );
       }).toList();
-    } catch (e)
-    {
+    } catch (e) {
       return [];
     }
   }
