@@ -3,7 +3,7 @@ import 'package:package_info_plus/package_info_plus.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:url_launcher/url_launcher.dart';
 
-import 'ui/home_page.dart';
+import 'ui/main_navigation.dart'; // 👈 Changé
 import 'ui/login_page.dart';
 import 'ui/app_blocked_page.dart';
 import 'services/app_version_service.dart';
@@ -72,15 +72,13 @@ class _AppVersionCheckerState extends State<AppVersionChecker> {
       return AppBlockedPage(appStatus: _appStatus!, onRetry: _handleRetry);
     }
 
-    // 👇 CHANGÉ : Utiliser initialData au lieu de _initialSession
     return StreamBuilder<AuthState>(
       stream: Supabase.instance.client.auth.onAuthStateChange,
       initialData: AuthState(
         AuthChangeEvent.initialSession,
         Supabase.instance.client.auth.currentSession,
-      ), // 👈 Fournir la session initiale
+      ),
       builder: (context, snapshot) {
-        // 👇 CHANGÉ : Récupérer la session depuis snapshot.data
         final session = snapshot.hasData ? snapshot.data!.session : null;
 
         // Notification si update disponible
@@ -90,11 +88,11 @@ class _AppVersionCheckerState extends State<AppVersionChecker> {
           });
         }
 
-        // Affiche directement HomePage si session existante, sinon LoginPage
+        // Affiche MainNavigation si session existante, sinon LoginPage
         if (session == null) {
           return const LoginPage();
         } else {
-          return const HomePage();
+          return const MainNavigation(); // 👈 Changé de HomePage à MainNavigation
         }
       },
     );

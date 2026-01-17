@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:package_info_plus/package_info_plus.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../services/patrimoine_service.dart';
 import '../widgets/Investment/investment_list.dart';
@@ -11,7 +10,14 @@ import '../widgets/patrimoine/patrimoine_header.dart';
 import 'login_page.dart';
 
 class HomePage extends StatefulWidget {
-  const HomePage({super.key});
+  final String appName;
+  final String appVersion;
+
+  const HomePage({
+    super.key,
+    required this.appName,
+    required this.appVersion,
+  });
 
   @override
   State<HomePage> createState() => _HomePageState();
@@ -22,8 +28,6 @@ class _HomePageState extends State<HomePage> {
 
   double patrimoineTotal = 0.0;
   bool isLoading = true;
-  String appVersion = '';
-  String appName = 'Patrimoine 360'; // valeur par défaut au cas où
 
   bool hasLiquidityAccounts = false;
   bool hasSavingsAccounts = false;
@@ -33,27 +37,7 @@ class _HomePageState extends State<HomePage> {
   @override
   void initState() {
     super.initState();
-    _initialize();
-  }
-
-  Future<void> _initialize() async {
-    await _loadAppInfo();
-    await _loadPatrimoine();
-  }
-
-  /// Charge le nom de l'application et sa version
-  Future<void> _loadAppInfo() async {
-    try {
-      final packageInfo = await PackageInfo.fromPlatform();
-      if (mounted) {
-        setState(() {
-          appName = packageInfo.appName;
-          appVersion = 'v${packageInfo.version}';
-        });
-      }
-    } catch (e) {
-      debugPrint('Erreur récupération infos application: $e');
-    }
+    _loadPatrimoine();
   }
 
   Future<void> _loadPatrimoine() async {
@@ -132,16 +116,12 @@ class _HomePageState extends State<HomePage> {
     if (shouldLogout == true) {
       await Supabase.instance.client.auth.signOut();
 
-      // Option 1 : Naviguer directement vers LoginPage
       if (mounted) {
         Navigator.of(context).pushAndRemoveUntil(
           MaterialPageRoute(builder: (_) => const LoginPage()),
               (route) => false,
         );
       }
-
-      // Option 2 (si tu veux rester sur le StreamBuilder) :
-      // setState(() {}); // force rebuild pour que StreamBuilder voit que session=null
     }
   }
 
@@ -162,7 +142,7 @@ class _HomePageState extends State<HomePage> {
       appBar: AppBar(
         title: Row(
           children: [
-            Text(appName), // ← nom dynamique
+            Text(widget.appName),
             const SizedBox(width: 8),
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
@@ -171,7 +151,7 @@ class _HomePageState extends State<HomePage> {
                 borderRadius: BorderRadius.circular(12),
               ),
               child: Text(
-                appVersion,
+                widget.appVersion,
                 style: const TextStyle(
                   fontSize: 12,
                   fontWeight: FontWeight.normal,
