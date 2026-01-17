@@ -96,6 +96,48 @@ class SavingsAccountService {
     }
   }
 
+  /// Vérifie si un compte épargne peut être créé pour cette banque et catégorie
+  /// Retourne true si le compte peut être créé, false s'il existe déjà
+  Future<bool> canCreateSavingsAccount({
+    required int bankId,
+    required int savingsCategoryId,
+  }) async {
+    final user = _supabase.auth.currentUser;
+    if (user == null) {
+      throw Exception('Utilisateur non connecté');
+    }
+
+    try {
+      // Vérifier si un savings_source existe déjà pour cette banque + catégorie
+      final existingSource = await _supabase
+          .from(DatabaseTables.savingsSource)
+          .select('id')
+          .eq('bank_id', bankId)
+          .eq('savings_category_id', savingsCategoryId)
+          .maybeSingle();
+
+      // Si pas de source, on peut créer
+      if (existingSource == null) {
+        return true;
+      }
+
+      final sourceId = existingSource['id'] as int;
+
+      // Vérifier si l'utilisateur a déjà un compte avec cette source
+      final existingUserAccount = await _supabase
+          .from(DatabaseTables.userSavingsAccounts)
+          .select('id')
+          .eq('user_id', user.id)
+          .eq('savings_source_id', sourceId)
+          .maybeSingle();
+
+      // Si pas de compte utilisateur, on peut créer
+      return existingUserAccount == null;
+    } catch (e) {
+      rethrow;
+    }
+  }
+
   /// ----------------------------
   /// Crée un compte épargne pour l'utilisateur connecté
   /// ----------------------------
