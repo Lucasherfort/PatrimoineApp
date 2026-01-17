@@ -20,8 +20,11 @@ class LiquidityAccountService {
         id,
         amount,
         liquidity_source (
-          name,
-          banks ( name, icon )
+          id,
+          liquidity_category_id,
+          bank_id,
+          banks (id, name, icon),
+          liquidity_category(name)
         )
       ''')
         .eq('user_id', user.id)
@@ -30,6 +33,7 @@ class LiquidityAccountService {
     return response.map<UserLiquidityAccountView>((item) {
       final source = item['liquidity_source'];
       final bank = source['banks'];
+      final category = source['liquidity_category'];
 
       // Construire l'URL publique complète pour l'icône
       final iconPath = bank['icon'] as String?;
@@ -43,7 +47,7 @@ class LiquidityAccountService {
       return UserLiquidityAccountView(
         id: item['id'] as int,
         amount: (item['amount'] as num).toDouble(),
-        sourceName: source['name'] as String,
+        sourceName: category['name'] as String,
         bankName: bank['name'] as String,
         logoUrl: logoUrl, // 👈 Ajout du logo
       );
