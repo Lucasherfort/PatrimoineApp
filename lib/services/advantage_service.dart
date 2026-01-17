@@ -5,7 +5,7 @@ import '../models/advantage/user_advantage_account_view.dart';
 class AdvantageService {
   final SupabaseClient _supabase = Supabase.instance.client;
 
-  /// Récupère tous les avantages de l’utilisateur
+  /// Récupère tous les comptes avantages de l’utilisateur
   Future<List<UserAdvantageAccountView>> getUserAdvantageAccounts() async {
     final user = _supabase.auth.currentUser;
     if (user == null) return [];
@@ -53,11 +53,11 @@ class AdvantageService {
     }
   }
 
-  /// Met à jour la valeur d’un avantage
+  /// Met à jour la valeur d’un compte advantage
   Future<void> updateValue({required int accountId, required double value}) async {
     try {
       await _supabase
-          .from('user_advantage_account')
+          .from(DatabaseTables.userAdvantageAccount)
           .update({'value': value})
           .eq('id', accountId);
     } catch (e) {
@@ -65,11 +65,11 @@ class AdvantageService {
     }
   }
 
-  /// Supprime un avantage
+  /// Supprime un compte advantage
   Future<void> deleteAccount(int accountId) async {
     try {
       await _supabase
-          .from('user_advantage_account')
+          .from(DatabaseTables.userAdvantageAccount)
           .delete()
           .eq('id', accountId);
     } catch (e) {
