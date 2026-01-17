@@ -8,6 +8,7 @@ import '../widgets/advantage/advantage_account_list.dart';
 import '../widgets/patrimoine/add_patrimoine_wizard.dart';
 import '../widgets/Liquidity/liquidity_account_list.dart';
 import '../widgets/patrimoine/patrimoine_header.dart';
+import 'login_page.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -130,7 +131,17 @@ class _HomePageState extends State<HomePage> {
 
     if (shouldLogout == true) {
       await Supabase.instance.client.auth.signOut();
-      // La redirection vers LoginPage se fait automatiquement grâce au StreamBuilder dans main.dart
+
+      // Option 1 : Naviguer directement vers LoginPage
+      if (mounted) {
+        Navigator.of(context).pushAndRemoveUntil(
+          MaterialPageRoute(builder: (_) => const LoginPage()),
+              (route) => false,
+        );
+      }
+
+      // Option 2 (si tu veux rester sur le StreamBuilder) :
+      // setState(() {}); // force rebuild pour que StreamBuilder voit que session=null
     }
   }
 
