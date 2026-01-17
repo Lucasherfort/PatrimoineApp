@@ -136,11 +136,11 @@ class _AddPositionDialogState extends State<AddPositionDialog> {
                         mainAxisSize: MainAxisSize.min,
                         children: [
                           Text(
-                            position.ticker,
+                            position.name, // 👈 Nom en premier
                             style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
                           ),
                           Text(
-                            position.name,
+                            position.ticker, // 👈 Ticker en second
                             style: TextStyle(fontSize: 12, color: Colors.grey.shade600),
                           ),
                         ],
