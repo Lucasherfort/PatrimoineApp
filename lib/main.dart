@@ -43,7 +43,6 @@ class AppVersionChecker extends StatefulWidget {
 class _AppVersionCheckerState extends State<AppVersionChecker> {
   final AppVersionService _versionService = AppVersionService();
   AppStatus? _appStatus;
-  String? _currentVersion;
 
   @override
   void initState() {
@@ -54,7 +53,6 @@ class _AppVersionCheckerState extends State<AppVersionChecker> {
   Future<void> _checkVersion() async {
     try {
       final info = await PackageInfo.fromPlatform();
-      _currentVersion = info.version;
 
       final status = await _versionService.checkAppStatus(info.version);
 
