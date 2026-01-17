@@ -1,18 +1,13 @@
 // lib/services/investment_service.dart
-import 'package:flutter/foundation.dart';
-import 'package:patrimoine/services/position_service.dart';
+import 'package:patrimoine/models/investment_position.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../bdd/database_tables.dart';
 import '../models/investments/user_investment_account_view.dart';
-import '../models/investment_position.dart';
 import '../models/user_investment_account.dart';
-import 'google_sheet_service.dart';
 
 class InvestmentService {
   // Création interne de GoogleSheetsService
   final SupabaseClient _supabase = Supabase.instance.client;
-  final GoogleSheetsService _sheetsService = GoogleSheetsService();
-  final PositionService _positionService = PositionService();
 
   // Singleton classique
   static final InvestmentService _instance = InvestmentService._internal();
@@ -69,50 +64,6 @@ class InvestmentService {
       return [];
     }
   }
-
-/*
- Récupère la liste des positions d'un compte d'investissement
- et les met à jour avec les données Google Sheet
-*/
-  Future<List<InvestmentPosition>> getInvestmentPositions(int userInvestmentAccountId) async {
-
-    final positions = await _positionService.getPositionsForAccount(userInvestmentAccountId);
-
-    if (positions.isEmpty) {
-      return positions;
-    }
-
-    try {
-      // Lecture Google Sheet
-      final etfsData = await _sheetsService.fetchEtfs();
-
-      // Indexation par ticker
-      final Map<String, Map<String, dynamic>> etfsMap = {};
-      for (final etf in etfsData) {
-        final ticker = etf['ticker']?.toString().toUpperCase();
-        if (ticker != null) {
-          etfsMap[ticker] = etf;
-        }
-      }
-
-      // Mise à jour des positions avec les données Sheet
-      for (final position in positions) {
-        final etfData = etfsMap[position.ticker.toUpperCase()];
-        if (etfData != null) {
-          position.updateFromSheet(etfData);
-        }
-      }
-    } catch (e) {
-      if (kDebugMode) {
-        debugPrint(
-          'Erreur lors de la récupération des données Google Sheets: $e',
-        );
-      }
-    }
-
-    return positions;
-  }
-
 
   /// Met à jour un compte investissement
   Future<bool> updateInvestmentAccount({
@@ -267,5 +218,30 @@ class InvestmentService {
     }
 
     return views;
+  }
+
+  Future<List<InvestmentPosition>> getInvestmentPositions(
+      int userInvestmentAccountId) async {
+
+    final response = await _supabase
+        .from(DatabaseTables.userInvestmentPosition)
+        .select('''
+        id,
+        user_investment_account_id,
+        quantity,
+        pru,
+        positions!inner(
+          ticker,
+          name,
+          type,
+          price
+        )
+      ''')
+        .eq('user_investment_account_id', userInvestmentAccountId)
+        .order('created_at');
+
+    return response
+        .map<InvestmentPosition>((e) => InvestmentPosition.fromMap(e))
+        .toList();
   }
 }

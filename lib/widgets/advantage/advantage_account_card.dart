@@ -101,7 +101,6 @@ class AdvantageAccountCard extends StatelessWidget {
       account.logoUrl,
       fit: BoxFit.contain,
       errorBuilder: (context, error, stackTrace) {
-        print('Erreur chargement image: $error');
         return Icon(
           Icons.card_giftcard,
           color: Colors.blue.shade700,

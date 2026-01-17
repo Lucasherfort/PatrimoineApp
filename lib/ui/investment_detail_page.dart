@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:patrimoine/services/position_service.dart';
 import '../models/investment_position.dart';
 import '../models/investments/user_investment_account_view.dart';
+import '../models/position.dart';
 import '../services/investment_service.dart';
 import '../widgets/Investment/investment_position_list.dart';
 import '../widgets/Investment/investment_summary_header.dart';
@@ -86,27 +87,26 @@ class _InvestmentDetailPageState extends State<InvestmentDetailPage> {
     showDialog(
       context: context,
       builder: (context) => AddPositionDialog(
-        onAdd: (ticker, name, quantity, pru) async {
-          // 👇 Capturer ScaffoldMessenger AVANT l'async
+        onAdd: (Position position, double quantity, double pru) async {
           final scaffoldMessenger = ScaffoldMessenger.of(context);
 
           try {
             await _positionService.addPosition(
               userInvestmentAccountId: widget.userInvestmentAccountId,
-              ticker: ticker,
-              name: name,
+              positionId: position.id, // ✅ ICI
               quantity: quantity,
               averagePurchasePrice: pru,
             );
 
-            // Recharger les positions
             await _loadPositionsAndAccount();
 
             if (!mounted) return;
 
             scaffoldMessenger.showSnackBar(
               SnackBar(
-                content: Text('Position $ticker ajoutée avec succès'),
+                content: Text(
+                  'Position ${position.ticker} ajoutée avec succès',
+                ),
                 backgroundColor: Colors.green,
               ),
             );
@@ -115,7 +115,7 @@ class _InvestmentDetailPageState extends State<InvestmentDetailPage> {
 
             scaffoldMessenger.showSnackBar(
               SnackBar(
-                content: Text('Erreur: $e'),
+                content: Text('Erreur : $e'),
                 backgroundColor: Colors.red,
               ),
             );

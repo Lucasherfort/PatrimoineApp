@@ -102,7 +102,6 @@ class SavingsAccountCard extends StatelessWidget {
       account.logoUrl,
       fit: BoxFit.contain,
       errorBuilder: (context, error, stackTrace) {
-        print('Erreur chargement image: $error');
         return Icon(
           Icons.account_balance,
           color: Colors.blue.shade700,

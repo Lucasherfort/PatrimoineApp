@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
-import '../../services/google_sheet_service.dart';
+import '../../models/position.dart';
+import '../../services/position_service.dart';
 
 class AddPositionDialog extends StatefulWidget {
-  final Function(String ticker, String name, double quantity, double pru) onAdd;
+  final Function(Position position, double quantity, double pru) onAdd;
 
   const AddPositionDialog({
     super.key,
@@ -14,11 +15,9 @@ class AddPositionDialog extends StatefulWidget {
 }
 
 class _AddPositionDialogState extends State<AddPositionDialog> {
-  final GoogleSheetsService _sheetsService = GoogleSheetsService();
-
-  List<Map<String, dynamic>> _availableEtfs = [];
-  Map<String, dynamic>? _selectedEtf;
-  bool _isLoadingEtfs = true;
+  final List<Position> _availablePositions = [];
+  Position? _selectedPosition;
+  bool _isLoading = true;
   String? _errorMessage;
 
   final TextEditingController _quantityController = TextEditingController();
@@ -27,7 +26,7 @@ class _AddPositionDialogState extends State<AddPositionDialog> {
   @override
   void initState() {
     super.initState();
-    _loadAvailableEtfs();
+    _loadAvailablePositions();
   }
 
   @override
@@ -37,43 +36,31 @@ class _AddPositionDialogState extends State<AddPositionDialog> {
     super.dispose();
   }
 
-  Future<void> _loadAvailableEtfs() async {
+  Future<void> _loadAvailablePositions() async {
     try {
-      final etfs = await _sheetsService.fetchEtfs();
-
-      // 🔹 Tri alphabétique par name
-      etfs.sort((a, b) {
-        final nameA = (a['name'] ?? '').toString().toLowerCase();
-        final nameB = (b['name'] ?? '').toString().toLowerCase();
-        return nameA.compareTo(nameB);
-      });
-
+      final positions = await PositionService().getAllPositions();
       setState(() {
-        _availableEtfs = etfs;
-        _isLoadingEtfs = false;
+        _availablePositions.addAll(positions);
+        _isLoading = false;
       });
     } catch (e) {
       setState(() {
-        _errorMessage = 'Erreur lors du chargement des ETFs: $e';
-        _isLoadingEtfs = false;
+        _errorMessage = 'Erreur lors du chargement des positions';
+        _isLoading = false;
       });
     }
   }
 
   void _handleAdd() {
-    if (_selectedEtf == null) {
+    if (_selectedPosition == null) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Veuillez sélectionner un ETF')),
+        const SnackBar(content: Text('Veuillez sélectionner une position')),
       );
       return;
     }
 
-    final quantity = double.tryParse(
-      _quantityController.text.replaceAll(',', '.'),
-    );
-    final pru = double.tryParse(
-      _pruController.text.replaceAll(',', '.'),
-    );
+    final quantity = double.tryParse(_quantityController.text.replaceAll(',', '.'));
+    final pru = double.tryParse(_pruController.text.replaceAll(',', '.'));
 
     if (quantity == null || quantity <= 0) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -89,19 +76,14 @@ class _AddPositionDialogState extends State<AddPositionDialog> {
       return;
     }
 
-    final ticker = _selectedEtf!['ticker']?.toString() ?? '';
-    final name = _selectedEtf!['name']?.toString() ?? ticker;
-
-    widget.onAdd(ticker, name, quantity, pru);
+    widget.onAdd(_selectedPosition!, quantity, pru);
     Navigator.pop(context);
   }
 
   @override
   Widget build(BuildContext context) {
     return Dialog(
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(16),
-      ),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
       child: Container(
         constraints: const BoxConstraints(maxWidth: 500),
         padding: const EdgeInsets.all(24),
@@ -114,10 +96,7 @@ class _AddPositionDialogState extends State<AddPositionDialog> {
               children: [
                 const Text(
                   'Ajouter une position',
-                  style: TextStyle(
-                    fontSize: 20,
-                    fontWeight: FontWeight.bold,
-                  ),
+                  style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
                 ),
                 IconButton(
                   icon: const Icon(Icons.close),
@@ -127,69 +106,48 @@ class _AddPositionDialogState extends State<AddPositionDialog> {
             ),
             const SizedBox(height: 24),
 
-            if (_isLoadingEtfs)
-              const Center(
-                child: Padding(
-                  padding: EdgeInsets.all(32.0),
-                  child: CircularProgressIndicator(),
-                ),
-              )
+            if (_isLoading)
+              const Center(child: Padding(
+                padding: EdgeInsets.all(32.0),
+                child: CircularProgressIndicator(),
+              ))
             else if (_errorMessage != null)
               Center(
                 child: Padding(
                   padding: const EdgeInsets.all(16.0),
-                  child: Text(
-                    _errorMessage!,
-                    style: const TextStyle(color: Colors.red),
-                    textAlign: TextAlign.center,
-                  ),
+                  child: Text(_errorMessage!, style: const TextStyle(color: Colors.red), textAlign: TextAlign.center),
                 ),
               )
             else ...[
-                // Sélection de l'ETF
-                DropdownButtonFormField<Map<String, dynamic>>(
+                // Dropdown pour sélectionner la position
+                DropdownButtonFormField<Position>(
                   decoration: const InputDecoration(
-                    labelText: 'Sélectionner un ETF',
+                    labelText: 'Sélectionner une position',
                     border: OutlineInputBorder(),
                     prefixIcon: Icon(Icons.search),
                   ),
-                  initialValue: _selectedEtf,
+                  initialValue: _selectedPosition,
                   isExpanded: true,
-                  items: _availableEtfs.map((etf) {
-                    final ticker = etf['ticker']?.toString() ?? '';
-                    final name = etf['name']?.toString() ?? ticker;
+                  items: _availablePositions.map((position) {
                     return DropdownMenuItem(
-                      value: etf,
+                      value: position,
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         mainAxisSize: MainAxisSize.min,
                         children: [
-                          // 🔹 Nom en gras
                           Text(
-                            name,
-                            style: const TextStyle(
-                              fontWeight: FontWeight.bold,
-                              fontSize: 14,
-                            ),
+                            position.ticker,
+                            style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
                           ),
-                          // 🔹 Ticker en petit en dessous
                           Text(
-                            ticker,
-                            style: TextStyle(
-                              fontSize: 12,
-                              color: Colors.grey.shade600,
-                            ),
+                            position.name,
+                            style: TextStyle(fontSize: 12, color: Colors.grey.shade600),
                           ),
                         ],
                       ),
                     );
                   }).toList(),
-
-                  onChanged: (value) {
-                    setState(() {
-                      _selectedEtf = value;
-                    });
-                  },
+                  onChanged: (value) => setState(() => _selectedPosition = value),
                 ),
                 const SizedBox(height: 16),
 

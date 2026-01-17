@@ -77,7 +77,6 @@ class InvestmentPositionCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final hasPrice = position.currentPrice != null;
     final isPositive = position.latentGain >= 0;
 
     return Card(
@@ -119,7 +118,7 @@ class InvestmentPositionCard extends StatelessWidget {
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          position.name ?? position.ticker,
+                          position.name,
                           style: const TextStyle(
                             fontWeight: FontWeight.bold,
                             fontSize: 14,
@@ -168,8 +167,8 @@ class InvestmentPositionCard extends StatelessWidget {
                   Expanded(
                     child: _buildInfoTile(
                       "Prix actuel",
-                      hasPrice ? "${_formatAmount(position.currentPrice!)} €" : "N/A",
-                      hasPrice ? Colors.blue.shade700 : Colors.grey,
+                      "${_formatAmount(position.currentPrice)} €",
+                      Colors.blue.shade700,
                     ),
                   ),
                   Expanded(
@@ -306,7 +305,7 @@ class InvestmentPositionCard extends StatelessWidget {
                   const SizedBox(width: 8),
                   Expanded(
                     child: Text(
-                      position.name ?? position.ticker,
+                      position.name,
                       style: const TextStyle(
                         fontSize: 18,
                         fontWeight: FontWeight.bold,
