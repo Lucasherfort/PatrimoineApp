@@ -5,12 +5,13 @@ class DatabaseTables {
   static const String patrimoineCategory = 'patrimoine_category';
 
   // Tables catégorie
-  static const String liquiditySource = 'liquidity_source';
+  static const String liquidityCategory = 'liquidity_category';
   static const String savingsCategory = 'savings_category';
   static const String investmentCategory = 'investment_category';
   static const String advantageCategory = 'advantage_category';
 
   // Tables source
+  static const String liquiditySource = 'liquidity_source';
   static const String savingsSource = 'savings_source';
   static const String investmentSource = 'investment_source';
   static const String advantageSource = "advantage_source";

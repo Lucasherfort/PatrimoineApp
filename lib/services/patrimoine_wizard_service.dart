@@ -36,10 +36,8 @@ class PatrimoineWizardService {
 
       if (categoryName == 'Cash') {
         final response = await _supabase
-            .from(DatabaseTables.liquiditySource)
-            .select('id, name, type, bank_id, category_id')
-            .eq('category_id', category.id)
-            .order('name');
+            .from(DatabaseTables.liquidityCategory)
+            .select('id, name');
 
         return response.map((item) => SourceItem.fromLiquiditySource(item)).toList();
       }

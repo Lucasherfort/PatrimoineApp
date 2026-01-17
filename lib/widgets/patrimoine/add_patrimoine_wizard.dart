@@ -205,20 +205,37 @@ class _AddPatrimoineWizardState extends State<AddPatrimoineWizard> {
     setState(() => isSaving = true);
 
     try {
-      if (selectedSource!.type == 'liquidity') {
-        await Supabase.instance.client
-            .from('user_liquidity_account')
-            .insert({
-          'user_id': user.id,
-          'liquidity_source_id': selectedSource!.id,
-          'amount': 0,
-        });
+      if (selectedSource!.type == 'liquidity')
+      {
+        // Charge si le compte existe
+        final existing = await Supabase.instance.client
+        .from(DatabaseTables.liquiditySource)
+        .select('id')
+            .eq('bank_id', selectedBank!.id)
+            .eq('category_id', selectedCategory!.id)
+            .eq('liquidity_category_id', selectedSource!.id)
+            .maybeSingle();
+
+        int liquiditySourceId;
+        if(existing != null)
+          {
+            liquiditySourceId = existing['id'] as int;
+
+            // 3️⃣ Crée le user_savings_account
+            await Supabase.instance.client
+                .from(DatabaseTables.userLiquidityAccounts)
+                .insert({
+              'user_id': user.id,
+              'liquidity_source_id': liquiditySourceId,
+              'amount': 0
+            });
+          }
       }
       else if (selectedSource!.type == 'savings')
       {
         // 1️⃣ Cherche si savings_source existe
         final existing = await Supabase.instance.client
-            .from('savings_source')
+            .from(DatabaseTables.savingsSource)
             .select('id')
             .eq('bank_id', selectedBank!.id)
             .eq('category_id', selectedCategory!.id)
