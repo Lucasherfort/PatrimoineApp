@@ -23,6 +23,7 @@ class DatabaseTables {
   static const String userAdvantageAccount = 'user_advantage_account';
 
   // Autres tables
+  static const String appVersion = 'app_version';
   static const String banks = 'banks';
   static const String positions = 'positions';
   static const String restaurantVouchers = 'restaurant_vouchers';

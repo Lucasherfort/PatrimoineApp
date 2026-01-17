@@ -1,4 +1,5 @@
 // lib/services/app_version_service.dart
+import 'package:patrimoine/bdd/database_tables.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../models/config/app_version_config.dart';
 
@@ -11,16 +12,12 @@ class AppVersionService {
 
   /// Récupère la configuration de version depuis Supabase
   Future<AppVersionConfig> getVersionConfig() async {
-    try {
-      final response = await _supabase
-          .from('app_version')
-          .select()
-          .single();
+    final response = await _supabase
+        .from(DatabaseTables.appVersion)
+        .select()
+        .single();
 
-      return AppVersionConfig.fromMap(response);
-    } catch (e) {
-      rethrow;
-    }
+    return AppVersionConfig.fromMap(response);
   }
 
   /// Vérifie le statut de l'application

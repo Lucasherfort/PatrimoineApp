@@ -17,13 +17,18 @@ class AppVersionConfig {
   });
 
   factory AppVersionConfig.fromMap(Map<String, dynamic> map) {
+    final rawMaintenance = map['is_maintenance'];
+    final isMaintenance = rawMaintenance == true ||
+        rawMaintenance == 1 ||
+        (rawMaintenance is String && rawMaintenance.toLowerCase() == 'true');
+
     return AppVersionConfig(
-      currentVersion: map['current_version'],
-      minVersion: map['min_version'],
-      isMaintenance: map['maintenance'] ?? false,
-      updateMessage: map['update_message'],
-      maintenanceMessage: map['maintenance_message'],
-      apkUrl: map['apk_url'],
+      currentVersion: map['current_version'] as String,
+      minVersion: map['minimum_version'] as String,
+      isMaintenance: isMaintenance,
+      updateMessage: map['update_message'] as String?,
+      maintenanceMessage: map['maintenance_message'] as String?,
+      apkUrl: map['apk_url'] as String?,
     );
   }
 
