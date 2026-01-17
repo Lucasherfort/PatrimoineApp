@@ -87,21 +87,23 @@ class PatrimoineWizardService {
     }
   }
 
-  Future<List<Bank>> getBanksForLiquiditySource(SourceItem source) async {
-    if (source.bankId == null) return [];
-
+  Future<List<Bank>> getBanksForLiquiditySource({
+    required int categoryId,
+    required int liquidityCategoryId,
+  }) async
+  {
     final response = await _supabase
-        .from(DatabaseTables.banks)
-        .select('id, name')
-        .eq('id', source.bankId!)
-        .single();
+        .from(DatabaseTables.liquiditySource)
+        .select('bank_id, banks ( id, name )')
+        .eq('category_id', categoryId)
+        .eq('liquidity_category_id', liquidityCategoryId);
 
-    return [
-      Bank(
-        id: response['id'] as int,
-        name: response['name'] as String,
-      )
-    ];
+    return response
+        .map<Bank>((item) => Bank(
+      id: item['banks']['id'] as int,
+      name: item['banks']['name'] as String,
+    ))
+        .toList();
   }
 
   Future<List<Bank>> getBanksForSavingsSource({

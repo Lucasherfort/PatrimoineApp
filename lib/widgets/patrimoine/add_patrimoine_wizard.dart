@@ -621,7 +621,10 @@ class _AddPatrimoineWizardState extends State<AddPatrimoineWizard> {
   Future<List<Bank>> _loadBanksBySourceType(SourceItem source) {
     switch (source.type) {
       case 'liquidity':
-        return _wizardService.getBanksForLiquiditySource(source);
+        return _wizardService.getBanksForLiquiditySource(
+          categoryId: selectedCategory!.id,
+          liquidityCategoryId: source.id,
+        );
 
       case 'savings':
         return _wizardService.getBanksForSavingsSource(
