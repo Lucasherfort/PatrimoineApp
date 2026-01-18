@@ -21,7 +21,7 @@ class SavingsAccountService {
           savings_category_id,
           bank_id,
           banks (id, name, icon),
-          savings_category(name)
+          savings_category(name, interest_rate, ceiling)
         )
       ''')
           .eq('user_id', user.id);
@@ -31,12 +31,11 @@ class SavingsAccountService {
         final bank = source['banks'];
         final category = source['savings_category'];
 
-        // 👇 Construire l'URL publique complète pour l'icône
         final iconPath = bank['icon'] as String?;
         String logoUrl = '';
         if (iconPath != null && iconPath.isNotEmpty) {
           logoUrl = _supabase.storage
-              .from('banks-icons') // 👈 Nom correct de votre bucket
+              .from('banks-icons')
               .getPublicUrl(iconPath);
         }
 
@@ -47,6 +46,8 @@ class SavingsAccountService {
           logoUrl: logoUrl,
           principal: (item['principal'] as num).toDouble(),
           interest: (item['interest'] as num).toDouble(),
+          interestRate: (category['interest_rate'] as num?)?.toDouble(), // 👈 Depuis savings_category
+          ceiling: (category['ceiling'] as num?)?.toDouble(),            // 👈 Depuis savings_category
         );
       }).toList();
     } catch (e) {
