@@ -88,12 +88,6 @@ class SavingsAccountCard extends StatelessWidget {
                     color: Colors.green,
                   ),
                 ),
-
-                const SizedBox(width: 4),
-                const Icon(
-                  Icons.chevron_right,
-                  color: Colors.grey,
-                ),
               ],
             ),
           ),
