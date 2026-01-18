@@ -21,8 +21,8 @@ class AdvantageAccountCard extends StatelessWidget {
   }
 
   Color _getValueColor() {
-    if (account.value > 0) return Colors.blue.shade700;
-    if (account.value < 0) return Colors.red.shade600;
+    // Valeur différente de 0 => vert, sinon couleur neutre
+    if (account.value != 0) return Colors.green.shade700;
     return Colors.purple.shade400; // neutre pour 0,00€
   }
 
