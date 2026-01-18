@@ -66,6 +66,23 @@ class _InvestmentDetailPageState extends State<InvestmentDetailPage> {
         accountView = account;
         isLoading = false;
       });
+
+      // 🔹 Affichage popup si totalContribution est 0
+      if (account.totalContribution == 0) {
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (!mounted) return;
+
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text(
+                'Attention : les dépôts cumulés de ce compte sont à 0.',
+              ),
+              backgroundColor: Colors.blue,
+              duration: Duration(seconds: 4),
+            ),
+          );
+        });
+      }
     } catch (e) {
       if (!mounted) return;
 
