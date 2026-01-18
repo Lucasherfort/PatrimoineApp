@@ -136,18 +136,28 @@ class _AddPositionDialogState extends State<AddPositionDialog> {
                         mainAxisSize: MainAxisSize.min,
                         children: [
                           Text(
-                            position.name, // 👈 Nom en premier
+                            position.name,
                             style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
                           ),
                           Text(
-                            position.ticker, // 👈 Ticker en second
+                            position.ticker,
                             style: TextStyle(fontSize: 12, color: Colors.grey.shade600),
                           ),
                         ],
                       ),
                     );
                   }).toList(),
-                  onChanged: (value) => setState(() => _selectedPosition = value),
+                  onChanged: (value) {
+                    setState(() {
+                      _selectedPosition = value;
+
+                      // Si la position a un cours actuel, on le met dans le champ PRU
+                      if (_selectedPosition != null)
+                      {
+                        _pruController.text = _selectedPosition!.price.toStringAsFixed(2).replaceAll('.', ',');
+                      }
+                    });
+                  },
                 ),
                 const SizedBox(height: 16),
 
