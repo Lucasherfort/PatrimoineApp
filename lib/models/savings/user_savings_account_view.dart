@@ -3,8 +3,8 @@ class UserSavingsAccountView {
   final String sourceName;
   final String bankName;
   final String logoUrl;
-  final double principal;
-  final double interest;
+  double principal;
+  double interest;
   final double? interestRate; // 👈 Nouveau (nullable)
   final double? ceiling;      // 👈 Nouveau (nullable)
 

@@ -1,15 +1,12 @@
 import 'package:flutter/material.dart';
-import '../../services/savings_account_service.dart';
 import '../../models/savings/user_savings_account_view.dart';
+import '../../services/savings_account_service.dart';
 import 'savings_account_card.dart';
 
 class SavingsAccountList extends StatefulWidget {
-  final VoidCallback onAccountUpdated;
+  final VoidCallback onAccountUpdated; // Callback vers HomePage
 
-  const SavingsAccountList({
-    super.key,
-    required this.onAccountUpdated,
-  });
+  const SavingsAccountList({super.key, required this.onAccountUpdated});
 
   @override
   State<SavingsAccountList> createState() => _SavingsAccountListState();
@@ -18,6 +15,7 @@ class SavingsAccountList extends StatefulWidget {
 class _SavingsAccountListState extends State<SavingsAccountList> {
   final SavingsAccountService _service = SavingsAccountService();
   late Future<List<UserSavingsAccountView>> _accountsFuture;
+  List<UserSavingsAccountView> _accounts = [];
 
   @override
   void initState() {
@@ -27,23 +25,18 @@ class _SavingsAccountListState extends State<SavingsAccountList> {
 
   void _loadAccounts() {
     _accountsFuture = _service.getUserSavingsAccounts();
-  }
-
-  Future<void> _updateAccount(
-      int accountId, double newBalance, double newInterest) async {
-    await _service.updateSavingsAccount(
-      accountId: accountId,
-      balance: newBalance,
-      interestAccrued: newInterest,
-    );
-    widget.onAccountUpdated();
-    setState(_loadAccounts);
+    _accountsFuture.then((accounts) {
+      setState(() {
+        _accounts = accounts; // On garde une copie locale
+      });
+    });
   }
 
   Future<void> _deleteAccount(int accountId) async {
     await _service.deleteSavingsAccount(accountId);
-    widget.onAccountUpdated();
-    setState(_loadAccounts);
+    _accounts.removeWhere((a) => a.id == accountId);
+    setState(() {}); // Rebuild la liste
+    widget.onAccountUpdated(); // Remonte vers HomePage pour recalcul
   }
 
   @override
@@ -51,9 +44,11 @@ class _SavingsAccountListState extends State<SavingsAccountList> {
     return FutureBuilder<List<UserSavingsAccountView>>(
       future: _accountsFuture,
       builder: (context, snapshot) {
-        // 👇 Retirer le loading indicator
         if (snapshot.connectionState == ConnectionState.waiting) {
-          return const SizedBox(); // Rien pendant le chargement
+          return const Padding(
+            padding: EdgeInsets.all(16),
+            child: Center(child: CircularProgressIndicator()),
+          );
         }
 
         if (snapshot.hasError) {
@@ -66,9 +61,7 @@ class _SavingsAccountListState extends State<SavingsAccountList> {
           );
         }
 
-        final accounts = snapshot.data ?? [];
-
-        if (accounts.isEmpty) {
+        if (_accounts.isEmpty) {
           return const SizedBox.shrink();
         }
 
@@ -85,14 +78,21 @@ class _SavingsAccountListState extends State<SavingsAccountList> {
                 ),
               ),
             ),
-            ...accounts.map(
-                  (account) => SavingsAccountCard(
-                account: account,
-                onValueUpdated: (newBalance, newInterest) =>
-                    _updateAccount(account.id, newBalance, newInterest),
-                onDeleted: () => _deleteAccount(account.id),
-              ),
-            ),
+            ..._accounts.map((account) => SavingsAccountCard(
+              account: account,
+              onValueUpdated: (updatedAccount) {
+                // 🔥 Remplacer l'objet existant dans la liste
+                final index =
+                _accounts.indexWhere((a) => a.id == updatedAccount.id);
+                if (index != -1) {
+                  setState(() {
+                    _accounts[index] = updatedAccount;
+                  });
+                  widget.onAccountUpdated(); // Recalcule patrimoine
+                }
+              },
+              onDeleted: () => _deleteAccount(account.id),
+            )),
           ],
         );
       },

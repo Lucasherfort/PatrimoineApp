@@ -58,24 +58,32 @@ class SavingsAccountService {
   /// ----------------------------
   /// Met à jour un compte épargne (solde + intérêts)
   /// ----------------------------
+  /// ----------------------------
+  /// Met à jour un compte épargne (solde + intérêts)
+  /// ----------------------------
   Future<bool> updateSavingsAccount({
-    required int accountId,
-    required double balance,
-    required double interestAccrued,
+    required int savingsAccountId,
+    required double principal,
+    required double interest,
   }) async {
     try {
-      final response = await _supabase
+      print("savingsAccountId : $savingsAccountId");
+      print("principal : $principal");
+      print("interest : $interest");
+
+      await _supabase
           .from(DatabaseTables.userSavingsAccounts)
           .update({
-        'principal': balance,
-        'interest': interestAccrued,
+        'principal': principal,
+        'interest': interest,
         'updated_at': DateTime.now().toIso8601String(),
       })
-          .eq('id', accountId);
+          .eq('id', savingsAccountId);
 
-      return response.error == null;
-    } catch (e)
-    {
+      // Si on arrive ici, la requête a été exécutée sans exception
+      return true;
+    } catch (e) {
+      print("Erreur lors de la mise à jour : $e");
       return false;
     }
   }

@@ -71,7 +71,8 @@ class _HomePageState extends State<HomePage> {
     }
   }
 
-  Future<void> _refreshAll() async {
+  Future<void> _refreshAll() async
+  {
     await _loadPatrimoine();
   }
 

@@ -1,16 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import '../../models/savings/user_savings_account_view.dart';
+import '../services/savings_account_service.dart';
 
 class SavingsDetailPage extends StatefulWidget {
   final UserSavingsAccountView account;
-  final void Function(double newPrincipal, double newInterest)? onUpdate;
 
-  const SavingsDetailPage({
-    super.key,
-    required this.account,
-    this.onUpdate,
-  });
+  const SavingsDetailPage({super.key, required this.account});
 
   @override
   State<SavingsDetailPage> createState() => _SavingsDetailPageState();
@@ -19,16 +15,32 @@ class SavingsDetailPage extends StatefulWidget {
 class _SavingsDetailPageState extends State<SavingsDetailPage> {
   late TextEditingController _principalController;
   late TextEditingController _interestController;
+  late double _initialPrincipal;
+  late double _initialInterest;
+  late double _currentPrincipal;
+  late double _currentInterest;
+  bool _hasChanges = false;
+
+  final SavingsAccountService _savingsAccountService = SavingsAccountService();
 
   @override
   void initState() {
     super.initState();
+
+    _initialPrincipal = widget.account.principal;
+    _initialInterest = widget.account.interest;
+    _currentPrincipal = _initialPrincipal;
+    _currentInterest = _initialInterest;
+
     _principalController = TextEditingController(
-      text: widget.account.principal.toStringAsFixed(2).replaceAll('.', ','),
+      text: _currentPrincipal.toStringAsFixed(2).replaceAll('.', ','),
     );
     _interestController = TextEditingController(
-      text: widget.account.interest.toStringAsFixed(2).replaceAll('.', ','),
+      text: _currentInterest.toStringAsFixed(2).replaceAll('.', ','),
     );
+
+    _principalController.addListener(_checkChanges);
+    _interestController.addListener(_checkChanges);
   }
 
   @override
@@ -38,32 +50,70 @@ class _SavingsDetailPageState extends State<SavingsDetailPage> {
     super.dispose();
   }
 
-  void _saveChanges() {
-    final principal = double.tryParse(
-      _principalController.text.replaceAll(',', '.'),
-    );
-    final interest = double.tryParse(
-      _interestController.text.replaceAll(',', '.'),
-    );
-
-    if (principal == null || interest == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Montants invalides')),
+  Future<void> _saveChanges() async {
+    // Vérification plafond
+    if (widget.account.ceiling != null && _currentPrincipal > widget.account.ceiling!) {
+      _showPopup(
+        'Erreur',
+        'Le capital ne peut pas dépasser le plafond de ${widget.account.ceiling!.toStringAsFixed(2)} €.',
       );
       return;
     }
 
-    if (widget.onUpdate != null) {
-      widget.onUpdate!(principal, interest);
-      Navigator.pop(context);
+    final success = await _savingsAccountService.updateSavingsAccount(
+      savingsAccountId: widget.account.id,
+      principal: _currentPrincipal,
+      interest: _currentInterest,
+    );
+
+    if (!success) {
+      _showPopup('Erreur', 'Impossible de sauvegarder les modifications.');
+      return;
     }
+
+    // 🔥 Met à jour l'objet existant
+    widget.account.principal = _currentPrincipal;
+    widget.account.interest = _currentInterest;
+
+    _hasChanges = false;
+
+    // Retourner l'objet mis à jour au parent
+    Navigator.of(context).pop(widget.account);
+  }
+
+  void _checkChanges() {
+    final principal = double.tryParse(_principalController.text.replaceAll(',', '.'));
+    final interest = double.tryParse(_interestController.text.replaceAll(',', '.'));
+
+    if (principal == null || interest == null) return;
+
+    setState(() {
+      _currentPrincipal = principal;
+      _currentInterest = interest;
+      _hasChanges = principal != _initialPrincipal || interest != _initialInterest;
+    });
+  }
+
+  void _showPopup(String title, String message) {
+    showDialog(
+      context: context,
+      barrierDismissible: true,
+      builder: (_) => AlertDialog(
+        title: Text(title),
+        content: Text(message),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(),
+            child: const Text('OK'),
+          ),
+        ],
+      ),
+    );
   }
 
   double get _fillPercentage {
-    if (widget.account.ceiling == null || widget.account.ceiling == 0) {
-      return 0;
-    }
-    return (widget.account.principal / widget.account.ceiling!) * 100;
+    if (widget.account.ceiling == null || widget.account.ceiling == 0) return 0;
+    return (_currentPrincipal / widget.account.ceiling!) * 100;
   }
 
   Color get _fillColor {
@@ -77,59 +127,61 @@ class _SavingsDetailPageState extends State<SavingsDetailPage> {
     final currency = NumberFormat.currency(locale: 'fr_FR', symbol: '€');
     final percentFormat = NumberFormat.decimalPattern('fr_FR');
 
-    return Scaffold(
-      appBar: AppBar(
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back),
-          onPressed: () => Navigator.pop(context, true),
-        ),
-        title: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              widget.account.sourceName,
-              style: const TextStyle(fontSize: 18),
-            ),
-            Text(
-              widget.account.bankName,
-              style: const TextStyle(
-                fontSize: 14,
-                fontWeight: FontWeight.normal,
-              ),
-            ),
-          ],
-        ),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.check),
-            onPressed: _saveChanges,
-            tooltip: 'Enregistrer',
+    return WillPopScope(
+      onWillPop: () async {
+        if (_hasChanges) {
+          widget.account.principal = _currentPrincipal;
+          widget.account.interest = _currentInterest;
+          Navigator.of(context).pop(widget.account);
+          return false;
+        }
+        return true;
+      },
+      child: Scaffold(
+        appBar: AppBar(
+          leading: IconButton(
+            icon: const Icon(Icons.arrow_back),
+            onPressed: () {
+              if (_hasChanges) {
+                widget.account.principal = _currentPrincipal;
+                widget.account.interest = _currentInterest;
+                Navigator.of(context).pop(widget.account);
+              } else {
+                Navigator.of(context).pop();
+              }
+            },
           ),
-        ],
-      ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // Banque + logo
-            _buildHeader(),
-
-            const SizedBox(height: 24),
-
-            // SECTION 1 : Informations non éditables
-            _buildInfoSection(currency, percentFormat),
-
-            const SizedBox(height: 24),
-
-            // SECTION 2 : Montants éditables
-            _buildEditableSection(currency),
-
-            const SizedBox(height: 24),
-
-            // Total
-            _buildTotalSection(currency),
+          title: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(widget.account.sourceName, style: const TextStyle(fontSize: 18)),
+              Text(widget.account.bankName,
+                  style: const TextStyle(fontSize: 14, fontWeight: FontWeight.normal)),
+            ],
+          ),
+          actions: [
+            if (_hasChanges)
+              IconButton(
+                icon: const Icon(Icons.check),
+                tooltip: 'Enregistrer',
+                onPressed: _saveChanges,
+              ),
           ],
+        ),
+        body: SingleChildScrollView(
+          padding: const EdgeInsets.all(16),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              _buildHeader(),
+              const SizedBox(height: 24),
+              _buildInfoSection(currency, percentFormat),
+              const SizedBox(height: 24),
+              _buildEditableSection(currency),
+              const SizedBox(height: 24),
+              _buildTotalSection(currency),
+            ],
+          ),
         ),
       ),
     );
@@ -148,19 +200,13 @@ class _SavingsDetailPageState extends State<SavingsDetailPage> {
             border: Border.all(color: Colors.grey.shade300),
           ),
           child: widget.account.logoUrl.isEmpty
-              ? Icon(
-            Icons.account_balance,
-            color: Colors.blue.shade700,
-          )
+              ? Icon(Icons.account_balance, color: Colors.blue.shade700)
               : ClipRRect(
             borderRadius: BorderRadius.circular(6),
             child: Image.network(
               widget.account.logoUrl,
               fit: BoxFit.contain,
-              errorBuilder: (_, __, ___) => Icon(
-                Icons.account_balance,
-                color: Colors.blue.shade700,
-              ),
+              errorBuilder: (_, __, ___) => Icon(Icons.account_balance, color: Colors.blue.shade700),
             ),
           ),
         ),
@@ -168,19 +214,9 @@ class _SavingsDetailPageState extends State<SavingsDetailPage> {
         Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(
-              widget.account.bankName,
-              style: const TextStyle(
-                fontSize: 16,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-            Text(
-              widget.account.sourceName,
-              style: TextStyle(
-                color: Colors.grey.shade600,
-              ),
-            ),
+            Text(widget.account.bankName,
+                style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+            Text(widget.account.sourceName, style: TextStyle(color: Colors.grey.shade600)),
           ],
         ),
       ],
@@ -202,33 +238,18 @@ class _SavingsDetailPageState extends State<SavingsDetailPage> {
             children: [
               Icon(Icons.info_outline, size: 20, color: Colors.blue.shade700),
               const SizedBox(width: 8),
-              const Text(
-                'Informations',
-                style: TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
+              const Text('Informations', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
             ],
           ),
           const SizedBox(height: 16),
-
-          // Taux d'intérêt
           if (widget.account.interestRate != null)
             _InfoRow(
               label: "Taux d'intérêt",
               value: "${percentFormat.format(widget.account.interestRate! * 100)} %",
             ),
-
-          // Plafond
           if (widget.account.ceiling != null) ...[
             const SizedBox(height: 12),
-            _InfoRow(
-              label: "Plafond",
-              value: currency.format(widget.account.ceiling),
-            ),
-
-            // Barre de progression du plafond
+            _InfoRow(label: "Plafond", value: currency.format(widget.account.ceiling)),
             const SizedBox(height: 12),
             Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -236,21 +257,9 @@ class _SavingsDetailPageState extends State<SavingsDetailPage> {
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    Text(
-                      'Remplissage',
-                      style: TextStyle(
-                        fontSize: 14,
-                        color: Colors.grey.shade600,
-                      ),
-                    ),
-                    Text(
-                      '${_fillPercentage.toStringAsFixed(1)} %',
-                      style: TextStyle(
-                        fontSize: 14,
-                        fontWeight: FontWeight.bold,
-                        color: _fillColor,
-                      ),
-                    ),
+                    Text('Remplissage', style: TextStyle(fontSize: 14, color: Colors.grey.shade600)),
+                    Text('${_fillPercentage.toStringAsFixed(1)} %',
+                        style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: _fillColor)),
                   ],
                 ),
                 const SizedBox(height: 8),
@@ -263,22 +272,28 @@ class _SavingsDetailPageState extends State<SavingsDetailPage> {
                     valueColor: AlwaysStoppedAnimation<Color>(_fillColor),
                   ),
                 ),
-                if (_fillPercentage >= 80)
+                const SizedBox(height: 8),
+                if (_fillPercentage >= 100)
                   Padding(
-                    padding: const EdgeInsets.only(top: 8),
+                    padding: const EdgeInsets.only(top: 4),
                     child: Row(
                       children: [
-                        Icon(Icons.warning_amber_rounded,
-                            size: 16, color: Colors.red.shade700),
+                        Icon(Icons.warning_amber_rounded, size: 16, color: Colors.orange.shade800),
                         const SizedBox(width: 4),
-                        Text(
-                          'Plafond bientôt atteint',
-                          style: TextStyle(
-                            fontSize: 12,
-                            color: Colors.red.shade700,
-                            fontWeight: FontWeight.w500,
-                          ),
-                        ),
+                        Text('Vous avez atteint le plafond',
+                            style: TextStyle(fontSize: 12, fontWeight: FontWeight.w500, color: Colors.orange.shade800)),
+                      ],
+                    ),
+                  )
+                else if (_fillPercentage >= 80)
+                  Padding(
+                    padding: const EdgeInsets.only(top: 4),
+                    child: Row(
+                      children: [
+                        Icon(Icons.warning_amber_rounded, size: 16, color: Colors.red.shade700),
+                        const SizedBox(width: 4),
+                        Text('Plafond bientôt atteint',
+                            style: TextStyle(fontSize: 12, fontWeight: FontWeight.w500, color: Colors.red.shade700)),
                       ],
                     ),
                   ),
@@ -305,18 +320,10 @@ class _SavingsDetailPageState extends State<SavingsDetailPage> {
             children: [
               Icon(Icons.edit, size: 20, color: Colors.blue.shade700),
               const SizedBox(width: 8),
-              const Text(
-                'Montants éditables',
-                style: TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
+              const Text('Montants éditables', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
             ],
           ),
           const SizedBox(height: 16),
-
-          // Capital
           TextField(
             controller: _principalController,
             keyboardType: const TextInputType.numberWithOptions(decimal: true),
@@ -325,15 +332,10 @@ class _SavingsDetailPageState extends State<SavingsDetailPage> {
               suffixText: '€',
               filled: true,
               fillColor: Colors.white,
-              border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(8),
-              ),
+              border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
             ),
           ),
-
           const SizedBox(height: 12),
-
-          // Intérêts acquis
           TextField(
             controller: _interestController,
             keyboardType: const TextInputType.numberWithOptions(decimal: true),
@@ -342,9 +344,7 @@ class _SavingsDetailPageState extends State<SavingsDetailPage> {
               suffixText: '€',
               filled: true,
               fillColor: Colors.white,
-              border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(8),
-              ),
+              border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
             ),
           ),
         ],
@@ -353,42 +353,18 @@ class _SavingsDetailPageState extends State<SavingsDetailPage> {
   }
 
   Widget _buildTotalSection(NumberFormat currency) {
-    final currentPrincipal = double.tryParse(
-      _principalController.text.replaceAll(',', '.'),
-    ) ??
-        widget.account.principal;
-    final currentInterest = double.tryParse(
-      _interestController.text.replaceAll(',', '.'),
-    ) ??
-        widget.account.interest;
-
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        gradient: LinearGradient(
-          colors: [Colors.green.shade400, Colors.green.shade600],
-        ),
+        gradient: LinearGradient(colors: [Colors.green.shade400, Colors.green.shade600]),
         borderRadius: BorderRadius.circular(12),
       ),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          const Text(
-            'Total',
-            style: TextStyle(
-              fontSize: 18,
-              fontWeight: FontWeight.bold,
-              color: Colors.white,
-            ),
-          ),
-          Text(
-            currency.format(currentPrincipal + currentInterest),
-            style: const TextStyle(
-              fontSize: 24,
-              fontWeight: FontWeight.bold,
-              color: Colors.white,
-            ),
-          ),
+          const Text('Total', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.white)),
+          Text(currency.format(_currentPrincipal + _currentInterest),
+              style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: Colors.white)),
         ],
       ),
     );
@@ -399,30 +375,15 @@ class _InfoRow extends StatelessWidget {
   final String label;
   final String value;
 
-  const _InfoRow({
-    required this.label,
-    required this.value,
-  });
+  const _InfoRow({required this.label, required this.value});
 
   @override
   Widget build(BuildContext context) {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
-        Text(
-          label,
-          style: TextStyle(
-            fontSize: 14,
-            color: Colors.grey.shade600,
-          ),
-        ),
-        Text(
-          value,
-          style: const TextStyle(
-            fontSize: 14,
-            fontWeight: FontWeight.w600,
-          ),
-        ),
+        Text(label, style: TextStyle(fontSize: 14, color: Colors.grey.shade600)),
+        Text(value, style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w600)),
       ],
     );
   }

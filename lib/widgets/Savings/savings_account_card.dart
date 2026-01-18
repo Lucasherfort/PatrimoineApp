@@ -5,7 +5,7 @@ import '../../ui/savings_detail_page.dart';
 
 class SavingsAccountCard extends StatelessWidget {
   final UserSavingsAccountView account;
-  final void Function(double newBalance, double newInterest)? onValueUpdated;
+  final void Function(UserSavingsAccountView updatedAccount)? onValueUpdated;
   final VoidCallback? onDeleted;
 
   const SavingsAccountCard({
@@ -52,9 +52,7 @@ class SavingsAccountCard extends StatelessWidget {
                     child: _buildBankLogo(),
                   ),
                 ),
-
                 const SizedBox(width: 12),
-
                 // Nom + banque
                 Expanded(
                   child: Column(
@@ -78,7 +76,6 @@ class SavingsAccountCard extends StatelessWidget {
                     ],
                   ),
                 ),
-
                 // Montant total
                 Text(
                   currencyFormat.format(total),
@@ -100,21 +97,16 @@ class SavingsAccountCard extends StatelessWidget {
   // Navigation
   // =========================
   Future<void> _openDetailsPage(BuildContext context) async {
-    final result = await Navigator.push(
+    final result = await Navigator.push<UserSavingsAccountView?>(
       context,
       MaterialPageRoute(
-        builder: (_) => SavingsDetailPage(
-          account: account,
-        ),
+        builder: (_) => SavingsDetailPage(account: account),
       ),
     );
 
-    // Optionnel : retour d’édition
-    if (result != null && result is Map<String, double>) {
-      onValueUpdated?.call(
-        result['principal']!,
-        result['interest']!,
-      );
+    if (result != null) {
+      // ⚡️ Remonte le nouvel objet vers le parent
+      onValueUpdated?.call(result);
     }
   }
 
@@ -133,13 +125,11 @@ class SavingsAccountCard extends StatelessWidget {
     return Image.network(
       account.logoUrl,
       fit: BoxFit.contain,
-      errorBuilder: (_, _, _) {
-        return Icon(
-          Icons.account_balance,
-          color: Colors.blue.shade700,
-          size: 26,
-        );
-      },
+      errorBuilder: (_, _, __) => Icon(
+        Icons.account_balance,
+        color: Colors.blue.shade700,
+        size: 26,
+      ),
       loadingBuilder: (context, child, loadingProgress) {
         if (loadingProgress == null) return child;
         return Center(
@@ -175,9 +165,7 @@ class SavingsAccountCard extends StatelessWidget {
             child: const Text("Annuler"),
           ),
           ElevatedButton(
-            style: ElevatedButton.styleFrom(
-              backgroundColor: Colors.red,
-            ),
+            style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
             onPressed: () {
               Navigator.pop(context);
               onDeleted?.call();
