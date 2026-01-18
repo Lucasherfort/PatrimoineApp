@@ -26,6 +26,10 @@ class _SavingsAccountListState extends State<SavingsAccountList> {
   void _loadAccounts() {
     _accountsFuture = _service.getUserSavingsAccounts();
     _accountsFuture.then((accounts) {
+      // 🔹 Trier par valeur totale décroissante (principal + interest)
+      accounts.sort((a, b) => (b.principal + b.interest)
+          .compareTo(a.principal + a.interest));
+
       setState(() {
         _accounts = accounts; // On garde une copie locale
       });
@@ -87,6 +91,10 @@ class _SavingsAccountListState extends State<SavingsAccountList> {
                 if (index != -1) {
                   setState(() {
                     _accounts[index] = updatedAccount;
+
+                    // 🔹 Re-trier après modification
+                    _accounts.sort((a, b) => (b.principal + b.interest)
+                        .compareTo(a.principal + a.interest));
                   });
                   widget.onAccountUpdated(); // Recalcule patrimoine
                 }

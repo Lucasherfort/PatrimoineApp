@@ -26,7 +26,11 @@ class _InvestmentListState extends State<InvestmentList> {
   }
 
   void _loadAccounts() {
-    _accountsFuture = _service.getUserInvestmentAccountsView();
+    _accountsFuture = _service.getUserInvestmentAccountsView().then((accounts) {
+      // 🔹 Tri décroissant par total value
+      accounts.sort((a, b) => b.amount.compareTo(a.amount));
+      return accounts;
+    });
   }
 
   Future<void> _deleteAccount(int accountId) async {
@@ -81,7 +85,7 @@ class _InvestmentListState extends State<InvestmentList> {
                 userInvestmentAccountId: account.id,
                 type: account.sourceName,
                 bankName: account.bankName,
-                logoUrl: account.logoUrl, // 👈 Ajouté
+                logoUrl: account.logoUrl,
                 totalValue: account.amount,
                 totalContribution: account.totalContribution,
                 onTap: widget.onAccountUpdated,
