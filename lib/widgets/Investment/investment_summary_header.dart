@@ -25,7 +25,7 @@ class InvestmentSummaryHeader extends StatelessWidget {
   }
 
   // Vérifie si c'est une Assurance Vie (pas d'espèces)
-  bool get isAssuranceVie => account.sourceName.toLowerCase().contains('assurance');
+  bool get isAssuranceVie => account.isAssuranceVie;
 
   // Calcule la valeur totale des positions (titres)
   double get positionsValue {

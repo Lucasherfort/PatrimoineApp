@@ -16,4 +16,7 @@ class UserInvestmentAccountView {
     required this.cashBalance,
     required this.amount
   });
+
+  // Vérifie si c'est une Assurance Vie (pas d'espèces)
+  bool get isAssuranceVie => sourceName.toLowerCase().contains('assurance');
 }
