@@ -15,10 +15,19 @@ class AdvantageAccountCard extends StatelessWidget {
     this.onDeleted,
   });
 
+  String _formatAmount(double amount) {
+    final formatter = NumberFormat.currency(locale: 'fr_FR', symbol: '€', decimalDigits: 2);
+    return formatter.format(amount);
+  }
+
+  Color _getValueColor() {
+    if (account.value > 0) return Colors.blue.shade700;
+    if (account.value < 0) return Colors.red.shade600;
+    return Colors.purple.shade400; // neutre pour 0,00€
+  }
+
   @override
   Widget build(BuildContext context) {
-    final currencyFormat = NumberFormat.currency(locale: 'fr_FR', symbol: '€');
-
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 5),
       child: InkWell(
@@ -27,14 +36,12 @@ class AdvantageAccountCard extends StatelessWidget {
         onLongPress: () => _confirmDelete(context),
         child: Card(
           elevation: 2,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(12),
-          ),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
           child: Padding(
             padding: const EdgeInsets.all(12.0),
             child: Row(
               children: [
-                // Widget pour afficher le logo du fournisseur
+                // Logo fournisseur
                 Container(
                   width: 40,
                   height: 40,
@@ -49,34 +56,22 @@ class AdvantageAccountCard extends StatelessWidget {
                   ),
                 ),
                 const SizedBox(width: 12),
+                // Nom + fournisseur
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(
-                        account.sourceName,
-                        style: const TextStyle(
-                          fontWeight: FontWeight.bold,
-                          fontSize: 15,
-                        ),
-                      ),
-                      Text(
-                        account.providerName,
-                        style: TextStyle(
-                          fontSize: 12,
-                          color: Colors.grey.shade600,
-                        ),
-                      ),
+                      Text(account.sourceName,
+                          style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15)),
+                      Text(account.providerName,
+                          style: TextStyle(fontSize: 12, color: Colors.grey.shade600)),
                     ],
                   ),
                 ),
+                // Valeur
                 Text(
-                  currencyFormat.format(account.value),
-                  style: const TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.blue,
-                  ),
+                  _formatAmount(account.value),
+                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: _getValueColor()),
                 ),
               ],
             ),
@@ -87,34 +82,24 @@ class AdvantageAccountCard extends StatelessWidget {
   }
 
   Widget _buildProviderLogo() {
-    // Si pas de logo, afficher l'icône par défaut
     if (account.logoUrl.isEmpty) {
-      return Icon(
-        Icons.card_giftcard,
-        color: Colors.blue.shade700,
-        size: 24,
-      );
+      return Icon(Icons.card_giftcard, color: Colors.blue.shade700, size: 24);
     }
 
-    // Afficher l'image (PNG, JPG, etc.)
     return Image.network(
       account.logoUrl,
       fit: BoxFit.contain,
-      errorBuilder: (context, error, stackTrace) {
-        return Icon(
-          Icons.card_giftcard,
-          color: Colors.blue.shade700,
-          size: 24,
-        );
-      },
+      errorBuilder: (_, _, _) => Icon(Icons.card_giftcard, color: Colors.blue.shade700, size: 24),
       loadingBuilder: (context, child, loadingProgress) {
         if (loadingProgress == null) return child;
-        return SizedBox(
-          width: 24,
-          height: 24,
-          child: CircularProgressIndicator(
-            strokeWidth: 2,
-            valueColor: AlwaysStoppedAnimation<Color>(Colors.blue.shade700),
+        return Center(
+          child: SizedBox(
+            width: 24,
+            height: 24,
+            child: CircularProgressIndicator(
+              strokeWidth: 2,
+              valueColor: AlwaysStoppedAnimation<Color>(Colors.blue.shade700),
+            ),
           ),
         );
       },
@@ -129,9 +114,7 @@ class AdvantageAccountCard extends StatelessWidget {
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
-      ),
+      shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(16))),
       builder: (context) {
         return Padding(
           padding: EdgeInsets.only(
@@ -144,13 +127,8 @@ class AdvantageAccountCard extends StatelessWidget {
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(
-                "Modifier ${account.sourceName} - ${account.providerName}",
-                style: const TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
+              Text("Modifier ${account.sourceName} - ${account.providerName}",
+                  style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
               const SizedBox(height: 12),
               TextField(
                 controller: controller,
@@ -166,14 +144,8 @@ class AdvantageAccountCard extends StatelessWidget {
                 width: double.infinity,
                 child: ElevatedButton(
                   onPressed: () {
-                    final value = double.tryParse(
-                      controller.text.replaceAll(',', '.'),
-                    );
-
-                    if (value != null && onValueUpdated != null) {
-                      onValueUpdated!(value);
-                    }
-
+                    final value = double.tryParse(controller.text.replaceAll(',', '.'));
+                    if (value != null && onValueUpdated != null) onValueUpdated!(value);
                     Navigator.pop(context);
                   },
                   child: const Text("Valider"),
@@ -185,48 +157,43 @@ class AdvantageAccountCard extends StatelessWidget {
       },
     );
   }
-
-  void _confirmDelete(BuildContext context) {
-    showDialog(
+  void _confirmDelete(BuildContext context) async {
+    // 1️⃣ Afficher le dialog et attendre la confirmation
+    final confirmed = await showDialog<bool>(
       context: context,
-      builder: (context) {
-        return AlertDialog(
-          title: const Text("Supprimer l'avantage"),
-          content: Text(
-              "Voulez-vous vraiment supprimer ${account.sourceName} - ${account.providerName} ?"),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(context),
-              child: const Text("Annuler"),
-            ),
-            ElevatedButton(
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.red,
-              ),
-              onPressed: () async {
-                final navigator = Navigator.of(context);
-                final scaffoldMessenger = ScaffoldMessenger.of(context);
+      builder: (_) => AlertDialog(
+        title: const Text("Supprimer l'avantage"),
+        content: Text(
+          "Voulez-vous vraiment supprimer ${account.sourceName} - ${account.providerName} ?",
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text("Annuler"),
+          ),
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
+            onPressed: () => Navigator.pop(context, true),
+            child: const Text("Supprimer"),
+          ),
+        ],
+      ),
+    );
 
-                navigator.pop();
+    if (confirmed != true) return;
 
-                final service = AdvantageService();
-                await service.deleteAccount(account.id);
+    // 2️⃣ Appeler le service async SANS context
+    await AdvantageService().deleteAccount(account.id);
 
-                onDeleted?.call();
+    // 3️⃣ Utiliser les callbacks pour signaler la suppression au parent
+    onDeleted?.call();
 
-                scaffoldMessenger.showSnackBar(
-                  SnackBar(
-                    content: Text(
-                      "Avantage ${account.sourceName} - ${account.providerName} supprimé.",
-                    ),
-                  ),
-                );
-              },
-              child: const Text("Supprimer"),
-            ),
-          ],
-        );
-      },
+    // 4️⃣ Ensuite, seulement utiliser le context pour le SnackBar
+    // ✅ Ça ne pose plus de warning car il n’y a pas d’`await` entre
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text("Avantage ${account.sourceName} - ${account.providerName} supprimé."),
+      ),
     );
   }
 }

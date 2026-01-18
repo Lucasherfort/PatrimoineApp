@@ -15,10 +15,15 @@ class LiquidityAccountCard extends StatelessWidget {
     this.onDeleted,
   });
 
+  Color _getAmountColor(double amount) {
+    if (amount > 0) return Colors.green.shade600;
+    if (amount < 0) return Colors.red.shade600;
+    return Colors.blueGrey.shade400; // couleur neutre pour 0,00€
+  }
+
   @override
   Widget build(BuildContext context) {
-    final currencyFormat =
-    NumberFormat.currency(locale: 'fr_FR', symbol: '€');
+    final currencyFormat = NumberFormat.currency(locale: 'fr_FR', symbol: '€');
 
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 5),
@@ -35,7 +40,7 @@ class LiquidityAccountCard extends StatelessWidget {
             padding: const EdgeInsets.all(12.0),
             child: Row(
               children: [
-                // Widget pour afficher le logo de la banque
+                // Logo banque
                 Container(
                   width: 40,
                   height: 40,
@@ -73,10 +78,10 @@ class LiquidityAccountCard extends StatelessWidget {
                 ),
                 Text(
                   currencyFormat.format(account.amount),
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.bold,
-                    color: Colors.green,
+                    color: _getAmountColor(account.amount),
                   ),
                 ),
               ],
@@ -88,7 +93,6 @@ class LiquidityAccountCard extends StatelessWidget {
   }
 
   Widget _buildBankLogo() {
-    // Si pas de logo, afficher l'icône par défaut
     if (account.logoUrl.isEmpty) {
       return Icon(
         Icons.account_balance_wallet,
@@ -96,18 +100,14 @@ class LiquidityAccountCard extends StatelessWidget {
         size: 24,
       );
     }
-
-    // Afficher l'image (PNG, JPG, etc.)
     return Image.network(
       account.logoUrl,
       fit: BoxFit.contain,
-      errorBuilder: (context, error, stackTrace) {
-        return Icon(
-          Icons.account_balance_wallet,
-          color: Colors.green.shade700,
-          size: 24,
-        );
-      },
+      errorBuilder: (context, error, stackTrace) => Icon(
+        Icons.account_balance_wallet,
+        color: Colors.green.shade700,
+        size: 24,
+      ),
       loadingBuilder: (context, child, loadingProgress) {
         if (loadingProgress == null) return child;
         return SizedBox(
@@ -167,14 +167,8 @@ class LiquidityAccountCard extends StatelessWidget {
                 width: double.infinity,
                 child: ElevatedButton(
                   onPressed: () {
-                    final value = double.tryParse(
-                      controller.text.replaceAll(',', '.'),
-                    );
-
-                    if (value != null && onValueUpdated != null) {
-                      onValueUpdated!(value);
-                    }
-
+                    final value = double.tryParse(controller.text.replaceAll(',', '.'));
+                    if (value != null && onValueUpdated != null) onValueUpdated!(value);
                     Navigator.pop(context);
                   },
                   child: const Text("Valider"),
@@ -193,34 +187,20 @@ class LiquidityAccountCard extends StatelessWidget {
       builder: (context) {
         return AlertDialog(
           title: const Text("Supprimer le compte"),
-          content: Text(
-              "Voulez-vous vraiment supprimer le compte ${account.sourceName} ?"),
+          content: Text("Voulez-vous vraiment supprimer le compte ${account.sourceName} ?"),
           actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(context),
-              child: const Text("Annuler"),
-            ),
+            TextButton(onPressed: () => Navigator.pop(context), child: const Text("Annuler")),
             ElevatedButton(
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.red,
-              ),
+              style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
               onPressed: () async {
                 final navigator = Navigator.of(context);
                 final scaffoldMessenger = ScaffoldMessenger.of(context);
-
                 navigator.pop();
-
                 final service = LiquidityAccountService();
                 await service.deleteAccount(account.id);
-
                 onDeleted?.call();
-
                 scaffoldMessenger.showSnackBar(
-                  SnackBar(
-                    content: Text(
-                      "Compte ${account.sourceName} supprimé.",
-                    ),
-                  ),
+                  SnackBar(content: Text("Compte ${account.sourceName} supprimé.")),
                 );
               },
               child: const Text("Supprimer"),

@@ -15,11 +15,15 @@ class SavingsAccountCard extends StatelessWidget {
     this.onDeleted,
   });
 
+  Color _getAmountColor(double amount) {
+    if (amount > 0) return Colors.green.shade600;
+    if (amount < 0) return Colors.red.shade600;
+    return Colors.blueGrey.shade400; // couleur neutre pour 0,00€
+  }
+
   @override
   Widget build(BuildContext context) {
-    final NumberFormat currencyFormat =
-    NumberFormat.currency(locale: 'fr_FR', symbol: '€');
-
+    final currencyFormat = NumberFormat.currency(locale: 'fr_FR', symbol: '€');
     final double total = account.principal + account.interest;
 
     return Container(
@@ -76,13 +80,13 @@ class SavingsAccountCard extends StatelessWidget {
                     ],
                   ),
                 ),
-                // Montant total
+                // Montant total avec couleur dynamique
                 Text(
                   currencyFormat.format(total),
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: 16,
                     fontWeight: FontWeight.bold,
-                    color: Colors.green,
+                    color: _getAmountColor(total),
                   ),
                 ),
               ],
@@ -104,10 +108,7 @@ class SavingsAccountCard extends StatelessWidget {
       ),
     );
 
-    if (result != null) {
-      // ⚡️ Remonte le nouvel objet vers le parent
-      onValueUpdated?.call(result);
-    }
+    if (result != null) onValueUpdated?.call(result);
   }
 
   // =========================
@@ -138,9 +139,7 @@ class SavingsAccountCard extends StatelessWidget {
             height: 20,
             child: CircularProgressIndicator(
               strokeWidth: 2,
-              valueColor: AlwaysStoppedAnimation<Color>(
-                Colors.blue.shade700,
-              ),
+              valueColor: AlwaysStoppedAnimation<Color>(Colors.blue.shade700),
             ),
           ),
         );
@@ -160,10 +159,7 @@ class SavingsAccountCard extends StatelessWidget {
           "Voulez-vous vraiment supprimer le compte « ${account.sourceName} » ?",
         ),
         actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text("Annuler"),
-          ),
+          TextButton(onPressed: () => Navigator.pop(context), child: const Text("Annuler")),
           ElevatedButton(
             style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
             onPressed: () {
