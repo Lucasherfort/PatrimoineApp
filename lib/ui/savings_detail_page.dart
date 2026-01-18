@@ -53,6 +53,7 @@ class _SavingsDetailPageState extends State<SavingsDetailPage> {
   Future<void> _saveChanges() async {
     // Vérification plafond
     if (widget.account.ceiling != null && _currentPrincipal > widget.account.ceiling!) {
+      if (!mounted) return;
       _showPopup(
         'Erreur',
         'Le capital ne peut pas dépasser le plafond de ${widget.account.ceiling!.toStringAsFixed(2)} €.',
@@ -65,6 +66,8 @@ class _SavingsDetailPageState extends State<SavingsDetailPage> {
       principal: _currentPrincipal,
       interest: _currentInterest,
     );
+
+    if (!mounted) return; // 🔥 protection contre la destruction du widget pendant l'await
 
     if (!success) {
       _showPopup('Erreur', 'Impossible de sauvegarder les modifications.');
@@ -127,15 +130,19 @@ class _SavingsDetailPageState extends State<SavingsDetailPage> {
     final currency = NumberFormat.currency(locale: 'fr_FR', symbol: '€');
     final percentFormat = NumberFormat.decimalPattern('fr_FR');
 
-    return WillPopScope(
-      onWillPop: () async {
+    return PopScope(
+      canPop: !_hasChanges, // bloque le pop automatique si modifié
+      onPopInvokedWithResult: (didPop, result) {
+        if (didPop) return;
+
         if (_hasChanges) {
           widget.account.principal = _currentPrincipal;
           widget.account.interest = _currentInterest;
+
           Navigator.of(context).pop(widget.account);
-          return false;
+        } else {
+          Navigator.of(context).pop();
         }
-        return true;
       },
       child: Scaffold(
         appBar: AppBar(
@@ -154,9 +161,17 @@ class _SavingsDetailPageState extends State<SavingsDetailPage> {
           title: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(widget.account.sourceName, style: const TextStyle(fontSize: 18)),
-              Text(widget.account.bankName,
-                  style: const TextStyle(fontSize: 14, fontWeight: FontWeight.normal)),
+              Text(
+                widget.account.sourceName,
+                style: const TextStyle(fontSize: 18),
+              ),
+              Text(
+                widget.account.bankName,
+                style: const TextStyle(
+                  fontSize: 14,
+                  fontWeight: FontWeight.normal,
+                ),
+              ),
             ],
           ),
           actions: [
@@ -206,7 +221,7 @@ class _SavingsDetailPageState extends State<SavingsDetailPage> {
             child: Image.network(
               widget.account.logoUrl,
               fit: BoxFit.contain,
-              errorBuilder: (_, __, ___) => Icon(Icons.account_balance, color: Colors.blue.shade700),
+              errorBuilder: (_, _, _) => Icon(Icons.account_balance, color: Colors.blue.shade700),
             ),
           ),
         ),

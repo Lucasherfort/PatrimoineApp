@@ -3,11 +3,13 @@ import 'package:intl/intl.dart';
 
 class PatrimoineHeader extends StatefulWidget {
   final double patrimoineTotal;
+  final double totalDepose;
   final VoidCallback? onRefresh;
 
   const PatrimoineHeader({
     super.key,
     required this.patrimoineTotal,
+    required this.totalDepose,
     this.onRefresh,
   });
 
@@ -27,111 +29,212 @@ class _PatrimoineHeaderState extends State<PatrimoineHeader> {
     return formatter.format(amount).trim();
   }
 
+  double get _gains => widget.patrimoineTotal - widget.totalDepose;
+
+  double get _gainsPercentage {
+    if (widget.totalDepose == 0) return 0;
+    return (_gains / widget.totalDepose) * 100;
+  }
+
+  Color get _gainsColor {
+    if (_gains > 0) return Colors.green.shade500;
+    if (_gains < 0) return Colors.red.shade500;
+    return Colors.blueGrey.shade300;
+  }
+
   @override
   Widget build(BuildContext context) {
     return Container(
       width: double.infinity,
       margin: const EdgeInsets.all(16),
-      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
       decoration: BoxDecoration(
-        gradient: LinearGradient(
+        gradient: const LinearGradient(
           colors: [
-            Colors.blue.shade700,
-            Colors.blue.shade500,
+            Color(0xFF1E293B), // slate-800
+            Color(0xFF0F172A), // slate-900
           ],
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
         ),
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(18),
         boxShadow: [
           BoxShadow(
-            color: Colors.blue.withValues(alpha: 128),
-            blurRadius: 10,
-            offset: const Offset(0, 4),
+            color: Colors.black.withValues(alpha: 0.35),
+            blurRadius: 20,
+            offset: const Offset(0, 12),
           ),
         ],
       ),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
         children: [
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  "Mon patrimoine",
-                  style: TextStyle(
-                    fontSize: 14,
-                    color: Colors.white.withValues(alpha: 230),
-                    fontWeight: FontWeight.w500,
-                    letterSpacing: 0.5,
+          // ─── Ligne principale ─────────────────────────────
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              // Texte
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    "Mon patrimoine",
+                    style: TextStyle(
+                      fontSize: 13,
+                      fontWeight: FontWeight.w500,
+                      color: Colors.white.withValues(alpha: 0.75),
+                    ),
                   ),
+                  const SizedBox(height: 4),
+                  AnimatedSwitcher(
+                    duration: const Duration(milliseconds: 200),
+                    child: _isVisible
+                        ? Text(
+                      "${_formatAmount(widget.patrimoineTotal)} €",
+                      key: const ValueKey('visible'),
+                      style: const TextStyle(
+                        fontSize: 28,
+                        fontWeight: FontWeight.w800,
+                        color: Colors.white,
+                      ),
+                    )
+                        : Text(
+                      "• • • • • •",
+                      key: const ValueKey('hidden'),
+                      style: const TextStyle(
+                        fontSize: 28,
+                        fontWeight: FontWeight.w800,
+                        letterSpacing: 4,
+                        color: Colors.white,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+
+              // Actions
+              Row(
+                children: [
+                  if (widget.onRefresh != null)
+                    InkWell(
+                      borderRadius: BorderRadius.circular(10),
+                      onTap: widget.onRefresh,
+                      child: Padding(
+                        padding: const EdgeInsets.all(6),
+                        child: Icon(
+                          Icons.refresh,
+                          size: 22,
+                          color: Colors.white.withValues(alpha: 0.8),
+                        ),
+                      ),
+                    ),
+                  const SizedBox(width: 6),
+                  InkWell(
+                    borderRadius: BorderRadius.circular(10),
+                    onTap: () {
+                      setState(() => _isVisible = !_isVisible);
+                    },
+                    child: Padding(
+                      padding: const EdgeInsets.all(6),
+                      child: Icon(
+                        _isVisible
+                            ? Icons.visibility
+                            : Icons.visibility_off,
+                        size: 22,
+                        color: Colors.white.withValues(alpha: 0.8),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
+
+          const SizedBox(height: 10),
+
+          // ─── Évolution ───────────────────────────────────
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+            decoration: BoxDecoration(
+              color: Colors.white.withValues(alpha: 0.08),
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                // Gains €
+                Row(
+                  children: [
+                    Icon(
+                      _gains >= 0
+                          ? Icons.trending_up
+                          : Icons.trending_down,
+                      size: 20,
+                      color: _gainsColor,
+                    ),
+                    const SizedBox(width: 8),
+                    AnimatedSwitcher(
+                      duration: const Duration(milliseconds: 200),
+                      child: _isVisible
+                          ? Text(
+                        "${_gains >= 0 ? '+' : ''}${_formatAmount(_gains)} €",
+                        key: const ValueKey('gains-visible'),
+                        style: TextStyle(
+                          fontSize: 15,
+                          fontWeight: FontWeight.w600,
+                          color: _gainsColor,
+                        ),
+                      )
+                          : Text(
+                        "• • • •",
+                        key: const ValueKey('gains-hidden'),
+                        style: TextStyle(
+                          fontSize: 15,
+                          fontWeight: FontWeight.w600,
+                          color: _gainsColor,
+                        ),
+                      ),
+                    ),
+                  ],
                 ),
-                const SizedBox(height: 4),
+
+                // %
                 AnimatedSwitcher(
                   duration: const Duration(milliseconds: 200),
                   child: _isVisible
-                      ? Text(
-                    "${_formatAmount(widget.patrimoineTotal)} €",
-                    key: const ValueKey('visible'),
-                    style: const TextStyle(
-                      fontSize: 28,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.white,
-                      letterSpacing: -0.5,
+                      ? Container(
+                    key: const ValueKey('percent-visible'),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 8,
+                      vertical: 4,
+                    ),
+                    decoration: BoxDecoration(
+                      color:
+                      _gainsColor.withValues(alpha: 0.18),
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: Text(
+                      "${_gainsPercentage >= 0 ? '+' : ''}${_gainsPercentage.toStringAsFixed(1)}%",
+                      style: TextStyle(
+                        fontSize: 13,
+                        fontWeight: FontWeight.bold,
+                        color: _gainsColor,
+                      ),
                     ),
                   )
                       : Text(
-                    "• • • • • •",
-                    key: const ValueKey('hidden'),
-                    style: const TextStyle(
-                      fontSize: 28,
+                    "• •",
+                    key: const ValueKey('percent-hidden'),
+                    style: TextStyle(
+                      fontSize: 13,
                       fontWeight: FontWeight.bold,
-                      color: Colors.white,
-                      letterSpacing: 4,
+                      color:
+                      Colors.white.withValues(alpha: 0.6),
                     ),
                   ),
                 ),
               ],
             ),
-          ),
-          Row(
-            children: [
-              // Bouton refresh
-              if (widget.onRefresh != null)
-                InkWell(
-                  onTap: widget.onRefresh,
-                  borderRadius: BorderRadius.circular(12),
-                  child: Container(
-                    padding: const EdgeInsets.all(8),
-                    child: Icon(
-                      Icons.refresh,
-                      color: Colors.white.withValues(alpha: 230),
-                      size: 22,
-                    ),
-                  ),
-                ),
-              const SizedBox(width: 4),
-              // Bouton visibilité
-              InkWell(
-                onTap: () {
-                  setState(() {
-                    _isVisible = !_isVisible;
-                  });
-                },
-                borderRadius: BorderRadius.circular(12),
-                child: Container(
-                  padding: const EdgeInsets.all(8),
-                  child: Icon(
-                    _isVisible ? Icons.visibility : Icons.visibility_off,
-                    color: Colors.white.withValues(alpha: 230),
-                    size: 22,
-                  ),
-                ),
-              ),
-              const SizedBox(width: 8),
-              // ✂️ Icône portefeuille retirée
-            ],
           ),
         ],
       ),

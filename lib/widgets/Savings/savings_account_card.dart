@@ -125,7 +125,7 @@ class SavingsAccountCard extends StatelessWidget {
     return Image.network(
       account.logoUrl,
       fit: BoxFit.contain,
-      errorBuilder: (_, _, __) => Icon(
+      errorBuilder: (_, _, _) => Icon(
         Icons.account_balance,
         color: Colors.blue.shade700,
         size: 26,

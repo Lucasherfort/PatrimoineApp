@@ -67,10 +67,6 @@ class SavingsAccountService {
     required double interest,
   }) async {
     try {
-      print("savingsAccountId : $savingsAccountId");
-      print("principal : $principal");
-      print("interest : $interest");
-
       await _supabase
           .from(DatabaseTables.userSavingsAccounts)
           .update({
@@ -83,7 +79,6 @@ class SavingsAccountService {
       // Si on arrive ici, la requête a été exécutée sans exception
       return true;
     } catch (e) {
-      print("Erreur lors de la mise à jour : $e");
       return false;
     }
   }

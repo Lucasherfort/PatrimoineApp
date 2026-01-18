@@ -1,7 +1,10 @@
+import 'package:patrimoine/services/savings_account_service.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../bdd/database_tables.dart';
 import '../models/patrimoine/patrimoine_category.dart';
+import 'advantage_service.dart';
 import 'investment_service.dart';
+import 'liquidity_account_service.dart';
 
 class PatrimoineService {
   final SupabaseClient _supabase = Supabase.instance.client;
@@ -144,6 +147,36 @@ class PatrimoineService {
         name: item['name'] as String,
         label: item['label'] as String? ?? '',
       )).toList();
+    } catch (e) {
+      rethrow;
+    }
+  }
+
+  /// Calcule le total déposé (argent investi sans les gains)
+  Future<double> getTotalDeposed() async {
+    final user = _supabase.auth.currentUser;
+    if (user == null) return 0.0;
+
+    try {
+      double total = 0.0;
+
+      // Liquidité (tout = déposé)
+      final liquidityAccounts = await LiquidityAccountService().getUserLiquidityAccounts();
+      total += liquidityAccounts.fold<double>(0.0, (sum, account) => sum + account.amount);
+
+      // Épargne (seulement principal, pas intérêts)
+      final savingsAccounts = await SavingsAccountService().getUserSavingsAccounts();
+      total += savingsAccounts.fold<double>(0.0, (sum, account) => sum + account.principal);
+
+      // Investissement (seulement total_contribution)
+      final investmentAccounts = await InvestmentService().getUserInvestmentAccounts();
+      total += investmentAccounts.fold<double>(0.0, (sum, account) => sum + account.cumulativeDeposits);
+
+      // Avantages (tout = déposé)
+      final advantageAccounts = await AdvantageService().getUserAdvantageAccounts();
+      total += advantageAccounts.fold<double>(0.0, (sum, account) => sum + account.value);
+
+      return total;
     } catch (e) {
       rethrow;
     }
