@@ -214,7 +214,7 @@ class _PatrimoineHeaderState extends State<PatrimoineHeader> {
                       borderRadius: BorderRadius.circular(8),
                     ),
                     child: Text(
-                      "${_gainsPercentage >= 0 ? '+' : ''}${_gainsPercentage.toStringAsFixed(1)}%",
+                      "${_gainsPercentage >= 0 ? '+' : ''}${_gainsPercentage.toStringAsFixed(2)}%",
                       style: TextStyle(
                         fontSize: 13,
                         fontWeight: FontWeight.bold,
