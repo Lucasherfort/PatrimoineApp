@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:patrimoine/services/position_service.dart';
 import '../../models/investment_position.dart';
+import '../../services/position_service.dart';
 import 'investment_position_card.dart';
 
 class InvestmentPositionList extends StatelessWidget {

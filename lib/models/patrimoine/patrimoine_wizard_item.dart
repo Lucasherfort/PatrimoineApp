@@ -1,4 +1,5 @@
-import 'package:patrimoine/models/patrimoine/patrimoine_category.dart';
+
+import 'package:patrimoine360/models/patrimoine/patrimoine_category.dart';
 
 import '../bank.dart';
 

@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
-import 'package:patrimoine/services/position_service.dart';
 import '../models/investment_position.dart';
 import '../models/investments/user_investment_account_view.dart';
 import '../models/position.dart';
 import '../services/investment_service.dart';
+import '../services/position_service.dart';
 import '../widgets/Investment/investment_position_list.dart';
 import '../widgets/Investment/investment_summary_header.dart';
 import '../widgets/position/add_position_dialog.dart';

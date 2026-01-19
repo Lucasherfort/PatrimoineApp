@@ -147,7 +147,7 @@ class _AddPositionDialogState extends State<AddPositionDialog> {
               else ...[
                   // Filtre Action / ETF
                   DropdownButtonFormField<String>(
-                    value: _filterType,
+                    initialValue: _filterType,
                     decoration: const InputDecoration(
                       labelText: 'Filtrer par type',
                       border: OutlineInputBorder(),
@@ -193,7 +193,7 @@ class _AddPositionDialogState extends State<AddPositionDialog> {
                         ),
                       );
                     }).toList(),
-                    value: _selectedPosition,
+                    initialValue: _selectedPosition,
                     onChanged: (value) {
                       setState(() {
                         _selectedPosition = value;

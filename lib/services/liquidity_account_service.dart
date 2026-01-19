@@ -1,5 +1,6 @@
-import 'package:patrimoine/bdd/database_tables.dart';
+
 import 'package:supabase_flutter/supabase_flutter.dart';
+import '../bdd/database_tables.dart';
 import '../models/liquidity/user_liquidity_account_view.dart';
 
 class LiquidityAccountService {

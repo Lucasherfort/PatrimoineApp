@@ -1,4 +1,4 @@
-import 'package:patrimoine/models/savings/savings_source.dart';
+import 'package:patrimoine360/models/savings/savings_source.dart';
 
 class UserSavingsAccount {
   final int id;

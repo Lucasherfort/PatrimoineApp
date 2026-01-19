@@ -1,5 +1,6 @@
-import 'package:patrimoine/bdd/database_tables.dart';
+
 import 'package:supabase_flutter/supabase_flutter.dart';
+import '../bdd/database_tables.dart';
 import '../models/advantage/user_advantage_account_view.dart';
 
 class AdvantageService {

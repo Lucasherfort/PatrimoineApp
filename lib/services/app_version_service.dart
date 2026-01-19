@@ -1,6 +1,6 @@
 // lib/services/app_version_service.dart
-import 'package:patrimoine/bdd/database_tables.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import '../bdd/database_tables.dart';
 import '../models/config/app_version_config.dart';
 
 class AppVersionService {

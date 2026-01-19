@@ -1,4 +1,5 @@
-import 'package:patrimoine/services/savings_account_service.dart';
+
+import 'package:patrimoine360/services/savings_account_service.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../bdd/database_tables.dart';
 import '../models/patrimoine/patrimoine_category.dart';

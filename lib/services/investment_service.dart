@@ -1,7 +1,7 @@
 // lib/services/investment_service.dart
-import 'package:patrimoine/models/investment_position.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../bdd/database_tables.dart';
+import '../models/investment_position.dart';
 import '../models/investments/user_investment_account_view.dart';
 import '../models/user_investment_account.dart';
 
