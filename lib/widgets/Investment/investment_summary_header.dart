@@ -24,33 +24,26 @@ class InvestmentSummaryHeader extends StatelessWidget {
     return formatter.format(amount).trim();
   }
 
-  // Vérifie si c'est une Assurance Vie (pas d'espèces)
   bool get isAssuranceVie => account.isAssuranceVie;
 
-  // Calcule la valeur totale des positions (titres)
   double get positionsValue {
     return positions.fold(0.0, (sum, position) => sum + position.totalValue);
   }
 
-  // Calcule la valeur totale (espèces + titres pour PEA, seulement titres pour AV)
   double get totalValue => isAssuranceVie
       ? positionsValue
       : account.cashBalance + positionsValue;
 
-  // Plus-value = valeur totale - versements
   double get totalProfitLoss {
     return totalValue - account.totalContribution;
   }
 
-  // Rendement = (valeur totale - versements) / versements * 100
   double get performancePercentage {
     if (account.totalContribution <= 0) return 0.0;
     return ((totalValue - account.totalContribution) / account.totalContribution) * 100;
   }
 
-  // ✅ Méthode pour ouvrir le panel d'édition
-  void _openEditPanel(BuildContext context)
-  {
+  void _openEditPanel(BuildContext context) {
     final cashController = TextEditingController(
       text: account.cashBalance.toStringAsFixed(2).replaceAll('.', ','),
     );
@@ -85,7 +78,6 @@ class InvestmentSummaryHeader extends StatelessWidget {
               ),
               const SizedBox(height: 16),
 
-              // ✅ Champ Espèces (seulement pour PEA)
               if (!isAssuranceVie) ...[
                 TextField(
                   controller: cashController,
@@ -101,7 +93,6 @@ class InvestmentSummaryHeader extends StatelessWidget {
                 const SizedBox(height: 12),
               ],
 
-              // ✅ Champ Versements cumulés
               TextField(
                 controller: depositsController,
                 keyboardType: const TextInputType.numberWithOptions(decimal: true),
@@ -115,12 +106,10 @@ class InvestmentSummaryHeader extends StatelessWidget {
               ),
               const SizedBox(height: 16),
 
-              // ✅ Bouton Valider
               SizedBox(
                 width: double.infinity,
                 child: ElevatedButton(
-                  onPressed: ()
-                  {
+                  onPressed: () {
                     final cashText = cashController.text.replaceAll(',', '.');
                     final depositsText = depositsController.text.replaceAll(',', '.');
 
@@ -143,8 +132,7 @@ class InvestmentSummaryHeader extends StatelessWidget {
                           newDeposits.toStringAsFixed(2) !=
                               account.totalContribution.toStringAsFixed(2);
 
-                      if (cashChanged || depositsChanged)
-                      {
+                      if (cashChanged || depositsChanged) {
                         onValueUpdated!(newCash, newDeposits);
                       }
                     }
@@ -167,51 +155,53 @@ class InvestmentSummaryHeader extends StatelessWidget {
 
     return InkWell(
       onTap: () => _openEditPanel(context),
-      borderRadius: BorderRadius.circular(16),
+      borderRadius: BorderRadius.circular(14),
       child: Container(
-        margin: const EdgeInsets.all(16),
+        margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
         decoration: BoxDecoration(
           gradient: LinearGradient(
             colors: [
-              Colors.indigo.shade700,
-              Colors.indigo.shade500,
+              Color(0xFF1E293B), // slate-800
+              Color(0xFF334155), // slate-700
             ],
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
           ),
-          borderRadius: BorderRadius.circular(16),
+          borderRadius: BorderRadius.circular(14),
           boxShadow: [
             BoxShadow(
-              color: Colors.indigo.shade200.withValues(alpha: 128),
+              color: Colors.black.withValues(alpha: 0.25),
               blurRadius: 10,
               offset: const Offset(0, 4),
             ),
           ],
         ),
         child: Padding(
-          padding: const EdgeInsets.all(16),
+          padding: const EdgeInsets.all(14),
           child: Column(
             children: [
-              // Valeur totale en grand
+              // Ligne principale : Valeur totale + Performance
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
+                  // Valeur totale
                   Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
                         "Valeur totale",
                         style: TextStyle(
-                          fontSize: 13,
-                          color: Colors.white.withValues(alpha: 230),
+                          fontSize: 12,
+                          color: Colors.white.withValues(alpha: 0.85),
                           fontWeight: FontWeight.w500,
                         ),
                       ),
-                      const SizedBox(height: 4),
+                      const SizedBox(height: 2),
                       Text(
                         "${_formatAmount(totalValue)} €",
                         style: const TextStyle(
-                          fontSize: 26,
+                          fontSize: 24,
                           fontWeight: FontWeight.bold,
                           color: Colors.white,
                           letterSpacing: -0.5,
@@ -219,47 +209,63 @@ class InvestmentSummaryHeader extends StatelessWidget {
                       ),
                     ],
                   ),
-                  // Badge de performance
-                  Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                    decoration: BoxDecoration(
-                      color: isProfit
-                          ? Colors.green.shade400
-                          : Colors.red.shade400,
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    child: Row(
-                      children: [
-                        Icon(
-                          isProfit ? Icons.trending_up : Icons.trending_down,
-                          color: Colors.white,
-                          size: 18,
+                  // Performance mise en évidence
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.end,
+                    children: [
+                      // Pourcentage de gain en grand
+                      Text(
+                        "${isProfit ? '+' : ''}${performancePercentage.toStringAsFixed(2)}%",
+                        style: TextStyle(
+                          fontSize: 28,
+                          fontWeight: FontWeight.w800,
+                          color: isProfit
+                              ? Colors.green.shade400
+                              : Colors.red.shade400,
+                          letterSpacing: -0.5,
                         ),
-                        const SizedBox(width: 4),
-                        Text(
-                          "${isProfit ? '+' : ''}${_formatAmount(totalProfitLoss)} €",
-                          style: const TextStyle(
-                            fontSize: 14,
-                            fontWeight: FontWeight.bold,
-                            color: Colors.white,
+                      ),
+                      const SizedBox(height: 2),
+                      // Montant du gain avec icône
+                      Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(
+                            isProfit ? Icons.arrow_upward : Icons.arrow_downward,
+                            color: isProfit
+                                ? Colors.green.shade300
+                                : Colors.red.shade300,
+                            size: 14,
                           ),
-                        ),
-                      ],
-                    ),
+                          const SizedBox(width: 4),
+                          Text(
+                            "${isProfit ? '+' : ''}${_formatAmount(totalProfitLoss)} €",
+                            style: TextStyle(
+                              fontSize: 15,
+                              fontWeight: FontWeight.w700,
+                              color: isProfit
+                                  ? Colors.green.shade300
+                                  : Colors.red.shade300,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ],
                   ),
                 ],
               ),
-              const SizedBox(height: 16),
-              // Séparateur
+              const SizedBox(height: 12),
+              // Ligne inférieure : Métriques compactes
               Container(
-                height: 1,
-                color: Colors.white.withValues(alpha: 51),
+                padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 12),
+                decoration: BoxDecoration(
+                  color: Colors.white.withValues(alpha: 0.12),
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: isAssuranceVie
+                    ? _buildAssuranceVieMetrics()
+                    : _buildPEAMetrics(),
               ),
-              const SizedBox(height: 16),
-              // Détails en grille (adapté selon le type)
-              isAssuranceVie
-                  ? _buildAssuranceVieMetrics()
-                  : _buildPEAMetrics(isProfit),
             ],
           ),
         ),
@@ -267,108 +273,78 @@ class InvestmentSummaryHeader extends StatelessWidget {
     );
   }
 
-  // ✅ Métriques pour PEA (3 colonnes : Espèces | Rendement | Versements)
-  Widget _buildPEAMetrics(bool isProfit) {
+  // Métriques PEA compactes
+  Widget _buildPEAMetrics() {
     return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceAround,
       children: [
-        Expanded(
-          child: _buildMetric(
-            icon: Icons.account_balance_wallet,
-            label: "Espèces",
-            value: "${_formatAmount(account.cashBalance)} €",
-          ),
+        _buildCompactMetric(
+          icon: Icons.account_balance_wallet,
+          label: "Espèces",
+          value: "${_formatAmount(account.cashBalance)} €",
         ),
         Container(
           width: 1,
-          height: 40,
-          color: Colors.white.withValues(alpha: 51),
+          height: 32,
+          color: Colors.white.withValues(alpha: 0.2),
         ),
-        Expanded(
-          child: _buildMetric(
-            icon: Icons.trending_up,
-            label: "Rendement",
-            value: "${isProfit ? '+' : ''}${performancePercentage.toStringAsFixed(2)}%",
-            valueColor: isProfit ? Colors.green.shade300 : Colors.red.shade300,
-          ),
-        ),
-        Container(
-          width: 1,
-          height: 40,
-          color: Colors.white.withValues(alpha: 51),
-        ),
-        Expanded(
-          child: _buildMetric(
-            icon: Icons.savings,
-            label: "Versements",
-            value: "${_formatAmount(account.totalContribution)} €",
-          ),
+        _buildCompactMetric(
+          icon: Icons.savings,
+          label: "Versements",
+          value: "${_formatAmount(account.totalContribution)} €",
         ),
       ],
     );
   }
 
-  // ✅ Métriques pour Assurance Vie (2 colonnes : Rendement | Versements)
+  // Métriques Assurance Vie compactes
   Widget _buildAssuranceVieMetrics() {
-    final isProfit = totalProfitLoss >= 0;
-
     return Row(
+      mainAxisAlignment: MainAxisAlignment.center,
       children: [
-        Expanded(
-          child: _buildMetric(
-            icon: Icons.trending_up,
-            label: "Rendement",
-            value: "${isProfit ? '+' : ''}${performancePercentage.toStringAsFixed(2)}%",
-            valueColor: isProfit ? Colors.green.shade300 : Colors.red.shade300,
-          ),
-        ),
-        Container(
-          width: 1,
-          height: 40,
-          color: Colors.white.withValues(alpha: 51),
-        ),
-        Expanded(
-          child: _buildMetric(
-            icon: Icons.savings,
-            label: "Versements",
-            value: "${_formatAmount(account.totalContribution)} €",
-          ),
+        _buildCompactMetric(
+          icon: Icons.savings,
+          label: "Versements cumulés",
+          value: "${_formatAmount(account.totalContribution)} €",
         ),
       ],
     );
   }
 
-  Widget _buildMetric({
+  Widget _buildCompactMetric({
     required IconData icon,
     required String label,
     required String value,
-    Color? valueColor,
   }) {
-    return Column(
+    return Row(
+      mainAxisSize: MainAxisSize.min,
       children: [
         Icon(
           icon,
-          color: Colors.white.withValues(alpha: 204),
-          size: 20,
+          color: Colors.white.withValues(alpha: 0.75),
+          size: 16,
         ),
-        const SizedBox(height: 6),
-        Text(
-          label,
-          style: TextStyle(
-            fontSize: 11,
-            color: Colors.white.withValues(alpha: 204),
-            fontWeight: FontWeight.w500,
-          ),
-          textAlign: TextAlign.center,
-        ),
-        const SizedBox(height: 2),
-        Text(
-          value,
-          style: TextStyle(
-            fontSize: 13,
-            fontWeight: FontWeight.bold,
-            color: valueColor ?? Colors.white,
-          ),
-          textAlign: TextAlign.center,
+        const SizedBox(width: 6),
+        Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              label,
+              style: TextStyle(
+                fontSize: 10,
+                color: Colors.white.withValues(alpha: 0.75),
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+            Text(
+              value,
+              style: const TextStyle(
+                fontSize: 12,
+                fontWeight: FontWeight.bold,
+                color: Colors.white,
+              ),
+            ),
+          ],
         ),
       ],
     );
