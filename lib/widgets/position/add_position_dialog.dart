@@ -16,9 +16,12 @@ class AddPositionDialog extends StatefulWidget {
 
 class _AddPositionDialogState extends State<AddPositionDialog> {
   final List<Position> _availablePositions = [];
+  List<Position> _filteredPositions = [];
   Position? _selectedPosition;
   bool _isLoading = true;
   String? _errorMessage;
+
+  String _filterType = 'Toutes'; // 'Toutes', 'Action', 'ETF'
 
   final TextEditingController _quantityController = TextEditingController();
   final TextEditingController _pruController = TextEditingController();
@@ -41,6 +44,7 @@ class _AddPositionDialogState extends State<AddPositionDialog> {
       final positions = await PositionService().getAllPositions();
       setState(() {
         _availablePositions.addAll(positions);
+        _applyFilter();
         _isLoading = false;
       });
     } catch (e) {
@@ -49,6 +53,21 @@ class _AddPositionDialogState extends State<AddPositionDialog> {
         _isLoading = false;
       });
     }
+  }
+
+  void _applyFilter() {
+    setState(() {
+      if (_filterType == 'Toutes') {
+        _filteredPositions = List.from(_availablePositions);
+      } else {
+        _filteredPositions = _availablePositions
+            .where((p) => p.type == _filterType)
+            .toList();
+      }
+      if (!_filteredPositions.contains(_selectedPosition)) {
+        _selectedPosition = null;
+      }
+    });
   }
 
   void _handleAdd() {
@@ -85,124 +104,152 @@ class _AddPositionDialogState extends State<AddPositionDialog> {
     return Dialog(
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
       child: Container(
-        constraints: const BoxConstraints(maxWidth: 500),
+        constraints: const BoxConstraints(maxWidth: 600, maxHeight: 600),
         padding: const EdgeInsets.all(24),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                const Text(
-                  'Ajouter une position',
-                  style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
-                ),
-                IconButton(
-                  icon: const Icon(Icons.close),
-                  onPressed: () => Navigator.pop(context),
-                ),
-              ],
-            ),
-            const SizedBox(height: 24),
-
-            if (_isLoading)
-              const Center(child: Padding(
-                padding: EdgeInsets.all(32.0),
-                child: CircularProgressIndicator(),
-              ))
-            else if (_errorMessage != null)
-              Center(
-                child: Padding(
-                  padding: const EdgeInsets.all(16.0),
-                  child: Text(_errorMessage!, style: const TextStyle(color: Colors.red), textAlign: TextAlign.center),
-                ),
-              )
-            else ...[
-                // Dropdown pour sélectionner la position
-                DropdownButtonFormField<Position>(
-                  decoration: const InputDecoration(
-                    labelText: 'Sélectionner une position',
-                    border: OutlineInputBorder(),
-                    prefixIcon: Icon(Icons.search),
+        child: SingleChildScrollView(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  const Text(
+                    'Ajouter une position',
+                    style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
                   ),
-                  initialValue: _selectedPosition,
-                  isExpanded: true,
-                  items: _availablePositions.map((position) {
-                    return DropdownMenuItem(
-                      value: position,
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Text(
-                            position.name,
-                            style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
-                          ),
-                          Text(
-                            position.ticker,
-                            style: TextStyle(fontSize: 12, color: Colors.grey.shade600),
-                          ),
-                        ],
+                  IconButton(
+                    icon: const Icon(Icons.close),
+                    onPressed: () => Navigator.pop(context),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 16),
+
+              if (_isLoading)
+                const Center(
+                  child: Padding(
+                    padding: EdgeInsets.all(32.0),
+                    child: CircularProgressIndicator(),
+                  ),
+                )
+              else if (_errorMessage != null)
+                Center(
+                  child: Padding(
+                    padding: const EdgeInsets.all(16.0),
+                    child: Text(
+                      _errorMessage!,
+                      style: const TextStyle(color: Colors.red),
+                      textAlign: TextAlign.center,
+                    ),
+                  ),
+                )
+              else ...[
+                  // Filtre Action / ETF
+                  DropdownButtonFormField<String>(
+                    value: _filterType,
+                    decoration: const InputDecoration(
+                      labelText: 'Filtrer par type',
+                      border: OutlineInputBorder(),
+                    ),
+                    items: ['Toutes', 'Action', 'ETF'].map((type) {
+                      return DropdownMenuItem(
+                        value: type,
+                        child: Text(type),
+                      );
+                    }).toList(),
+                    onChanged: (value) {
+                      _filterType = value!;
+                      _applyFilter();
+                    },
+                  ),
+                  const SizedBox(height: 16),
+
+                  // Dropdown avec dropdown_button2 pour éviter de dépasser du panel
+                  // Dropdown standard
+                  DropdownButtonFormField<Position>(
+                    decoration: const InputDecoration(
+                      labelText: 'Sélectionner une position',
+                      border: OutlineInputBorder(),
+                      prefixIcon: Icon(Icons.search),
+                    ),
+                    isExpanded: true,
+                    items: _filteredPositions.map((position) {
+                      return DropdownMenuItem(
+                        value: position,
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Text(
+                              position.name,
+                              style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
+                            ),
+                            Text(
+                              position.ticker,
+                              style: TextStyle(fontSize: 12, color: Colors.grey.shade600),
+                            ),
+                          ],
+                        ),
+                      );
+                    }).toList(),
+                    value: _selectedPosition,
+                    onChanged: (value) {
+                      setState(() {
+                        _selectedPosition = value;
+                        if (_selectedPosition != null) {
+                          _pruController.text = _selectedPosition!.price
+                              .toStringAsFixed(2)
+                              .replaceAll('.', ',');
+                        }
+                      });
+                    },
+                  ),
+                  const SizedBox(height: 16),
+
+                  // Quantité
+                  TextField(
+                    controller: _quantityController,
+                    keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                    decoration: const InputDecoration(
+                      labelText: 'Quantité',
+                      border: OutlineInputBorder(),
+                      helperText: 'Nombre d\'actions/parts',
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+
+                  // PRU
+                  TextField(
+                    controller: _pruController,
+                    keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                    decoration: const InputDecoration(
+                      labelText: 'Prix de Revient Unitaire (PRU)',
+                      suffixText: '€',
+                      border: OutlineInputBorder(),
+                      helperText: 'Prix moyen d\'achat par unité',
+                    ),
+                  ),
+                  const SizedBox(height: 24),
+
+                  // Boutons
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.end,
+                    children: [
+                      TextButton(
+                        onPressed: () => Navigator.pop(context),
+                        child: const Text('Annuler'),
                       ),
-                    );
-                  }).toList(),
-                  onChanged: (value) {
-                    setState(() {
-                      _selectedPosition = value;
-
-                      // Si la position a un cours actuel, on le met dans le champ PRU
-                      if (_selectedPosition != null)
-                      {
-                        _pruController.text = _selectedPosition!.price.toStringAsFixed(2).replaceAll('.', ',');
-                      }
-                    });
-                  },
-                ),
-                const SizedBox(height: 16),
-
-                // Quantité
-                TextField(
-                  controller: _quantityController,
-                  keyboardType: const TextInputType.numberWithOptions(decimal: true),
-                  decoration: const InputDecoration(
-                    labelText: 'Quantité',
-                    border: OutlineInputBorder(),
-                    helperText: 'Nombre d\'actions/parts',
+                      const SizedBox(width: 8),
+                      ElevatedButton(
+                        onPressed: _handleAdd,
+                        child: const Text('Ajouter'),
+                      ),
+                    ],
                   ),
-                ),
-                const SizedBox(height: 16),
-
-                // PRU
-                TextField(
-                  controller: _pruController,
-                  keyboardType: const TextInputType.numberWithOptions(decimal: true),
-                  decoration: const InputDecoration(
-                    labelText: 'Prix de Revient Unitaire (PRU)',
-                    suffixText: '€',
-                    border: OutlineInputBorder(),
-                    helperText: 'Prix moyen d\'achat par unité',
-                  ),
-                ),
-                const SizedBox(height: 24),
-
-                // Boutons
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.end,
-                  children: [
-                    TextButton(
-                      onPressed: () => Navigator.pop(context),
-                      child: const Text('Annuler'),
-                    ),
-                    const SizedBox(width: 8),
-                    ElevatedButton(
-                      onPressed: _handleAdd,
-                      child: const Text('Ajouter'),
-                    ),
-                  ],
-                ),
-              ],
-          ],
+                ],
+            ],
+          ),
         ),
       ),
     );
