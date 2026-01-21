@@ -21,57 +21,96 @@ class AdvantageAccountCard extends StatelessWidget {
   }
 
   Color _getValueColor() {
-    // Valeur différente de 0 => vert, sinon couleur neutre
-    if (account.value != 0) return Colors.green.shade700;
-    return Colors.purple.shade400; // neutre pour 0,00€
+    if (account.value != 0) return Colors.orange.shade300;
+    return Colors.blueGrey.shade300;
   }
 
   @override
   Widget build(BuildContext context) {
     return Container(
-      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 5),
+      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
       child: InkWell(
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(16),
         onTap: () => _openEditPanel(context),
         onLongPress: () => _confirmDelete(context),
-        child: Card(
-          elevation: 2,
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+        child: Container(
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+              colors: [
+                Colors.orange.shade900.withValues(alpha: 0.25),
+                Colors.deepOrange.shade800.withValues(alpha: 0.15),
+              ],
+            ),
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(
+              color: Colors.orange.shade400.withValues(alpha: 0.3),
+              width: 1,
+            ),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withValues(alpha: 0.2),
+                blurRadius: 12,
+                offset: const Offset(0, 4),
+              ),
+            ],
+          ),
           child: Padding(
-            padding: const EdgeInsets.all(12.0),
+            padding: const EdgeInsets.all(14.0),
             child: Row(
               children: [
                 // Logo fournisseur
                 Container(
-                  width: 40,
-                  height: 40,
-                  padding: const EdgeInsets.all(4),
+                  width: 46,
+                  height: 46,
+                  padding: const EdgeInsets.all(6),
                   decoration: BoxDecoration(
-                    color: Colors.grey.shade50,
-                    borderRadius: BorderRadius.circular(8),
+                    color: Colors.white.withValues(alpha: 0.15),
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(
+                      color: Colors.orange.shade300.withValues(alpha: 0.3),
+                      width: 1,
+                    ),
                   ),
                   child: ClipRRect(
-                    borderRadius: BorderRadius.circular(6),
+                    borderRadius: BorderRadius.circular(8),
                     child: _buildProviderLogo(),
                   ),
                 ),
-                const SizedBox(width: 12),
+                const SizedBox(width: 14),
                 // Nom + fournisseur
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(account.sourceName,
-                          style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15)),
-                      Text(account.providerName,
-                          style: TextStyle(fontSize: 12, color: Colors.grey.shade600)),
+                      Text(
+                        account.sourceName,
+                        style: const TextStyle(
+                          fontWeight: FontWeight.bold,
+                          fontSize: 16,
+                          color: Colors.white,
+                        ),
+                      ),
+                      const SizedBox(height: 2),
+                      Text(
+                        account.providerName,
+                        style: TextStyle(
+                          fontSize: 13,
+                          color: Colors.white.withValues(alpha: 0.6),
+                        ),
+                      ),
                     ],
                   ),
                 ),
                 // Valeur
                 Text(
                   _formatAmount(account.value),
-                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: _getValueColor()),
+                  style: TextStyle(
+                    fontSize: 17,
+                    fontWeight: FontWeight.bold,
+                    color: _getValueColor(),
+                  ),
                 ),
               ],
             ),
@@ -83,13 +122,13 @@ class AdvantageAccountCard extends StatelessWidget {
 
   Widget _buildProviderLogo() {
     if (account.logoUrl.isEmpty) {
-      return Icon(Icons.card_giftcard, color: Colors.blue.shade700, size: 24);
+      return Icon(Icons.card_giftcard, color: Colors.orange.shade300, size: 26);
     }
 
     return Image.network(
       account.logoUrl,
       fit: BoxFit.contain,
-      errorBuilder: (_, _, _) => Icon(Icons.card_giftcard, color: Colors.blue.shade700, size: 24),
+      errorBuilder: (_, _, _) => Icon(Icons.card_giftcard, color: Colors.orange.shade300, size: 26),
       loadingBuilder: (context, child, loadingProgress) {
         if (loadingProgress == null) return child;
         return Center(
@@ -98,7 +137,7 @@ class AdvantageAccountCard extends StatelessWidget {
             height: 24,
             child: CircularProgressIndicator(
               strokeWidth: 2,
-              valueColor: AlwaysStoppedAnimation<Color>(Colors.blue.shade700),
+              valueColor: AlwaysStoppedAnimation<Color>(Colors.orange.shade300),
             ),
           ),
         );
@@ -114,54 +153,79 @@ class AdvantageAccountCard extends StatelessWidget {
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
-      shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(16))),
+      backgroundColor: Colors.transparent,
       builder: (context) {
-        return Padding(
-          padding: EdgeInsets.only(
-            left: 16,
-            right: 16,
-            top: 16,
-            bottom: MediaQuery.of(context).viewInsets.bottom + 16,
+        return Container(
+          decoration: const BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
           ),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text("Modifier ${account.sourceName} - ${account.providerName}",
-                  style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-              const SizedBox(height: 12),
-              TextField(
-                controller: controller,
-                keyboardType: const TextInputType.numberWithOptions(decimal: true),
-                decoration: const InputDecoration(
-                  labelText: "Nouvelle valeur",
-                  suffixText: "€",
-                  border: OutlineInputBorder(),
+          child: Padding(
+            padding: EdgeInsets.only(
+              left: 16,
+              right: 16,
+              top: 16,
+              bottom: MediaQuery.of(context).viewInsets.bottom + 16,
+            ),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  "Modifier ${account.sourceName} - ${account.providerName}",
+                  style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
                 ),
-              ),
-              const SizedBox(height: 16),
-              SizedBox(
-                width: double.infinity,
-                child: ElevatedButton(
-                  onPressed: () {
-                    final value = double.tryParse(controller.text.replaceAll(',', '.'));
-                    if (value != null && onValueUpdated != null) onValueUpdated!(value);
-                    Navigator.pop(context);
-                  },
-                  child: const Text("Valider"),
+                const SizedBox(height: 16),
+                TextField(
+                  controller: controller,
+                  keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                  decoration: InputDecoration(
+                    labelText: "Nouvelle valeur",
+                    suffixText: "€",
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    focusedBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                      borderSide: BorderSide(color: Colors.orange.shade600, width: 2),
+                    ),
+                  ),
                 ),
-              ),
-            ],
+                const SizedBox(height: 20),
+                SizedBox(
+                  width: double.infinity,
+                  child: ElevatedButton(
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.orange.shade600,
+                      padding: const EdgeInsets.symmetric(vertical: 14),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                    ),
+                    onPressed: () {
+                      final value = double.tryParse(controller.text.replaceAll(',', '.'));
+                      if (value != null && onValueUpdated != null) onValueUpdated!(value);
+                      Navigator.pop(context);
+                    },
+                    child: const Text(
+                      "Valider",
+                      style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                    ),
+                  ),
+                ),
+              ],
+            ),
           ),
         );
       },
     );
   }
+
   void _confirmDelete(BuildContext context) async {
-    // 1️⃣ Afficher le dialog et attendre la confirmation
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (_) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
         title: const Text("Supprimer l'avantage"),
         content: Text(
           "Voulez-vous vraiment supprimer ${account.sourceName} - ${account.providerName} ?",
@@ -172,7 +236,10 @@ class AdvantageAccountCard extends StatelessWidget {
             child: const Text("Annuler"),
           ),
           ElevatedButton(
-            style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.red,
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+            ),
             onPressed: () => Navigator.pop(context, true),
             child: const Text("Supprimer"),
           ),
@@ -182,18 +249,17 @@ class AdvantageAccountCard extends StatelessWidget {
 
     if (confirmed != true) return;
 
-    // 2️⃣ Appeler le service async SANS context
     await AdvantageService().deleteAccount(account.id);
-
-    // 3️⃣ Utiliser les callbacks pour signaler la suppression au parent
     onDeleted?.call();
 
-    // 4️⃣ Ensuite, seulement utiliser le context pour le SnackBar
-    // ✅ Ça ne pose plus de warning car il n’y a pas d’`await` entre
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text("Avantage ${account.sourceName} - ${account.providerName} supprimé."),
-      ),
-    );
+    if (context.mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text("Avantage ${account.sourceName} - ${account.providerName} supprimé."),
+          behavior: SnackBarBehavior.floating,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+        ),
+      );
+    }
   }
 }

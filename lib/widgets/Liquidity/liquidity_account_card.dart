@@ -16,9 +16,9 @@ class LiquidityAccountCard extends StatelessWidget {
   });
 
   Color _getAmountColor(double amount) {
-    if (amount > 0) return Colors.green.shade600;
-    if (amount < 0) return Colors.red.shade600;
-    return Colors.blueGrey.shade400; // couleur neutre pour 0,00€
+    if (amount > 0) return Colors.green.shade400;
+    if (amount < 0) return Colors.red.shade400;
+    return Colors.blueGrey.shade300;
   }
 
   @override
@@ -26,35 +26,57 @@ class LiquidityAccountCard extends StatelessWidget {
     final currencyFormat = NumberFormat.currency(locale: 'fr_FR', symbol: '€');
 
     return Container(
-      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 5),
+      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
       child: InkWell(
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(16),
         onTap: () => _openEditPanel(context),
         onLongPress: () => _confirmDelete(context),
-        child: Card(
-          elevation: 2,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(12),
+        child: Container(
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+              colors: [
+                Colors.white.withValues(alpha: 0.12),
+                Colors.white.withValues(alpha: 0.08),
+              ],
+            ),
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(
+              color: Colors.white.withValues(alpha: 0.15),
+              width: 1,
+            ),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withValues(alpha: 0.2),
+                blurRadius: 12,
+                offset: const Offset(0, 4),
+              ),
+            ],
           ),
           child: Padding(
-            padding: const EdgeInsets.all(12.0),
+            padding: const EdgeInsets.all(14.0),
             child: Row(
               children: [
                 // Logo banque
                 Container(
-                  width: 40,
-                  height: 40,
-                  padding: const EdgeInsets.all(4),
+                  width: 46,
+                  height: 46,
+                  padding: const EdgeInsets.all(6),
                   decoration: BoxDecoration(
-                    color: Colors.grey.shade50,
-                    borderRadius: BorderRadius.circular(8),
+                    color: Colors.white.withValues(alpha: 0.15),
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(
+                      color: Colors.white.withValues(alpha: 0.2),
+                      width: 1,
+                    ),
                   ),
                   child: ClipRRect(
-                    borderRadius: BorderRadius.circular(6),
+                    borderRadius: BorderRadius.circular(8),
                     child: _buildBankLogo(),
                   ),
                 ),
-                const SizedBox(width: 12),
+                const SizedBox(width: 14),
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -63,14 +85,16 @@ class LiquidityAccountCard extends StatelessWidget {
                         account.sourceName,
                         style: const TextStyle(
                           fontWeight: FontWeight.bold,
-                          fontSize: 15,
+                          fontSize: 16,
+                          color: Colors.white,
                         ),
                       ),
+                      const SizedBox(height: 2),
                       Text(
                         account.bankName,
                         style: TextStyle(
-                          fontSize: 12,
-                          color: Colors.grey.shade600,
+                          fontSize: 13,
+                          color: Colors.white.withValues(alpha: 0.6),
                         ),
                       ),
                     ],
@@ -79,7 +103,7 @@ class LiquidityAccountCard extends StatelessWidget {
                 Text(
                   currencyFormat.format(account.amount),
                   style: TextStyle(
-                    fontSize: 16,
+                    fontSize: 17,
                     fontWeight: FontWeight.bold,
                     color: _getAmountColor(account.amount),
                   ),
@@ -96,8 +120,8 @@ class LiquidityAccountCard extends StatelessWidget {
     if (account.logoUrl.isEmpty) {
       return Icon(
         Icons.account_balance_wallet,
-        color: Colors.green.shade700,
-        size: 24,
+        color: Colors.green.shade300,
+        size: 26,
       );
     }
     return Image.network(
@@ -105,17 +129,17 @@ class LiquidityAccountCard extends StatelessWidget {
       fit: BoxFit.contain,
       errorBuilder: (context, error, stackTrace) => Icon(
         Icons.account_balance_wallet,
-        color: Colors.green.shade700,
-        size: 24,
+        color: Colors.green.shade300,
+        size: 26,
       ),
       loadingBuilder: (context, child, loadingProgress) {
         if (loadingProgress == null) return child;
         return SizedBox(
-          width: 24,
-          height: 24,
+          width: 26,
+          height: 26,
           child: CircularProgressIndicator(
             strokeWidth: 2,
-            valueColor: AlwaysStoppedAnimation<Color>(Colors.green.shade700),
+            valueColor: AlwaysStoppedAnimation<Color>(Colors.green.shade300),
           ),
         );
       },
@@ -130,51 +154,71 @@ class LiquidityAccountCard extends StatelessWidget {
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
-      ),
+      backgroundColor: Colors.transparent,
       builder: (context) {
-        return Padding(
-          padding: EdgeInsets.only(
-            left: 16,
-            right: 16,
-            top: 16,
-            bottom: MediaQuery.of(context).viewInsets.bottom + 16,
+        return Container(
+          decoration: const BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
           ),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                "Modifier ${account.sourceName}",
-                style: const TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.bold,
+          child: Padding(
+            padding: EdgeInsets.only(
+              left: 16,
+              right: 16,
+              top: 16,
+              bottom: MediaQuery.of(context).viewInsets.bottom + 16,
+            ),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  "Modifier ${account.sourceName}",
+                  style: const TextStyle(
+                    fontSize: 20,
+                    fontWeight: FontWeight.bold,
+                  ),
                 ),
-              ),
-              const SizedBox(height: 12),
-              TextField(
-                controller: controller,
-                keyboardType: const TextInputType.numberWithOptions(decimal: true),
-                decoration: const InputDecoration(
-                  labelText: "Nouveau montant",
-                  suffixText: "€",
-                  border: OutlineInputBorder(),
+                const SizedBox(height: 16),
+                TextField(
+                  controller: controller,
+                  keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                  decoration: InputDecoration(
+                    labelText: "Nouveau montant",
+                    suffixText: "€",
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    focusedBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                      borderSide: BorderSide(color: Colors.blue.shade600, width: 2),
+                    ),
+                  ),
                 ),
-              ),
-              const SizedBox(height: 16),
-              SizedBox(
-                width: double.infinity,
-                child: ElevatedButton(
-                  onPressed: () {
-                    final value = double.tryParse(controller.text.replaceAll(',', '.'));
-                    if (value != null && onValueUpdated != null) onValueUpdated!(value);
-                    Navigator.pop(context);
-                  },
-                  child: const Text("Valider"),
+                const SizedBox(height: 20),
+                SizedBox(
+                  width: double.infinity,
+                  child: ElevatedButton(
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.blue.shade600,
+                      padding: const EdgeInsets.symmetric(vertical: 14),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                    ),
+                    onPressed: () {
+                      final value = double.tryParse(controller.text.replaceAll(',', '.'));
+                      if (value != null && onValueUpdated != null) onValueUpdated!(value);
+                      Navigator.pop(context);
+                    },
+                    child: const Text(
+                      "Valider",
+                      style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                    ),
+                  ),
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
         );
       },
@@ -186,12 +230,19 @@ class LiquidityAccountCard extends StatelessWidget {
       context: context,
       builder: (context) {
         return AlertDialog(
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
           title: const Text("Supprimer le compte"),
           content: Text("Voulez-vous vraiment supprimer le compte ${account.sourceName} ?"),
           actions: [
-            TextButton(onPressed: () => Navigator.pop(context), child: const Text("Annuler")),
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text("Annuler"),
+            ),
             ElevatedButton(
-              style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.red,
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+              ),
               onPressed: () async {
                 final navigator = Navigator.of(context);
                 final scaffoldMessenger = ScaffoldMessenger.of(context);
@@ -200,7 +251,11 @@ class LiquidityAccountCard extends StatelessWidget {
                 await service.deleteAccount(account.id);
                 onDeleted?.call();
                 scaffoldMessenger.showSnackBar(
-                  SnackBar(content: Text("Compte ${account.sourceName} supprimé.")),
+                  SnackBar(
+                    content: Text("Compte ${account.sourceName} supprimé."),
+                    behavior: SnackBarBehavior.floating,
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                  ),
                 );
               },
               child: const Text("Supprimer"),

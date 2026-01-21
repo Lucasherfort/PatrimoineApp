@@ -35,9 +35,9 @@ class InvestmentCard extends StatelessWidget {
 
   Color _getValueColor() {
     final performance = totalValue - totalContribution;
-    if (performance > 0) return Colors.green.shade600;
-    if (performance < 0) return Colors.red.shade600;
-    return Colors.purple.shade400; // neutre pour 0,00€
+    if (performance > 0) return Colors.purple.shade300;
+    if (performance < 0) return Colors.red.shade400;
+    return Colors.blueGrey.shade300;
   }
 
   Future<void> _confirmDelete(BuildContext context) async {
@@ -53,7 +53,7 @@ class InvestmentCard extends StatelessWidget {
         ),
         content: RichText(
           text: TextSpan(
-            style: TextStyle(fontSize: 16, color: Colors.grey.shade800),
+            style: const TextStyle(fontSize: 16, color: Colors.black87),
             children: [
               const TextSpan(text: 'Êtes-vous sûr de vouloir supprimer le compte '),
               TextSpan(text: type, style: const TextStyle(fontWeight: FontWeight.bold)),
@@ -64,10 +64,17 @@ class InvestmentCard extends StatelessWidget {
           ),
         ),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(context, false), child: const Text('Annuler')),
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text('Annuler'),
+          ),
           ElevatedButton(
             onPressed: () => Navigator.pop(context, true),
-            style: ElevatedButton.styleFrom(backgroundColor: Colors.red, foregroundColor: Colors.white),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.red,
+              foregroundColor: Colors.white,
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+            ),
             child: const Text('Supprimer'),
           ),
         ],
@@ -79,13 +86,13 @@ class InvestmentCard extends StatelessWidget {
 
   Widget _buildBankLogo() {
     if (logoUrl.isEmpty) {
-      return Icon(Icons.trending_up, color: Colors.purple.shade700, size: 24);
+      return Icon(Icons.trending_up, color: Colors.purple.shade300, size: 26);
     }
 
     return Image.network(
       logoUrl,
       fit: BoxFit.contain,
-      errorBuilder: (_, _, _) => Icon(Icons.trending_up, color: Colors.purple.shade700, size: 24),
+      errorBuilder: (_, _, _) => Icon(Icons.trending_up, color: Colors.purple.shade300, size: 26),
       loadingBuilder: (context, child, loadingProgress) {
         if (loadingProgress == null) return child;
         return Center(
@@ -94,7 +101,7 @@ class InvestmentCard extends StatelessWidget {
             height: 24,
             child: CircularProgressIndicator(
               strokeWidth: 2,
-              valueColor: AlwaysStoppedAnimation<Color>(Colors.purple.shade700),
+              valueColor: AlwaysStoppedAnimation<Color>(Colors.purple.shade300),
             ),
           ),
         );
@@ -105,9 +112,9 @@ class InvestmentCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
       child: InkWell(
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(16),
         onTap: () async {
           final shouldReload = await Navigator.push<bool>(
             context,
@@ -123,34 +130,74 @@ class InvestmentCard extends StatelessWidget {
           if (shouldReload == true && onTap != null) onTap!();
         },
         onLongPress: () => _confirmDelete(context),
-        child: Card(
-          elevation: 2,
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+        child: Container(
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+              colors: [
+                Colors.purple.shade900.withValues(alpha: 0.25),
+                Colors.purple.shade800.withValues(alpha: 0.15),
+              ],
+            ),
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(
+              color: Colors.purple.shade400.withValues(alpha: 0.3),
+              width: 1,
+            ),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withValues(alpha: 0.2),
+                blurRadius: 12,
+                offset: const Offset(0, 4),
+              ),
+            ],
+          ),
           child: Padding(
-            padding: const EdgeInsets.all(12),
+            padding: const EdgeInsets.all(14),
             child: Row(
               children: [
                 /// Logo banque
                 Container(
-                  width: 40,
-                  height: 40,
-                  padding: const EdgeInsets.all(4),
+                  width: 46,
+                  height: 46,
+                  padding: const EdgeInsets.all(6),
                   decoration: BoxDecoration(
-                    color: Colors.grey.shade50,
-                    borderRadius: BorderRadius.circular(8),
+                    color: Colors.white.withValues(alpha: 0.15),
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(
+                      color: Colors.purple.shade300.withValues(alpha: 0.3),
+                      width: 1,
+                    ),
                   ),
-                  child: ClipRRect(borderRadius: BorderRadius.circular(6), child: _buildBankLogo()),
+                  child: ClipRRect(
+                    borderRadius: BorderRadius.circular(8),
+                    child: _buildBankLogo(),
+                  ),
                 ),
-                const SizedBox(width: 12),
+                const SizedBox(width: 14),
 
                 /// Infos à gauche
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(type, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15)),
+                      Text(
+                        type,
+                        style: const TextStyle(
+                          fontWeight: FontWeight.bold,
+                          fontSize: 16,
+                          color: Colors.white,
+                        ),
+                      ),
                       const SizedBox(height: 2),
-                      Text(bankName, style: TextStyle(fontSize: 12, color: Colors.grey.shade600)),
+                      Text(
+                        bankName,
+                        style: TextStyle(
+                          fontSize: 13,
+                          color: Colors.white.withValues(alpha: 0.6),
+                        ),
+                      ),
                     ],
                   ),
                 ),
@@ -158,7 +205,11 @@ class InvestmentCard extends StatelessWidget {
                 /// Valeur à droite avec couleur dynamique
                 Text(
                   _formatAmount(totalValue),
-                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: _getValueColor()),
+                  style: TextStyle(
+                    fontSize: 17,
+                    fontWeight: FontWeight.bold,
+                    color: _getValueColor(),
+                  ),
                 ),
               ],
             ),

@@ -16,9 +16,9 @@ class SavingsAccountCard extends StatelessWidget {
   });
 
   Color _getAmountColor(double amount) {
-    if (amount > 0) return Colors.green.shade600;
-    if (amount < 0) return Colors.red.shade600;
-    return Colors.blueGrey.shade400; // couleur neutre pour 0,00€
+    if (amount > 0) return Colors.blue.shade300;
+    if (amount < 0) return Colors.red.shade400;
+    return Colors.blueGrey.shade300;
   }
 
   @override
@@ -29,13 +29,31 @@ class SavingsAccountCard extends StatelessWidget {
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
       child: InkWell(
-        borderRadius: BorderRadius.circular(14),
+        borderRadius: BorderRadius.circular(16),
         onTap: () => _openDetailsPage(context),
         onLongPress: () => _confirmDelete(context),
-        child: Card(
-          elevation: 2,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(14),
+        child: Container(
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+              colors: [
+                Colors.blue.shade900.withValues(alpha: 0.25),
+                Colors.blue.shade800.withValues(alpha: 0.15),
+              ],
+            ),
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(
+              color: Colors.blue.shade400.withValues(alpha: 0.3),
+              width: 1,
+            ),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withValues(alpha: 0.2),
+                blurRadius: 12,
+                offset: const Offset(0, 4),
+              ),
+            ],
           ),
           child: Padding(
             padding: const EdgeInsets.all(14),
@@ -43,20 +61,23 @@ class SavingsAccountCard extends StatelessWidget {
               children: [
                 // Logo banque
                 Container(
-                  width: 44,
-                  height: 44,
+                  width: 46,
+                  height: 46,
                   padding: const EdgeInsets.all(6),
                   decoration: BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.circular(10),
-                    border: Border.all(color: Colors.grey.shade300),
+                    color: Colors.white.withValues(alpha: 0.15),
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(
+                      color: Colors.blue.shade300.withValues(alpha: 0.3),
+                      width: 1,
+                    ),
                   ),
                   child: ClipRRect(
-                    borderRadius: BorderRadius.circular(6),
+                    borderRadius: BorderRadius.circular(8),
                     child: _buildBankLogo(),
                   ),
                 ),
-                const SizedBox(width: 12),
+                const SizedBox(width: 14),
                 // Nom + banque
                 Expanded(
                   child: Column(
@@ -66,15 +87,16 @@ class SavingsAccountCard extends StatelessWidget {
                         account.sourceName,
                         style: const TextStyle(
                           fontWeight: FontWeight.bold,
-                          fontSize: 15,
+                          fontSize: 16,
+                          color: Colors.white,
                         ),
                       ),
                       const SizedBox(height: 2),
                       Text(
                         account.bankName,
                         style: TextStyle(
-                          fontSize: 12,
-                          color: Colors.grey.shade600,
+                          fontSize: 13,
+                          color: Colors.white.withValues(alpha: 0.6),
                         ),
                       ),
                     ],
@@ -84,7 +106,7 @@ class SavingsAccountCard extends StatelessWidget {
                 Text(
                   currencyFormat.format(total),
                   style: TextStyle(
-                    fontSize: 16,
+                    fontSize: 17,
                     fontWeight: FontWeight.bold,
                     color: _getAmountColor(total),
                   ),
@@ -118,7 +140,7 @@ class SavingsAccountCard extends StatelessWidget {
     if (account.logoUrl.isEmpty) {
       return Icon(
         Icons.account_balance,
-        color: Colors.blue.shade700,
+        color: Colors.blue.shade300,
         size: 26,
       );
     }
@@ -128,7 +150,7 @@ class SavingsAccountCard extends StatelessWidget {
       fit: BoxFit.contain,
       errorBuilder: (_, _, _) => Icon(
         Icons.account_balance,
-        color: Colors.blue.shade700,
+        color: Colors.blue.shade300,
         size: 26,
       ),
       loadingBuilder: (context, child, loadingProgress) {
@@ -139,7 +161,7 @@ class SavingsAccountCard extends StatelessWidget {
             height: 20,
             child: CircularProgressIndicator(
               strokeWidth: 2,
-              valueColor: AlwaysStoppedAnimation<Color>(Colors.blue.shade700),
+              valueColor: AlwaysStoppedAnimation<Color>(Colors.blue.shade300),
             ),
           ),
         );
@@ -154,14 +176,21 @@ class SavingsAccountCard extends StatelessWidget {
     showDialog(
       context: context,
       builder: (_) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
         title: const Text("Supprimer le compte"),
         content: Text(
           "Voulez-vous vraiment supprimer le compte « ${account.sourceName} » ?",
         ),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(context), child: const Text("Annuler")),
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text("Annuler"),
+          ),
           ElevatedButton(
-            style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.red,
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+            ),
             onPressed: () {
               Navigator.pop(context);
               onDeleted?.call();

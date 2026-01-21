@@ -51,8 +51,8 @@ class _PatrimoineHeaderState extends State<PatrimoineHeader> {
       decoration: BoxDecoration(
         gradient: const LinearGradient(
           colors: [
-            Color(0xFF1E293B), // slate-800
-            Color(0xFF0F172A), // slate-900
+            Color(0xFF475569), // slate-600
+            Color(0xFF334155), // slate-700
           ],
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
