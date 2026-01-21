@@ -50,6 +50,9 @@ class _LiquidityAccountListState extends State<LiquidityAccountList> {
 
         final accounts = snapshot.data ?? [];
 
+        // 🔹 Trier par amount décroissant
+        accounts.sort((a, b) => b.amount.compareTo(a.amount));
+
         if (accounts.isEmpty) {
           return const SizedBox();
         }
