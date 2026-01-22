@@ -54,6 +54,7 @@ class _GraphsPageState extends State<GraphsPage> {
     final shouldLogout = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
         title: const Text('Déconnexion'),
         content: const Text('Voulez-vous vraiment vous déconnecter ?'),
         actions: [
@@ -74,7 +75,6 @@ class _GraphsPageState extends State<GraphsPage> {
 
     if (shouldLogout == true) {
       await Supabase.instance.client.auth.signOut();
-
       if (mounted) {
         Navigator.of(context).pushAndRemoveUntil(
           MaterialPageRoute(builder: (_) => const LoginPage()),
@@ -86,8 +86,11 @@ class _GraphsPageState extends State<GraphsPage> {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
     return Scaffold(
+      backgroundColor: const Color(0xFF0F172A),
       appBar: AppBar(
+        backgroundColor: const Color(0xFF1E293B),
         title: Row(
           children: [
             Text(widget.appName),
@@ -100,10 +103,7 @@ class _GraphsPageState extends State<GraphsPage> {
               ),
               child: Text(
                 widget.appVersion,
-                style: const TextStyle(
-                  fontSize: 12,
-                  fontWeight: FontWeight.normal,
-                ),
+                style: const TextStyle(fontSize: 12),
               ),
             ),
           ],
@@ -111,44 +111,31 @@ class _GraphsPageState extends State<GraphsPage> {
         actions: [
           IconButton(
             icon: const Icon(Icons.refresh),
-            tooltip: 'Actualiser',
             onPressed: _loadData,
           ),
           IconButton(
             icon: const Icon(Icons.logout),
-            tooltip: 'Déconnexion',
             onPressed: _logout,
           ),
         ],
       ),
       body: _isLoading
-          ? const Center(child: CircularProgressIndicator())
+          ? const Center(child: CircularProgressIndicator(color: Colors.purple))
           : _distribution == null || _distribution!.total == 0
           ? Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(
-              Icons.pie_chart_outline,
-              size: 80,
-              color: Colors.grey.shade400,
-            ),
+            Icon(Icons.pie_chart_outline, size: 80, color: Colors.grey.shade400),
             const SizedBox(height: 16),
             Text(
               'Aucune donnée',
-              style: TextStyle(
-                fontSize: 20,
-                fontWeight: FontWeight.bold,
-                color: Colors.grey.shade700,
-              ),
+              style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Colors.grey.shade300),
             ),
             const SizedBox(height: 8),
             Text(
               'Ajoutez des comptes pour voir la répartition',
-              style: TextStyle(
-                fontSize: 14,
-                color: Colors.grey.shade600,
-              ),
+              style: TextStyle(fontSize: 14, color: Colors.grey.shade500),
             ),
           ],
         ),
@@ -160,10 +147,7 @@ class _GraphsPageState extends State<GraphsPage> {
           children: [
             const Text(
               'Répartition du patrimoine',
-              style: TextStyle(
-                fontSize: 24,
-                fontWeight: FontWeight.bold,
-              ),
+              style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: Colors.white),
             ),
             const SizedBox(height: 24),
             _buildPieChart(),
@@ -177,135 +161,69 @@ class _GraphsPageState extends State<GraphsPage> {
 
   Widget _buildPieChart() {
     final distribution = _distribution!;
-
     return Container(
       height: 300,
       padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          colors: [Colors.purple.shade900.withOpacity(0.25), Colors.purple.shade800.withOpacity(0.15)],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+        ),
+        borderRadius: BorderRadius.circular(16),
+      ),
       child: PieChart(
         PieChartData(
           sectionsSpace: 2,
           centerSpaceRadius: 60,
           sections: [
             if (distribution.liquidite > 0)
-              PieChartSectionData(
-                color: Colors.green,
-                value: distribution.liquidite,
-                title: '${((distribution.liquidite / distribution.total) * 100).toStringAsFixed(1)}%',
-                radius: 100,
-                titleStyle: const TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.white,
-                ),
-              ),
+              _pieSection(distribution.liquidite, distribution.total, Colors.green, 'Liquidité'),
             if (distribution.epargne > 0)
-              PieChartSectionData(
-                color: Colors.blue,
-                value: distribution.epargne,
-                title: '${((distribution.epargne / distribution.total) * 100).toStringAsFixed(1)}%',
-                radius: 100,
-                titleStyle: const TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.white,
-                ),
-              ),
+              _pieSection(distribution.epargne, distribution.total, Colors.blue, 'Épargne'),
             if (distribution.investissement > 0)
-              PieChartSectionData(
-                color: Colors.purple,
-                value: distribution.investissement,
-                title: '${((distribution.investissement / distribution.total) * 100).toStringAsFixed(1)}%',
-                radius: 100,
-                titleStyle: const TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.white,
-                ),
-              ),
+              _pieSection(distribution.investissement, distribution.total, Colors.purple, 'Investissement'),
             if (distribution.avantages > 0)
-              PieChartSectionData(
-                color: Colors.orange,
-                value: distribution.avantages,
-                title: '${((distribution.avantages / distribution.total) * 100).toStringAsFixed(1)}%',
-                radius: 100,
-                titleStyle: const TextStyle(
-                  fontSize: 16,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.white,
-                ),
-              ),
+              _pieSection(distribution.avantages, distribution.total, Colors.orange, 'Avantages'),
           ],
         ),
       ),
     );
   }
 
+  PieChartSectionData _pieSection(double value, double total, Color color, String label) {
+    final percent = (value / total) * 100;
+    return PieChartSectionData(
+      color: color,
+      value: value,
+      title: '${percent.toStringAsFixed(1)}%',
+      radius: 100,
+      titleStyle: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.white),
+    );
+  }
+
   Widget _buildLegend() {
     final distribution = _distribution!;
-
     return Column(
       children: [
-        if (distribution.liquidite > 0)
-          _buildLegendItem(
-            color: Colors.green,
-            label: 'Liquidité',
-            value: distribution.liquidite,
-            percentage: (distribution.liquidite / distribution.total) * 100,
-          ),
-        if (distribution.epargne > 0)
-          _buildLegendItem(
-            color: Colors.blue,
-            label: 'Épargne',
-            value: distribution.epargne,
-            percentage: (distribution.epargne / distribution.total) * 100,
-          ),
-        if (distribution.investissement > 0)
-          _buildLegendItem(
-            color: Colors.purple,
-            label: 'Investissement',
-            value: distribution.investissement,
-            percentage: (distribution.investissement / distribution.total) * 100,
-          ),
-        if (distribution.avantages > 0)
-          _buildLegendItem(
-            color: Colors.orange,
-            label: 'Avantages',
-            value: distribution.avantages,
-            percentage: (distribution.avantages / distribution.total) * 100,
-          ),
-        const Divider(height: 32),
-        _buildLegendItem(
-          color: Colors.grey,
-          label: 'Total',
-          value: distribution.total,
-          percentage: 100,
-          isBold: true,
-        ),
+        if (distribution.liquidite > 0) _legendItem(distribution.liquidite, distribution.total, Colors.green, 'Liquidité'),
+        if (distribution.epargne > 0) _legendItem(distribution.epargne, distribution.total, Colors.blue, 'Épargne'),
+        if (distribution.investissement > 0) _legendItem(distribution.investissement, distribution.total, Colors.purple, 'Investissement'),
+        if (distribution.avantages > 0) _legendItem(distribution.avantages, distribution.total, Colors.orange, 'Avantages'),
+        const Divider(height: 32, color: Colors.white24),
+        _legendItem(distribution.total, distribution.total, Colors.grey, 'Total', isBold: true),
       ],
     );
   }
 
-  Widget _buildLegendItem({
-    required Color color,
-    required String label,
-    required double value,
-    required double percentage,
-    bool isBold = false,
-  }) {
+  Widget _legendItem(double value, double total, Color color, String label, {bool isBold = false}) {
     final currencyFormat = NumberFormat.currency(locale: 'fr_FR', symbol: '€');
-
+    final percent = (value / total) * 100;
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 8),
       child: Row(
         children: [
-          Container(
-            width: 20,
-            height: 20,
-            decoration: BoxDecoration(
-              color: color,
-              borderRadius: BorderRadius.circular(4),
-            ),
-          ),
+          Container(width: 20, height: 20, decoration: BoxDecoration(color: color, borderRadius: BorderRadius.circular(4))),
           const SizedBox(width: 12),
           Expanded(
             child: Text(
@@ -313,26 +231,15 @@ class _GraphsPageState extends State<GraphsPage> {
               style: TextStyle(
                 fontSize: 16,
                 fontWeight: isBold ? FontWeight.bold : FontWeight.normal,
+                color: Colors.white,
               ),
             ),
           ),
           Column(
             crossAxisAlignment: CrossAxisAlignment.end,
             children: [
-              Text(
-                currencyFormat.format(value),
-                style: TextStyle(
-                  fontSize: 16,
-                  fontWeight: isBold ? FontWeight.bold : FontWeight.w600,
-                ),
-              ),
-              Text(
-                '${percentage.toStringAsFixed(1)}%',
-                style: TextStyle(
-                  fontSize: 14,
-                  color: Colors.grey.shade600,
-                ),
-              ),
+              Text(currencyFormat.format(value), style: TextStyle(fontSize: 16, fontWeight: isBold ? FontWeight.bold : FontWeight.w600, color: Colors.white)),
+              Text('${percent.toStringAsFixed(1)}%', style: TextStyle(fontSize: 14, color: Colors.white70)),
             ],
           ),
         ],
