@@ -116,14 +116,27 @@ class InvestmentCard extends StatelessWidget {
       child: InkWell(
         borderRadius: BorderRadius.circular(16),
         onTap: () async {
-          final shouldReload = await Navigator.push<bool>(
-            context,
-            MaterialPageRoute(
-              builder: (_) => InvestmentDetailPage(
+          final shouldReload = await Navigator.of(context).push<bool>(
+            PageRouteBuilder(
+              opaque: true,
+              barrierColor: const Color(0xFF0F172A), // 🔥 empêche le flash blanc
+              transitionDuration: const Duration(milliseconds: 280),
+              pageBuilder: (_, __, ___) => InvestmentDetailPage(
                 userInvestmentAccountId: userInvestmentAccountId,
                 accountName: type,
                 bankName: bankName,
               ),
+              transitionsBuilder: (_, animation, __, child) {
+                final tween = Tween<Offset>(
+                  begin: const Offset(1, 0),
+                  end: Offset.zero,
+                ).chain(CurveTween(curve: Curves.easeOutCubic));
+
+                return SlideTransition(
+                  position: animation.drive(tween),
+                  child: child,
+                );
+              },
             ),
           );
 
