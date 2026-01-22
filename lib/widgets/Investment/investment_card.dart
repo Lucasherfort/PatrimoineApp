@@ -121,12 +121,12 @@ class InvestmentCard extends StatelessWidget {
               opaque: true,
               barrierColor: const Color(0xFF0F172A), // 🔥 empêche le flash blanc
               transitionDuration: const Duration(milliseconds: 280),
-              pageBuilder: (_, __, ___) => InvestmentDetailPage(
+              pageBuilder: (_, _, _) => InvestmentDetailPage(
                 userInvestmentAccountId: userInvestmentAccountId,
                 accountName: type,
                 bankName: bankName,
               ),
-              transitionsBuilder: (_, animation, __, child) {
+              transitionsBuilder: (_, animation, _, child) {
                 final tween = Tween<Offset>(
                   begin: const Offset(1, 0),
                   end: Offset.zero,
