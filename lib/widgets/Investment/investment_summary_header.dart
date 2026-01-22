@@ -54,95 +54,112 @@ class InvestmentSummaryHeader extends StatelessWidget {
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
-      ),
+      backgroundColor: Colors.transparent,
       builder: (context) {
-        return Padding(
-          padding: EdgeInsets.only(
-            left: 16,
-            right: 16,
-            top: 16,
-            bottom: MediaQuery.of(context).viewInsets.bottom + 16,
+        return Container(
+          decoration: const BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
           ),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                "Modifier ${account.sourceName}",
-                style: const TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-              const SizedBox(height: 16),
-
-              if (!isAssuranceVie) ...[
-                TextField(
-                  controller: cashController,
-                  keyboardType: const TextInputType.numberWithOptions(decimal: true),
-                  decoration: const InputDecoration(
-                    labelText: "Espèces disponibles",
-                    suffixText: "€",
-                    border: OutlineInputBorder(),
-                    prefixIcon: Icon(Icons.account_balance_wallet),
-                    helperText: "Montant en espèces sur le compte",
+          child: Padding(
+            padding: EdgeInsets.only(
+              left: 16,
+              right: 16,
+              top: 16,
+              bottom: MediaQuery.of(context).viewInsets.bottom + 16,
+            ),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  "Modifier ${account.sourceName}",
+                  style: const TextStyle(
+                    fontSize: 20,
+                    fontWeight: FontWeight.bold,
                   ),
                 ),
-                const SizedBox(height: 12),
-              ],
+                const SizedBox(height: 20),
 
-              TextField(
-                controller: depositsController,
-                keyboardType: const TextInputType.numberWithOptions(decimal: true),
-                decoration: const InputDecoration(
-                  labelText: "Versements cumulés",
-                  suffixText: "€",
-                  border: OutlineInputBorder(),
-                  prefixIcon: Icon(Icons.savings),
-                  helperText: "Total des versements effectués",
+                if (!isAssuranceVie) ...[
+                  TextField(
+                    controller: cashController,
+                    keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                    decoration: InputDecoration(
+                      labelText: "Espèces disponibles",
+                      suffixText: "€",
+                      border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                      focusedBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                        borderSide: BorderSide(color: Colors.purple.shade600, width: 2),
+                      ),
+                      prefixIcon: const Icon(Icons.account_balance_wallet),
+                      helperText: "Montant en espèces sur le compte",
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                ],
+
+                TextField(
+                  controller: depositsController,
+                  keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                  decoration: InputDecoration(
+                    labelText: "Versements cumulés",
+                    suffixText: "€",
+                    border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                    focusedBorder: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                      borderSide: BorderSide(color: Colors.purple.shade600, width: 2),
+                    ),
+                    prefixIcon: const Icon(Icons.savings),
+                    helperText: "Total des versements effectués",
+                  ),
                 ),
-              ),
-              const SizedBox(height: 16),
+                const SizedBox(height: 20),
 
-              SizedBox(
-                width: double.infinity,
-                child: ElevatedButton(
-                  onPressed: () {
-                    final cashText = cashController.text.replaceAll(',', '.');
-                    final depositsText = depositsController.text.replaceAll(',', '.');
+                SizedBox(
+                  width: double.infinity,
+                  child: ElevatedButton(
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.purple.shade600,
+                      padding: const EdgeInsets.symmetric(vertical: 14),
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                    ),
+                    onPressed: () {
+                      final cashText = cashController.text.replaceAll(',', '.');
+                      final depositsText = depositsController.text.replaceAll(',', '.');
 
-                    final cash = isAssuranceVie
-                        ? 0.0
-                        : double.tryParse(cashText);
-                    final deposits = double.tryParse(depositsText);
+                      final cash = isAssuranceVie ? 0.0 : double.tryParse(cashText);
+                      final deposits = double.tryParse(depositsText);
 
-                    if ((isAssuranceVie || cash != null) &&
-                        deposits != null &&
-                        onValueUpdated != null) {
+                      if ((isAssuranceVie || cash != null) &&
+                          deposits != null &&
+                          onValueUpdated != null) {
+                        final newCash = isAssuranceVie ? 0.0 : cash!;
+                        final newDeposits = deposits;
 
-                      final newCash = isAssuranceVie ? 0.0 : cash!;
-                      final newDeposits = deposits;
+                        final cashChanged = !isAssuranceVie &&
+                            newCash.toStringAsFixed(2) != account.cashBalance.toStringAsFixed(2);
 
-                      final cashChanged = !isAssuranceVie &&
-                          newCash.toStringAsFixed(2) != account.cashBalance.toStringAsFixed(2);
+                        final depositsChanged =
+                            newDeposits.toStringAsFixed(2) !=
+                                account.totalContribution.toStringAsFixed(2);
 
-                      final depositsChanged =
-                          newDeposits.toStringAsFixed(2) !=
-                              account.totalContribution.toStringAsFixed(2);
-
-                      if (cashChanged || depositsChanged) {
-                        onValueUpdated!(newCash, newDeposits);
+                        if (cashChanged || depositsChanged) {
+                          onValueUpdated!(newCash, newDeposits);
+                        }
                       }
-                    }
 
-                    Navigator.pop(context);
-                  },
-                  child: const Text("Valider"),
+                      Navigator.pop(context);
+                    },
+                    child: const Text(
+                      "Valider",
+                      style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                    ),
+                  ),
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
         );
       },
@@ -155,29 +172,33 @@ class InvestmentSummaryHeader extends StatelessWidget {
 
     return InkWell(
       onTap: () => _openEditPanel(context),
-      borderRadius: BorderRadius.circular(14),
+      borderRadius: BorderRadius.circular(16),
       child: Container(
-        margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+        margin: const EdgeInsets.all(16),
         decoration: BoxDecoration(
           gradient: LinearGradient(
             colors: [
-              Color(0xFF1E293B), // slate-800
-              Color(0xFF334155), // slate-700
+              Colors.purple.shade900.withValues(alpha: 0.4),
+              Colors.purple.shade800.withValues(alpha: 0.3),
             ],
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
           ),
-          borderRadius: BorderRadius.circular(14),
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(
+            color: Colors.purple.shade400.withValues(alpha: 0.3),
+            width: 1,
+          ),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withValues(alpha: 0.25),
-              blurRadius: 10,
-              offset: const Offset(0, 4),
+              color: Colors.black.withValues(alpha: 0.3),
+              blurRadius: 16,
+              offset: const Offset(0, 6),
             ),
           ],
         ),
         child: Padding(
-          padding: const EdgeInsets.all(14),
+          padding: const EdgeInsets.all(16),
           child: Column(
             children: [
               // Ligne principale : Valeur totale + Performance
@@ -192,16 +213,16 @@ class InvestmentSummaryHeader extends StatelessWidget {
                       Text(
                         "Valeur totale",
                         style: TextStyle(
-                          fontSize: 12,
-                          color: Colors.white.withValues(alpha: 0.85),
+                          fontSize: 13,
+                          color: Colors.white.withValues(alpha: 0.7),
                           fontWeight: FontWeight.w500,
                         ),
                       ),
-                      const SizedBox(height: 2),
+                      const SizedBox(height: 4),
                       Text(
                         "${_formatAmount(totalValue)} €",
                         style: const TextStyle(
-                          fontSize: 24,
+                          fontSize: 26,
                           fontWeight: FontWeight.bold,
                           color: Colors.white,
                           letterSpacing: -0.5,
@@ -218,10 +239,8 @@ class InvestmentSummaryHeader extends StatelessWidget {
                         "${isProfit ? '+' : ''}${performancePercentage.toStringAsFixed(2)}%",
                         style: TextStyle(
                           fontSize: 28,
-                          fontWeight: FontWeight.w800,
-                          color: isProfit
-                              ? Colors.green.shade400
-                              : Colors.red.shade400,
+                          fontWeight: FontWeight.w900,
+                          color: isProfit ? Colors.green.shade400 : Colors.red.shade400,
                           letterSpacing: -0.5,
                         ),
                       ),
@@ -232,20 +251,16 @@ class InvestmentSummaryHeader extends StatelessWidget {
                         children: [
                           Icon(
                             isProfit ? Icons.arrow_upward : Icons.arrow_downward,
-                            color: isProfit
-                                ? Colors.green.shade300
-                                : Colors.red.shade300,
-                            size: 14,
+                            color: isProfit ? Colors.green.shade300 : Colors.red.shade300,
+                            size: 15,
                           ),
                           const SizedBox(width: 4),
                           Text(
                             "${isProfit ? '+' : ''}${_formatAmount(totalProfitLoss)} €",
                             style: TextStyle(
-                              fontSize: 15,
+                              fontSize: 16,
                               fontWeight: FontWeight.w700,
-                              color: isProfit
-                                  ? Colors.green.shade300
-                                  : Colors.red.shade300,
+                              color: isProfit ? Colors.green.shade300 : Colors.red.shade300,
                             ),
                           ),
                         ],
@@ -254,17 +269,19 @@ class InvestmentSummaryHeader extends StatelessWidget {
                   ),
                 ],
               ),
-              const SizedBox(height: 12),
+              const SizedBox(height: 14),
               // Ligne inférieure : Métriques compactes
               Container(
-                padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 12),
+                padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 14),
                 decoration: BoxDecoration(
-                  color: Colors.white.withValues(alpha: 0.12),
-                  borderRadius: BorderRadius.circular(10),
+                  color: Colors.white.withValues(alpha: 0.1),
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(
+                    color: Colors.white.withValues(alpha: 0.15),
+                    width: 1,
+                  ),
                 ),
-                child: isAssuranceVie
-                    ? _buildAssuranceVieMetrics()
-                    : _buildPEAMetrics(),
+                child: isAssuranceVie ? _buildAssuranceVieMetrics() : _buildPEAMetrics(),
               ),
             ],
           ),
@@ -285,7 +302,7 @@ class InvestmentSummaryHeader extends StatelessWidget {
         ),
         Container(
           width: 1,
-          height: 32,
+          height: 36,
           color: Colors.white.withValues(alpha: 0.2),
         ),
         _buildCompactMetric(
@@ -321,25 +338,26 @@ class InvestmentSummaryHeader extends StatelessWidget {
       children: [
         Icon(
           icon,
-          color: Colors.white.withValues(alpha: 0.75),
-          size: 16,
+          color: Colors.purple.shade200,
+          size: 18,
         ),
-        const SizedBox(width: 6),
+        const SizedBox(width: 8),
         Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
               label,
               style: TextStyle(
-                fontSize: 10,
-                color: Colors.white.withValues(alpha: 0.75),
+                fontSize: 11,
+                color: Colors.white.withValues(alpha: 0.7),
                 fontWeight: FontWeight.w500,
               ),
             ),
+            const SizedBox(height: 2),
             Text(
               value,
               style: const TextStyle(
-                fontSize: 12,
+                fontSize: 13,
                 fontWeight: FontWeight.bold,
                 color: Colors.white,
               ),

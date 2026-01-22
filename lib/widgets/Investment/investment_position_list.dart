@@ -20,7 +20,12 @@ class InvestmentPositionList extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     if (isLoading) {
-      return const Center(child: CircularProgressIndicator());
+      return const Center(
+        child: CircularProgressIndicator(
+          color: Colors.white,
+          strokeWidth: 3,
+        ),
+      );
     }
 
     if (positions.isEmpty) {
@@ -30,13 +35,25 @@ class InvestmentPositionList extends StatelessWidget {
           children: [
             Icon(
               Icons.inbox_outlined,
-              size: 64,
-              color: Colors.grey.shade400,
+              size: 80,
+              color: Colors.white.withValues(alpha: 0.3),
             ),
             const SizedBox(height: 16),
-            const Text(
+            Text(
               'Aucune position dans ce compte',
-              style: TextStyle(fontSize: 16),
+              style: TextStyle(
+                fontSize: 16,
+                color: Colors.white.withValues(alpha: 0.7),
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+            const SizedBox(height: 8),
+            Text(
+              'Appuyez sur "Ajouter" pour créer une position',
+              style: TextStyle(
+                fontSize: 13,
+                color: Colors.white.withValues(alpha: 0.5),
+              ),
             ),
           ],
         ),
@@ -86,12 +103,14 @@ class InvestmentPositionList extends StatelessWidget {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(
-                hasChanged
-                    ? 'Position ${position.ticker} mise à jour'
-                    : 'Position ${position.ticker} : aucun changement'
+              hasChanged
+                  ? 'Position ${position.ticker} mise à jour'
+                  : 'Position ${position.ticker} : aucun changement',
             ),
-            backgroundColor: hasChanged ? Colors.green : Colors.blue,
+            backgroundColor: hasChanged ? Colors.green.shade700 : Colors.blue.shade700,
             duration: const Duration(seconds: 2),
+            behavior: SnackBarBehavior.floating,
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
           ),
         );
       }
@@ -100,15 +119,16 @@ class InvestmentPositionList extends StatelessWidget {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text('Erreur lors de la mise à jour : $e'),
-            backgroundColor: Colors.red,
+            backgroundColor: Colors.red.shade700,
             duration: const Duration(seconds: 3),
+            behavior: SnackBarBehavior.floating,
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
           ),
         );
       }
     }
   }
 
-  // ✅ Méthode pour supprimer une position
   Future<void> _deletePosition(
       BuildContext context,
       InvestmentPosition position,
@@ -124,8 +144,10 @@ class InvestmentPositionList extends StatelessWidget {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text('Position ${position.ticker} supprimée'),
-            backgroundColor: Colors.orange,
+            backgroundColor: Colors.orange.shade700,
             duration: const Duration(seconds: 2),
+            behavior: SnackBarBehavior.floating,
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
           ),
         );
       }
@@ -134,8 +156,10 @@ class InvestmentPositionList extends StatelessWidget {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text('Erreur lors de la suppression : $e'),
-            backgroundColor: Colors.red,
+            backgroundColor: Colors.red.shade700,
             duration: const Duration(seconds: 3),
+            behavior: SnackBarBehavior.floating,
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
           ),
         );
       }
