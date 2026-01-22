@@ -123,10 +123,23 @@ class SavingsAccountCard extends StatelessWidget {
   // Navigation
   // =========================
   Future<void> _openDetailsPage(BuildContext context) async {
-    final result = await Navigator.push<UserSavingsAccountView?>(
-      context,
-      MaterialPageRoute(
-        builder: (_) => SavingsDetailPage(account: account),
+    final result = await Navigator.of(context).push<UserSavingsAccountView?>(
+      PageRouteBuilder(
+        barrierColor: const Color(0xFF0F172A),
+        transitionDuration: const Duration(milliseconds: 280),
+        pageBuilder: (_, __, ___) =>
+            SavingsDetailPage(account: account),
+        transitionsBuilder: (_, animation, __, child) {
+          final tween = Tween<Offset>(
+            begin: const Offset(1, 0),
+            end: Offset.zero,
+          ).chain(CurveTween(curve: Curves.easeOutCubic));
+
+          return SlideTransition(
+            position: animation.drive(tween),
+            child: child,
+          );
+        },
       ),
     );
 

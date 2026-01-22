@@ -15,13 +15,15 @@ class SavingsDetailPage extends StatefulWidget {
 class _SavingsDetailPageState extends State<SavingsDetailPage> {
   late TextEditingController _principalController;
   late TextEditingController _interestController;
+
   late double _initialPrincipal;
   late double _initialInterest;
   late double _currentPrincipal;
   late double _currentInterest;
+
   bool _hasChanges = false;
 
-  final SavingsAccountService _savingsAccountService = SavingsAccountService();
+  final SavingsAccountService _service = SavingsAccountService();
 
   @override
   void initState() {
@@ -29,6 +31,7 @@ class _SavingsDetailPageState extends State<SavingsDetailPage> {
 
     _initialPrincipal = widget.account.principal;
     _initialInterest = widget.account.interest;
+
     _currentPrincipal = _initialPrincipal;
     _currentInterest = _initialInterest;
 
@@ -50,65 +53,65 @@ class _SavingsDetailPageState extends State<SavingsDetailPage> {
     super.dispose();
   }
 
-  Future<void> _saveChanges() async {
-    // Vérification plafond
-    if (widget.account.ceiling != null && _currentPrincipal > widget.account.ceiling!) {
-      if (!mounted) return;
-      _showPopup(
-        'Erreur',
-        'Le capital ne peut pas dépasser le plafond de ${widget.account.ceiling!.toStringAsFixed(2)} €.',
-      );
-      return;
-    }
-
-    final success = await _savingsAccountService.updateSavingsAccount(
-      savingsAccountId: widget.account.id,
-      principal: _currentPrincipal,
-      interest: _currentInterest,
-    );
-
-    if (!mounted) return; // 🔥 protection contre la destruction du widget pendant l'await
-
-    if (!success) {
-      _showPopup('Erreur', 'Impossible de sauvegarder les modifications.');
-      return;
-    }
-
-    // 🔥 Met à jour l'objet existant
-    widget.account.principal = _currentPrincipal;
-    widget.account.interest = _currentInterest;
-
-    _hasChanges = false;
-
-    // Retourner l'objet mis à jour au parent
-    Navigator.of(context).pop(widget.account);
-  }
-
   void _checkChanges() {
-    final principal = double.tryParse(_principalController.text.replaceAll(',', '.'));
-    final interest = double.tryParse(_interestController.text.replaceAll(',', '.'));
+    final principal =
+    double.tryParse(_principalController.text.replaceAll(',', '.'));
+    final interest =
+    double.tryParse(_interestController.text.replaceAll(',', '.'));
 
     if (principal == null || interest == null) return;
 
     setState(() {
       _currentPrincipal = principal;
       _currentInterest = interest;
-      _hasChanges = principal != _initialPrincipal || interest != _initialInterest;
+      _hasChanges =
+          principal != _initialPrincipal || interest != _initialInterest;
     });
+  }
+
+  Future<void> _saveChanges() async {
+    if (widget.account.ceiling != null &&
+        _currentPrincipal > widget.account.ceiling!) {
+      _showPopup(
+        'Erreur',
+        'Le capital dépasse le plafond autorisé.',
+      );
+      return;
+    }
+
+    final success = await _service.updateSavingsAccount(
+      savingsAccountId: widget.account.id,
+      principal: _currentPrincipal,
+      interest: _currentInterest,
+    );
+
+    if (!mounted) return;
+
+    if (!success) {
+      _showPopup('Erreur', 'Impossible de sauvegarder les modifications.');
+      return;
+    }
+
+    widget.account.principal = _currentPrincipal;
+    widget.account.interest = _currentInterest;
+
+    Navigator.of(context).pop(widget.account);
   }
 
   void _showPopup(String title, String message) {
     showDialog(
       context: context,
-      barrierDismissible: true,
       builder: (_) => AlertDialog(
-        title: Text(title),
-        content: Text(message),
+        backgroundColor: const Color(0xFF0F172A),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        title: Text(title, style: const TextStyle(color: Colors.white)),
+        content:
+        Text(message, style: TextStyle(color: Colors.white.withOpacity(0.8))),
         actions: [
           TextButton(
-            onPressed: () => Navigator.of(context).pop(),
+            onPressed: () => Navigator.pop(context),
             child: const Text('OK'),
-          ),
+          )
         ],
       ),
     );
@@ -120,248 +123,172 @@ class _SavingsDetailPageState extends State<SavingsDetailPage> {
   }
 
   Color get _fillColor {
-    if (_fillPercentage >= 80) return Colors.red;
-    if (_fillPercentage >= 60) return Colors.orange;
-    return Colors.green;
+    if (_fillPercentage >= 80) return Colors.redAccent;
+    if (_fillPercentage >= 60) return Colors.orangeAccent;
+    return Colors.greenAccent;
   }
 
   @override
   Widget build(BuildContext context) {
     final currency = NumberFormat.currency(locale: 'fr_FR', symbol: '€');
-    final percentFormat = NumberFormat.decimalPattern('fr_FR');
+    final percent = NumberFormat.decimalPattern('fr_FR');
 
     return PopScope(
-      canPop: !_hasChanges, // bloque le pop automatique si modifié
+      canPop: !_hasChanges,
       onPopInvokedWithResult: (didPop, result) {
         if (didPop) return;
-
-        if (_hasChanges) {
-          widget.account.principal = _currentPrincipal;
-          widget.account.interest = _currentInterest;
-
-          Navigator.of(context).pop(widget.account);
-        } else {
-          Navigator.of(context).pop();
-        }
+        Navigator.of(context).pop(widget.account);
       },
       child: Scaffold(
-        appBar: AppBar(
-          leading: IconButton(
-            icon: const Icon(Icons.arrow_back),
-            onPressed: () {
-              if (_hasChanges) {
-                widget.account.principal = _currentPrincipal;
-                widget.account.interest = _currentInterest;
-                Navigator.of(context).pop(widget.account);
-              } else {
-                Navigator.of(context).pop();
-              }
-            },
+        backgroundColor: const Color(0xFF0F172A),
+        appBar: _buildAppBar(),
+        body: Container(
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+              colors: [
+                const Color(0xFF0F172A),
+                Colors.blue.shade900.withOpacity(0.35),
+              ],
+            ),
           ),
-          title: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                widget.account.sourceName,
-                style: const TextStyle(fontSize: 18),
-              ),
-              Text(
-                widget.account.bankName,
-                style: const TextStyle(
-                  fontSize: 14,
-                  fontWeight: FontWeight.normal,
-                ),
-              ),
-            ],
-          ),
-          actions: [
-            if (_hasChanges)
-              IconButton(
-                icon: const Icon(Icons.check),
-                tooltip: 'Enregistrer',
-                onPressed: _saveChanges,
-              ),
-          ],
-        ),
-        body: SingleChildScrollView(
-          padding: const EdgeInsets.all(16),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              _buildHeader(),
-              const SizedBox(height: 24),
-              _buildInfoSection(currency, percentFormat),
-              const SizedBox(height: 24),
-              _buildEditableSection(currency),
-              const SizedBox(height: 24),
-              _buildTotalSection(currency),
-            ],
+          child: SingleChildScrollView(
+            padding: const EdgeInsets.all(16),
+            child: Column(
+              children: [
+                _buildHeader(),
+                const SizedBox(height: 20),
+                _buildInfoSection(currency, percent),
+                const SizedBox(height: 20),
+                _buildEditableSection(),
+                const SizedBox(height: 20),
+                _buildTotalSection(currency),
+                const SizedBox(height: 24),
+              ],
+            ),
           ),
         ),
       ),
     );
   }
 
-  Widget _buildHeader() {
-    return Row(
-      children: [
-        Container(
-          width: 48,
-          height: 48,
-          padding: const EdgeInsets.all(6),
-          decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(10),
-            border: Border.all(color: Colors.grey.shade300),
-          ),
-          child: widget.account.logoUrl.isEmpty
-              ? Icon(Icons.account_balance, color: Colors.blue.shade700)
-              : ClipRRect(
-            borderRadius: BorderRadius.circular(6),
-            child: Image.network(
-              widget.account.logoUrl,
-              fit: BoxFit.contain,
-              errorBuilder: (_, _, _) => Icon(Icons.account_balance, color: Colors.blue.shade700),
-            ),
-          ),
-        ),
-        const SizedBox(width: 12),
-        Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(widget.account.bankName,
-                style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
-            Text(widget.account.sourceName, style: TextStyle(color: Colors.grey.shade600)),
-          ],
-        ),
+  // ================= UI =================
+
+  PreferredSizeWidget _buildAppBar() {
+    return AppBar(
+      backgroundColor: Colors.transparent,
+      elevation: 0,
+      leading: const BackButton(color: Colors.white),
+      title: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(widget.account.sourceName,
+              style: const TextStyle(color: Colors.white, fontSize: 18)),
+          Text(widget.account.bankName,
+              style: TextStyle(
+                  color: Colors.white.withOpacity(0.6), fontSize: 13)),
+        ],
+      ),
+      actions: [
+        if (_hasChanges)
+          IconButton(
+            icon: const Icon(Icons.check, color: Colors.greenAccent),
+            onPressed: _saveChanges,
+          )
       ],
     );
   }
 
-  Widget _buildInfoSection(NumberFormat currency, NumberFormat percentFormat) {
+  Widget _buildHeader() {
     return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: Colors.grey.shade50,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: Colors.grey.shade200),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+      padding: const EdgeInsets.all(14),
+      decoration: _cardDecoration(),
+      child: Row(
         children: [
-          Row(
+          _bankLogo(),
+          const SizedBox(width: 14),
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Icon(Icons.info_outline, size: 20, color: Colors.blue.shade700),
-              const SizedBox(width: 8),
-              const Text('Informations', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+              Text(widget.account.bankName,
+                  style: const TextStyle(
+                      color: Colors.white,
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold)),
+              Text(widget.account.sourceName,
+                  style:
+                  TextStyle(color: Colors.white.withOpacity(0.6))),
             ],
-          ),
-          const SizedBox(height: 16),
-          if (widget.account.interestRate != null)
-            _InfoRow(
-              label: "Taux d'intérêt",
-              value: "${percentFormat.format(widget.account.interestRate! * 100)} %",
-            ),
-          if (widget.account.ceiling != null) ...[
-            const SizedBox(height: 12),
-            _InfoRow(label: "Plafond", value: currency.format(widget.account.ceiling)),
-            const SizedBox(height: 12),
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Text('Remplissage', style: TextStyle(fontSize: 14, color: Colors.grey.shade600)),
-                    Text('${_fillPercentage.toStringAsFixed(1)} %',
-                        style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold, color: _fillColor)),
-                  ],
-                ),
-                const SizedBox(height: 8),
-                ClipRRect(
-                  borderRadius: BorderRadius.circular(8),
-                  child: LinearProgressIndicator(
-                    value: _fillPercentage / 100,
-                    minHeight: 10,
-                    backgroundColor: Colors.grey.shade200,
-                    valueColor: AlwaysStoppedAnimation<Color>(_fillColor),
-                  ),
-                ),
-                const SizedBox(height: 8),
-                if (_fillPercentage >= 100)
-                  Padding(
-                    padding: const EdgeInsets.only(top: 4),
-                    child: Row(
-                      children: [
-                        Icon(Icons.warning_amber_rounded, size: 16, color: Colors.orange.shade800),
-                        const SizedBox(width: 4),
-                        Text('Vous avez atteint le plafond',
-                            style: TextStyle(fontSize: 12, fontWeight: FontWeight.w500, color: Colors.orange.shade800)),
-                      ],
-                    ),
-                  )
-                else if (_fillPercentage >= 80)
-                  Padding(
-                    padding: const EdgeInsets.only(top: 4),
-                    child: Row(
-                      children: [
-                        Icon(Icons.warning_amber_rounded, size: 16, color: Colors.red.shade700),
-                        const SizedBox(width: 4),
-                        Text('Plafond bientôt atteint',
-                            style: TextStyle(fontSize: 12, fontWeight: FontWeight.w500, color: Colors.red.shade700)),
-                      ],
-                    ),
-                  ),
-              ],
-            ),
-          ],
+          )
         ],
       ),
     );
   }
 
-  Widget _buildEditableSection(NumberFormat currency) {
+  Widget _bankLogo() {
+    return Container(
+      width: 46,
+      height: 46,
+      padding: const EdgeInsets.all(6),
+      decoration: BoxDecoration(
+        color: Colors.white.withOpacity(0.15),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: Colors.blue.shade300.withOpacity(0.3)),
+      ),
+      child: widget.account.logoUrl.isEmpty
+          ? Icon(Icons.account_balance,
+          color: Colors.blue.shade300, size: 26)
+          : ClipRRect(
+        borderRadius: BorderRadius.circular(8),
+        child: Image.network(widget.account.logoUrl),
+      ),
+    );
+  }
+
+  Widget _buildInfoSection(
+      NumberFormat currency, NumberFormat percent) {
     return Container(
       padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: Colors.blue.shade50,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: Colors.blue.shade200),
-      ),
+      decoration: _cardDecoration(),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Row(
-            children: [
-              Icon(Icons.edit, size: 20, color: Colors.blue.shade700),
-              const SizedBox(width: 8),
-              const Text('Montants éditables', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
-            ],
-          ),
+          _sectionTitle(Icons.info_outline, 'Informations'),
           const SizedBox(height: 16),
-          TextField(
-            controller: _principalController,
-            keyboardType: const TextInputType.numberWithOptions(decimal: true),
-            decoration: InputDecoration(
-              labelText: 'Capital',
-              suffixText: '€',
-              filled: true,
-              fillColor: Colors.white,
-              border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
+          if (widget.account.interestRate != null)
+            _infoRow(
+              "Taux d'intérêt",
+              "${percent.format(widget.account.interestRate! * 100)} %",
             ),
-          ),
+          if (widget.account.ceiling != null) ...[
+            const SizedBox(height: 12),
+            _infoRow("Plafond", currency.format(widget.account.ceiling)),
+            const SizedBox(height: 12),
+            LinearProgressIndicator(
+              value: _fillPercentage / 100,
+              minHeight: 10,
+              backgroundColor: Colors.white.withOpacity(0.15),
+              valueColor: AlwaysStoppedAnimation(_fillColor),
+            ),
+          ]
+        ],
+      ),
+    );
+  }
+
+  Widget _buildEditableSection() {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: _cardDecoration(),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          _sectionTitle(Icons.edit, 'Montants éditables'),
+          const SizedBox(height: 16),
+          _field(_principalController, 'Capital'),
           const SizedBox(height: 12),
-          TextField(
-            controller: _interestController,
-            keyboardType: const TextInputType.numberWithOptions(decimal: true),
-            decoration: InputDecoration(
-              labelText: 'Intérêts acquis',
-              suffixText: '€',
-              filled: true,
-              fillColor: Colors.white,
-              border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
-            ),
-          ),
+          _field(_interestController, 'Intérêts acquis'),
         ],
       ),
     );
@@ -371,35 +298,102 @@ class _SavingsDetailPageState extends State<SavingsDetailPage> {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        gradient: LinearGradient(colors: [Colors.green.shade400, Colors.green.shade600]),
-        borderRadius: BorderRadius.circular(12),
+        gradient: LinearGradient(
+          colors: [Colors.blue.shade400, Colors.blue.shade700],
+        ),
+        borderRadius: BorderRadius.circular(16),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.3),
+            blurRadius: 12,
+            offset: const Offset(0, 4),
+          ),
+        ],
       ),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          const Text('Total', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.white)),
+          const Text('Total',
+              style: TextStyle(
+                  color: Colors.white,
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold)),
           Text(currency.format(_currentPrincipal + _currentInterest),
-              style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: Colors.white)),
+              style: const TextStyle(
+                  color: Colors.white,
+                  fontSize: 24,
+                  fontWeight: FontWeight.bold)),
         ],
       ),
     );
   }
-}
 
-class _InfoRow extends StatelessWidget {
-  final String label;
-  final String value;
+  // ================= HELPERS =================
 
-  const _InfoRow({required this.label, required this.value});
+  Widget _field(TextEditingController controller, String label) {
+    return TextField(
+      controller: controller,
+      style: const TextStyle(color: Colors.white),
+      keyboardType: const TextInputType.numberWithOptions(decimal: true),
+      decoration: InputDecoration(
+        labelText: label,
+        labelStyle:
+        TextStyle(color: Colors.white.withOpacity(0.7)),
+        suffixText: '€',
+        suffixStyle:
+        TextStyle(color: Colors.white.withOpacity(0.6)),
+        filled: true,
+        fillColor: Colors.white.withOpacity(0.08),
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide: BorderSide.none,
+        ),
+      ),
+    );
+  }
 
-  @override
-  Widget build(BuildContext context) {
+  Widget _sectionTitle(IconData icon, String title) {
+    return Row(
+      children: [
+        Icon(icon, color: Colors.blue.shade300, size: 20),
+        const SizedBox(width: 8),
+        Text(title,
+            style: const TextStyle(
+                color: Colors.white,
+                fontSize: 16,
+                fontWeight: FontWeight.bold)),
+      ],
+    );
+  }
+
+  Widget _infoRow(String label, String value) {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
-        Text(label, style: TextStyle(fontSize: 14, color: Colors.grey.shade600)),
-        Text(value, style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w600)),
+        Text(label,
+            style:
+            TextStyle(color: Colors.white.withOpacity(0.6))),
+        Text(value,
+            style: const TextStyle(
+                color: Colors.white,
+                fontWeight: FontWeight.w600)),
       ],
+    );
+  }
+
+  BoxDecoration _cardDecoration() {
+    return BoxDecoration(
+      gradient: LinearGradient(
+        begin: Alignment.topLeft,
+        end: Alignment.bottomRight,
+        colors: [
+          Colors.blue.shade900.withOpacity(0.25),
+          Colors.blue.shade800.withOpacity(0.15),
+        ],
+      ),
+      borderRadius: BorderRadius.circular(16),
+      border:
+      Border.all(color: Colors.blue.shade400.withOpacity(0.3)),
     );
   }
 }
