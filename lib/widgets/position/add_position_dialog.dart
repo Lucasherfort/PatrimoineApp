@@ -346,6 +346,7 @@ class _AddPositionDialogState extends State<AddPositionDialog> {
             onPressed: _handleAdd,
             style: ElevatedButton.styleFrom(
               backgroundColor: Colors.purple.shade600,
+              foregroundColor: Colors.white,
               padding:
               const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
             ),
