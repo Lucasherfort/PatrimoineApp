@@ -197,11 +197,17 @@ class _PatrimoineHeaderState extends State<PatrimoineHeader> {
                 Row(
                   children: [
                     Container(
-                      width: 4,
-                      height: 36,
+                      padding: const EdgeInsets.all(6),
                       decoration: BoxDecoration(
+                        color: _gainsColor.withValues(alpha: 0.12),
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: Icon(
+                        _gains >= 0
+                            ? Icons.trending_up_rounded
+                            : Icons.trending_down_rounded,
+                        size: 16,
                         color: _gainsColor,
-                        borderRadius: BorderRadius.circular(2),
                       ),
                     ),
                     const SizedBox(width: 12),
@@ -218,39 +224,27 @@ class _PatrimoineHeaderState extends State<PatrimoineHeader> {
                           ),
                         ),
                         const SizedBox(height: 2),
-                        Row(
-                          children: [
-                            Icon(
-                              _gains >= 0
-                                  ? Icons.arrow_upward_rounded
-                                  : Icons.arrow_downward_rounded,
-                              size: 14,
+                        AnimatedSwitcher(
+                          duration: const Duration(milliseconds: 200),
+                          child: _isVisible
+                              ? Text(
+                            "${_gains >= 0 ? '+' : ''}${_formatAmount(_gains)} €",
+                            key: const ValueKey('gains-visible'),
+                            style: TextStyle(
+                              fontSize: 15,
+                              fontWeight: FontWeight.w800,
                               color: _gainsColor,
                             ),
-                            const SizedBox(width: 4),
-                            AnimatedSwitcher(
-                              duration: const Duration(milliseconds: 200),
-                              child: _isVisible
-                                  ? Text(
-                                "${_gains >= 0 ? '+' : ''}${_formatAmount(_gains)} €",
-                                key: const ValueKey('gains-visible'),
-                                style: TextStyle(
-                                  fontSize: 15,
-                                  fontWeight: FontWeight.w800,
-                                  color: _gainsColor,
-                                ),
-                              )
-                                  : Text(
-                                "• • • •",
-                                key: const ValueKey('gains-hidden'),
-                                style: TextStyle(
-                                  fontSize: 15,
-                                  fontWeight: FontWeight.w800,
-                                  color: Colors.grey.shade400,
-                                ),
-                              ),
+                          )
+                              : Text(
+                            "• • • •",
+                            key: const ValueKey('gains-hidden'),
+                            style: TextStyle(
+                              fontSize: 15,
+                              fontWeight: FontWeight.w800,
+                              color: Colors.grey.shade400,
                             ),
-                          ],
+                          ),
                         ),
                       ],
                     ),
@@ -267,12 +261,7 @@ class _PatrimoineHeaderState extends State<PatrimoineHeader> {
                     ),
                     decoration: BoxDecoration(
                       color: _gainsColor.withValues(alpha: 0.12),
-                      border: Border(
-                        left: BorderSide(
-                          color: _gainsColor,
-                          width: 3,
-                        ),
-                      ),
+                      borderRadius: BorderRadius.circular(6),
                     ),
                     child: Text(
                       "${_gainsPercentage >= 0 ? '+' : ''}${_gainsPercentage.toStringAsFixed(2)}%",

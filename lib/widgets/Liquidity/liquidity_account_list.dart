@@ -71,7 +71,7 @@ class _LiquidityAccountListState extends State<LiquidityAccountList> {
                       borderRadius: BorderRadius.circular(10),
                     ),
                     child: Icon(
-                      Icons.account_balance_wallet,
+                      Icons.water_drop_rounded,
                       color: Colors.green.shade300,
                       size: 20,
                     ),
