@@ -37,13 +37,13 @@ class LiquidityAccountCard extends StatelessWidget {
               begin: Alignment.topLeft,
               end: Alignment.bottomRight,
               colors: [
-                Colors.white.withValues(alpha: 0.12),
-                Colors.white.withValues(alpha: 0.08),
+                Colors.green.shade900.withValues(alpha: 0.25),
+                Colors.green.shade800.withValues(alpha: 0.15),
               ],
             ),
             borderRadius: BorderRadius.circular(16),
             border: Border.all(
-              color: Colors.white.withValues(alpha: 0.15),
+              color: Colors.green.shade400.withValues(alpha: 0.3),
               width: 1,
             ),
             boxShadow: [
@@ -67,7 +67,7 @@ class LiquidityAccountCard extends StatelessWidget {
                     color: Colors.white.withValues(alpha: 0.15),
                     borderRadius: BorderRadius.circular(12),
                     border: Border.all(
-                      color: Colors.white.withValues(alpha: 0.2),
+                      color: Colors.green.shade300.withValues(alpha: 0.3),
                       width: 1,
                     ),
                   ),
@@ -210,7 +210,7 @@ class LiquidityAccountCard extends StatelessWidget {
                       focusedBorder: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(12),
                         borderSide: BorderSide(
-                          color: Colors.blue.shade600,
+                          color: Colors.green.shade600,
                           width: 2,
                         ),
                       ),
@@ -221,7 +221,7 @@ class LiquidityAccountCard extends StatelessWidget {
                     width: double.infinity,
                     child: ElevatedButton(
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.blue.shade600,
+                        backgroundColor: Colors.green.shade600,
                         padding: const EdgeInsets.symmetric(vertical: 14),
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(12),
@@ -250,7 +250,6 @@ class LiquidityAccountCard extends StatelessWidget {
       },
     );
   }
-
 
   void _confirmDelete(BuildContext context) {
     showDialog(
