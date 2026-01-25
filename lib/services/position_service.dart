@@ -78,7 +78,7 @@ class PositionService {
     final response = await _supabase
         .from(DatabaseTables.positions)
         .select()
-        .order('name');
+        .order('name', ascending: true);
 
     return response.map<Position>((e) => Position.fromMap(e)).toList();
   }
