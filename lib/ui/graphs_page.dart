@@ -122,7 +122,7 @@ class _GraphsPageState extends State<GraphsPage> {
         children: [
           const SizedBox(height: 24),
           Text(
-            'Répartition',
+            'Répartition du patrimoine :',
             style: TextStyle(
               fontSize: 22,
               fontWeight: FontWeight.bold,
