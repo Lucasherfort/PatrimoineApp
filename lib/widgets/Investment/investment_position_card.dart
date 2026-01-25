@@ -44,7 +44,7 @@ class InvestmentPositionCard extends StatelessWidget {
               children: [
                 const TextSpan(text: 'Voulez-vous vraiment supprimer la position '),
                 TextSpan(
-                  text: position.ticker,
+                  text: position.name,
                   style: const TextStyle(fontWeight: FontWeight.bold),
                 ),
                 const TextSpan(text: ' ?'),
@@ -81,7 +81,7 @@ class InvestmentPositionCard extends StatelessWidget {
     final isPositive = position.latentGain >= 0;
 
     return Container(
-      margin: const EdgeInsets.only(bottom: 10),
+      margin: const EdgeInsets.only(bottom: 8),
       decoration: BoxDecoration(
         gradient: LinearGradient(
           begin: Alignment.topLeft,
@@ -91,37 +91,36 @@ class InvestmentPositionCard extends StatelessWidget {
             Colors.white.withValues(alpha: 0.08),
           ],
         ),
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(12),
         border: Border.all(
           color: Colors.white.withValues(alpha: 0.15),
           width: 1,
         ),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.2),
-            blurRadius: 12,
-            offset: const Offset(0, 4),
+            color: Colors.black.withValues(alpha: 0.15),
+            blurRadius: 8,
+            offset: const Offset(0, 2),
           ),
         ],
       ),
       child: InkWell(
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.circular(12),
         onTap: () => _openEditPanel(context),
         onLongPress: () => _confirmDelete(context),
         child: Padding(
-          padding: const EdgeInsets.all(14.0),
+          padding: const EdgeInsets.all(10.0),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // En-tête : Ticker + Nom + Performance
+              // En-tête compact
               Row(
                 children: [
-                  // Ticker
                   Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 7, vertical: 4),
+                    padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 3),
                     decoration: BoxDecoration(
                       color: Colors.purple.shade400.withValues(alpha: 0.3),
-                      borderRadius: BorderRadius.circular(8),
+                      borderRadius: BorderRadius.circular(6),
                       border: Border.all(
                         color: Colors.purple.shade300.withValues(alpha: 0.4),
                         width: 1,
@@ -132,99 +131,83 @@ class InvestmentPositionCard extends StatelessWidget {
                       style: TextStyle(
                         fontWeight: FontWeight.bold,
                         color: Colors.purple.shade200,
-                        fontSize: 12,
+                        fontSize: 11,
                       ),
                     ),
                   ),
-                  const SizedBox(width: 10),
-                  // Nom
+                  const SizedBox(width: 8),
                   Expanded(
                     child: Text(
                       position.name,
                       style: const TextStyle(
                         fontWeight: FontWeight.w600,
-                        fontSize: 14,
+                        fontSize: 13,
                         color: Colors.white,
                       ),
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                     ),
                   ),
-                  // Badge Performance
                   Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                    padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 3),
                     decoration: BoxDecoration(
                       color: isPositive ? Colors.green.shade600 : Colors.red.shade600,
-                      borderRadius: BorderRadius.circular(8),
+                      borderRadius: BorderRadius.circular(6),
                     ),
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Icon(
-                          isPositive ? Icons.arrow_upward : Icons.arrow_downward,
-                          size: 12,
-                          color: Colors.white,
-                        ),
-                        const SizedBox(width: 4),
-                        Text(
-                          "${isPositive ? '+' : ''}${position.performance.toStringAsFixed(2)}%",
-                          style: const TextStyle(
-                            fontSize: 12,
-                            fontWeight: FontWeight.bold,
-                            color: Colors.white,
-                          ),
-                        ),
-                      ],
+                    child: Text(
+                      "${isPositive ? '+' : ''}${position.performance.toStringAsFixed(1)}%",
+                      style: const TextStyle(
+                        fontSize: 11,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.white,
+                      ),
                     ),
                   ),
                 ],
               ),
-              const SizedBox(height: 12),
-              // Ligne principale : Valeur + Gain
+              const SizedBox(height: 8),
+              // Valeur et gain sur une ligne
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                crossAxisAlignment: CrossAxisAlignment.end,
                 children: [
-                  // Valeur totale
                   Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
                         "Valeur",
                         style: TextStyle(
-                          fontSize: 11,
+                          fontSize: 9,
                           color: Colors.white.withValues(alpha: 0.6),
                           fontWeight: FontWeight.w500,
                         ),
                       ),
-                      const SizedBox(height: 2),
+                      const SizedBox(height: 1),
                       Text(
                         "${_formatAmount(position.totalValue)} €",
                         style: const TextStyle(
-                          fontSize: 18,
+                          fontSize: 15,
                           fontWeight: FontWeight.bold,
                           color: Colors.white,
                         ),
                       ),
                     ],
                   ),
-                  // Plus-value
                   Column(
                     crossAxisAlignment: CrossAxisAlignment.end,
                     children: [
                       Text(
                         "Plus-value",
                         style: TextStyle(
-                          fontSize: 11,
+                          fontSize: 9,
                           color: Colors.white.withValues(alpha: 0.6),
                           fontWeight: FontWeight.w500,
                         ),
                       ),
-                      const SizedBox(height: 2),
+                      const SizedBox(height: 1),
                       Text(
                         "${isPositive ? '+' : ''}${_formatAmount(position.latentGain)} €",
                         style: TextStyle(
-                          fontSize: 18,
+                          fontSize: 15,
                           fontWeight: FontWeight.bold,
                           color: isPositive ? Colors.green.shade400 : Colors.red.shade400,
                         ),
@@ -233,25 +216,19 @@ class InvestmentPositionCard extends StatelessWidget {
                   ),
                 ],
               ),
-              const SizedBox(height: 12),
-              // Détails compacts en ligne
+              const SizedBox(height: 8),
+              // Détails ultra-compacts
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
                 decoration: BoxDecoration(
-                  color: Colors.white.withValues(alpha: 0.08),
-                  borderRadius: BorderRadius.circular(10),
-                  border: Border.all(
-                    color: Colors.white.withValues(alpha: 0.1),
-                    width: 1,
-                  ),
+                  color: Colors.white.withValues(alpha: 0.06),
+                  borderRadius: BorderRadius.circular(8),
                 ),
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     _buildCompactInfo("Qté", _formatQuantity(position.quantity)),
-                    _buildVerticalDivider(),
                     _buildCompactInfo("PRU", "${_formatAmount(position.pru)} €"),
-                    _buildVerticalDivider(),
                     _buildCompactInfo("Actuel", "${_formatAmount(position.currentPrice)} €"),
                   ],
                 ),
@@ -264,34 +241,25 @@ class InvestmentPositionCard extends StatelessWidget {
   }
 
   Widget _buildCompactInfo(String label, String value) {
-    return Column(
+    return Row(
       children: [
         Text(
-          label,
+          "$label: ",
           style: TextStyle(
             fontSize: 10,
             color: Colors.white.withValues(alpha: 0.5),
             fontWeight: FontWeight.w500,
           ),
         ),
-        const SizedBox(height: 3),
         Text(
           value,
           style: const TextStyle(
-            fontSize: 12,
+            fontSize: 10,
             fontWeight: FontWeight.w600,
             color: Colors.white,
           ),
         ),
       ],
-    );
-  }
-
-  Widget _buildVerticalDivider() {
-    return Container(
-      width: 1,
-      height: 28,
-      color: Colors.white.withValues(alpha: 0.15),
     );
   }
 
@@ -404,7 +372,7 @@ class InvestmentPositionCard extends StatelessWidget {
                     },
                     child: const Text(
                       "Valider",
-                      style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                      style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.white),
                     ),
                   ),
                 ),

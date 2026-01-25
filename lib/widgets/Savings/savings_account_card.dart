@@ -127,9 +127,9 @@ class SavingsAccountCard extends StatelessWidget {
       PageRouteBuilder(
         barrierColor: const Color(0xFF0F172A),
         transitionDuration: const Duration(milliseconds: 280),
-        pageBuilder: (_, __, ___) =>
+        pageBuilder: (_, _, _) =>
             SavingsDetailPage(account: account),
-        transitionsBuilder: (_, animation, __, child) {
+        transitionsBuilder: (_, animation, _, child) {
           final tween = Tween<Offset>(
             begin: const Offset(1, 0),
             end: Offset.zero,

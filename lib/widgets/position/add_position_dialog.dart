@@ -248,7 +248,7 @@ class _AddPositionDialogState extends State<AddPositionDialog> {
           ? const Center(child: Text('Aucune position trouvée'))
           : ListView.separated(
         itemCount: _filteredPositions.length,
-        separatorBuilder: (_, __) =>
+        separatorBuilder: (_, _) =>
             Divider(height: 1, color: Colors.grey.shade200),
         itemBuilder: (context, index) {
           final position = _filteredPositions[index];
