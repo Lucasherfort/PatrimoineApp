@@ -231,6 +231,7 @@ class InvestmentService {
         quantity,
         pru,
         positions!inner(
+          id,
           ticker,
           name,
           type,

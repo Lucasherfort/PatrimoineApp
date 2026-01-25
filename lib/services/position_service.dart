@@ -96,5 +96,4 @@ class PositionService {
 
     return Position.fromMap(response);
   }
-  
 }

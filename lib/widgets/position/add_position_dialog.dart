@@ -1,13 +1,16 @@
 import 'package:flutter/material.dart';
+import '../../models/investment_position.dart';
 import '../../models/position.dart';
 import '../../services/position_service.dart';
 
 class AddPositionDialog extends StatefulWidget {
   final Function(Position position, double quantity, double pru) onAdd;
+  final List<InvestmentPosition> existingPositions; // ✅ AJOUT
 
   const AddPositionDialog({
     super.key,
     required this.onAdd,
+    required this.existingPositions, // ✅ AJOUT
   });
 
   @override
@@ -83,9 +86,24 @@ class _AddPositionDialogState extends State<AddPositionDialog> {
     });
   }
 
+  // ✅ NOUVELLE MÉTHODE
+  bool _isPositionAlreadyInAccount(Position position) {
+    return widget.existingPositions.any(
+          (investPos) => investPos.positionId == position.id,
+    );
+  }
+
   void _handleAdd() {
     if (_selectedPosition == null) {
       _showSnack('Veuillez sélectionner une position');
+      return;
+    }
+
+    // ✅ VALIDATION DOUBLON
+    if (_isPositionAlreadyInAccount(_selectedPosition!)) {
+      _showSnack(
+        'Cette position (${_selectedPosition!.ticker}) existe déjà dans ce compte',
+      );
       return;
     }
 
@@ -253,36 +271,57 @@ class _AddPositionDialogState extends State<AddPositionDialog> {
         itemBuilder: (context, index) {
           final position = _filteredPositions[index];
           final isSelected = position == _selectedPosition;
+          final isAlreadyInAccount = _isPositionAlreadyInAccount(position); // ✅
 
           return InkWell(
-            onTap: () {
+            onTap: isAlreadyInAccount // ✅ Désactiver si déjà présent
+                ? null
+                : () {
               setState(() {
                 _selectedPosition = position;
-                _pruController.text =
-                    position.price.toStringAsFixed(2).replaceAll('.', ',');
+                _pruController.text = position.price
+                    .toStringAsFixed(2)
+                    .replaceAll('.', ',');
               });
             },
             child: Container(
               padding: const EdgeInsets.all(12),
               color: isSelected
                   ? Colors.purple.shade50
-                  : Colors.transparent,
+                  : (isAlreadyInAccount // ✅
+                  ? Colors.grey.shade100
+                  : Colors.transparent),
               child: Row(
                 children: [
                   Expanded(
-                    child: Text(
-                      '${position.name} (${position.ticker})',
-                      style: TextStyle(
-                        fontWeight: FontWeight.w600,
-                        color: isSelected
-                            ? Colors.purple
-                            : Colors.black87,
-                      ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          '${position.name} (${position.ticker})',
+                          style: TextStyle(
+                            fontWeight: FontWeight.w600,
+                            color: isAlreadyInAccount // ✅
+                                ? Colors.grey.shade400
+                                : (isSelected
+                                ? Colors.purple
+                                : Colors.black87),
+                          ),
+                        ),
+                        if (isAlreadyInAccount) // ✅
+                          Text(
+                            'Déjà dans le compte',
+                            style: TextStyle(
+                              fontSize: 11,
+                              color: Colors.orange.shade600,
+                              fontStyle: FontStyle.italic,
+                            ),
+                          ),
+                      ],
                     ),
                   ),
                   if (isSelected)
-                    const Icon(Icons.check_circle,
-                        color: Colors.purple),
+                    const Icon(Icons.check_circle, color: Colors.purple),
                 ],
               ),
             ),

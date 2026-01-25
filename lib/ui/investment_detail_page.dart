@@ -112,6 +112,7 @@ class _InvestmentDetailPageState extends State<InvestmentDetailPage> {
     showDialog(
       context: context,
       builder: (context) => AddPositionDialog(
+        existingPositions: positions, // ✅ PASSEZ LA LISTE
         onAdd: (Position position, double quantity, double pru) async {
           final scaffoldMessenger = ScaffoldMessenger.of(context);
 
@@ -129,8 +130,7 @@ class _InvestmentDetailPageState extends State<InvestmentDetailPage> {
 
             scaffoldMessenger.showSnackBar(
               SnackBar(
-                content:
-                Text('Position ${position.ticker} ajoutée avec succès'),
+                content: Text('Position ${position.ticker} ajoutée avec succès'),
                 backgroundColor: Colors.green.shade700,
                 behavior: SnackBarBehavior.floating,
                 shape: RoundedRectangleBorder(

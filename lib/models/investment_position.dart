@@ -6,6 +6,7 @@ class InvestmentPosition {
   final String supportType;
 
   /// Infos venant de la table positions
+  final int positionId;
   final String ticker;
   final String name;
   final double currentPrice;
@@ -18,6 +19,7 @@ class InvestmentPosition {
     required this.id,
     required this.userInvestmentAccountId,
     required this.supportType,
+    required this.positionId,
     required this.ticker,
     required this.name,
     required this.quantity,
@@ -52,6 +54,7 @@ class InvestmentPosition {
 
       // Données jointes depuis `positions`
       supportType: position['type'] as String,
+      positionId: position['id'] as int,
       ticker: position['ticker'] as String,
       name: position['name'] as String,
       currentPrice: (position['price'] as num).toDouble(),
