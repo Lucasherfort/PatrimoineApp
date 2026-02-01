@@ -106,7 +106,7 @@ class _SavingsDetailPageState extends State<SavingsDetailPage> {
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
         title: Text(title, style: const TextStyle(color: Colors.white)),
         content:
-        Text(message, style: TextStyle(color: Colors.white.withOpacity(0.8))),
+        Text(message, style: TextStyle(color: Colors.white.withValues(alpha: 0.8))),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
@@ -149,7 +149,7 @@ class _SavingsDetailPageState extends State<SavingsDetailPage> {
               end: Alignment.bottomRight,
               colors: [
                 const Color(0xFF0F172A),
-                Colors.blue.shade900.withOpacity(0.35),
+                Colors.blue.shade900.withValues(alpha: 0.35),
               ],
             ),
           ),
@@ -187,7 +187,7 @@ class _SavingsDetailPageState extends State<SavingsDetailPage> {
               style: const TextStyle(color: Colors.white, fontSize: 18)),
           Text(widget.account.bankName,
               style: TextStyle(
-                  color: Colors.white.withOpacity(0.6), fontSize: 13)),
+                  color: Colors.white.withValues(alpha: 0.6), fontSize: 13)),
         ],
       ),
       actions: [
@@ -218,7 +218,7 @@ class _SavingsDetailPageState extends State<SavingsDetailPage> {
                       fontWeight: FontWeight.bold)),
               Text(widget.account.sourceName,
                   style:
-                  TextStyle(color: Colors.white.withOpacity(0.6))),
+                  TextStyle(color: Colors.white.withValues(alpha: 0.6))),
             ],
           )
         ],
@@ -232,9 +232,9 @@ class _SavingsDetailPageState extends State<SavingsDetailPage> {
       height: 46,
       padding: const EdgeInsets.all(6),
       decoration: BoxDecoration(
-        color: Colors.white.withOpacity(0.15),
+        color: Colors.white.withValues(alpha: 0.15),
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: Colors.blue.shade300.withOpacity(0.3)),
+        border: Border.all(color: Colors.blue.shade300.withValues(alpha: 0.3)),
       ),
       child: widget.account.logoUrl.isEmpty
           ? Icon(Icons.account_balance,
@@ -268,7 +268,7 @@ class _SavingsDetailPageState extends State<SavingsDetailPage> {
             LinearProgressIndicator(
               value: _fillPercentage / 100,
               minHeight: 10,
-              backgroundColor: Colors.white.withOpacity(0.15),
+              backgroundColor: Colors.white.withValues(alpha: 0.15),
               valueColor: AlwaysStoppedAnimation(_fillColor),
             ),
           ]
@@ -304,7 +304,7 @@ class _SavingsDetailPageState extends State<SavingsDetailPage> {
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.3),
+            color: Colors.black.withValues(alpha: 0.3),
             blurRadius: 12,
             offset: const Offset(0, 4),
           ),
@@ -338,12 +338,12 @@ class _SavingsDetailPageState extends State<SavingsDetailPage> {
       decoration: InputDecoration(
         labelText: label,
         labelStyle:
-        TextStyle(color: Colors.white.withOpacity(0.7)),
+        TextStyle(color: Colors.white.withValues(alpha: 0.7)),
         suffixText: '€',
         suffixStyle:
-        TextStyle(color: Colors.white.withOpacity(0.6)),
+        TextStyle(color: Colors.white.withValues(alpha: 0.6)),
         filled: true,
-        fillColor: Colors.white.withOpacity(0.08),
+        fillColor: Colors.white.withValues(alpha: 0.08),
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
           borderSide: BorderSide.none,
@@ -372,7 +372,7 @@ class _SavingsDetailPageState extends State<SavingsDetailPage> {
       children: [
         Text(label,
             style:
-            TextStyle(color: Colors.white.withOpacity(0.6))),
+            TextStyle(color: Colors.white.withValues(alpha: 0.6))),
         Text(value,
             style: const TextStyle(
                 color: Colors.white,
@@ -387,13 +387,13 @@ class _SavingsDetailPageState extends State<SavingsDetailPage> {
         begin: Alignment.topLeft,
         end: Alignment.bottomRight,
         colors: [
-          Colors.blue.shade900.withOpacity(0.25),
-          Colors.blue.shade800.withOpacity(0.15),
+          Colors.blue.shade900.withValues(alpha: 0.25),
+          Colors.blue.shade800.withValues(alpha: 0.15),
         ],
       ),
       borderRadius: BorderRadius.circular(16),
       border:
-      Border.all(color: Colors.blue.shade400.withOpacity(0.3)),
+      Border.all(color: Colors.blue.shade400.withValues(alpha: 0.3)),
     );
   }
 }

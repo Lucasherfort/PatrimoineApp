@@ -112,9 +112,8 @@ class _GraphsPageState extends State<GraphsPage> {
     );
   }
 
-  Widget _buildContent() {
-    final distribution = _distribution!;
-
+  Widget _buildContent()
+  {
     return SingleChildScrollView(
       padding: const EdgeInsets.all(16),
       child: Column(
@@ -139,8 +138,6 @@ class _GraphsPageState extends State<GraphsPage> {
   }
 
   Widget _buildCompactPieChart() {
-    final distribution = _distribution!;
-
     return Container(
       height: 300,
       padding: const EdgeInsets.all(32),
