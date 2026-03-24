@@ -57,10 +57,13 @@ class _AppVersionCheckerState extends State<AppVersionChecker> {
 
       final status = await _versionService.checkAppStatus(info.version);
 
-      if (mounted) setState(() => _appStatus = status);
+      if (mounted) {
+        setState(() => _appStatus = status);
+      }
     } catch (e) {
-      if (mounted)
+      if (mounted) {
         setState(() => _appStatus = AppStatus(status: AppStatusType.ok));
+      }
     }
   }
 
