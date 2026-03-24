@@ -127,8 +127,7 @@ class SavingsAccountCard extends StatelessWidget {
       PageRouteBuilder(
         barrierColor: const Color(0xFF0F172A),
         transitionDuration: const Duration(milliseconds: 280),
-        pageBuilder: (_, _, _) =>
-            SavingsDetailPage(account: account),
+        pageBuilder: (_, _, _) => SavingsDetailPage(account: account),
         transitionsBuilder: (_, animation, _, child) {
           final tween = Tween<Offset>(
             begin: const Offset(1, 0),
@@ -151,21 +150,14 @@ class SavingsAccountCard extends StatelessWidget {
   // =========================
   Widget _buildBankLogo() {
     if (account.logoUrl.isEmpty) {
-      return Icon(
-        Icons.account_balance,
-        color: Colors.blue.shade300,
-        size: 26,
-      );
+      return Icon(Icons.account_balance, color: Colors.blue.shade300, size: 26);
     }
 
     return Image.network(
       account.logoUrl,
       fit: BoxFit.contain,
-      errorBuilder: (_, _, _) => Icon(
-        Icons.account_balance,
-        color: Colors.blue.shade300,
-        size: 26,
-      ),
+      errorBuilder: (_, _, _) =>
+          Icon(Icons.account_balance, color: Colors.blue.shade300, size: 26),
       loadingBuilder: (context, child, loadingProgress) {
         if (loadingProgress == null) return child;
         return Center(
@@ -202,7 +194,9 @@ class SavingsAccountCard extends StatelessWidget {
           ElevatedButton(
             style: ElevatedButton.styleFrom(
               backgroundColor: Colors.red,
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(8),
+              ),
             ),
             onPressed: () {
               Navigator.pop(context);

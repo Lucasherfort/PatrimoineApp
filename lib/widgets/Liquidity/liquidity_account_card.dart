@@ -160,93 +160,99 @@ class LiquidityAccountCard extends StatelessWidget {
       backgroundColor: Colors.transparent,
       builder: (context) {
         // Utiliser un StatefulBuilder pour forcer le focus après build
-        return StatefulBuilder(builder: (context, setState) {
-          // 🔹 Demander le focus après le premier frame
-          WidgetsBinding.instance.addPostFrameCallback((_) {
-            if (!focusNode.hasFocus) {
-              focusNode.requestFocus();
-              // 🔹 Placer le curseur à la fin
-              controller.selection = TextSelection.fromPosition(
-                TextPosition(offset: controller.text.length),
-              );
-            }
-          });
+        return StatefulBuilder(
+          builder: (context, setState) {
+            // 🔹 Demander le focus après le premier frame
+            WidgetsBinding.instance.addPostFrameCallback((_) {
+              if (!focusNode.hasFocus) {
+                focusNode.requestFocus();
+                // 🔹 Placer le curseur à la fin
+                controller.selection = TextSelection.fromPosition(
+                  TextPosition(offset: controller.text.length),
+                );
+              }
+            });
 
-          return Container(
-            decoration: const BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-            ),
-            child: Padding(
-              padding: EdgeInsets.only(
-                left: 16,
-                right: 16,
-                top: 16,
-                bottom: MediaQuery.of(context).viewInsets.bottom + 16,
+            return Container(
+              decoration: const BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
               ),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    "Modifier ${account.sourceName}",
-                    style: const TextStyle(
-                      fontSize: 20,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                  const SizedBox(height: 16),
-                  TextField(
-                    controller: controller,
-                    focusNode: focusNode, // 🔹 Ajouter le FocusNode ici
-                    keyboardType:
-                    const TextInputType.numberWithOptions(decimal: true),
-                    decoration: InputDecoration(
-                      labelText: "Nouveau montant",
-                      suffixText: "€",
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      focusedBorder: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(12),
-                        borderSide: BorderSide(
-                          color: Colors.green.shade600,
-                          width: 2,
-                        ),
+              child: Padding(
+                padding: EdgeInsets.only(
+                  left: 16,
+                  right: 16,
+                  top: 16,
+                  bottom: MediaQuery.of(context).viewInsets.bottom + 16,
+                ),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      "Modifier ${account.sourceName}",
+                      style: const TextStyle(
+                        fontSize: 20,
+                        fontWeight: FontWeight.bold,
                       ),
                     ),
-                  ),
-                  const SizedBox(height: 20),
-                  SizedBox(
-                    width: double.infinity,
-                    child: ElevatedButton(
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.green.shade600,
-                        padding: const EdgeInsets.symmetric(vertical: 14),
-                        shape: RoundedRectangleBorder(
+                    const SizedBox(height: 16),
+                    TextField(
+                      controller: controller,
+                      focusNode: focusNode, // 🔹 Ajouter le FocusNode ici
+                      keyboardType: const TextInputType.numberWithOptions(
+                        decimal: true,
+                      ),
+                      decoration: InputDecoration(
+                        labelText: "Nouveau montant",
+                        suffixText: "€",
+                        border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(12),
                         ),
-                      ),
-                      onPressed: () {
-                        final value = double.tryParse(
-                            controller.text.replaceAll(',', '.'));
-                        if (value != null && onValueUpdated != null) {
-                          onValueUpdated!(value);
-                        }
-                        Navigator.pop(context);
-                      },
-                      child: const Text(
-                        "Valider",
-                        style:
-                        TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                        focusedBorder: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(12),
+                          borderSide: BorderSide(
+                            color: Colors.green.shade600,
+                            width: 2,
+                          ),
+                        ),
                       ),
                     ),
-                  ),
-                ],
+                    const SizedBox(height: 20),
+                    SizedBox(
+                      width: double.infinity,
+                      child: ElevatedButton(
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.green.shade600,
+                          padding: const EdgeInsets.symmetric(vertical: 14),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                        ),
+                        onPressed: () {
+                          final value = double.tryParse(
+                            controller.text.replaceAll(',', '.'),
+                          );
+                          if (value != null && onValueUpdated != null) {
+                            onValueUpdated!(value);
+                          }
+                          Navigator.pop(context);
+                        },
+                        child: const Text(
+                          "Valider",
+                          style: TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
               ),
-            ),
-          );
-        });
+            );
+          },
+        );
       },
     );
   }
@@ -256,9 +262,13 @@ class LiquidityAccountCard extends StatelessWidget {
       context: context,
       builder: (context) {
         return AlertDialog(
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16),
+          ),
           title: const Text("Supprimer le compte"),
-          content: Text("Voulez-vous vraiment supprimer le compte ${account.sourceName} ?"),
+          content: Text(
+            "Voulez-vous vraiment supprimer le compte ${account.sourceName} ?",
+          ),
           actions: [
             TextButton(
               onPressed: () => Navigator.pop(context),
@@ -267,7 +277,9 @@ class LiquidityAccountCard extends StatelessWidget {
             ElevatedButton(
               style: ElevatedButton.styleFrom(
                 backgroundColor: Colors.red,
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(8),
+                ),
               ),
               onPressed: () async {
                 final navigator = Navigator.of(context);
@@ -280,7 +292,9 @@ class LiquidityAccountCard extends StatelessWidget {
                   SnackBar(
                     content: Text("Compte ${account.sourceName} supprimé."),
                     behavior: SnackBarBehavior.floating,
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(8),
+                    ),
                   ),
                 );
               },

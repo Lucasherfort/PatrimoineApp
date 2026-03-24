@@ -15,7 +15,8 @@ class InvestmentService {
   InvestmentService._internal();
 
   /// Récupère tous les comptes investissements de l'utilisateur
-  Future<List<UserInvestmentAccountView>> getInvestmentAccountsForUserWithPrices() async {
+  Future<List<UserInvestmentAccountView>>
+  getInvestmentAccountsForUserWithPrices() async {
     try {
       final user = _supabase.auth.currentUser;
       if (user == null) throw Exception('Utilisateur non connecté');
@@ -55,7 +56,8 @@ class InvestmentService {
           sourceName: category['name'] as String,
           bankName: bank['name'] as String,
           logoUrl: logoUrl, // 👈 Ajout du logo
-          totalContribution: (item['total_contribution'] as num?)?.toDouble() ?? 0.0,
+          totalContribution:
+              (item['total_contribution'] as num?)?.toDouble() ?? 0.0,
           cashBalance: (item['cash_balance'] as num?)?.toDouble() ?? 0.0,
           amount: (item['amount'] as num?)?.toDouble() ?? 0.0,
         );
@@ -80,7 +82,8 @@ class InvestmentService {
           .single();
 
       final currentCash = (current['cash_balance'] as num?)?.toDouble() ?? 0.0;
-      final currentDeposits = (current['total_contribution'] as num?)?.toDouble() ?? 0.0;
+      final currentDeposits =
+          (current['total_contribution'] as num?)?.toDouble() ?? 0.0;
 
       // Vérifier s'il y a un changement
       if (currentCash == cashBalance && currentDeposits == cumulativeDeposits) {
@@ -88,11 +91,14 @@ class InvestmentService {
       }
 
       // Mettre à jour
-      await _supabase.from(DatabaseTables.userInvestmentAccount).update({
-        'cash_balance': cashBalance,
-        'total_contribution': cumulativeDeposits,
-        'updated_at': DateTime.now().toIso8601String(),
-      }).eq('id', userInvestmentAccountId);
+      await _supabase
+          .from(DatabaseTables.userInvestmentAccount)
+          .update({
+            'cash_balance': cashBalance,
+            'total_contribution': cumulativeDeposits,
+            'updated_at': DateTime.now().toIso8601String(),
+          })
+          .eq('id', userInvestmentAccountId);
 
       return true; // Changement effectué
     } catch (e) {
@@ -114,13 +120,11 @@ class InvestmentService {
 
   /// Récupère la valeur totale de tous les comptes d'investissement d'un utilisateur
   Future<double> getUserInvestmentsTotalValue() async {
-
     final uias = await getUserInvestmentAccounts();
 
     double totalValue = 0.0;
 
-    for (final account in uias)
-    {
+    for (final account in uias) {
       totalValue += await getTotalValueOfInvestmentAccount(account);
     }
 
@@ -140,9 +144,7 @@ class InvestmentService {
           .eq('user_id', user.id);
 
       return response
-          .map<UserInvestmentAccount>(
-            (e) => UserInvestmentAccount.fromMap(e),
-      )
+          .map<UserInvestmentAccount>((e) => UserInvestmentAccount.fromMap(e))
           .toList();
     } catch (e) {
       rethrow;
@@ -150,28 +152,30 @@ class InvestmentService {
   }
 
   /// Récupère la valeur totale d'un compte d'investissement (espèces + titres)
-  Future<double> getTotalValueOfInvestmentAccount(UserInvestmentAccount account) async
-  {
+  Future<double> getTotalValueOfInvestmentAccount(
+    UserInvestmentAccount account,
+  ) async {
     final positionsValue = await getPositionsValueForAccount(account.id);
     return account.cashBalance + positionsValue;
   }
 
   /// Récupère la valeur totale des positions d'un compte
-  Future<double> getPositionsValueForAccount(int userInvestmentAccountId) async {
-
+  Future<double> getPositionsValueForAccount(
+    int userInvestmentAccountId,
+  ) async {
     // Les positions sont DÉJÀ à jour via Google Sheet
     final positions = await getInvestmentPositions(userInvestmentAccountId);
 
     double result = 0.0;
-    for (final position in positions)
-    {
+    for (final position in positions) {
       result += position.totalValue;
     }
 
     return result;
   }
 
-  Future<List<UserInvestmentAccountView>> getUserInvestmentAccountsView() async {
+  Future<List<UserInvestmentAccountView>>
+  getUserInvestmentAccountsView() async {
     final uiaList = await getUserInvestmentAccounts();
     final List<UserInvestmentAccountView> views = [];
 
@@ -198,31 +202,31 @@ class InvestmentService {
       final iconPath = bank['icon'] as String?;
       String logoUrl = '';
       if (iconPath != null && iconPath.isNotEmpty) {
-        logoUrl = _supabase.storage
-            .from('banks-icons')
-            .getPublicUrl(iconPath);
+        logoUrl = _supabase.storage.from('banks-icons').getPublicUrl(iconPath);
       }
 
       // Calculer la valeur totale du compte (cash + positions)
       final totalAmount = await getTotalValueOfInvestmentAccount(uia);
 
-      views.add(UserInvestmentAccountView(
-        id: uia.id,
-        sourceName: category['name'] as String,
-        bankName: bank['name'] as String,
-        logoUrl: logoUrl, // 👈 Ajout du logo
-        totalContribution: uia.cumulativeDeposits,
-        cashBalance: uia.cashBalance,
-        amount: totalAmount,
-      ));
+      views.add(
+        UserInvestmentAccountView(
+          id: uia.id,
+          sourceName: category['name'] as String,
+          bankName: bank['name'] as String,
+          logoUrl: logoUrl, // 👈 Ajout du logo
+          totalContribution: uia.cumulativeDeposits,
+          cashBalance: uia.cashBalance,
+          amount: totalAmount,
+        ),
+      );
     }
 
     return views;
   }
 
   Future<List<InvestmentPosition>> getInvestmentPositions(
-      int userInvestmentAccountId) async {
-
+    int userInvestmentAccountId,
+  ) async {
     final response = await _supabase
         .from(DatabaseTables.userInvestmentPosition)
         .select('''

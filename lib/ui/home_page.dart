@@ -14,11 +14,7 @@ class HomePage extends StatefulWidget {
   final String appName;
   final String appVersion;
 
-  const HomePage({
-    super.key,
-    required this.appName,
-    required this.appVersion,
-  });
+  const HomePage({super.key, required this.appName, required this.appVersion});
 
   @override
   State<HomePage> createState() => _HomePageState();
@@ -102,9 +98,7 @@ class _HomePageState extends State<HomePage> {
     final shouldLogout = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(16),
-        ),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
         title: const Text('Déconnexion'),
         content: const Text('Voulez-vous vraiment vous déconnecter ?'),
         actions: [
@@ -132,7 +126,7 @@ class _HomePageState extends State<HomePage> {
       if (mounted) {
         Navigator.of(context).pushAndRemoveUntil(
           MaterialPageRoute(builder: (_) => const LoginPage()),
-              (route) => false,
+          (route) => false,
         );
       }
     }
@@ -147,11 +141,7 @@ class _HomePageState extends State<HomePage> {
             gradient: LinearGradient(
               begin: Alignment.topCenter,
               end: Alignment.bottomCenter,
-              colors: [
-                Color(0xFF1E293B),
-                Color(0xFF0F172A),
-                Colors.black,
-              ],
+              colors: [Color(0xFF1E293B), Color(0xFF0F172A), Colors.black],
             ),
           ),
           child: const Center(
@@ -164,7 +154,8 @@ class _HomePageState extends State<HomePage> {
       );
     }
 
-    final hasAnyAccount = hasLiquidityAccounts ||
+    final hasAnyAccount =
+        hasLiquidityAccounts ||
         hasSavingsAccounts ||
         hasInvestmentAccounts ||
         hasAdvantageAccounts;
@@ -212,10 +203,7 @@ class _HomePageState extends State<HomePage> {
             margin: const EdgeInsets.only(right: 8),
             decoration: BoxDecoration(
               gradient: LinearGradient(
-                colors: [
-                  Colors.blue.shade600,
-                  Colors.blue.shade800,
-                ],
+                colors: [Colors.blue.shade600, Colors.blue.shade800],
               ),
               borderRadius: BorderRadius.circular(10),
               boxShadow: [
@@ -253,11 +241,7 @@ class _HomePageState extends State<HomePage> {
           gradient: LinearGradient(
             begin: Alignment.topCenter,
             end: Alignment.bottomCenter,
-            colors: [
-              Color(0xFF1E293B),
-              Color(0xFF0F172A),
-              Colors.black,
-            ],
+            colors: [Color(0xFF1E293B), Color(0xFF0F172A), Colors.black],
           ),
         ),
         child: SafeArea(
@@ -271,53 +255,47 @@ class _HomePageState extends State<HomePage> {
               Expanded(
                 child: hasAnyAccount
                     ? ListView(
-                  padding: const EdgeInsets.only(bottom: 24),
-                  children: [
-                    if (hasLiquidityAccounts)
-                      LiquidityAccountList(
-                          onAccountUpdated: _refreshAll),
-                    if (hasSavingsAccounts)
-                      SavingsAccountList(
-                          onAccountUpdated: _refreshAll),
-                    if (hasInvestmentAccounts)
-                      InvestmentList(
-                          onAccountUpdated: _refreshAll),
-                    if (hasAdvantageAccounts)
-                      AdvantageAccountList(
-                          onAccountUpdated: _refreshAll),
-                  ],
-                )
+                        padding: const EdgeInsets.only(bottom: 24),
+                        children: [
+                          if (hasLiquidityAccounts)
+                            LiquidityAccountList(onAccountUpdated: _refreshAll),
+                          if (hasSavingsAccounts)
+                            SavingsAccountList(onAccountUpdated: _refreshAll),
+                          if (hasInvestmentAccounts)
+                            InvestmentList(onAccountUpdated: _refreshAll),
+                          if (hasAdvantageAccounts)
+                            AdvantageAccountList(onAccountUpdated: _refreshAll),
+                        ],
+                      )
                     : Center(
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Icon(
-                        Icons.account_balance_wallet_outlined,
-                        size: 80,
-                        color: Colors.white.withValues(alpha: 0.3),
-                      ),
-                      const SizedBox(height: 16),
-                      Text(
-                        "Aucun compte disponible",
-                        style: TextStyle(
-                          fontSize: 18,
-                          fontWeight: FontWeight.w600,
-                          color:
-                          Colors.white.withValues(alpha: 0.7),
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Icon(
+                              Icons.account_balance_wallet_outlined,
+                              size: 80,
+                              color: Colors.white.withValues(alpha: 0.3),
+                            ),
+                            const SizedBox(height: 16),
+                            Text(
+                              "Aucun compte disponible",
+                              style: TextStyle(
+                                fontSize: 18,
+                                fontWeight: FontWeight.w600,
+                                color: Colors.white.withValues(alpha: 0.7),
+                              ),
+                            ),
+                            const SizedBox(height: 8),
+                            Text(
+                              "Appuyez sur + pour ajouter un compte",
+                              style: TextStyle(
+                                fontSize: 14,
+                                color: Colors.white.withValues(alpha: 0.5),
+                              ),
+                            ),
+                          ],
                         ),
                       ),
-                      const SizedBox(height: 8),
-                      Text(
-                        "Appuyez sur + pour ajouter un compte",
-                        style: TextStyle(
-                          fontSize: 14,
-                          color:
-                          Colors.white.withValues(alpha: 0.5),
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
               ),
             ],
           ),

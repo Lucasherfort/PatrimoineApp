@@ -7,11 +7,7 @@ class AppBlockedPage extends StatelessWidget {
   final AppStatus appStatus;
   final VoidCallback? onRetry;
 
-  const AppBlockedPage({
-    super.key,
-    required this.appStatus,
-    this.onRetry,
-  });
+  const AppBlockedPage({super.key, required this.appStatus, this.onRetry});
 
   @override
   Widget build(BuildContext context) {
@@ -161,9 +157,6 @@ class AppBlockedPage extends StatelessWidget {
   // 👇 Nouvelle méthode qui utilise apkUrl
   Future<void> _openApkDownload() async {
     final url = Uri.parse(appStatus.apkUrl!);
-    await launchUrl(
-      url,
-      mode: LaunchMode.externalApplication,
-    );
+    await launchUrl(url, mode: LaunchMode.externalApplication);
   }
 }

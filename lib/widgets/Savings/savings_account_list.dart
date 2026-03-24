@@ -26,8 +26,10 @@ class _SavingsAccountListState extends State<SavingsAccountList> {
   void _loadAccounts() {
     _accountsFuture = _service.getUserSavingsAccounts();
     _accountsFuture.then((accounts) {
-      accounts.sort((a, b) => (b.principal + b.interest)
-          .compareTo(a.principal + a.interest));
+      accounts.sort(
+        (a, b) =>
+            (b.principal + b.interest).compareTo(a.principal + a.interest),
+      );
 
       setState(() {
         _accounts = accounts;
@@ -95,7 +97,10 @@ class _SavingsAccountListState extends State<SavingsAccountList> {
                   ),
                   const Spacer(),
                   Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 10,
+                      vertical: 4,
+                    ),
                     decoration: BoxDecoration(
                       color: Colors.blue.shade400.withValues(alpha: 0.15),
                       borderRadius: BorderRadius.circular(12),
@@ -116,22 +121,28 @@ class _SavingsAccountListState extends State<SavingsAccountList> {
                 ],
               ),
             ),
-            ..._accounts.map((account) => SavingsAccountCard(
-              account: account,
-              onValueUpdated: (updatedAccount) {
-                final index =
-                _accounts.indexWhere((a) => a.id == updatedAccount.id);
-                if (index != -1) {
-                  setState(() {
-                    _accounts[index] = updatedAccount;
-                    _accounts.sort((a, b) => (b.principal + b.interest)
-                        .compareTo(a.principal + a.interest));
-                  });
-                  widget.onAccountUpdated();
-                }
-              },
-              onDeleted: () => _deleteAccount(account.id),
-            )),
+            ..._accounts.map(
+              (account) => SavingsAccountCard(
+                account: account,
+                onValueUpdated: (updatedAccount) {
+                  final index = _accounts.indexWhere(
+                    (a) => a.id == updatedAccount.id,
+                  );
+                  if (index != -1) {
+                    setState(() {
+                      _accounts[index] = updatedAccount;
+                      _accounts.sort(
+                        (a, b) => (b.principal + b.interest).compareTo(
+                          a.principal + a.interest,
+                        ),
+                      );
+                    });
+                    widget.onAccountUpdated();
+                  }
+                },
+                onDeleted: () => _deleteAccount(account.id),
+              ),
+            ),
             const SizedBox(height: 8),
           ],
         );

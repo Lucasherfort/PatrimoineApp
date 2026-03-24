@@ -13,7 +13,8 @@ void main() async {
 
   await Supabase.initialize(
     url: 'https://hkwrmzubtmdoolleqnyt.supabase.co',
-    anonKey: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imhrd3JtenVidG1kb29sbGVxbnl0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjgwNTk3NTIsImV4cCI6MjA4MzYzNTc1Mn0.5h6Fcn5MmrEun3OutmI12M8_gk8LFr5WeZomK-fl9FA',
+    anonKey:
+        'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imhrd3JtenVidG1kb29sbGVxbnl0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjgwNTk3NTIsImV4cCI6MjA4MzYzNTc1Mn0.5h6Fcn5MmrEun3OutmI12M8_gk8LFr5WeZomK-fl9FA',
   );
 
   runApp(const PatrimoineApp());
@@ -56,9 +57,13 @@ class _AppVersionCheckerState extends State<AppVersionChecker> {
 
       final status = await _versionService.checkAppStatus(info.version);
 
-      if (mounted) setState(() => _appStatus = status);
+      if (mounted) {
+        setState(() => _appStatus = status);
+      }
     } catch (e) {
-      if (mounted) setState(() => _appStatus = AppStatus(status: AppStatusType.ok));
+      if (mounted) {
+        setState(() => _appStatus = AppStatus(status: AppStatusType.ok));
+      }
     }
   }
 
@@ -106,7 +111,9 @@ class _AppVersionCheckerState extends State<AppVersionChecker> {
       barrierDismissible: true,
       builder: (context) => AlertDialog(
         title: const Text('Mise à jour disponible'),
-        content: Text(_appStatus?.message ?? 'Une nouvelle version est disponible.'),
+        content: Text(
+          _appStatus?.message ?? 'Une nouvelle version est disponible.',
+        ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),

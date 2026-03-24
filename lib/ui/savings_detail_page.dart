@@ -54,10 +54,12 @@ class _SavingsDetailPageState extends State<SavingsDetailPage> {
   }
 
   void _checkChanges() {
-    final principal =
-    double.tryParse(_principalController.text.replaceAll(',', '.'));
-    final interest =
-    double.tryParse(_interestController.text.replaceAll(',', '.'));
+    final principal = double.tryParse(
+      _principalController.text.replaceAll(',', '.'),
+    );
+    final interest = double.tryParse(
+      _interestController.text.replaceAll(',', '.'),
+    );
 
     if (principal == null || interest == null) return;
 
@@ -72,10 +74,7 @@ class _SavingsDetailPageState extends State<SavingsDetailPage> {
   Future<void> _saveChanges() async {
     if (widget.account.ceiling != null &&
         _currentPrincipal > widget.account.ceiling!) {
-      _showPopup(
-        'Erreur',
-        'Le capital dépasse le plafond autorisé.',
-      );
+      _showPopup('Erreur', 'Le capital dépasse le plafond autorisé.');
       return;
     }
 
@@ -105,13 +104,15 @@ class _SavingsDetailPageState extends State<SavingsDetailPage> {
         backgroundColor: const Color(0xFF0F172A),
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
         title: Text(title, style: const TextStyle(color: Colors.white)),
-        content:
-        Text(message, style: TextStyle(color: Colors.white.withValues(alpha: 0.8))),
+        content: Text(
+          message,
+          style: TextStyle(color: Colors.white.withValues(alpha: 0.8)),
+        ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
             child: const Text('OK'),
-          )
+          ),
         ],
       ),
     );
@@ -183,11 +184,17 @@ class _SavingsDetailPageState extends State<SavingsDetailPage> {
       title: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(widget.account.sourceName,
-              style: const TextStyle(color: Colors.white, fontSize: 18)),
-          Text(widget.account.bankName,
-              style: TextStyle(
-                  color: Colors.white.withValues(alpha: 0.6), fontSize: 13)),
+          Text(
+            widget.account.sourceName,
+            style: const TextStyle(color: Colors.white, fontSize: 18),
+          ),
+          Text(
+            widget.account.bankName,
+            style: TextStyle(
+              color: Colors.white.withValues(alpha: 0.6),
+              fontSize: 13,
+            ),
+          ),
         ],
       ),
       actions: [
@@ -195,7 +202,7 @@ class _SavingsDetailPageState extends State<SavingsDetailPage> {
           IconButton(
             icon: const Icon(Icons.check, color: Colors.greenAccent),
             onPressed: _saveChanges,
-          )
+          ),
       ],
     );
   }
@@ -211,16 +218,20 @@ class _SavingsDetailPageState extends State<SavingsDetailPage> {
           Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(widget.account.bankName,
-                  style: const TextStyle(
-                      color: Colors.white,
-                      fontSize: 16,
-                      fontWeight: FontWeight.bold)),
-              Text(widget.account.sourceName,
-                  style:
-                  TextStyle(color: Colors.white.withValues(alpha: 0.6))),
+              Text(
+                widget.account.bankName,
+                style: const TextStyle(
+                  color: Colors.white,
+                  fontSize: 16,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              Text(
+                widget.account.sourceName,
+                style: TextStyle(color: Colors.white.withValues(alpha: 0.6)),
+              ),
             ],
-          )
+          ),
         ],
       ),
     );
@@ -237,17 +248,15 @@ class _SavingsDetailPageState extends State<SavingsDetailPage> {
         border: Border.all(color: Colors.blue.shade300.withValues(alpha: 0.3)),
       ),
       child: widget.account.logoUrl.isEmpty
-          ? Icon(Icons.account_balance,
-          color: Colors.blue.shade300, size: 26)
+          ? Icon(Icons.account_balance, color: Colors.blue.shade300, size: 26)
           : ClipRRect(
-        borderRadius: BorderRadius.circular(8),
-        child: Image.network(widget.account.logoUrl),
-      ),
+              borderRadius: BorderRadius.circular(8),
+              child: Image.network(widget.account.logoUrl),
+            ),
     );
   }
 
-  Widget _buildInfoSection(
-      NumberFormat currency, NumberFormat percent) {
+  Widget _buildInfoSection(NumberFormat currency, NumberFormat percent) {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: _cardDecoration(),
@@ -271,7 +280,7 @@ class _SavingsDetailPageState extends State<SavingsDetailPage> {
               backgroundColor: Colors.white.withValues(alpha: 0.15),
               valueColor: AlwaysStoppedAnimation(_fillColor),
             ),
-          ]
+          ],
         ],
       ),
     );
@@ -313,16 +322,22 @@ class _SavingsDetailPageState extends State<SavingsDetailPage> {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          const Text('Total',
-              style: TextStyle(
-                  color: Colors.white,
-                  fontSize: 18,
-                  fontWeight: FontWeight.bold)),
-          Text(currency.format(_currentPrincipal + _currentInterest),
-              style: const TextStyle(
-                  color: Colors.white,
-                  fontSize: 24,
-                  fontWeight: FontWeight.bold)),
+          const Text(
+            'Total',
+            style: TextStyle(
+              color: Colors.white,
+              fontSize: 18,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+          Text(
+            currency.format(_currentPrincipal + _currentInterest),
+            style: const TextStyle(
+              color: Colors.white,
+              fontSize: 24,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
         ],
       ),
     );
@@ -337,11 +352,9 @@ class _SavingsDetailPageState extends State<SavingsDetailPage> {
       keyboardType: const TextInputType.numberWithOptions(decimal: true),
       decoration: InputDecoration(
         labelText: label,
-        labelStyle:
-        TextStyle(color: Colors.white.withValues(alpha: 0.7)),
+        labelStyle: TextStyle(color: Colors.white.withValues(alpha: 0.7)),
         suffixText: '€',
-        suffixStyle:
-        TextStyle(color: Colors.white.withValues(alpha: 0.6)),
+        suffixStyle: TextStyle(color: Colors.white.withValues(alpha: 0.6)),
         filled: true,
         fillColor: Colors.white.withValues(alpha: 0.08),
         border: OutlineInputBorder(
@@ -357,11 +370,14 @@ class _SavingsDetailPageState extends State<SavingsDetailPage> {
       children: [
         Icon(icon, color: Colors.blue.shade300, size: 20),
         const SizedBox(width: 8),
-        Text(title,
-            style: const TextStyle(
-                color: Colors.white,
-                fontSize: 16,
-                fontWeight: FontWeight.bold)),
+        Text(
+          title,
+          style: const TextStyle(
+            color: Colors.white,
+            fontSize: 16,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
       ],
     );
   }
@@ -370,13 +386,17 @@ class _SavingsDetailPageState extends State<SavingsDetailPage> {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
-        Text(label,
-            style:
-            TextStyle(color: Colors.white.withValues(alpha: 0.6))),
-        Text(value,
-            style: const TextStyle(
-                color: Colors.white,
-                fontWeight: FontWeight.w600)),
+        Text(
+          label,
+          style: TextStyle(color: Colors.white.withValues(alpha: 0.6)),
+        ),
+        Text(
+          value,
+          style: const TextStyle(
+            color: Colors.white,
+            fontWeight: FontWeight.w600,
+          ),
+        ),
       ],
     );
   }
@@ -392,8 +412,7 @@ class _SavingsDetailPageState extends State<SavingsDetailPage> {
         ],
       ),
       borderRadius: BorderRadius.circular(16),
-      border:
-      Border.all(color: Colors.blue.shade400.withValues(alpha: 0.3)),
+      border: Border.all(color: Colors.blue.shade400.withValues(alpha: 0.3)),
     );
   }
 }

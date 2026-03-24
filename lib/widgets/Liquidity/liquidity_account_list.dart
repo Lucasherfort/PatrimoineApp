@@ -6,10 +6,7 @@ import 'liquidity_account_card.dart';
 class LiquidityAccountList extends StatefulWidget {
   final VoidCallback onAccountUpdated;
 
-  const LiquidityAccountList({
-    super.key,
-    required this.onAccountUpdated,
-  });
+  const LiquidityAccountList({super.key, required this.onAccountUpdated});
 
   @override
   State<LiquidityAccountList> createState() => _LiquidityAccountListState();
@@ -87,7 +84,10 @@ class _LiquidityAccountListState extends State<LiquidityAccountList> {
                   ),
                   const Spacer(),
                   Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 10,
+                      vertical: 4,
+                    ),
                     decoration: BoxDecoration(
                       color: Colors.green.shade900.withValues(alpha: 0.3),
                       borderRadius: BorderRadius.circular(12),
@@ -109,7 +109,7 @@ class _LiquidityAccountListState extends State<LiquidityAccountList> {
               ),
             ),
             ...accounts.map(
-                  (account) => LiquidityAccountCard(
+              (account) => LiquidityAccountCard(
                 account: account,
                 onValueUpdated: (newValue) async {
                   await _service.updateAmount(

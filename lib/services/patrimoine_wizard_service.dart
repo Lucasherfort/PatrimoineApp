@@ -9,7 +9,7 @@ class PatrimoineWizardService {
   final SupabaseClient _supabase = Supabase.instance.client;
 
   static final PatrimoineWizardService _instance =
-  PatrimoineWizardService._internal();
+      PatrimoineWizardService._internal();
   factory PatrimoineWizardService() => _instance;
   PatrimoineWizardService._internal();
 
@@ -20,17 +20,23 @@ class PatrimoineWizardService {
           .select('id, name, label')
           .order('name');
 
-      return response.map((item) => PatrimoineCategory(
-        id: item['id'] as int,
-        name: item['name'] as String,
-        label: item['label'] as String? ?? '',
-      )).toList();
+      return response
+          .map(
+            (item) => PatrimoineCategory(
+              id: item['id'] as int,
+              name: item['name'] as String,
+              label: item['label'] as String? ?? '',
+            ),
+          )
+          .toList();
     } catch (e) {
       rethrow;
     }
   }
 
-  Future<List<SourceItem>> getSourcesForCategory(PatrimoineCategory category) async {
+  Future<List<SourceItem>> getSourcesForCategory(
+    PatrimoineCategory category,
+  ) async {
     try {
       final categoryName = category.name;
 
@@ -39,31 +45,35 @@ class PatrimoineWizardService {
             .from(DatabaseTables.liquidityCategory)
             .select('id, name');
 
-        return response.map((item) => SourceItem.fromLiquiditySource(item)).toList();
-      }
-      else if (categoryName.contains('Saving')) {
+        return response
+            .map((item) => SourceItem.fromLiquiditySource(item))
+            .toList();
+      } else if (categoryName.contains('Saving')) {
         final response = await _supabase
             .from(DatabaseTables.savingsCategory)
             .select('id, name, interest_rate, ceiling');
 
-        return response.map((item) => SourceItem.fromSavingsCategory(item)).toList();
-      }
-      else if (categoryName.contains('Investments')) {
+        return response
+            .map((item) => SourceItem.fromSavingsCategory(item))
+            .toList();
+      } else if (categoryName.contains('Investments')) {
         final response = await _supabase
             .from(DatabaseTables.investmentCategory)
             .select('id, name');
 
-        return response.map((item) => SourceItem.fromInvestmentCategory(item)).toList();
-      }
-      else if (categoryName.contains('Benefits')) {
+        return response
+            .map((item) => SourceItem.fromInvestmentCategory(item))
+            .toList();
+      } else if (categoryName.contains('Benefits')) {
         // 🔹 Nouvelle logique pour les avantages
         final response = await _supabase
             .from(DatabaseTables.advantageCategory)
             .select('id, name');
 
-        return response.map((item) => SourceItem.fromAdvantageCategory(item)).toList();
-      }
-      else {
+        return response
+            .map((item) => SourceItem.fromAdvantageCategory(item))
+            .toList();
+      } else {
         return [];
       }
     } catch (e) {
@@ -78,10 +88,11 @@ class PatrimoineWizardService {
           .select('id, name')
           .order('name');
 
-      return response.map((item) => Bank(
-        id: item['id'] as int,
-        name: item['name'] as String,
-      )).toList();
+      return response
+          .map(
+            (item) => Bank(id: item['id'] as int, name: item['name'] as String),
+          )
+          .toList();
     } catch (e) {
       rethrow;
     }
@@ -90,8 +101,7 @@ class PatrimoineWizardService {
   Future<List<Bank>> getBanksForLiquiditySource({
     required int categoryId,
     required int liquidityCategoryId,
-  }) async
-  {
+  }) async {
     final response = await _supabase
         .from(DatabaseTables.liquiditySource)
         .select('bank_id, banks ( id, name )')
@@ -99,10 +109,12 @@ class PatrimoineWizardService {
         .eq('liquidity_category_id', liquidityCategoryId);
 
     return response
-        .map<Bank>((item) => Bank(
-      id: item['banks']['id'] as int,
-      name: item['banks']['name'] as String,
-    ))
+        .map<Bank>(
+          (item) => Bank(
+            id: item['banks']['id'] as int,
+            name: item['banks']['name'] as String,
+          ),
+        )
         .toList();
   }
 
@@ -117,16 +129,17 @@ class PatrimoineWizardService {
         .eq('savings_category_id', savingsCategoryId);
 
     return response
-        .map<Bank>((item) => Bank(
-      id: item['banks']['id'] as int,
-      name: item['banks']['name'] as String,
-    ))
+        .map<Bank>(
+          (item) => Bank(
+            id: item['banks']['id'] as int,
+            name: item['banks']['name'] as String,
+          ),
+        )
         .toList();
   }
 
   // Récupère la liste des banques selon le type d'investissement
-  Future<List<Bank>> getBanksForInvestmentSource(
-  {
+  Future<List<Bank>> getBanksForInvestmentSource({
     required int categoryId,
     required int investmentCategoryId,
   }) async {
@@ -137,15 +150,16 @@ class PatrimoineWizardService {
         .eq('investment_category_id', investmentCategoryId);
 
     return response
-        .map<Bank>((item) => Bank(
-      id: item['banks']['id'] as int,
-      name: item['banks']['name'] as String,
-    ))
+        .map<Bank>(
+          (item) => Bank(
+            id: item['banks']['id'] as int,
+            name: item['banks']['name'] as String,
+          ),
+        )
         .toList();
   }
 
-
-// Récupère la liste des fournisseurs selon le type d'avantage
+  // Récupère la liste des fournisseurs selon le type d'avantage
   Future<List<Provider>> getProvidersForAdvantageSource({
     required int categoryId,
     required int advantageCategoryId,
@@ -156,16 +170,13 @@ class PatrimoineWizardService {
         .eq('category_id', categoryId)
         .eq('advantage_category_id', advantageCategoryId);
 
-    return response
-        .map<Provider>((item) {
+    return response.map<Provider>((item) {
       final provider = item['advantage_provider'];
 
       return Provider(
         id: provider['id'] as int,
         name: provider['name'] as String,
       );
-    })
-        .toList();
+    }).toList();
   }
-
 }

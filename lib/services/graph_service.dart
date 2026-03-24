@@ -42,27 +42,30 @@ class GraphService {
       final advantageService = AdvantageService();
 
       // Liquidité
-      final liquidityAccounts = await liquidityService.getUserLiquidityAccounts();
+      final liquidityAccounts = await liquidityService
+          .getUserLiquidityAccounts();
       final totalLiquidity = liquidityAccounts.fold<double>(
         0.0,
-            (sum, account) => sum + account.amount,
+        (sum, account) => sum + account.amount,
       );
 
       // Épargne
       final savingsAccounts = await savingsService.getUserSavingsAccounts();
       final totalSavings = savingsAccounts.fold<double>(
         0.0,
-            (sum, account) => sum + account.principal + account.interest,
+        (sum, account) => sum + account.principal + account.interest,
       );
 
       // Investissement
-      final totalInvestment = await investmentService.getUserInvestmentsTotalValue();
+      final totalInvestment = await investmentService
+          .getUserInvestmentsTotalValue();
 
       // Avantages
-      final advantageAccounts = await advantageService.getUserAdvantageAccounts();
+      final advantageAccounts = await advantageService
+          .getUserAdvantageAccounts();
       final totalAdvantages = advantageAccounts.fold<double>(
         0.0,
-            (sum, account) => sum + account.value,
+        (sum, account) => sum + account.value,
       );
 
       return PatrimoineDistribution(

@@ -6,10 +6,7 @@ import 'advantage_account_card.dart';
 class AdvantageAccountList extends StatefulWidget {
   final VoidCallback onAccountUpdated;
 
-  const AdvantageAccountList({
-    super.key,
-    required this.onAccountUpdated,
-  });
+  const AdvantageAccountList({super.key, required this.onAccountUpdated});
 
   @override
   State<AdvantageAccountList> createState() => _AdvantageAccountListState();
@@ -84,7 +81,10 @@ class _AdvantageAccountListState extends State<AdvantageAccountList> {
                   ),
                   const Spacer(),
                   Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 10,
+                      vertical: 4,
+                    ),
                     decoration: BoxDecoration(
                       color: Colors.orange.shade400.withValues(alpha: 0.15),
                       borderRadius: BorderRadius.circular(12),
@@ -105,19 +105,24 @@ class _AdvantageAccountListState extends State<AdvantageAccountList> {
                 ],
               ),
             ),
-            ...accounts.map((account) => AdvantageAccountCard(
-              account: account,
-              onValueUpdated: (newValue) async {
-                await _service.updateValue(accountId: account.id, value: newValue);
-                widget.onAccountUpdated();
-                setState(_loadAccounts);
-              },
-              onDeleted: () async {
-                await _service.deleteAccount(account.id);
-                widget.onAccountUpdated();
-                setState(_loadAccounts);
-              },
-            )),
+            ...accounts.map(
+              (account) => AdvantageAccountCard(
+                account: account,
+                onValueUpdated: (newValue) async {
+                  await _service.updateValue(
+                    accountId: account.id,
+                    value: newValue,
+                  );
+                  widget.onAccountUpdated();
+                  setState(_loadAccounts);
+                },
+                onDeleted: () async {
+                  await _service.deleteAccount(account.id);
+                  widget.onAccountUpdated();
+                  setState(_loadAccounts);
+                },
+              ),
+            ),
             const SizedBox(height: 8),
           ],
         );

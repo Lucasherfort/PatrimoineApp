@@ -14,7 +14,7 @@ class UserInvestmentAccountView {
     required this.logoUrl, // 👈 Ajouté
     required this.totalContribution,
     required this.cashBalance,
-    required this.amount
+    required this.amount,
   });
 
   // Vérifie si c'est une Assurance Vie (pas d'espèces)

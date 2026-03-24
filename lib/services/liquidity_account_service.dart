@@ -1,4 +1,3 @@
-
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../bdd/database_tables.dart';
 import '../models/liquidity/user_liquidity_account_view.dart';
@@ -40,9 +39,7 @@ class LiquidityAccountService {
       final iconPath = bank['icon'] as String?;
       String logoUrl = '';
       if (iconPath != null && iconPath.isNotEmpty) {
-        logoUrl = _supabase.storage
-            .from('banks-icons')
-            .getPublicUrl(iconPath);
+        logoUrl = _supabase.storage.from('banks-icons').getPublicUrl(iconPath);
       }
 
       return UserLiquidityAccountView(
@@ -58,9 +55,7 @@ class LiquidityAccountService {
   // ─────────────────────────────────────────────
   // ➕ CRÉATION D’UN COMPTE
   // ─────────────────────────────────────────────
-  Future<void> createLiquidityAccount({
-    required int liquiditySourceId,
-  }) async {
+  Future<void> createLiquidityAccount({required int liquiditySourceId}) async {
     final user = _supabase.auth.currentUser;
     if (user == null) {
       throw Exception('Utilisateur non connecté');
@@ -85,9 +80,9 @@ class LiquidityAccountService {
     await _supabase
         .from(DatabaseTables.userLiquidityAccounts)
         .update({
-      'amount': amount,
-      'updated_at': DateTime.now().toIso8601String(),
-    })
+          'amount': amount,
+          'updated_at': DateTime.now().toIso8601String(),
+        })
         .eq('id', accountId);
   }
 

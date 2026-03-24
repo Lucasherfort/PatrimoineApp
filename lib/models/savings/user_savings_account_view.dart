@@ -6,7 +6,7 @@ class UserSavingsAccountView {
   double principal;
   double interest;
   final double? interestRate; // 👈 Nouveau (nullable)
-  final double? ceiling;      // 👈 Nouveau (nullable)
+  final double? ceiling; // 👈 Nouveau (nullable)
 
   UserSavingsAccountView({
     required this.id,
@@ -15,7 +15,7 @@ class UserSavingsAccountView {
     required this.logoUrl,
     required this.principal,
     required this.interest,
-    this.interestRate,  // 👈 Optionnel
-    this.ceiling,       // 👈 Optionnel
+    this.interestRate, // 👈 Optionnel
+    this.ceiling, // 👈 Optionnel
   });
 }

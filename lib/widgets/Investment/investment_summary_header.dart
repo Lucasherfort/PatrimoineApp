@@ -6,7 +6,8 @@ import '../../models/investments/user_investment_account_view.dart';
 class InvestmentSummaryHeader extends StatelessWidget {
   final UserInvestmentAccountView account;
   final List<InvestmentPosition> positions;
-  final void Function(double newCashBalance, double newCumulativeDeposits)? onValueUpdated;
+  final void Function(double newCashBalance, double newCumulativeDeposits)?
+  onValueUpdated;
 
   const InvestmentSummaryHeader({
     super.key,
@@ -30,9 +31,8 @@ class InvestmentSummaryHeader extends StatelessWidget {
     return positions.fold(0.0, (sum, position) => sum + position.totalValue);
   }
 
-  double get totalValue => isAssuranceVie
-      ? positionsValue
-      : account.cashBalance + positionsValue;
+  double get totalValue =>
+      isAssuranceVie ? positionsValue : account.cashBalance + positionsValue;
 
   double get totalProfitLoss {
     return totalValue - account.totalContribution;
@@ -40,7 +40,9 @@ class InvestmentSummaryHeader extends StatelessWidget {
 
   double get performancePercentage {
     if (account.totalContribution <= 0) return 0.0;
-    return ((totalValue - account.totalContribution) / account.totalContribution) * 100;
+    return ((totalValue - account.totalContribution) /
+            account.totalContribution) *
+        100;
   }
 
   void _openEditPanel(BuildContext context) {
@@ -84,14 +86,21 @@ class InvestmentSummaryHeader extends StatelessWidget {
                 if (!isAssuranceVie) ...[
                   TextField(
                     controller: cashController,
-                    keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                    keyboardType: const TextInputType.numberWithOptions(
+                      decimal: true,
+                    ),
                     decoration: InputDecoration(
                       labelText: "Espèces disponibles",
                       suffixText: "€",
-                      border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
                       focusedBorder: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(12),
-                        borderSide: BorderSide(color: Colors.purple.shade600, width: 2),
+                        borderSide: BorderSide(
+                          color: Colors.purple.shade600,
+                          width: 2,
+                        ),
                       ),
                       prefixIcon: const Icon(Icons.account_balance_wallet),
                       helperText: "Montant en espèces sur le compte",
@@ -102,14 +111,21 @@ class InvestmentSummaryHeader extends StatelessWidget {
 
                 TextField(
                   controller: depositsController,
-                  keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                  keyboardType: const TextInputType.numberWithOptions(
+                    decimal: true,
+                  ),
                   decoration: InputDecoration(
                     labelText: "Versements cumulés",
                     suffixText: "€",
-                    border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
                     focusedBorder: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(12),
-                      borderSide: BorderSide(color: Colors.purple.shade600, width: 2),
+                      borderSide: BorderSide(
+                        color: Colors.purple.shade600,
+                        width: 2,
+                      ),
                     ),
                     prefixIcon: const Icon(Icons.savings),
                     helperText: "Total des versements effectués",
@@ -123,13 +139,20 @@ class InvestmentSummaryHeader extends StatelessWidget {
                     style: ElevatedButton.styleFrom(
                       backgroundColor: Colors.purple.shade600,
                       padding: const EdgeInsets.symmetric(vertical: 14),
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
                     ),
                     onPressed: () {
                       final cashText = cashController.text.replaceAll(',', '.');
-                      final depositsText = depositsController.text.replaceAll(',', '.');
+                      final depositsText = depositsController.text.replaceAll(
+                        ',',
+                        '.',
+                      );
 
-                      final cash = isAssuranceVie ? 0.0 : double.tryParse(cashText);
+                      final cash = isAssuranceVie
+                          ? 0.0
+                          : double.tryParse(cashText);
                       final deposits = double.tryParse(depositsText);
 
                       if ((isAssuranceVie || cash != null) &&
@@ -138,12 +161,14 @@ class InvestmentSummaryHeader extends StatelessWidget {
                         final newCash = isAssuranceVie ? 0.0 : cash!;
                         final newDeposits = deposits;
 
-                        final cashChanged = !isAssuranceVie &&
-                            newCash.toStringAsFixed(2) != account.cashBalance.toStringAsFixed(2);
+                        final cashChanged =
+                            !isAssuranceVie &&
+                            newCash.toStringAsFixed(2) !=
+                                account.cashBalance.toStringAsFixed(2);
 
                         final depositsChanged =
                             newDeposits.toStringAsFixed(2) !=
-                                account.totalContribution.toStringAsFixed(2);
+                            account.totalContribution.toStringAsFixed(2);
 
                         if (cashChanged || depositsChanged) {
                           onValueUpdated!(newCash, newDeposits);
@@ -244,7 +269,9 @@ class InvestmentSummaryHeader extends StatelessWidget {
                         style: TextStyle(
                           fontSize: 28,
                           fontWeight: FontWeight.w900,
-                          color: isProfit ? Colors.green.shade400 : Colors.red.shade400,
+                          color: isProfit
+                              ? Colors.green.shade400
+                              : Colors.red.shade400,
                           letterSpacing: -0.5,
                         ),
                       ),
@@ -254,8 +281,12 @@ class InvestmentSummaryHeader extends StatelessWidget {
                         mainAxisSize: MainAxisSize.min,
                         children: [
                           Icon(
-                            isProfit ? Icons.arrow_upward : Icons.arrow_downward,
-                            color: isProfit ? Colors.green.shade300 : Colors.red.shade300,
+                            isProfit
+                                ? Icons.arrow_upward
+                                : Icons.arrow_downward,
+                            color: isProfit
+                                ? Colors.green.shade300
+                                : Colors.red.shade300,
                             size: 15,
                           ),
                           const SizedBox(width: 4),
@@ -264,7 +295,9 @@ class InvestmentSummaryHeader extends StatelessWidget {
                             style: TextStyle(
                               fontSize: 16,
                               fontWeight: FontWeight.w700,
-                              color: isProfit ? Colors.green.shade300 : Colors.red.shade300,
+                              color: isProfit
+                                  ? Colors.green.shade300
+                                  : Colors.red.shade300,
                             ),
                           ),
                         ],
@@ -276,7 +309,10 @@ class InvestmentSummaryHeader extends StatelessWidget {
               const SizedBox(height: 14),
               // Ligne inférieure : Métriques compactes
               Container(
-                padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 14),
+                padding: const EdgeInsets.symmetric(
+                  vertical: 10,
+                  horizontal: 14,
+                ),
                 decoration: BoxDecoration(
                   color: Colors.white.withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(12),
@@ -285,7 +321,9 @@ class InvestmentSummaryHeader extends StatelessWidget {
                     width: 1,
                   ),
                 ),
-                child: isAssuranceVie ? _buildAssuranceVieMetrics() : _buildPEAMetrics(),
+                child: isAssuranceVie
+                    ? _buildAssuranceVieMetrics()
+                    : _buildPEAMetrics(),
               ),
             ],
           ),
@@ -340,11 +378,7 @@ class InvestmentSummaryHeader extends StatelessWidget {
     return Row(
       mainAxisSize: MainAxisSize.min,
       children: [
-        Icon(
-          icon,
-          color: Colors.purple.shade200,
-          size: 18,
-        ),
+        Icon(icon, color: Colors.purple.shade200, size: 18),
         const SizedBox(width: 8),
         Column(
           crossAxisAlignment: CrossAxisAlignment.start,

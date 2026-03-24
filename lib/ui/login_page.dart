@@ -80,7 +80,11 @@ class _LoginPageState extends State<LoginPage> {
             mainAxisSize: MainAxisSize.min,
             children: [
               // Icon avec couleur principale
-              const Icon(Icons.lock_outline, size: 64, color: Color(0xFF1976D2)),
+              const Icon(
+                Icons.lock_outline,
+                size: 64,
+                color: Color(0xFF1976D2),
+              ),
               const SizedBox(height: 16),
 
               const Text(
@@ -156,17 +160,20 @@ class _LoginPageState extends State<LoginPage> {
                   ),
                   child: isLoading
                       ? const SizedBox(
-                    width: 24,
-                    height: 24,
-                    child: CircularProgressIndicator(
-                      color: Colors.white,
-                      strokeWidth: 2,
-                    ),
-                  )
+                          width: 24,
+                          height: 24,
+                          child: CircularProgressIndicator(
+                            color: Colors.white,
+                            strokeWidth: 2,
+                          ),
+                        )
                       : const Text(
-                    'Se connecter',
-                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-                  ),
+                          'Se connecter',
+                          style: TextStyle(
+                            fontSize: 16,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
                 ),
               ),
 

@@ -12,8 +12,6 @@ class BankService {
 
   /// Banques correspondant à une liste d'IDs
   List<Bank> getByIds(List<int> bankIds) {
-    return _banks
-        .where((b) => bankIds.contains(b.id))
-        .toList();
+    return _banks.where((b) => bankIds.contains(b.id)).toList();
   }
 }

@@ -46,7 +46,9 @@ class _GraphsPageState extends State<GraphsPage> {
           SnackBar(
             content: Text('Erreur: $e'),
             behavior: SnackBarBehavior.floating,
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(8),
+            ),
           ),
         );
       }
@@ -60,11 +62,11 @@ class _GraphsPageState extends State<GraphsPage> {
       body: SafeArea(
         child: _isLoading
             ? const Center(
-          child: CircularProgressIndicator(
-            color: Colors.purple,
-            strokeWidth: 3,
-          ),
-        )
+                child: CircularProgressIndicator(
+                  color: Colors.purple,
+                  strokeWidth: 3,
+                ),
+              )
             : _distribution == null || _distribution!.total == 0
             ? _buildEmptyState()
             : _buildContent(),
@@ -102,18 +104,14 @@ class _GraphsPageState extends State<GraphsPage> {
           Text(
             'Ajoutez des comptes pour voir la répartition',
             textAlign: TextAlign.center,
-            style: TextStyle(
-              fontSize: 14,
-              color: Colors.grey.shade500,
-            ),
+            style: TextStyle(fontSize: 14, color: Colors.grey.shade500),
           ),
         ],
       ),
     );
   }
 
-  Widget _buildContent()
-  {
+  Widget _buildContent() {
     return SingleChildScrollView(
       padding: const EdgeInsets.all(16),
       child: Column(
@@ -167,7 +165,8 @@ class _GraphsPageState extends State<GraphsPage> {
                   _touchedIndex = -1;
                   return;
                 }
-                _touchedIndex = pieTouchResponse.touchedSection!.touchedSectionIndex;
+                _touchedIndex =
+                    pieTouchResponse.touchedSection!.touchedSectionIndex;
               });
             },
           ),
@@ -212,10 +211,30 @@ class _GraphsPageState extends State<GraphsPage> {
       }
     }
 
-    addSection(distribution.liquidite, Colors.green.shade400, 'Liquidité', Icons.water_drop_rounded);
-    addSection(distribution.epargne, Colors.blue.shade400, 'Épargne', Icons.savings_rounded);
-    addSection(distribution.investissement, Colors.purple.shade400, 'Invest.', Icons.trending_up_rounded);
-    addSection(distribution.avantages, Colors.orange.shade400, 'Avantages', Icons.card_giftcard_rounded);
+    addSection(
+      distribution.liquidite,
+      Colors.green.shade400,
+      'Liquidité',
+      Icons.water_drop_rounded,
+    );
+    addSection(
+      distribution.epargne,
+      Colors.blue.shade400,
+      'Épargne',
+      Icons.savings_rounded,
+    );
+    addSection(
+      distribution.investissement,
+      Colors.purple.shade400,
+      'Invest.',
+      Icons.trending_up_rounded,
+    );
+    addSection(
+      distribution.avantages,
+      Colors.orange.shade400,
+      'Avantages',
+      Icons.card_giftcard_rounded,
+    );
 
     return sections;
   }
@@ -261,7 +280,13 @@ class _GraphsPageState extends State<GraphsPage> {
     );
   }
 
-  Widget _categoryCard(String label, double value, double total, Color color, IconData icon) {
+  Widget _categoryCard(
+    String label,
+    double value,
+    double total,
+    Color color,
+    IconData icon,
+  ) {
     final currencyFormat = NumberFormat.currency(locale: 'fr_FR', symbol: '€');
     final percent = (value / total) * 100;
 
@@ -278,10 +303,7 @@ class _GraphsPageState extends State<GraphsPage> {
           end: Alignment.bottomRight,
         ),
         borderRadius: BorderRadius.circular(14),
-        border: Border.all(
-          color: color.withValues(alpha: 0.3),
-          width: 1,
-        ),
+        border: Border.all(color: color.withValues(alpha: 0.3), width: 1),
       ),
       child: Row(
         children: [
