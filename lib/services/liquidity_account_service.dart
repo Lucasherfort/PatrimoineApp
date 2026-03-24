@@ -38,7 +38,9 @@ class LiquidityAccountService {
       // Construire l'URL publique complète pour l'icône
       final iconPath = bank['icon'] as String?;
       String logoUrl = '';
+
       if (iconPath != null && iconPath.isNotEmpty) {
+        // getPublicUrl() retourne directement la String
         logoUrl = _supabase.storage.from('banks-icons').getPublicUrl(iconPath);
       }
 
