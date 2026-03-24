@@ -46,8 +46,10 @@ class SavingsAccountService {
           logoUrl: logoUrl,
           principal: (item['principal'] as num).toDouble(),
           interest: (item['interest'] as num).toDouble(),
-          interestRate: (category['interest_rate'] as num?)?.toDouble(), // 👈 Depuis savings_category
-          ceiling: (category['ceiling'] as num?)?.toDouble(),            // 👈 Depuis savings_category
+          interestRate: (category['interest_rate'] as num?)
+              ?.toDouble(), // 👈 Depuis savings_category
+          ceiling: (category['ceiling'] as num?)
+              ?.toDouble(), // 👈 Depuis savings_category
         );
       }).toList();
     } catch (e) {
@@ -70,10 +72,10 @@ class SavingsAccountService {
       await _supabase
           .from(DatabaseTables.userSavingsAccounts)
           .update({
-        'principal': principal,
-        'interest': interest,
-        'updated_at': DateTime.now().toIso8601String(),
-      })
+            'principal': principal,
+            'interest': interest,
+            'updated_at': DateTime.now().toIso8601String(),
+          })
           .eq('id', savingsAccountId);
 
       // Si on arrive ici, la requête a été exécutée sans exception
@@ -94,8 +96,7 @@ class SavingsAccountService {
           .eq('id', accountId);
 
       return response.error == null;
-    } catch (e)
-    {
+    } catch (e) {
       return false;
     }
   }
@@ -163,14 +164,15 @@ class SavingsAccountService {
           .eq('savings_category_id', savingsCategoryId)
           .maybeSingle();
 
-      final sourceId = existingSource?['id'] ??
+      final sourceId =
+          existingSource?['id'] ??
           (await _supabase
               .from(DatabaseTables.savingsSource)
               .insert({
-            'bank_id': bankId,
-            'category_id': categoryId,
-            'savings_category_id': savingsCategoryId,
-          })
+                'bank_id': bankId,
+                'category_id': categoryId,
+                'savings_category_id': savingsCategoryId,
+              })
               .select('id')
               .single())['id'];
 
@@ -178,17 +180,16 @@ class SavingsAccountService {
       final account = await _supabase
           .from(DatabaseTables.userSavingsAccounts)
           .insert({
-        'user_id': user.id,
-        'savings_source_id': sourceId,
-        'principal': 0,
-        'interest': 0
-      })
+            'user_id': user.id,
+            'savings_source_id': sourceId,
+            'principal': 0,
+            'interest': 0,
+          })
           .select('id')
           .single();
 
       return account['id'] as int;
-    } catch (e)
-    {
+    } catch (e) {
       return null;
     }
   }

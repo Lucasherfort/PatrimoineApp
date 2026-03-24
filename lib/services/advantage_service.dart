@@ -1,4 +1,3 @@
-
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../bdd/database_tables.dart';
 import '../models/advantage/user_advantage_account_view.dart';
@@ -55,7 +54,10 @@ class AdvantageService {
   }
 
   /// Met à jour la valeur d’un compte advantage
-  Future<void> updateValue({required int accountId, required double value}) async {
+  Future<void> updateValue({
+    required int accountId,
+    required double value,
+  }) async {
     try {
       await _supabase
           .from(DatabaseTables.userAdvantageAccount)

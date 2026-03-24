@@ -4,8 +4,8 @@ class UserInvestmentAccount {
   final int? investmentSourceId;
 
   double cumulativeDeposits; // total_contribution
-  double cashBalance;        // cash_balance
-  double amount;             // amount (valeur totale si tu l’utilises)
+  double cashBalance; // cash_balance
+  double amount; // amount (valeur totale si tu l’utilises)
 
   UserInvestmentAccount({
     required this.id,
@@ -21,11 +21,9 @@ class UserInvestmentAccount {
       id: map['id'] as int,
       userId: map['user_id'] as String,
       cumulativeDeposits:
-      (map['total_contribution'] as num?)?.toDouble() ?? 0.0,
-      cashBalance:
-      (map['cash_balance'] as num?)?.toDouble() ?? 0.0,
-      amount:
-      (map['amount'] as num?)?.toDouble() ?? 0.0,
+          (map['total_contribution'] as num?)?.toDouble() ?? 0.0,
+      cashBalance: (map['cash_balance'] as num?)?.toDouble() ?? 0.0,
+      amount: (map['amount'] as num?)?.toDouble() ?? 0.0,
       investmentSourceId: map['investment_source_id'] as int?,
     );
   }

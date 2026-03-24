@@ -1,4 +1,3 @@
-
 import 'package:patrimoine360/models/patrimoine/patrimoine_category.dart';
 
 import '../bank.dart';
@@ -6,7 +5,7 @@ import '../bank.dart';
 class PatrimoineWizardItem {
   final PatrimoineCategory category;
   final dynamic source; // LiquiditySource | SavingsCategory
-  final Bank? bank;     // si applicable
+  final Bank? bank; // si applicable
 
   PatrimoineWizardItem({
     required this.category,

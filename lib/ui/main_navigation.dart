@@ -39,10 +39,7 @@ class _MainNavigationState extends State<MainNavigation> {
   Widget build(BuildContext context) {
     // Les deux pages (onglets)
     final pages = [
-      HomePage(
-        appName: appName,
-        appVersion: appVersion,
-      ), // Onglet "Comptes"
+      HomePage(appName: appName, appVersion: appVersion), // Onglet "Comptes"
       GraphsPage(
         appName: appName,
         appVersion: appVersion,
@@ -50,10 +47,7 @@ class _MainNavigationState extends State<MainNavigation> {
     ];
 
     return Scaffold(
-      body: IndexedStack(
-        index: _currentIndex,
-        children: pages,
-      ),
+      body: IndexedStack(index: _currentIndex, children: pages),
       bottomNavigationBar: Container(
         decoration: BoxDecoration(
           color: const Color(0xFF0F172A), // slate-900
@@ -76,12 +70,8 @@ class _MainNavigationState extends State<MainNavigation> {
           elevation: 0,
           selectedItemColor: Colors.white,
           unselectedItemColor: Colors.white.withValues(alpha: 0.5),
-          selectedLabelStyle: const TextStyle(
-            fontWeight: FontWeight.w600,
-          ),
-          unselectedLabelStyle: const TextStyle(
-            fontWeight: FontWeight.w500,
-          ),
+          selectedLabelStyle: const TextStyle(fontWeight: FontWeight.w600),
+          unselectedLabelStyle: const TextStyle(fontWeight: FontWeight.w500),
           type: BottomNavigationBarType.fixed,
           items: const [
             BottomNavigationBarItem(

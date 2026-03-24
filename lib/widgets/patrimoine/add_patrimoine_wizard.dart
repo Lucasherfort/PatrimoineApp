@@ -32,17 +32,16 @@ class _AddPatrimoineWizardState extends State<AddPatrimoineWizard> {
   List<SourceItem> sources = [];
   SourceItem? selectedSource;
 
-// Étape 3 : Banques
+  // Étape 3 : Banques
   List<Bank> banks = [];
   Bank? selectedBank;
 
-// Étape 3 : Fournisseurs
+  // Étape 3 : Fournisseurs
   List<Provider> providers = [];
   Provider? selectedProvider;
 
-// Type de sélection du step 3
+  // Type de sélection du step 3
   Step3SelectionType? step3SelectionType;
-
 
   @override
   void initState() {
@@ -69,7 +68,9 @@ class _AddPatrimoineWizardState extends State<AddPatrimoineWizard> {
     setState(() => isLoading = true);
 
     try {
-      final loadedSources = await _wizardService.getSourcesForCategory(category);
+      final loadedSources = await _wizardService.getSourcesForCategory(
+        category,
+      );
 
       setState(() {
         sources = loadedSources;
@@ -77,20 +78,15 @@ class _AddPatrimoineWizardState extends State<AddPatrimoineWizard> {
         isLoading = false;
         currentStep = 1;
       });
-
     } catch (e) {
       setState(() => isLoading = false);
-
     }
   }
 
   void _showError(String message) {
     if (mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(message),
-          backgroundColor: Colors.red,
-        ),
+        SnackBar(content: Text(message), backgroundColor: Colors.red),
       );
     }
   }
@@ -98,16 +94,12 @@ class _AddPatrimoineWizardState extends State<AddPatrimoineWizard> {
   void _showSuccess(String message) {
     if (mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(message),
-          backgroundColor: Colors.green,
-        ),
+        SnackBar(content: Text(message), backgroundColor: Colors.green),
       );
     }
   }
 
-  void _onCategorySelected(PatrimoineCategory? category)
-  {
+  void _onCategorySelected(PatrimoineCategory? category) {
     setState(() {
       selectedCategory = category;
       selectedSource = null;
@@ -157,7 +149,6 @@ class _AddPatrimoineWizardState extends State<AddPatrimoineWizard> {
     }
   }
 
-
   void _onBankSelected(Bank? bank) {
     setState(() {
       selectedBank = bank;
@@ -205,34 +196,30 @@ class _AddPatrimoineWizardState extends State<AddPatrimoineWizard> {
     setState(() => isSaving = true);
 
     try {
-      if (selectedSource!.type == 'liquidity')
-      {
+      if (selectedSource!.type == 'liquidity') {
         // Charge si le compte existe
         final existing = await Supabase.instance.client
-        .from(DatabaseTables.liquiditySource)
-        .select('id')
+            .from(DatabaseTables.liquiditySource)
+            .select('id')
             .eq('bank_id', selectedBank!.id)
             .eq('category_id', selectedCategory!.id)
             .eq('liquidity_category_id', selectedSource!.id)
             .maybeSingle();
 
         int liquiditySourceId;
-        if(existing != null)
-          {
-            liquiditySourceId = existing['id'] as int;
+        if (existing != null) {
+          liquiditySourceId = existing['id'] as int;
 
-            // 3️⃣ Crée le user_savings_account
-            await Supabase.instance.client
-                .from(DatabaseTables.userLiquidityAccounts)
-                .insert({
-              'user_id': user.id,
-              'liquidity_source_id': liquiditySourceId,
-              'amount': 0
-            });
-          }
-      }
-      else if (selectedSource!.type == 'savings')
-      {
+          // 3️⃣ Crée le user_savings_account
+          await Supabase.instance.client
+              .from(DatabaseTables.userLiquidityAccounts)
+              .insert({
+                'user_id': user.id,
+                'liquidity_source_id': liquiditySourceId,
+                'amount': 0,
+              });
+        }
+      } else if (selectedSource!.type == 'savings') {
         // 1️⃣ Cherche si savings_source existe
         final existing = await Supabase.instance.client
             .from(DatabaseTables.savingsSource)
@@ -243,23 +230,18 @@ class _AddPatrimoineWizardState extends State<AddPatrimoineWizard> {
             .maybeSingle();
 
         int savingsSourceId;
-        if (existing != null)
-        {
+        if (existing != null) {
           savingsSourceId = existing['id'] as int;
 
           // 3️⃣ Crée le user_savings_account
-          await Supabase.instance.client
-              .from('user_savings_account')
-              .insert({
+          await Supabase.instance.client.from('user_savings_account').insert({
             'user_id': user.id,
             'savings_source_id': savingsSourceId,
             'principal': 0,
             'interest': 0,
           });
         }
-      }
-      else if (selectedSource!.type == 'investment')
-      {
+      } else if (selectedSource!.type == 'investment') {
         // 1️⃣ Cherche si savings_source existe
         final existing = await Supabase.instance.client
             .from(DatabaseTables.investmentSource)
@@ -270,38 +252,33 @@ class _AddPatrimoineWizardState extends State<AddPatrimoineWizard> {
             .maybeSingle();
 
         int savingsSourceId;
-        if (existing != null)
-        {
+        if (existing != null) {
           savingsSourceId = existing['id'] as int;
 
           // 3️⃣ Crée le user_savings_account
           await Supabase.instance.client
               .from(DatabaseTables.userInvestmentAccount)
               .insert({
-            'user_id': user.id,
-            'investment_source_id': savingsSourceId,
-            'total_contribution': 0,
-            'cash_balance': 0,
-            'amount': 0
-          });
+                'user_id': user.id,
+                'investment_source_id': savingsSourceId,
+                'total_contribution': 0,
+                'cash_balance': 0,
+                'amount': 0,
+              });
         }
-      }
-      else if (selectedSource!.type == 'advantage') {
+      } else if (selectedSource!.type == 'advantage') {
         await Supabase.instance.client
             .from(DatabaseTables.userAdvantageAccount)
             .insert({
-          'user_id': user.id,
-          'advantage_source_id': selectedSource!.id,
-          'value': 0,
-        });
+              'user_id': user.id,
+              'advantage_source_id': selectedSource!.id,
+              'value': 0,
+            });
       }
-
 
       _showSuccess('Compte créé avec succès');
       if (mounted) Navigator.pop(context, true);
-
-    } catch (e)
-    {
+    } catch (e) {
       _showError('Erreur lors de la création: $e');
     } finally {
       setState(() => isSaving = false);
@@ -329,11 +306,7 @@ class _AddPatrimoineWizardState extends State<AddPatrimoineWizard> {
           const SizedBox(height: 20),
           _buildProgressIndicator(),
           const SizedBox(height: 20),
-          Expanded(
-            child: SingleChildScrollView(
-              child: _buildStepContent(),
-            ),
-          ),
+          Expanded(child: SingleChildScrollView(child: _buildStepContent())),
           const SizedBox(height: 20),
           _buildNavigationButtons(),
           const SizedBox(height: 20),
@@ -348,10 +321,7 @@ class _AddPatrimoineWizardState extends State<AddPatrimoineWizard> {
       children: [
         const Text(
           'Ajouter un patrimoine',
-          style: TextStyle(
-            fontSize: 20,
-            fontWeight: FontWeight.bold,
-          ),
+          style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
         ),
         IconButton(
           icon: const Icon(Icons.close),
@@ -506,10 +476,7 @@ class _AddPatrimoineWizardState extends State<AddPatrimoineWizard> {
               prefixIcon: const Icon(Icons.account_balance_wallet),
             ),
             items: sources.map((source) {
-              return DropdownMenuItem(
-                value: source,
-                child: Text(source.label),
-              );
+              return DropdownMenuItem(value: source, child: Text(source.label));
             }).toList(),
             onChanged: _onSourceSelected,
           ),
@@ -561,10 +528,7 @@ class _AddPatrimoineWizardState extends State<AddPatrimoineWizard> {
               prefixIcon: const Icon(Icons.account_balance),
             ),
             items: banks.map((bank) {
-              return DropdownMenuItem(
-                value: bank,
-                child: Text(bank.name),
-              );
+              return DropdownMenuItem(value: bank, child: Text(bank.name));
             }).toList(),
             onChanged: _onBankSelected,
           ),
@@ -604,13 +568,13 @@ class _AddPatrimoineWizardState extends State<AddPatrimoineWizard> {
             ),
             child: isSaving
                 ? const SizedBox(
-              height: 20,
-              width: 20,
-              child: CircularProgressIndicator(
-                strokeWidth: 2,
-                valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
-              ),
-            )
+                    height: 20,
+                    width: 20,
+                    child: CircularProgressIndicator(
+                      strokeWidth: 2,
+                      valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                    ),
+                  )
                 : Text(currentStep < 2 ? 'Suivant' : 'Enregistrer'),
           ),
         ),
@@ -659,29 +623,50 @@ class _AddPatrimoineWizardState extends State<AddPatrimoineWizard> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Text('Étape 3 : Fournisseur', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.blue)),
+        const Text(
+          'Étape 3 : Fournisseur',
+          style: TextStyle(
+            fontSize: 18,
+            fontWeight: FontWeight.bold,
+            color: Colors.blue,
+          ),
+        ),
         const SizedBox(height: 8),
-        const Text('Sélectionnez le fournisseur de votre avantage', style: TextStyle(fontSize: 14, color: Colors.grey)),
+        const Text(
+          'Sélectionnez le fournisseur de votre avantage',
+          style: TextStyle(fontSize: 14, color: Colors.grey),
+        ),
         const SizedBox(height: 20),
         if (providers.isEmpty)
           const Padding(
             padding: EdgeInsets.all(20),
             child: Center(
-              child: Text('Aucun fournisseur disponible', style: TextStyle(color: Colors.grey)),
+              child: Text(
+                'Aucun fournisseur disponible',
+                style: TextStyle(color: Colors.grey),
+              ),
             ),
           )
         else
           DropdownButtonFormField<Provider>(
             initialValue: selectedProvider,
             decoration: InputDecoration(
-              border: OutlineInputBorder(borderRadius: BorderRadius.circular(8)),
-              contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(8),
+              ),
+              contentPadding: const EdgeInsets.symmetric(
+                horizontal: 16,
+                vertical: 12,
+              ),
               labelText: 'Fournisseur',
               hintText: 'Sélectionnez un fournisseur',
               prefixIcon: const Icon(Icons.store),
             ),
             items: providers.map((provider) {
-              return DropdownMenuItem(value: provider, child: Text(provider.name));
+              return DropdownMenuItem(
+                value: provider,
+                child: Text(provider.name),
+              );
             }).toList(),
             onChanged: (p) => setState(() => selectedProvider = p),
           ),
@@ -701,7 +686,6 @@ class _AddPatrimoineWizardState extends State<AddPatrimoineWizard> {
         return Future.value([]);
     }
   }
-
 }
 
 // Extension helper pour firstWhereOrNull
@@ -713,7 +697,5 @@ extension IterableExtension<T> on Iterable<T> {
     return null;
   }
 }
-enum Step3SelectionType {
-  bank,
-  provider,
-}
+
+enum Step3SelectionType { bank, provider }

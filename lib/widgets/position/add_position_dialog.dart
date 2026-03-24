@@ -89,7 +89,7 @@ class _AddPositionDialogState extends State<AddPositionDialog> {
   // ✅ NOUVELLE MÉTHODE
   bool _isPositionAlreadyInAccount(Position position) {
     return widget.existingPositions.any(
-          (investPos) => investPos.positionId == position.id,
+      (investPos) => investPos.positionId == position.id,
     );
   }
 
@@ -107,10 +107,10 @@ class _AddPositionDialogState extends State<AddPositionDialog> {
       return;
     }
 
-    final quantity =
-    double.tryParse(_quantityController.text.replaceAll(',', '.'));
-    final pru =
-    double.tryParse(_pruController.text.replaceAll(',', '.'));
+    final quantity = double.tryParse(
+      _quantityController.text.replaceAll(',', '.'),
+    );
+    final pru = double.tryParse(_pruController.text.replaceAll(',', '.'));
 
     if (quantity == null || quantity <= 0) {
       _showSnack('Quantité invalide');
@@ -150,30 +150,30 @@ class _AddPositionDialogState extends State<AddPositionDialog> {
             Expanded(
               child: _isLoading
                   ? const Center(
-                child: CircularProgressIndicator(color: Colors.purple),
-              )
+                      child: CircularProgressIndicator(color: Colors.purple),
+                    )
                   : _errorMessage != null
                   ? Center(child: Text(_errorMessage!))
                   : Padding(
-                padding: const EdgeInsets.all(20),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    _buildFilters(),
-                    const SizedBox(height: 16),
-                    _buildSearch(),
-                    const SizedBox(height: 16),
-                    _buildTitle(),
-                    const SizedBox(height: 8),
+                      padding: const EdgeInsets.all(20),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          _buildFilters(),
+                          const SizedBox(height: 16),
+                          _buildSearch(),
+                          const SizedBox(height: 16),
+                          _buildTitle(),
+                          const SizedBox(height: 8),
 
-                    /// ✅ LISTE SCROLLABLE UNIQUEMENT
-                    Expanded(child: _buildPositionList()),
+                          /// ✅ LISTE SCROLLABLE UNIQUEMENT
+                          Expanded(child: _buildPositionList()),
 
-                    const SizedBox(height: 20),
-                    _buildInputs(),
-                  ],
-                ),
-              ),
+                          const SizedBox(height: 20),
+                          _buildInputs(),
+                        ],
+                      ),
+                    ),
             ),
 
             _buildFooter(),
@@ -237,9 +237,9 @@ class _AddPositionDialogState extends State<AddPositionDialog> {
         prefixIcon: const Icon(Icons.search),
         suffixIcon: _searchController.text.isNotEmpty
             ? IconButton(
-          icon: const Icon(Icons.clear),
-          onPressed: _searchController.clear,
-        )
+                icon: const Icon(Icons.clear),
+                onPressed: _searchController.clear,
+              )
             : null,
         border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
       ),
@@ -265,69 +265,73 @@ class _AddPositionDialogState extends State<AddPositionDialog> {
       child: _filteredPositions.isEmpty
           ? const Center(child: Text('Aucune position trouvée'))
           : ListView.separated(
-        itemCount: _filteredPositions.length,
-        separatorBuilder: (_, _) =>
-            Divider(height: 1, color: Colors.grey.shade200),
-        itemBuilder: (context, index) {
-          final position = _filteredPositions[index];
-          final isSelected = position == _selectedPosition;
-          final isAlreadyInAccount = _isPositionAlreadyInAccount(position); // ✅
+              itemCount: _filteredPositions.length,
+              separatorBuilder: (_, _) =>
+                  Divider(height: 1, color: Colors.grey.shade200),
+              itemBuilder: (context, index) {
+                final position = _filteredPositions[index];
+                final isSelected = position == _selectedPosition;
+                final isAlreadyInAccount = _isPositionAlreadyInAccount(
+                  position,
+                ); // ✅
 
-          return InkWell(
-            onTap: isAlreadyInAccount // ✅ Désactiver si déjà présent
-                ? null
-                : () {
-              setState(() {
-                _selectedPosition = position;
-                _pruController.text = position.price
-                    .toStringAsFixed(2)
-                    .replaceAll('.', ',');
-              });
-            },
-            child: Container(
-              padding: const EdgeInsets.all(12),
-              color: isSelected
-                  ? Colors.purple.shade50
-                  : (isAlreadyInAccount // ✅
-                  ? Colors.grey.shade100
-                  : Colors.transparent),
-              child: Row(
-                children: [
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
+                return InkWell(
+                  onTap:
+                      isAlreadyInAccount // ✅ Désactiver si déjà présent
+                      ? null
+                      : () {
+                          setState(() {
+                            _selectedPosition = position;
+                            _pruController.text = position.price
+                                .toStringAsFixed(2)
+                                .replaceAll('.', ',');
+                          });
+                        },
+                  child: Container(
+                    padding: const EdgeInsets.all(12),
+                    color: isSelected
+                        ? Colors.purple.shade50
+                        : (isAlreadyInAccount // ✅
+                              ? Colors.grey.shade100
+                              : Colors.transparent),
+                    child: Row(
                       children: [
-                        Text(
-                          '${position.name} (${position.ticker})',
-                          style: TextStyle(
-                            fontWeight: FontWeight.w600,
-                            color: isAlreadyInAccount // ✅
-                                ? Colors.grey.shade400
-                                : (isSelected
-                                ? Colors.purple
-                                : Colors.black87),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                '${position.name} (${position.ticker})',
+                                style: TextStyle(
+                                  fontWeight: FontWeight.w600,
+                                  color:
+                                      isAlreadyInAccount // ✅
+                                      ? Colors.grey.shade400
+                                      : (isSelected
+                                            ? Colors.purple
+                                            : Colors.black87),
+                                ),
+                              ),
+                              if (isAlreadyInAccount) // ✅
+                                Text(
+                                  'Déjà dans le compte',
+                                  style: TextStyle(
+                                    fontSize: 11,
+                                    color: Colors.orange.shade600,
+                                    fontStyle: FontStyle.italic,
+                                  ),
+                                ),
+                            ],
                           ),
                         ),
-                        if (isAlreadyInAccount) // ✅
-                          Text(
-                            'Déjà dans le compte',
-                            style: TextStyle(
-                              fontSize: 11,
-                              color: Colors.orange.shade600,
-                              fontStyle: FontStyle.italic,
-                            ),
-                          ),
+                        if (isSelected)
+                          const Icon(Icons.check_circle, color: Colors.purple),
                       ],
                     ),
                   ),
-                  if (isSelected)
-                    const Icon(Icons.check_circle, color: Colors.purple),
-                ],
-              ),
+                );
+              },
             ),
-          );
-        },
-      ),
     );
   }
 
@@ -337,12 +341,12 @@ class _AddPositionDialogState extends State<AddPositionDialog> {
         Expanded(
           child: TextField(
             controller: _quantityController,
-            keyboardType:
-            const TextInputType.numberWithOptions(decimal: true),
+            keyboardType: const TextInputType.numberWithOptions(decimal: true),
             decoration: InputDecoration(
               labelText: 'Quantité',
-              border:
-              OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
             ),
           ),
         ),
@@ -350,13 +354,13 @@ class _AddPositionDialogState extends State<AddPositionDialog> {
         Expanded(
           child: TextField(
             controller: _pruController,
-            keyboardType:
-            const TextInputType.numberWithOptions(decimal: true),
+            keyboardType: const TextInputType.numberWithOptions(decimal: true),
             decoration: InputDecoration(
               labelText: 'PRU',
               suffixText: '€',
-              border:
-              OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
             ),
           ),
         ),
@@ -370,8 +374,7 @@ class _AddPositionDialogState extends State<AddPositionDialog> {
       decoration: BoxDecoration(
         color: Colors.grey.shade50,
         border: Border(top: BorderSide(color: Colors.grey.shade200)),
-        borderRadius:
-        const BorderRadius.vertical(bottom: Radius.circular(20)),
+        borderRadius: const BorderRadius.vertical(bottom: Radius.circular(20)),
       ),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.end,
@@ -386,8 +389,7 @@ class _AddPositionDialogState extends State<AddPositionDialog> {
             style: ElevatedButton.styleFrom(
               backgroundColor: Colors.purple.shade600,
               foregroundColor: Colors.white,
-              padding:
-              const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
             ),
             child: const Text(
               'Ajouter',
@@ -417,7 +419,11 @@ class _AddPositionDialogState extends State<AddPositionDialog> {
         child: Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(icon, size: 16, color: isSelected ? Colors.white : Colors.grey),
+            Icon(
+              icon,
+              size: 16,
+              color: isSelected ? Colors.white : Colors.grey,
+            ),
             const SizedBox(width: 6),
             Text(
               type,

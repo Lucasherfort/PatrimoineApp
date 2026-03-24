@@ -11,7 +11,6 @@ class PositionService {
   factory PositionService() => _instance;
   PositionService._internal();
 
-
   /// Ajoute une nouvelle position utilisateur
   Future<void> addPosition({
     required int userInvestmentAccountId,
@@ -48,10 +47,10 @@ class PositionService {
       final response = await _supabase
           .from(DatabaseTables.userInvestmentPosition)
           .update({
-        'quantity': quantity,
-        'pru': pru,
-        'updated_at': DateTime.now().toUtc().toIso8601String(),
-      })
+            'quantity': quantity,
+            'pru': pru,
+            'updated_at': DateTime.now().toUtc().toIso8601String(),
+          })
           .eq('id', positionId)
           .select();
 

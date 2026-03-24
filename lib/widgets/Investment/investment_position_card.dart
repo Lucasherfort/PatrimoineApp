@@ -4,7 +4,8 @@ import '../../models/investment_position.dart';
 
 class InvestmentPositionCard extends StatelessWidget {
   final InvestmentPosition position;
-  final void Function(double newAveragePurchasePrice, double newQuantity)? onValueUpdated;
+  final void Function(double newAveragePurchasePrice, double newQuantity)?
+  onValueUpdated;
   final VoidCallback? onDelete;
 
   const InvestmentPositionCard({
@@ -36,13 +37,17 @@ class InvestmentPositionCard extends StatelessWidget {
       context: context,
       builder: (BuildContext dialogContext) {
         return AlertDialog(
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16),
+          ),
           title: const Text('Supprimer la position'),
           content: RichText(
             text: TextSpan(
               style: DefaultTextStyle.of(context).style,
               children: [
-                const TextSpan(text: 'Voulez-vous vraiment supprimer la position '),
+                const TextSpan(
+                  text: 'Voulez-vous vraiment supprimer la position ',
+                ),
                 TextSpan(
                   text: position.name,
                   style: const TextStyle(fontWeight: FontWeight.bold),
@@ -66,7 +71,9 @@ class InvestmentPositionCard extends StatelessWidget {
               style: ElevatedButton.styleFrom(
                 backgroundColor: Colors.red,
                 foregroundColor: Colors.white,
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(8),
+                ),
               ),
               child: const Text('Supprimer'),
             ),
@@ -117,7 +124,10 @@ class InvestmentPositionCard extends StatelessWidget {
               Row(
                 children: [
                   Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 3),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 6,
+                      vertical: 3,
+                    ),
                     decoration: BoxDecoration(
                       color: Colors.purple.shade400.withValues(alpha: 0.3),
                       borderRadius: BorderRadius.circular(6),
@@ -149,9 +159,14 @@ class InvestmentPositionCard extends StatelessWidget {
                     ),
                   ),
                   Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 3),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 6,
+                      vertical: 3,
+                    ),
                     decoration: BoxDecoration(
-                      color: isPositive ? Colors.green.shade600 : Colors.red.shade600,
+                      color: isPositive
+                          ? Colors.green.shade600
+                          : Colors.red.shade600,
                       borderRadius: BorderRadius.circular(6),
                     ),
                     child: Text(
@@ -209,7 +224,9 @@ class InvestmentPositionCard extends StatelessWidget {
                         style: TextStyle(
                           fontSize: 15,
                           fontWeight: FontWeight.bold,
-                          color: isPositive ? Colors.green.shade400 : Colors.red.shade400,
+                          color: isPositive
+                              ? Colors.green.shade400
+                              : Colors.red.shade400,
                         ),
                       ),
                     ],
@@ -227,9 +244,18 @@ class InvestmentPositionCard extends StatelessWidget {
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
-                    _buildCompactInfo("Qté", _formatQuantity(position.quantity)),
-                    _buildCompactInfo("PRU", "${_formatAmount(position.pru)} €"),
-                    _buildCompactInfo("Actuel", "${_formatAmount(position.currentPrice)} €"),
+                    _buildCompactInfo(
+                      "Qté",
+                      _formatQuantity(position.quantity),
+                    ),
+                    _buildCompactInfo(
+                      "PRU",
+                      "${_formatAmount(position.pru)} €",
+                    ),
+                    _buildCompactInfo(
+                      "Actuel",
+                      "${_formatAmount(position.currentPrice)} €",
+                    ),
                   ],
                 ),
               ),
@@ -295,7 +321,10 @@ class InvestmentPositionCard extends StatelessWidget {
                 Row(
                   children: [
                     Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 10,
+                        vertical: 5,
+                      ),
                       decoration: BoxDecoration(
                         color: Colors.purple.shade50,
                         borderRadius: BorderRadius.circular(8),
@@ -326,13 +355,20 @@ class InvestmentPositionCard extends StatelessWidget {
                 const SizedBox(height: 20),
                 TextField(
                   controller: quantityController,
-                  keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                  keyboardType: const TextInputType.numberWithOptions(
+                    decimal: true,
+                  ),
                   decoration: InputDecoration(
                     labelText: "Quantité",
-                    border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
                     focusedBorder: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(12),
-                      borderSide: BorderSide(color: Colors.purple.shade600, width: 2),
+                      borderSide: BorderSide(
+                        color: Colors.purple.shade600,
+                        width: 2,
+                      ),
                     ),
                     helperText: "Nombre d'actions/parts détenues",
                   ),
@@ -340,14 +376,21 @@ class InvestmentPositionCard extends StatelessWidget {
                 const SizedBox(height: 16),
                 TextField(
                   controller: pruController,
-                  keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                  keyboardType: const TextInputType.numberWithOptions(
+                    decimal: true,
+                  ),
                   decoration: InputDecoration(
                     labelText: "Prix de Revient Unitaire (PRU)",
                     suffixText: "€",
-                    border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
                     focusedBorder: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(12),
-                      borderSide: BorderSide(color: Colors.purple.shade600, width: 2),
+                      borderSide: BorderSide(
+                        color: Colors.purple.shade600,
+                        width: 2,
+                      ),
                     ),
                     helperText: "Prix moyen d'achat par unité",
                   ),
@@ -359,20 +402,32 @@ class InvestmentPositionCard extends StatelessWidget {
                     style: ElevatedButton.styleFrom(
                       backgroundColor: Colors.purple.shade600,
                       padding: const EdgeInsets.symmetric(vertical: 14),
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
                     ),
                     onPressed: () {
-                      final pru = double.tryParse(pruController.text.replaceAll(',', '.'));
-                      final quantity = double.tryParse(quantityController.text.replaceAll(',', '.'));
+                      final pru = double.tryParse(
+                        pruController.text.replaceAll(',', '.'),
+                      );
+                      final quantity = double.tryParse(
+                        quantityController.text.replaceAll(',', '.'),
+                      );
 
-                      if (pru != null && quantity != null && onValueUpdated != null) {
+                      if (pru != null &&
+                          quantity != null &&
+                          onValueUpdated != null) {
                         onValueUpdated!(pru, quantity);
                       }
                       Navigator.pop(context);
                     },
                     child: const Text(
                       "Valider",
-                      style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.white),
+                      style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.white,
+                      ),
                     ),
                   ),
                 ),

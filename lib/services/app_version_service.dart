@@ -34,7 +34,8 @@ class AppVersionService {
       if (config.isMaintenance) {
         return AppStatus(
           status: AppStatusType.maintenance,
-          message: config.maintenanceMessage ??
+          message:
+              config.maintenanceMessage ??
               'L\'application est en maintenance. Veuillez réessayer plus tard.',
           apkUrl: config.apkUrl, // 👈 Ajouter ici
         );
@@ -44,7 +45,8 @@ class AppVersionService {
       if (config.isUpdateRequired(currentAppVersion)) {
         return AppStatus(
           status: AppStatusType.updateRequired,
-          message: config.updateMessage ??
+          message:
+              config.updateMessage ??
               'Une mise à jour obligatoire est disponible. Veuillez mettre à jour l\'application.',
           latestVersion: config.currentVersion,
           apkUrl: config.apkUrl, // 👈 Ajouter ici
@@ -55,8 +57,8 @@ class AppVersionService {
       if (config.hasUpdateAvailable(currentAppVersion)) {
         return AppStatus(
           status: AppStatusType.updateAvailable,
-          message: config.updateMessage ??
-              'Une nouvelle version est disponible.',
+          message:
+              config.updateMessage ?? 'Une nouvelle version est disponible.',
           latestVersion: config.currentVersion,
           apkUrl: config.apkUrl, // 👈 Ajouter ici
         );
@@ -70,12 +72,7 @@ class AppVersionService {
   }
 }
 
-enum AppStatusType {
-  ok,
-  maintenance,
-  updateRequired,
-  updateAvailable,
-}
+enum AppStatusType { ok, maintenance, updateRequired, updateAvailable }
 
 class AppStatus {
   final AppStatusType status;

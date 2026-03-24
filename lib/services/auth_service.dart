@@ -4,10 +4,7 @@ class AuthService {
   final SupabaseClient _supabase = Supabase.instance.client;
 
   /// 🔐 Connexion
-  Future<void> signIn({
-    required String email,
-    required String password,
-  }) async {
+  Future<void> signIn({required String email, required String password}) async {
     final response = await _supabase.auth.signInWithPassword(
       email: email,
       password: password,
@@ -19,10 +16,7 @@ class AuthService {
   }
 
   /// 🆕 Inscription
-  Future<void> signUp({
-    required String email,
-    required String password,
-  }) async {
+  Future<void> signUp({required String email, required String password}) async {
     final response = await _supabase.auth.signUp(
       email: email,
       password: password,
@@ -42,6 +36,5 @@ class AuthService {
   User? get currentUser => _supabase.auth.currentUser;
 
   /// 🔄 Écoute des changements d’auth
-  Stream<AuthState> get authStateChanges =>
-      _supabase.auth.onAuthStateChange;
+  Stream<AuthState> get authStateChanges => _supabase.auth.onAuthStateChange;
 }

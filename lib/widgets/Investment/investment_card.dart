@@ -44,9 +44,7 @@ class InvestmentCard extends StatelessWidget {
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (_) => AlertDialog(
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(16),
-        ),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
         title: const Text(
           'Confirmer la suppression',
           style: TextStyle(fontWeight: FontWeight.bold),
@@ -55,10 +53,18 @@ class InvestmentCard extends StatelessWidget {
           text: TextSpan(
             style: const TextStyle(fontSize: 16, color: Colors.black87),
             children: [
-              const TextSpan(text: 'Êtes-vous sûr de vouloir supprimer le compte '),
-              TextSpan(text: type, style: const TextStyle(fontWeight: FontWeight.bold)),
+              const TextSpan(
+                text: 'Êtes-vous sûr de vouloir supprimer le compte ',
+              ),
+              TextSpan(
+                text: type,
+                style: const TextStyle(fontWeight: FontWeight.bold),
+              ),
               const TextSpan(text: ' de '),
-              TextSpan(text: bankName, style: const TextStyle(fontWeight: FontWeight.bold)),
+              TextSpan(
+                text: bankName,
+                style: const TextStyle(fontWeight: FontWeight.bold),
+              ),
               const TextSpan(text: ' ?'),
             ],
           ),
@@ -73,7 +79,9 @@ class InvestmentCard extends StatelessWidget {
             style: ElevatedButton.styleFrom(
               backgroundColor: Colors.red,
               foregroundColor: Colors.white,
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(8),
+              ),
             ),
             child: const Text('Supprimer'),
           ),
@@ -92,7 +100,8 @@ class InvestmentCard extends StatelessWidget {
     return Image.network(
       logoUrl,
       fit: BoxFit.contain,
-      errorBuilder: (_, _, _) => Icon(Icons.trending_up, color: Colors.purple.shade300, size: 26),
+      errorBuilder: (_, _, _) =>
+          Icon(Icons.trending_up, color: Colors.purple.shade300, size: 26),
       loadingBuilder: (context, child, loadingProgress) {
         if (loadingProgress == null) return child;
         return Center(
@@ -119,7 +128,9 @@ class InvestmentCard extends StatelessWidget {
           final shouldReload = await Navigator.of(context).push<bool>(
             PageRouteBuilder(
               opaque: true,
-              barrierColor: const Color(0xFF0F172A), // 🔥 empêche le flash blanc
+              barrierColor: const Color(
+                0xFF0F172A,
+              ), // 🔥 empêche le flash blanc
               transitionDuration: const Duration(milliseconds: 280),
               pageBuilder: (_, _, _) => InvestmentDetailPage(
                 userInvestmentAccountId: userInvestmentAccountId,

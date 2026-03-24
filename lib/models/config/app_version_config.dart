@@ -1,7 +1,7 @@
 // lib/models/config/app_version_config.dart
 class AppVersionConfig {
   final String currentVersion; // dernière version dispo
-  final String minVersion;     // version minimale autorisée
+  final String minVersion; // version minimale autorisée
   final bool isMaintenance;
   final String? updateMessage;
   final String? maintenanceMessage;
@@ -18,7 +18,8 @@ class AppVersionConfig {
 
   factory AppVersionConfig.fromMap(Map<String, dynamic> map) {
     final rawMaintenance = map['is_maintenance'];
-    final isMaintenance = rawMaintenance == true ||
+    final isMaintenance =
+        rawMaintenance == true ||
         rawMaintenance == 1 ||
         (rawMaintenance is String && rawMaintenance.toLowerCase() == 'true');
 

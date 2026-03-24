@@ -21,10 +21,7 @@ class InvestmentPositionList extends StatelessWidget {
   Widget build(BuildContext context) {
     if (isLoading) {
       return const Center(
-        child: CircularProgressIndicator(
-          color: Colors.white,
-          strokeWidth: 3,
-        ),
+        child: CircularProgressIndicator(color: Colors.white, strokeWidth: 3),
       );
     }
 
@@ -67,12 +64,7 @@ class InvestmentPositionList extends StatelessWidget {
         return InvestmentPositionCard(
           position: positions[index],
           onValueUpdated: (newPru, newQuantity) {
-            _updatePosition(
-              context,
-              positions[index],
-              newPru,
-              newQuantity,
-            );
+            _updatePosition(context, positions[index], newPru, newQuantity);
           },
           onDelete: () {
             _deletePosition(context, positions[index]);
@@ -83,11 +75,11 @@ class InvestmentPositionList extends StatelessWidget {
   }
 
   Future<void> _updatePosition(
-      BuildContext context,
-      InvestmentPosition position,
-      double newPru,
-      double newQuantity,
-      ) async {
+    BuildContext context,
+    InvestmentPosition position,
+    double newPru,
+    double newQuantity,
+  ) async {
     try {
       final hasChanged = await positionService.updatePosition(
         positionId: position.id,
@@ -107,10 +99,14 @@ class InvestmentPositionList extends StatelessWidget {
                   ? 'Position ${position.ticker} mise à jour'
                   : 'Position ${position.ticker} : aucun changement',
             ),
-            backgroundColor: hasChanged ? Colors.green.shade700 : Colors.blue.shade700,
+            backgroundColor: hasChanged
+                ? Colors.green.shade700
+                : Colors.blue.shade700,
             duration: const Duration(seconds: 2),
             behavior: SnackBarBehavior.floating,
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(8),
+            ),
           ),
         );
       }
@@ -122,7 +118,9 @@ class InvestmentPositionList extends StatelessWidget {
             backgroundColor: Colors.red.shade700,
             duration: const Duration(seconds: 3),
             behavior: SnackBarBehavior.floating,
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(8),
+            ),
           ),
         );
       }
@@ -130,9 +128,9 @@ class InvestmentPositionList extends StatelessWidget {
   }
 
   Future<void> _deletePosition(
-      BuildContext context,
-      InvestmentPosition position,
-      ) async {
+    BuildContext context,
+    InvestmentPosition position,
+  ) async {
     try {
       await positionService.deletePosition(position.id);
 
@@ -147,7 +145,9 @@ class InvestmentPositionList extends StatelessWidget {
             backgroundColor: Colors.orange.shade700,
             duration: const Duration(seconds: 2),
             behavior: SnackBarBehavior.floating,
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(8),
+            ),
           ),
         );
       }
@@ -159,7 +159,9 @@ class InvestmentPositionList extends StatelessWidget {
             backgroundColor: Colors.red.shade700,
             duration: const Duration(seconds: 3),
             behavior: SnackBarBehavior.floating,
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(8),
+            ),
           ),
         );
       }

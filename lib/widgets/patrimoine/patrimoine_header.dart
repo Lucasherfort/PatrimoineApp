@@ -49,10 +49,7 @@ class _PatrimoineHeaderState extends State<PatrimoineHeader> {
       margin: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         gradient: LinearGradient(
-          colors: [
-            Colors.blue.shade50,
-            Colors.purple.shade50,
-          ],
+          colors: [Colors.blue.shade50, Colors.purple.shade50],
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
         ),
@@ -106,25 +103,25 @@ class _PatrimoineHeaderState extends State<PatrimoineHeader> {
                         duration: const Duration(milliseconds: 200),
                         child: _isVisible
                             ? Text(
-                          "${_formatAmount(widget.patrimoineTotal)} €",
-                          key: const ValueKey('visible'),
-                          style: TextStyle(
-                            fontSize: 26,
-                            fontWeight: FontWeight.w900,
-                            color: Colors.blue.shade900,
-                            letterSpacing: -0.5,
-                          ),
-                        )
+                                "${_formatAmount(widget.patrimoineTotal)} €",
+                                key: const ValueKey('visible'),
+                                style: TextStyle(
+                                  fontSize: 26,
+                                  fontWeight: FontWeight.w900,
+                                  color: Colors.blue.shade900,
+                                  letterSpacing: -0.5,
+                                ),
+                              )
                             : Text(
-                          "• • • • • •",
-                          key: const ValueKey('hidden'),
-                          style: TextStyle(
-                            fontSize: 26,
-                            fontWeight: FontWeight.w900,
-                            letterSpacing: 4,
-                            color: Colors.blue.shade300,
-                          ),
-                        ),
+                                "• • • • • •",
+                                key: const ValueKey('hidden'),
+                                style: TextStyle(
+                                  fontSize: 26,
+                                  fontWeight: FontWeight.w900,
+                                  letterSpacing: 4,
+                                  color: Colors.blue.shade300,
+                                ),
+                              ),
                       ),
                     ],
                   ),
@@ -228,23 +225,23 @@ class _PatrimoineHeaderState extends State<PatrimoineHeader> {
                           duration: const Duration(milliseconds: 200),
                           child: _isVisible
                               ? Text(
-                            "${_gains >= 0 ? '+' : ''}${_formatAmount(_gains)} €",
-                            key: const ValueKey('gains-visible'),
-                            style: TextStyle(
-                              fontSize: 15,
-                              fontWeight: FontWeight.w800,
-                              color: _gainsColor,
-                            ),
-                          )
+                                  "${_gains >= 0 ? '+' : ''}${_formatAmount(_gains)} €",
+                                  key: const ValueKey('gains-visible'),
+                                  style: TextStyle(
+                                    fontSize: 15,
+                                    fontWeight: FontWeight.w800,
+                                    color: _gainsColor,
+                                  ),
+                                )
                               : Text(
-                            "• • • •",
-                            key: const ValueKey('gains-hidden'),
-                            style: TextStyle(
-                              fontSize: 15,
-                              fontWeight: FontWeight.w800,
-                              color: Colors.grey.shade400,
-                            ),
-                          ),
+                                  "• • • •",
+                                  key: const ValueKey('gains-hidden'),
+                                  style: TextStyle(
+                                    fontSize: 15,
+                                    fontWeight: FontWeight.w800,
+                                    color: Colors.grey.shade400,
+                                  ),
+                                ),
                         ),
                       ],
                     ),
@@ -254,39 +251,39 @@ class _PatrimoineHeaderState extends State<PatrimoineHeader> {
                   duration: const Duration(milliseconds: 200),
                   child: _isVisible
                       ? Container(
-                    key: const ValueKey('percent-visible'),
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 10,
-                      vertical: 6,
-                    ),
-                    decoration: BoxDecoration(
-                      color: _gainsColor.withValues(alpha: 0.12),
-                      borderRadius: BorderRadius.circular(6),
-                    ),
-                    child: Text(
-                      "${_gainsPercentage >= 0 ? '+' : ''}${_gainsPercentage.toStringAsFixed(2)}%",
-                      style: TextStyle(
-                        fontSize: 15,
-                        fontWeight: FontWeight.w900,
-                        color: _gainsColor,
-                      ),
-                    ),
-                  )
+                          key: const ValueKey('percent-visible'),
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 10,
+                            vertical: 6,
+                          ),
+                          decoration: BoxDecoration(
+                            color: _gainsColor.withValues(alpha: 0.12),
+                            borderRadius: BorderRadius.circular(6),
+                          ),
+                          child: Text(
+                            "${_gainsPercentage >= 0 ? '+' : ''}${_gainsPercentage.toStringAsFixed(2)}%",
+                            style: TextStyle(
+                              fontSize: 15,
+                              fontWeight: FontWeight.w900,
+                              color: _gainsColor,
+                            ),
+                          ),
+                        )
                       : Container(
-                    key: const ValueKey('percent-hidden'),
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 10,
-                      vertical: 6,
-                    ),
-                    child: Text(
-                      "• •",
-                      style: TextStyle(
-                        fontSize: 15,
-                        fontWeight: FontWeight.w900,
-                        color: Colors.grey.shade400,
-                      ),
-                    ),
-                  ),
+                          key: const ValueKey('percent-hidden'),
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 10,
+                            vertical: 6,
+                          ),
+                          child: Text(
+                            "• •",
+                            style: TextStyle(
+                              fontSize: 15,
+                              fontWeight: FontWeight.w900,
+                              color: Colors.grey.shade400,
+                            ),
+                          ),
+                        ),
                 ),
               ],
             ),

@@ -25,24 +25,22 @@ class BankStep extends StatelessWidget {
   Widget build(BuildContext context) {
     final items = type.entityType == 'restaurantVoucher'
         ? vouchers
-        .map((v) => DropdownMenuItem(
-      value: v,
-      child: Text(v.name),
-    ))
-        .toList()
+              .map((v) => DropdownMenuItem(value: v, child: Text(v.name)))
+              .toList()
         : banks
-        .map((b) => DropdownMenuItem(
-      value: b,
-      child: Text(b.name),
-    ))
-        .toList();
+              .map((b) => DropdownMenuItem(value: b, child: Text(b.name)))
+              .toList();
 
     return DropdownButtonFormField<Object>(
       decoration: InputDecoration(
-        labelText: type.entityType == 'restaurantVoucher' ? "Plateforme" : "Banque",
+        labelText: type.entityType == 'restaurantVoucher'
+            ? "Plateforme"
+            : "Banque",
         border: const OutlineInputBorder(),
       ),
-      initialValue: type.entityType == 'restaurantVoucher' ? selectedVoucher : selectedBank,
+      initialValue: type.entityType == 'restaurantVoucher'
+          ? selectedVoucher
+          : selectedBank,
       items: items,
       onChanged: (value) {
         if (value is Bank) {

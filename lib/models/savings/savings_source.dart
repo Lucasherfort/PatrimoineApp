@@ -13,5 +13,9 @@ class SavingsCategory {
   final double interestRate;
   final double ceiling;
 
-  SavingsCategory({required this.name, required this.interestRate, required this.ceiling});
+  SavingsCategory({
+    required this.name,
+    required this.interestRate,
+    required this.ceiling,
+  });
 }

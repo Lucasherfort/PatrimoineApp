@@ -6,10 +6,7 @@ import 'investment_card.dart';
 class InvestmentList extends StatefulWidget {
   final VoidCallback onAccountUpdated;
 
-  const InvestmentList({
-    super.key,
-    required this.onAccountUpdated,
-  });
+  const InvestmentList({super.key, required this.onAccountUpdated});
 
   @override
   State<InvestmentList> createState() => _InvestmentListState();
@@ -93,7 +90,10 @@ class _InvestmentListState extends State<InvestmentList> {
                   ),
                   const Spacer(),
                   Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 10,
+                      vertical: 4,
+                    ),
                     decoration: BoxDecoration(
                       color: Colors.purple.shade400.withValues(alpha: 0.15),
                       borderRadius: BorderRadius.circular(12),
@@ -115,7 +115,7 @@ class _InvestmentListState extends State<InvestmentList> {
               ),
             ),
             ...accounts.map(
-                  (account) => InvestmentCard(
+              (account) => InvestmentCard(
                 userInvestmentAccountId: account.id,
                 type: account.sourceName,
                 bankName: account.bankName,

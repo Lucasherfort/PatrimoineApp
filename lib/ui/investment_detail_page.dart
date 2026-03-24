@@ -42,16 +42,15 @@ class _InvestmentDetailPageState extends State<InvestmentDetailPage> {
     setState(() => isLoading = true);
 
     try {
-      final fetchedPositions =
-      await _investmentService.getInvestmentPositions(
+      final fetchedPositions = await _investmentService.getInvestmentPositions(
         widget.userInvestmentAccountId,
       );
 
-      final accounts =
-      await _investmentService.getInvestmentAccountsForUserWithPrices();
+      final accounts = await _investmentService
+          .getInvestmentAccountsForUserWithPrices();
 
       final account = accounts.firstWhere(
-            (acc) => acc.id == widget.userInvestmentAccountId,
+        (acc) => acc.id == widget.userInvestmentAccountId,
         orElse: () => UserInvestmentAccountView(
           id: widget.userInvestmentAccountId,
           sourceName: widget.accountName,
@@ -100,9 +99,7 @@ class _InvestmentDetailPageState extends State<InvestmentDetailPage> {
           content: Text('Erreur de chargement: $e'),
           backgroundColor: Colors.red.shade700,
           behavior: SnackBarBehavior.floating,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(8),
-          ),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
         ),
       );
     }
@@ -130,7 +127,9 @@ class _InvestmentDetailPageState extends State<InvestmentDetailPage> {
 
             scaffoldMessenger.showSnackBar(
               SnackBar(
-                content: Text('Position ${position.ticker} ajoutée avec succès'),
+                content: Text(
+                  'Position ${position.ticker} ajoutée avec succès',
+                ),
                 backgroundColor: Colors.green.shade700,
                 behavior: SnackBarBehavior.floating,
                 shape: RoundedRectangleBorder(
@@ -215,15 +214,11 @@ class _InvestmentDetailPageState extends State<InvestmentDetailPage> {
               decoration: BoxDecoration(
                 borderRadius: BorderRadius.circular(12),
                 gradient: LinearGradient(
-                  colors: [
-                    Colors.purple.shade600,
-                    Colors.purple.shade800,
-                  ],
+                  colors: [Colors.purple.shade600, Colors.purple.shade800],
                 ),
                 boxShadow: [
                   BoxShadow(
-                    color:
-                    Colors.purple.shade800.withValues(alpha: 0.4),
+                    color: Colors.purple.shade800.withValues(alpha: 0.4),
                     blurRadius: 8,
                     offset: const Offset(0, 3),
                   ),
@@ -242,98 +237,85 @@ class _InvestmentDetailPageState extends State<InvestmentDetailPage> {
           gradient: LinearGradient(
             begin: Alignment.topCenter,
             end: Alignment.bottomCenter,
-            colors: [
-              Color(0xFF1E293B),
-              Color(0xFF0F172A),
-              Colors.black,
-            ],
+            colors: [Color(0xFF1E293B), Color(0xFF0F172A), Colors.black],
           ),
         ),
         child: SafeArea(
           child: isLoading
               ? const Center(
-            child: CircularProgressIndicator(
-              color: Colors.white,
-              strokeWidth: 3,
-            ),
-          )
+                  child: CircularProgressIndicator(
+                    color: Colors.white,
+                    strokeWidth: 3,
+                  ),
+                )
               : Column(
-            children: [
-              if (accountView != null)
-                InvestmentSummaryHeader(
-                  account: accountView!,
-                  positions: positions,
-                  onValueUpdated:
-                      (newCash, newDeposits) async {
-                    final scaffoldMessenger =
-                    ScaffoldMessenger.of(context);
+                  children: [
+                    if (accountView != null)
+                      InvestmentSummaryHeader(
+                        account: accountView!,
+                        positions: positions,
+                        onValueUpdated: (newCash, newDeposits) async {
+                          final scaffoldMessenger = ScaffoldMessenger.of(
+                            context,
+                          );
 
-                    try {
-                      final hasChanged =
-                      await _investmentService
-                          .updateInvestmentAccount(
-                        userInvestmentAccountId:
-                        widget.userInvestmentAccountId,
-                        cashBalance: newCash,
-                        cumulativeDeposits: newDeposits,
-                      );
+                          try {
+                            final hasChanged = await _investmentService
+                                .updateInvestmentAccount(
+                                  userInvestmentAccountId:
+                                      widget.userInvestmentAccountId,
+                                  cashBalance: newCash,
+                                  cumulativeDeposits: newDeposits,
+                                );
 
-                      await _loadPositionsAndAccount();
+                            await _loadPositionsAndAccount();
 
-                      if (!mounted) return;
+                            if (!mounted) return;
 
-                      scaffoldMessenger.showSnackBar(
-                        SnackBar(
-                          content: Text(
-                            hasChanged
-                                ? 'Compte mis à jour'
-                                : 'Aucun changement détecté',
-                          ),
-                          backgroundColor: hasChanged
-                              ? Colors.green.shade700
-                              : Colors.blue.shade700,
-                          duration:
-                          const Duration(seconds: 2),
-                          behavior:
-                          SnackBarBehavior.floating,
-                          shape: RoundedRectangleBorder(
-                            borderRadius:
-                            BorderRadius.circular(8),
-                          ),
-                        ),
-                      );
-                    } catch (e) {
-                      if (!mounted) return;
+                            scaffoldMessenger.showSnackBar(
+                              SnackBar(
+                                content: Text(
+                                  hasChanged
+                                      ? 'Compte mis à jour'
+                                      : 'Aucun changement détecté',
+                                ),
+                                backgroundColor: hasChanged
+                                    ? Colors.green.shade700
+                                    : Colors.blue.shade700,
+                                duration: const Duration(seconds: 2),
+                                behavior: SnackBarBehavior.floating,
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(8),
+                                ),
+                              ),
+                            );
+                          } catch (e) {
+                            if (!mounted) return;
 
-                      scaffoldMessenger.showSnackBar(
-                        SnackBar(
-                          content: Text('Erreur: $e'),
-                          backgroundColor:
-                          Colors.red.shade700,
-                          duration:
-                          const Duration(seconds: 3),
-                          behavior:
-                          SnackBarBehavior.floating,
-                          shape: RoundedRectangleBorder(
-                            borderRadius:
-                            BorderRadius.circular(8),
-                          ),
-                        ),
-                      );
-                    }
-                  },
+                            scaffoldMessenger.showSnackBar(
+                              SnackBar(
+                                content: Text('Erreur: $e'),
+                                backgroundColor: Colors.red.shade700,
+                                duration: const Duration(seconds: 3),
+                                behavior: SnackBarBehavior.floating,
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(8),
+                                ),
+                              ),
+                            );
+                          }
+                        },
+                      ),
+                    Expanded(
+                      child: InvestmentPositionList(
+                        positions: positions,
+                        isLoading: false,
+                        positionService: _positionService,
+                        onPositionUpdated: _loadPositionsAndAccount,
+                      ),
+                    ),
+                  ],
                 ),
-              Expanded(
-                child: InvestmentPositionList(
-                  positions: positions,
-                  isLoading: false,
-                  positionService: _positionService,
-                  onPositionUpdated:
-                  _loadPositionsAndAccount,
-                ),
-              ),
-            ],
-          ),
         ),
       ),
     );
