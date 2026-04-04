@@ -1,4 +1,4 @@
-name: Flutter CI
+name: Flutter CI/CD
 
 on:
   push:
@@ -48,6 +48,22 @@ jobs:
       - name: Run tests
         run: flutter test
 
-      # 📱 Build APK (optionnel, mais utile)
+      # 📱 Build APK
       - name: Build APK
         run: flutter build apk --release
+
+      # 📦 Upload APK comme artifact
+      - name: Upload APK artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: app-release
+          path: build/app/outputs/flutter-apk/app-release.apk
+
+      # 🚀 Déploiement sur Firebase App Distribution
+      - name: Deploy to Firebase App Distribution
+        uses: wzieba/Firebase-Distribution-Github-Action@v1
+        with:
+          appId: TON_APP_ID_FIREBASE        # Remplace par ton App ID Firebase
+          token: ${{ secrets.FIREBASE_TOKEN }}
+          groups: testers                    # Remplace par ton groupe ou emails
+          file: build/app/outputs/flutter-apk/app-release.apk
