@@ -40,7 +40,7 @@ jobs:
       - name: Analyze project
         run: flutter analyze
 
-      # 🎨 Vérification du formatage (optionnel mais recommandé)
+      # 🎨 Vérification du formatage
       - name: Check formatting
         run: dart format --output=none --set-exit-if-changed .
 
@@ -58,12 +58,3 @@ jobs:
         with:
           name: app-release
           path: build/app/outputs/flutter-apk/app-release.apk
-
-      # 🚀 Déploiement sur Firebase App Distribution
-      - name: Deploy to Firebase App Distribution
-        uses: wzieba/Firebase-Distribution-Github-Action@v1
-        with:
-          appId: TON_APP_ID_FIREBASE        # Remplace par ton App ID Firebase
-          token: ${{ secrets.FIREBASE_TOKEN }}
-          groups: testers                    # Remplace par ton groupe ou emails
-          file: build/app/outputs/flutter-apk/app-release.apk
