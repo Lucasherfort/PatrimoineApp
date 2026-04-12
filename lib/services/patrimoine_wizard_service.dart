@@ -13,6 +13,18 @@ class PatrimoineWizardService {
   factory PatrimoineWizardService() => _instance;
   PatrimoineWizardService._internal();
 
+  // ─────────────────────────────────────────────
+  // 🔐 Utils
+  // ─────────────────────────────────────────────
+
+  String _requireUserId() {
+    final user = _supabase.auth.currentUser;
+    if (user == null) {
+      throw Exception('Utilisateur non connecté');
+    }
+    return user.id;
+  }
+
   Future<List<PatrimoineCategory>> getPatrimoineCategories() async {
     try {
       final response = await _supabase
@@ -102,20 +114,60 @@ class PatrimoineWizardService {
     required int categoryId,
     required int liquidityCategoryId,
   }) async {
-    final response = await _supabase
-        .from(DatabaseTables.liquiditySource)
-        .select('bank_id, banks ( id, name )')
-        .eq('category_id', categoryId)
-        .eq('liquidity_category_id', liquidityCategoryId);
+    final userId = _requireUserId();
 
-    return response
-        .map<Bank>(
-          (item) => Bank(
-            id: item['banks']['id'] as int,
-            name: item['banks']['name'] as String,
-          ),
-        )
-        .toList();
+    try {
+      // 1. Récupérer les liquidity_source déjà utilisés par l'utilisateur
+      final existingAccounts = await _supabase
+          .from(DatabaseTables.userLiquidityAccounts)
+          .select('liquidity_source_id')
+          .eq('user_id', userId);
+
+      final liquiditySourceIds = existingAccounts
+          .map<int>((e) => e['liquidity_source_id'] as int)
+          .toList();
+
+      // 2. Récupérer les bank_id déjà utilisés
+      List<int> existingBankIds = [];
+
+      if (liquiditySourceIds.isNotEmpty) {
+        final usedSources = await _supabase
+            .from(DatabaseTables.liquiditySource)
+            .select('id, bank_id')
+            .inFilter('id', liquiditySourceIds);
+
+        existingBankIds = usedSources
+            .map<int>((e) => e['bank_id'] as int)
+            .toSet()
+            .toList();
+      }
+
+      // 3. Récupérer les liquidity sources compatibles
+      final response = await _supabase
+          .from(DatabaseTables.liquiditySource)
+          .select('id, bank_id, banks (id, name)')
+          .eq('category_id', categoryId)
+          .eq('liquidity_category_id', liquidityCategoryId);
+
+      // 4. Filtrer les banques déjà utilisées
+      final filtered = response.where((item) {
+        final bankId = item['bank_id'] as int;
+        return !existingBankIds.contains(bankId);
+      }).toList();
+
+      // 5. Mapping vers Bank
+      return filtered
+          .map<Bank>(
+            (item) => Bank(
+          id: item['banks']['id'] as int,
+          name: item['banks']['name'] as String,
+        ),
+      )
+          .toList();
+
+    } catch (e) {
+      throw Exception('Failed to fetch available banks: $e');
+    }
   }
 
   Future<List<Bank>> getBanksForSavingsSource({
