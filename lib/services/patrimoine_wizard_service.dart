@@ -159,12 +159,11 @@ class PatrimoineWizardService {
       return filtered
           .map<Bank>(
             (item) => Bank(
-          id: item['banks']['id'] as int,
-          name: item['banks']['name'] as String,
-        ),
-      )
+              id: item['banks']['id'] as int,
+              name: item['banks']['name'] as String,
+            ),
+          )
           .toList();
-
     } catch (e) {
       throw Exception('Failed to fetch available banks: $e');
     }
