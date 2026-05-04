@@ -267,7 +267,6 @@ class _AddPatrimoineWizardState extends State<AddPatrimoineWizard> {
               });
         }
       } else if (selectedSource!.type == 'advantage') {
-
         final existing = await Supabase.instance.client
             .from(DatabaseTables.advantageSource)
             .select('id')
@@ -283,10 +282,10 @@ class _AddPatrimoineWizardState extends State<AddPatrimoineWizard> {
           await Supabase.instance.client
               .from(DatabaseTables.userAdvantageAccount)
               .insert({
-            'user_id': user.id,
-            'advantage_source_id': advantageSourceId,
-            'value': 0,
-          });
+                'user_id': user.id,
+                'advantage_source_id': advantageSourceId,
+                'value': 0,
+              });
         }
       }
 
