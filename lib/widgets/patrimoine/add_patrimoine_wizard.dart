@@ -267,13 +267,26 @@ class _AddPatrimoineWizardState extends State<AddPatrimoineWizard> {
               });
         }
       } else if (selectedSource!.type == 'advantage') {
-        await Supabase.instance.client
-            .from(DatabaseTables.userAdvantageAccount)
-            .insert({
-              'user_id': user.id,
-              'advantage_source_id': selectedSource!.id,
-              'value': 0,
-            });
+        final existing = await Supabase.instance.client
+            .from(DatabaseTables.advantageSource)
+            .select('id')
+            .eq('provider_id', selectedProvider!.id)
+            .eq('category_id', selectedCategory!.id)
+            .eq('advantage_category_id', selectedSource!.id)
+            .maybeSingle();
+
+        int advantageSourceId;
+        if (existing != null) {
+          advantageSourceId = existing['id'] as int;
+
+          await Supabase.instance.client
+              .from(DatabaseTables.userAdvantageAccount)
+              .insert({
+                'user_id': user.id,
+                'advantage_source_id': advantageSourceId,
+                'value': 0,
+              });
+        }
       }
 
       _showSuccess('Compte créé avec succès');
