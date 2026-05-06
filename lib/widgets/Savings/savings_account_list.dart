@@ -27,7 +27,7 @@ class _SavingsAccountListState extends State<SavingsAccountList> {
     _accountsFuture = _service.getUserSavingsAccounts();
     _accountsFuture.then((accounts) {
       accounts.sort(
-        (a, b) =>
+            (a, b) =>
             (b.principal + b.interest).compareTo(a.principal + a.interest),
       );
 
@@ -35,6 +35,15 @@ class _SavingsAccountListState extends State<SavingsAccountList> {
         _accounts = accounts;
       });
     });
+  }
+
+  String _formatAmount(double amount) {
+    final parts = amount.toStringAsFixed(2).split('.');
+    final intPart = parts[0].replaceAllMapped(
+      RegExp(r'(\d)(?=(\d{3})+$)'),
+          (m) => '${m[1]}\u00A0',
+    );
+    return '$intPart,${parts[1]}';
   }
 
   Future<void> _deleteAccount(int accountId) async {
@@ -96,43 +105,44 @@ class _SavingsAccountListState extends State<SavingsAccountList> {
                     ),
                   ),
                   const Spacer(),
-                  Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 10,
-                      vertical: 4,
-                    ),
-                    decoration: BoxDecoration(
-                      color: Colors.blue.shade400.withValues(alpha: 0.15),
-                      borderRadius: BorderRadius.circular(12),
-                      border: Border.all(
-                        color: Colors.blue.shade400.withValues(alpha: 0.3),
-                        width: 1,
+                  if (_accounts.length > 1)
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 10,
+                        vertical: 4,
+                      ),
+                      decoration: BoxDecoration(
+                        color: Colors.blue.shade400.withValues(alpha: 0.15),
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(
+                          color: Colors.blue.shade400.withValues(alpha: 0.3),
+                          width: 1,
+                        ),
+                      ),
+                      child: Text(
+                        '${_formatAmount(_accounts.fold<double>(0, (sum, a) => sum + a.principal + a.interest))} €',
+                        style: TextStyle(
+                          fontSize: 13,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.blue.shade300,
+                        ),
                       ),
                     ),
-                    child: Text(
-                      '${_accounts.length}',
-                      style: TextStyle(
-                        fontSize: 13,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.blue.shade300,
-                      ),
-                    ),
-                  ),
                 ],
               ),
             ),
             ..._accounts.map(
-              (account) => SavingsAccountCard(
+                  (account) => SavingsAccountCard(
                 account: account,
                 onValueUpdated: (updatedAccount) {
                   final index = _accounts.indexWhere(
-                    (a) => a.id == updatedAccount.id,
+                        (a) => a.id == updatedAccount.id,
                   );
                   if (index != -1) {
                     setState(() {
                       _accounts[index] = updatedAccount;
                       _accounts.sort(
-                        (a, b) => (b.principal + b.interest).compareTo(
+                            (a, b) => (b.principal + b.interest).compareTo(
                           a.principal + a.interest,
                         ),
                       );

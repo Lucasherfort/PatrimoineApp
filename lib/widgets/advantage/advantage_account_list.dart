@@ -26,6 +26,15 @@ class _AdvantageAccountListState extends State<AdvantageAccountList> {
     _accountsFuture = _service.getUserAdvantageAccounts();
   }
 
+  String _formatAmount(double amount) {
+    final parts = amount.toStringAsFixed(2).split('.');
+    final intPart = parts[0].replaceAllMapped(
+      RegExp(r'(\d)(?=(\d{3})+$)'),
+          (m) => '${m[1]}\u00A0',
+    );
+    return '$intPart,${parts[1]}';
+  }
+
   @override
   Widget build(BuildContext context) {
     return FutureBuilder<List<UserAdvantageAccountView>>(
@@ -80,33 +89,34 @@ class _AdvantageAccountListState extends State<AdvantageAccountList> {
                     ),
                   ),
                   const Spacer(),
-                  Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 10,
-                      vertical: 4,
-                    ),
-                    decoration: BoxDecoration(
-                      color: Colors.orange.shade400.withValues(alpha: 0.15),
-                      borderRadius: BorderRadius.circular(12),
-                      border: Border.all(
-                        color: Colors.orange.shade400.withValues(alpha: 0.3),
-                        width: 1,
+                  if (accounts.length > 1)
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 10,
+                        vertical: 4,
+                      ),
+                      decoration: BoxDecoration(
+                        color: Colors.orange.shade400.withValues(alpha: 0.15),
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(
+                          color: Colors.orange.shade400.withValues(alpha: 0.3),
+                          width: 1,
+                        ),
+                      ),
+                      child: Text(
+                        '${_formatAmount(accounts.fold<double>(0, (sum, a) => sum + a.value))} €',
+                        style: TextStyle(
+                          fontSize: 13,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.orange.shade300,
+                        ),
                       ),
                     ),
-                    child: Text(
-                      '${accounts.length}',
-                      style: TextStyle(
-                        fontSize: 13,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.orange.shade300,
-                      ),
-                    ),
-                  ),
                 ],
               ),
             ),
             ...accounts.map(
-              (account) => AdvantageAccountCard(
+                  (account) => AdvantageAccountCard(
                 account: account,
                 onValueUpdated: (newValue) async {
                   await _service.updateValue(

@@ -26,6 +26,15 @@ class _LiquidityAccountListState extends State<LiquidityAccountList> {
     _accountsFuture = _service.getUserLiquidityAccounts();
   }
 
+  String _formatAmount(double amount) {
+    final parts = amount.toStringAsFixed(2).split('.');
+    final intPart = parts[0].replaceAllMapped(
+      RegExp(r'(\d)(?=(\d{3})+$)'),
+          (m) => '${m[1]}\u00A0',
+    );
+    return '$intPart,${parts[1]}';
+  }
+
   @override
   Widget build(BuildContext context) {
     return FutureBuilder<List<UserLiquidityAccountView>>(
@@ -83,33 +92,34 @@ class _LiquidityAccountListState extends State<LiquidityAccountList> {
                     ),
                   ),
                   const Spacer(),
-                  Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 10,
-                      vertical: 4,
-                    ),
-                    decoration: BoxDecoration(
-                      color: Colors.green.shade900.withValues(alpha: 0.3),
-                      borderRadius: BorderRadius.circular(12),
-                      border: Border.all(
-                        color: Colors.green.shade400.withValues(alpha: 0.4),
-                        width: 1,
+                  if (accounts.length > 1)
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 10,
+                        vertical: 4,
+                      ),
+                      decoration: BoxDecoration(
+                        color: Colors.green.shade900.withValues(alpha: 0.3),
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(
+                          color: Colors.green.shade400.withValues(alpha: 0.4),
+                          width: 1,
+                        ),
+                      ),
+                      child: Text(
+                        '${_formatAmount(accounts.fold<double>(0, (sum, a) => sum + a.amount))} €',
+                        style: TextStyle(
+                          fontSize: 13,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.green.shade300,
+                        ),
                       ),
                     ),
-                    child: Text(
-                      '${accounts.length}',
-                      style: TextStyle(
-                        fontSize: 13,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.green.shade300,
-                      ),
-                    ),
-                  ),
                 ],
               ),
             ),
             ...accounts.map(
-              (account) => LiquidityAccountCard(
+                  (account) => LiquidityAccountCard(
                 account: account,
                 onValueUpdated: (newValue) async {
                   await _service.updateAmount(
