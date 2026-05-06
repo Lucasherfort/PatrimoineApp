@@ -29,6 +29,15 @@ class _InvestmentListState extends State<InvestmentList> {
     });
   }
 
+  String _formatAmount(double amount) {
+    final parts = amount.toStringAsFixed(2).split('.');
+    final intPart = parts[0].replaceAllMapped(
+      RegExp(r'(\d)(?=(\d{3})+$)'),
+      (m) => '${m[1]}\u00A0',
+    );
+    return '$intPart,${parts[1]}';
+  }
+
   Future<void> _deleteAccount(int accountId) async {
     await _service.deleteUserInvestmentAccount(accountId);
     widget.onAccountUpdated();
@@ -89,28 +98,29 @@ class _InvestmentListState extends State<InvestmentList> {
                     ),
                   ),
                   const Spacer(),
-                  Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 10,
-                      vertical: 4,
-                    ),
-                    decoration: BoxDecoration(
-                      color: Colors.purple.shade400.withValues(alpha: 0.15),
-                      borderRadius: BorderRadius.circular(12),
-                      border: Border.all(
-                        color: Colors.purple.shade400.withValues(alpha: 0.3),
-                        width: 1,
+                  if (accounts.length > 1)
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 10,
+                        vertical: 4,
+                      ),
+                      decoration: BoxDecoration(
+                        color: Colors.purple.shade400.withValues(alpha: 0.15),
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(
+                          color: Colors.purple.shade400.withValues(alpha: 0.3),
+                          width: 1,
+                        ),
+                      ),
+                      child: Text(
+                        '${_formatAmount(accounts.fold<double>(0, (sum, a) => sum + a.amount))} €',
+                        style: TextStyle(
+                          fontSize: 13,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.purple.shade300,
+                        ),
                       ),
                     ),
-                    child: Text(
-                      '${accounts.length}',
-                      style: TextStyle(
-                        fontSize: 13,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.purple.shade300,
-                      ),
-                    ),
-                  ),
                 ],
               ),
             ),

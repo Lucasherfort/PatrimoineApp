@@ -37,6 +37,15 @@ class _SavingsAccountListState extends State<SavingsAccountList> {
     });
   }
 
+  String _formatAmount(double amount) {
+    final parts = amount.toStringAsFixed(2).split('.');
+    final intPart = parts[0].replaceAllMapped(
+      RegExp(r'(\d)(?=(\d{3})+$)'),
+      (m) => '${m[1]}\u00A0',
+    );
+    return '$intPart,${parts[1]}';
+  }
+
   Future<void> _deleteAccount(int accountId) async {
     await _service.deleteSavingsAccount(accountId);
     _accounts.removeWhere((a) => a.id == accountId);
@@ -96,28 +105,29 @@ class _SavingsAccountListState extends State<SavingsAccountList> {
                     ),
                   ),
                   const Spacer(),
-                  Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 10,
-                      vertical: 4,
-                    ),
-                    decoration: BoxDecoration(
-                      color: Colors.blue.shade400.withValues(alpha: 0.15),
-                      borderRadius: BorderRadius.circular(12),
-                      border: Border.all(
-                        color: Colors.blue.shade400.withValues(alpha: 0.3),
-                        width: 1,
+                  if (_accounts.length > 1)
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 10,
+                        vertical: 4,
+                      ),
+                      decoration: BoxDecoration(
+                        color: Colors.blue.shade400.withValues(alpha: 0.15),
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(
+                          color: Colors.blue.shade400.withValues(alpha: 0.3),
+                          width: 1,
+                        ),
+                      ),
+                      child: Text(
+                        '${_formatAmount(_accounts.fold<double>(0, (sum, a) => sum + a.principal + a.interest))} €',
+                        style: TextStyle(
+                          fontSize: 13,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.blue.shade300,
+                        ),
                       ),
                     ),
-                    child: Text(
-                      '${_accounts.length}',
-                      style: TextStyle(
-                        fontSize: 13,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.blue.shade300,
-                      ),
-                    ),
-                  ),
                 ],
               ),
             ),
