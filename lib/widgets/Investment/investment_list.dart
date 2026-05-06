@@ -33,7 +33,7 @@ class _InvestmentListState extends State<InvestmentList> {
     final parts = amount.toStringAsFixed(2).split('.');
     final intPart = parts[0].replaceAllMapped(
       RegExp(r'(\d)(?=(\d{3})+$)'),
-          (m) => '${m[1]}\u00A0',
+      (m) => '${m[1]}\u00A0',
     );
     return '$intPart,${parts[1]}';
   }
@@ -125,7 +125,7 @@ class _InvestmentListState extends State<InvestmentList> {
               ),
             ),
             ...accounts.map(
-                  (account) => InvestmentCard(
+              (account) => InvestmentCard(
                 userInvestmentAccountId: account.id,
                 type: account.sourceName,
                 bankName: account.bankName,

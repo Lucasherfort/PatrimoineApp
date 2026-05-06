@@ -30,7 +30,7 @@ class _AdvantageAccountListState extends State<AdvantageAccountList> {
     final parts = amount.toStringAsFixed(2).split('.');
     final intPart = parts[0].replaceAllMapped(
       RegExp(r'(\d)(?=(\d{3})+$)'),
-          (m) => '${m[1]}\u00A0',
+      (m) => '${m[1]}\u00A0',
     );
     return '$intPart,${parts[1]}';
   }
@@ -116,7 +116,7 @@ class _AdvantageAccountListState extends State<AdvantageAccountList> {
               ),
             ),
             ...accounts.map(
-                  (account) => AdvantageAccountCard(
+              (account) => AdvantageAccountCard(
                 account: account,
                 onValueUpdated: (newValue) async {
                   await _service.updateValue(

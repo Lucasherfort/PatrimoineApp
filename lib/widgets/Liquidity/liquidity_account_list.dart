@@ -30,7 +30,7 @@ class _LiquidityAccountListState extends State<LiquidityAccountList> {
     final parts = amount.toStringAsFixed(2).split('.');
     final intPart = parts[0].replaceAllMapped(
       RegExp(r'(\d)(?=(\d{3})+$)'),
-          (m) => '${m[1]}\u00A0',
+      (m) => '${m[1]}\u00A0',
     );
     return '$intPart,${parts[1]}';
   }
@@ -119,7 +119,7 @@ class _LiquidityAccountListState extends State<LiquidityAccountList> {
               ),
             ),
             ...accounts.map(
-                  (account) => LiquidityAccountCard(
+              (account) => LiquidityAccountCard(
                 account: account,
                 onValueUpdated: (newValue) async {
                   await _service.updateAmount(
