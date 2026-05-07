@@ -1,80 +1,62 @@
 import 'package:supabase_flutter/supabase_flutter.dart';
+import '../bdd/database_columns.dart';
 import '../bdd/database_tables.dart';
+import '../bdd/storage_buckets.dart';
 import '../models/liquidity/user_liquidity_account_view.dart';
 
 class LiquidityAccountService {
   final SupabaseClient _supabase = Supabase.instance.client;
 
-  // ─────────────────────────────────────────────
-  // 📥 LISTE DES COMPTES LIQUIDITÉS
-  // ─────────────────────────────────────────────
+  static const _selectAccounts = '''
+    ${LiquidityAccountColumns.id},
+    ${LiquidityAccountColumns.amount},
+    ${DatabaseTables.liquiditySource} (
+      ${LiquiditySourceColumns.id},
+      ${LiquiditySourceColumns.liquidityCategoryId},
+      ${LiquiditySourceColumns.bankId},
+      ${DatabaseTables.banks} (
+        ${BankColumns.id},
+        ${BankColumns.name},
+        ${BankColumns.icon}
+      ),
+      ${DatabaseTables.liquidityCategory} (
+        ${LiquidityCategoryColumns.name}
+      )
+    )
+  ''';
+
+  // ─── Lecture ──────────────────────────────────────────────────────────────
+
   Future<List<UserLiquidityAccountView>> getUserLiquidityAccounts() async {
     final user = _supabase.auth.currentUser;
-    if (user == null) {
-      throw Exception('Utilisateur non connecté');
-    }
+    if (user == null) throw Exception('Utilisateur non connecté');
 
     final response = await _supabase
         .from(DatabaseTables.userLiquidityAccounts)
-        .select('''
-        id,
-        amount,
-        liquidity_source (
-          id,
-          liquidity_category_id,
-          bank_id,
-          banks (id, name, icon),
-          liquidity_category(name)
-        )
-      ''')
-        .eq('user_id', user.id)
-        .order('id');
+        .select(_selectAccounts)
+        .eq(LiquidityAccountColumns.userId, user.id)
+        .order(LiquidityAccountColumns.id);
 
-    return response.map<UserLiquidityAccountView>((item) {
-      final source = item['liquidity_source'];
-      final bank = source['banks'];
-      final category = source['liquidity_category'];
-
-      // Construire l'URL publique complète pour l'icône
-      final iconPath = bank['icon'] as String?;
-      String logoUrl = '';
-
-      if (iconPath != null && iconPath.isNotEmpty) {
-        // getPublicUrl() retourne directement la String
-        logoUrl = _supabase.storage.from('banks-icons').getPublicUrl(iconPath);
-      }
-
-      return UserLiquidityAccountView(
-        id: item['id'] as int,
-        amount: (item['amount'] as num).toDouble(),
-        sourceName: category['name'] as String,
-        bankName: bank['name'] as String,
-        logoUrl: logoUrl, // 👈 Ajout du logo
-      );
-    }).toList();
+    return response.map<UserLiquidityAccountView>(_mapToView).toList();
   }
 
-  // ─────────────────────────────────────────────
-  // ➕ CRÉATION D’UN COMPTE
-  // ─────────────────────────────────────────────
+  // ─── Écriture ─────────────────────────────────────────────────────────────
+
   Future<void> createLiquidityAccount({required int liquiditySourceId}) async {
     final user = _supabase.auth.currentUser;
-    if (user == null) {
-      throw Exception('Utilisateur non connecté');
-    }
+    if (user == null) throw Exception('Utilisateur non connecté');
+
+    final now = DateTime.now().toIso8601String();
 
     await _supabase.from(DatabaseTables.userLiquidityAccounts).insert({
-      'user_id': user.id,
-      'liquidity_source_id': liquiditySourceId,
-      'amount': 0,
-      'created_at': DateTime.now().toIso8601String(),
-      'updated_at': DateTime.now().toIso8601String(),
+      LiquidityAccountColumns.userId: user.id,
+      LiquidityAccountColumns.liquiditySourceId: liquiditySourceId,
+      LiquidityAccountColumns.amount: 0,
+      LiquidityAccountColumns.createdAt: now,
+      LiquidityAccountColumns.updatedAt: now,
     });
   }
 
-  // ─────────────────────────────────────────────
-  // ✏️ MISE À JOUR DU MONTANT
-  // ─────────────────────────────────────────────
   Future<void> updateAmount({
     required int accountId,
     required double amount,
@@ -82,19 +64,37 @@ class LiquidityAccountService {
     await _supabase
         .from(DatabaseTables.userLiquidityAccounts)
         .update({
-          'amount': amount,
-          'updated_at': DateTime.now().toIso8601String(),
-        })
-        .eq('id', accountId);
+      LiquidityAccountColumns.amount: amount,
+      LiquidityAccountColumns.updatedAt: DateTime.now().toIso8601String(),
+    })
+        .eq(LiquidityAccountColumns.id, accountId);
   }
 
-  // ─────────────────────────────────────────────
-  // 🗑️ SUPPRESSION
-  // ─────────────────────────────────────────────
   Future<void> deleteAccount(int accountId) async {
     await _supabase
         .from(DatabaseTables.userLiquidityAccounts)
         .delete()
-        .eq('id', accountId);
+        .eq(LiquidityAccountColumns.id, accountId);
+  }
+
+  // ─── Helpers privés ───────────────────────────────────────────────────────
+
+  UserLiquidityAccountView _mapToView(Map<String, dynamic> item) {
+    final source = item[DatabaseTables.liquiditySource] as Map<String, dynamic>;
+    final bank = source[DatabaseTables.banks] as Map<String, dynamic>;
+    final category = source[DatabaseTables.liquidityCategory] as Map<String, dynamic>;
+
+    return UserLiquidityAccountView(
+      id: item[LiquidityAccountColumns.id] as int,
+      amount: (item[LiquidityAccountColumns.amount] as num).toDouble(),
+      sourceName: category[LiquidityCategoryColumns.name] as String,
+      bankName: bank[BankColumns.name] as String,
+      logoUrl: _resolveLogoUrl(bank[BankColumns.icon] as String?),
+    );
+  }
+
+  String _resolveLogoUrl(String? iconPath) {
+    if (iconPath == null || iconPath.isEmpty) return '';
+    return _supabase.storage.from(StorageBuckets.banksIcons).getPublicUrl(iconPath);
   }
 }

@@ -1,9 +1,36 @@
 import 'package:supabase_flutter/supabase_flutter.dart';
+import '../bdd/database_columns.dart';
 import '../bdd/database_tables.dart';
+import '../bdd/storage_buckets.dart';
 import '../models/savings/user_savings_account_view.dart';
 
 class SavingsAccountService {
   final SupabaseClient _supabase = Supabase.instance.client;
+
+  // ─── Sélects ──────────────────────────────────────────────────────────────
+
+  static const _selectAccounts = '''
+    ${UserSavingsAccountColumns.id},
+    ${UserSavingsAccountColumns.principal},
+    ${UserSavingsAccountColumns.interest},
+    ${DatabaseTables.savingsSource} (
+      ${SavingsSourceColumns.id},
+      ${SavingsSourceColumns.savingsCategoryId},
+      ${SavingsSourceColumns.bankId},
+      ${DatabaseTables.banks} (
+        ${BankColumns.id},
+        ${BankColumns.name},
+        ${BankColumns.icon}
+      ),
+      ${DatabaseTables.savingsCategory} (
+        ${SavingsCategoryColumns.name},
+        ${SavingsCategoryColumns.interestRate},
+        ${SavingsCategoryColumns.ceiling}
+      )
+    )
+  ''';
+
+  // ─── Lecture ──────────────────────────────────────────────────────────────
 
   Future<List<UserSavingsAccountView>> getUserSavingsAccounts() async {
     final user = _supabase.auth.currentUser;
@@ -12,57 +39,17 @@ class SavingsAccountService {
     try {
       final response = await _supabase
           .from(DatabaseTables.userSavingsAccounts)
-          .select('''
-        id,
-        principal,
-        interest,
-        savings_source (
-          id,
-          savings_category_id,
-          bank_id,
-          banks (id, name, icon),
-          savings_category(name, interest_rate, ceiling)
-        )
-      ''')
-          .eq('user_id', user.id);
+          .select(_selectAccounts)
+          .eq(UserSavingsAccountColumns.userId, user.id);
 
-      return response.map<UserSavingsAccountView>((item) {
-        final source = item['savings_source'];
-        final bank = source['banks'];
-        final category = source['savings_category'];
-
-        final iconPath = bank['icon'] as String?;
-        String logoUrl = '';
-        if (iconPath != null && iconPath.isNotEmpty) {
-          logoUrl = _supabase.storage
-              .from('banks-icons')
-              .getPublicUrl(iconPath);
-        }
-
-        return UserSavingsAccountView(
-          id: item['id'] as int,
-          sourceName: category['name'] as String,
-          bankName: bank['name'] as String,
-          logoUrl: logoUrl,
-          principal: (item['principal'] as num).toDouble(),
-          interest: (item['interest'] as num).toDouble(),
-          interestRate: (category['interest_rate'] as num?)
-              ?.toDouble(), // 👈 Depuis savings_category
-          ceiling: (category['ceiling'] as num?)
-              ?.toDouble(), // 👈 Depuis savings_category
-        );
-      }).toList();
+      return response.map<UserSavingsAccountView>(_mapToView).toList();
     } catch (e) {
       return [];
     }
   }
 
-  /// ----------------------------
-  /// Met à jour un compte épargne (solde + intérêts)
-  /// ----------------------------
-  /// ----------------------------
-  /// Met à jour un compte épargne (solde + intérêts)
-  /// ----------------------------
+  // ─── Écriture ─────────────────────────────────────────────────────────────
+
   Future<bool> updateSavingsAccount({
     required int savingsAccountId,
     required double principal,
@@ -72,80 +59,59 @@ class SavingsAccountService {
       await _supabase
           .from(DatabaseTables.userSavingsAccounts)
           .update({
-            'principal': principal,
-            'interest': interest,
-            'updated_at': DateTime.now().toIso8601String(),
-          })
-          .eq('id', savingsAccountId);
+        UserSavingsAccountColumns.principal: principal,
+        UserSavingsAccountColumns.interest: interest,
+        UserSavingsAccountColumns.updatedAt: DateTime.now().toIso8601String(),
+      })
+          .eq(UserSavingsAccountColumns.id, savingsAccountId);
 
-      // Si on arrive ici, la requête a été exécutée sans exception
       return true;
     } catch (e) {
       return false;
     }
   }
 
-  /// ----------------------------
-  /// Supprime un compte épargne
-  /// ----------------------------
   Future<bool> deleteSavingsAccount(int accountId) async {
     try {
-      final response = await _supabase
+      await _supabase
           .from(DatabaseTables.userSavingsAccounts)
           .delete()
-          .eq('id', accountId);
+          .eq(UserSavingsAccountColumns.id, accountId);
 
-      return response.error == null;
+      return true;
     } catch (e) {
       return false;
     }
   }
 
-  /// Vérifie si un compte épargne peut être créé pour cette banque et catégorie
-  /// Retourne true si le compte peut être créé, false s'il existe déjà
   Future<bool> canCreateSavingsAccount({
     required int bankId,
     required int savingsCategoryId,
   }) async {
     final user = _supabase.auth.currentUser;
-    if (user == null) {
-      throw Exception('Utilisateur non connecté');
-    }
+    if (user == null) throw Exception('Utilisateur non connecté');
 
-    try {
-      // Vérifier si un savings_source existe déjà pour cette banque + catégorie
-      final existingSource = await _supabase
-          .from(DatabaseTables.savingsSource)
-          .select('id')
-          .eq('bank_id', bankId)
-          .eq('savings_category_id', savingsCategoryId)
-          .maybeSingle();
+    final existingSource = await _supabase
+        .from(DatabaseTables.savingsSource)
+        .select(SavingsSourceColumns.id)
+        .eq(SavingsSourceColumns.bankId, bankId)
+        .eq(SavingsSourceColumns.savingsCategoryId, savingsCategoryId)
+        .maybeSingle();
 
-      // Si pas de source, on peut créer
-      if (existingSource == null) {
-        return true;
-      }
+    if (existingSource == null) return true;
 
-      final sourceId = existingSource['id'] as int;
+    final sourceId = existingSource[SavingsSourceColumns.id] as int;
 
-      // Vérifier si l'utilisateur a déjà un compte avec cette source
-      final existingUserAccount = await _supabase
-          .from(DatabaseTables.userSavingsAccounts)
-          .select('id')
-          .eq('user_id', user.id)
-          .eq('savings_source_id', sourceId)
-          .maybeSingle();
+    final existingUserAccount = await _supabase
+        .from(DatabaseTables.userSavingsAccounts)
+        .select(UserSavingsAccountColumns.id)
+        .eq(UserSavingsAccountColumns.userId, user.id)
+        .eq(UserSavingsAccountColumns.savingsSourceId, sourceId)
+        .maybeSingle();
 
-      // Si pas de compte utilisateur, on peut créer
-      return existingUserAccount == null;
-    } catch (e) {
-      rethrow;
-    }
+    return existingUserAccount == null;
   }
 
-  /// ----------------------------
-  /// Crée un compte épargne pour l'utilisateur connecté
-  /// ----------------------------
   Future<int?> createSavingsAccount({
     required int bankId,
     required int categoryId,
@@ -155,42 +121,64 @@ class SavingsAccountService {
     if (user == null) return null;
 
     try {
-      // Vérifie si le savings_source existe déjà
       final existingSource = await _supabase
           .from(DatabaseTables.savingsSource)
-          .select('id')
-          .eq('bank_id', bankId)
-          .eq('category_id', categoryId)
-          .eq('savings_category_id', savingsCategoryId)
+          .select(SavingsSourceColumns.id)
+          .eq(SavingsSourceColumns.bankId, bankId)
+          .eq(SavingsSourceColumns.categoryId, categoryId)
+          .eq(SavingsSourceColumns.savingsCategoryId, savingsCategoryId)
           .maybeSingle();
 
       final sourceId =
-          existingSource?['id'] ??
-          (await _supabase
-              .from(DatabaseTables.savingsSource)
-              .insert({
-                'bank_id': bankId,
-                'category_id': categoryId,
-                'savings_category_id': savingsCategoryId,
+          existingSource?[SavingsSourceColumns.id] ??
+              (await _supabase
+                  .from(DatabaseTables.savingsSource)
+                  .insert({
+                SavingsSourceColumns.bankId: bankId,
+                SavingsSourceColumns.categoryId: categoryId,
+                SavingsSourceColumns.savingsCategoryId: savingsCategoryId,
               })
-              .select('id')
-              .single())['id'];
+                  .select(SavingsSourceColumns.id)
+                  .single())[SavingsSourceColumns.id];
 
-      // Crée le user_savings_account avec solde 0 et intérêts 0
       final account = await _supabase
           .from(DatabaseTables.userSavingsAccounts)
           .insert({
-            'user_id': user.id,
-            'savings_source_id': sourceId,
-            'principal': 0,
-            'interest': 0,
-          })
-          .select('id')
+        UserSavingsAccountColumns.userId: user.id,
+        UserSavingsAccountColumns.savingsSourceId: sourceId,
+        UserSavingsAccountColumns.principal: 0,
+        UserSavingsAccountColumns.interest: 0,
+      })
+          .select(UserSavingsAccountColumns.id)
           .single();
 
-      return account['id'] as int;
+      return account[UserSavingsAccountColumns.id] as int;
     } catch (e) {
       return null;
     }
+  }
+
+  // ─── Helpers privés ───────────────────────────────────────────────────────
+
+  UserSavingsAccountView _mapToView(Map<String, dynamic> item) {
+    final source = item[DatabaseTables.savingsSource] as Map<String, dynamic>;
+    final bank = source[DatabaseTables.banks] as Map<String, dynamic>;
+    final category = source[DatabaseTables.savingsCategory] as Map<String, dynamic>;
+
+    return UserSavingsAccountView(
+      id: item[UserSavingsAccountColumns.id] as int,
+      sourceName: category[SavingsCategoryColumns.name] as String,
+      bankName: bank[BankColumns.name] as String,
+      logoUrl: _resolveLogoUrl(bank[BankColumns.icon] as String?),
+      principal: (item[UserSavingsAccountColumns.principal] as num).toDouble(),
+      interest: (item[UserSavingsAccountColumns.interest] as num).toDouble(),
+      interestRate: (category[SavingsCategoryColumns.interestRate] as num?)?.toDouble(),
+      ceiling: (category[SavingsCategoryColumns.ceiling] as num?)?.toDouble(),
+    );
+  }
+
+  String _resolveLogoUrl(String? iconPath) {
+    if (iconPath == null || iconPath.isEmpty) return '';
+    return _supabase.storage.from(StorageBuckets.banksIcons).getPublicUrl(iconPath);
   }
 }

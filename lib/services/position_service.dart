@@ -1,17 +1,38 @@
-// lib/services/position_service.dart
 import 'package:supabase_flutter/supabase_flutter.dart';
+import '../bdd/database_columns.dart';
 import '../bdd/database_tables.dart';
 import '../models/position.dart';
 
 class PositionService {
   final SupabaseClient _supabase = Supabase.instance.client;
 
-  // Singleton
   static final PositionService _instance = PositionService._internal();
   factory PositionService() => _instance;
   PositionService._internal();
 
-  /// Ajoute une nouvelle position utilisateur
+  // ─── Lecture ──────────────────────────────────────────────────────────────
+
+  Future<List<Position>> getAllPositions() async {
+    final response = await _supabase
+        .from(DatabaseTables.positions)
+        .select()
+        .order(PositionColumns.name, ascending: true);
+
+    return response.map<Position>((e) => Position.fromMap(e)).toList();
+  }
+
+  Future<Position?> getPosition(int positionId) async {
+    final response = await _supabase
+        .from(DatabaseTables.positions)
+        .select()
+        .eq(PositionColumns.id, positionId)
+        .maybeSingle();
+
+    return response != null ? Position.fromMap(response) : null;
+  }
+
+  // ─── Écriture ─────────────────────────────────────────────────────────────
+
   Future<void> addPosition({
     required int userInvestmentAccountId,
     required int positionId,
@@ -20,79 +41,39 @@ class PositionService {
     int? positionCategoryId,
   }) async {
     final user = _supabase.auth.currentUser;
-    if (user == null) {
-      throw Exception('Utilisateur non connecté');
-    }
+    if (user == null) throw Exception('Utilisateur non connecté');
 
-    try {
-      await _supabase.from(DatabaseTables.userInvestmentPosition).insert({
-        'user_investment_account_id': userInvestmentAccountId,
-        'position_id': positionId,
-        'position_category_id': positionCategoryId,
-        'quantity': quantity,
-        'pru': averagePurchasePrice,
-      });
-    } catch (e) {
-      rethrow;
-    }
+    await _supabase.from(DatabaseTables.userInvestmentPosition).insert({
+      UserInvestmentPositionColumns.userInvestmentAccountId: userInvestmentAccountId,
+      UserInvestmentPositionColumns.positionId: positionId,
+      UserInvestmentPositionColumns.positionCategoryId: positionCategoryId,
+      UserInvestmentPositionColumns.quantity: quantity,
+      UserInvestmentPositionColumns.pru: averagePurchasePrice,
+    });
   }
 
-  /// Met à jour une position existante et retourne true si modifiée
   Future<bool> updatePosition({
     required int positionId,
     required double quantity,
     required double pru,
   }) async {
-    try {
-      final response = await _supabase
-          .from(DatabaseTables.userInvestmentPosition)
-          .update({
-            'quantity': quantity,
-            'pru': pru,
-            'updated_at': DateTime.now().toUtc().toIso8601String(),
-          })
-          .eq('id', positionId)
-          .select();
+    final response = await _supabase
+        .from(DatabaseTables.userInvestmentPosition)
+        .update({
+      UserInvestmentPositionColumns.quantity: quantity,
+      UserInvestmentPositionColumns.pru: pru,
+      UserInvestmentPositionColumns.updatedAt: DateTime.now().toUtc().toIso8601String(),
+    })
+        .eq(UserInvestmentPositionColumns.id, positionId)
+        .select();
 
-      return response.isNotEmpty;
-    } catch (e) {
-      rethrow;
-    }
+    return response.isNotEmpty;
   }
 
-  /// Supprime une position
   Future<void> deletePosition(int positionId) async {
-    try {
-      await _supabase
-          .from(DatabaseTables.userInvestmentPosition)
-          .delete()
-          .eq('id', positionId);
-    } catch (e) {
-      rethrow;
-    }
-  }
-
-  /// Récupère toutes les positions disponibles dans la table positions
-  Future<List<Position>> getAllPositions() async {
-    final response = await _supabase
-        .from(DatabaseTables.positions)
-        .select()
-        .order('name', ascending: true);
-
-    return response.map<Position>((e) => Position.fromMap(e)).toList();
-  }
-
-  // Récupère une position par son id
-  Future<Position?> getPosition(int positionId) async {
-    // Requête sur la table positions pour récupérer la position par id
-    final response = await _supabase
-        .from(DatabaseTables.positions)
-        .select()
-        .eq('id', positionId)
-        .maybeSingle(); // Renvoie null si aucun résultat
-
-    if (response == null) return null;
-
-    return Position.fromMap(response);
+    await _supabase
+        .from(DatabaseTables.userInvestmentPosition)
+        .delete()
+        .eq(UserInvestmentPositionColumns.id, positionId);
   }
 }
