@@ -1,8 +1,8 @@
 import 'package:supabase_flutter/supabase_flutter.dart';
-import '../bdd/AdvantageCategory.dart';
-import '../bdd/AdvantageProvider.dart';
-import '../bdd/AdvantageSource.dart';
-import '../bdd/UserAdvantageAccount.dart';
+import '../bdd/advantage_category_table.dart';
+import '../bdd/advantage_provider_table.dart';
+import '../bdd/advantage_source_table.dart';
+import '../bdd/user_advantage_account_table.dart';
 import '../bdd/storage_buckets.dart';
 import '../models/advantage/user_advantage_account_view.dart';
 
@@ -10,19 +10,19 @@ class AdvantageService {
   final SupabaseClient _supabase = Supabase.instance.client;
 
   static const _selectQuery = '''
-    ${UserAdvantageAccount.id},
-    ${UserAdvantageAccount.value},
-    ${AdvantageSource.table} (
-      ${UserAdvantageAccount.id},
-      ${AdvantageSource.advantageCategoryId},
-      ${AdvantageSource.providerId},
-      ${AdvantageProvider.table} (
-        ${AdvantageProvider.id},
-        ${AdvantageProvider.name},
-        ${AdvantageProvider.icon}
+    ${UserAdvantageAccountTable.id},
+    ${UserAdvantageAccountTable.value},
+    ${AdvantageSourceTable.tableName} (
+      ${UserAdvantageAccountTable.id},
+      ${AdvantageSourceTable.advantageCategoryId},
+      ${AdvantageSourceTable.providerId},
+      ${AdvantageProviderTable.tableName} (
+        ${AdvantageProviderTable.id},
+        ${AdvantageProviderTable.name},
+        ${AdvantageProviderTable.icon}
       ),
-      ${AdvantageCategory.table} (
-        ${AdvantageCategory.name}
+      ${AdvantageCategoryTable.tableName} (
+        ${AdvantageCategoryTable.name}
       )
     )
   ''';
@@ -37,9 +37,9 @@ class AdvantageService {
 
     try {
       final response = await _supabase
-          .from(UserAdvantageAccount.table)
+          .from(UserAdvantageAccountTable.tableName)
           .select(_selectQuery)
-          .eq(UserAdvantageAccount.userId, user.id);
+          .eq(UserAdvantageAccountTable.userId, user.id);
 
       return response.map<UserAdvantageAccountView>(_mapToView).toList();
     } catch (e) {
@@ -52,19 +52,19 @@ class AdvantageService {
   /// Extrait les relations imbriquées source, fournisseur et catégorie,
   /// puis résout l'URL publique du logo.
   UserAdvantageAccountView _mapToView(Map<String, dynamic> item) {
-    final source = item[AdvantageSource.table] as Map<String, dynamic>;
-    final provider = source[AdvantageProvider.table] as Map<String, dynamic>;
-    final category = source[AdvantageCategory.table] as Map<String, dynamic>;
+    final source = item[AdvantageSourceTable.tableName] as Map<String, dynamic>;
+    final provider = source[AdvantageProviderTable.tableName] as Map<String, dynamic>;
+    final category = source[AdvantageCategoryTable.tableName] as Map<String, dynamic>;
 
-    final iconPath = provider[AdvantageProvider.icon] as String?;
+    final iconPath = provider[AdvantageProviderTable.icon] as String?;
     final logoUrl = _resolveLogoUrl(iconPath);
 
     return UserAdvantageAccountView(
-      id: item[UserAdvantageAccount.id] as int,
-      sourceName: category[AdvantageCategory.name] as String,
-      providerName: provider[AdvantageProvider.name] as String,
+      id: item[UserAdvantageAccountTable.id] as int,
+      sourceName: category[AdvantageCategoryTable.name] as String,
+      providerName: provider[AdvantageProviderTable.name] as String,
       logoUrl: logoUrl,
-      value: (item[UserAdvantageAccount.value] as num).toDouble(),
+      value: (item[UserAdvantageAccountTable.value] as num).toDouble(),
     );
   }
 
@@ -84,16 +84,16 @@ class AdvantageService {
     required double value,
   }) async {
     await _supabase
-        .from(UserAdvantageAccount.table)
-        .update({UserAdvantageAccount.value: value})
-        .eq(UserAdvantageAccount.id, accountId);
+        .from(UserAdvantageAccountTable.tableName)
+        .update({UserAdvantageAccountTable.value: value})
+        .eq(UserAdvantageAccountTable.id, accountId);
   }
 
   /// Supprime un compte avantage.
   Future<void> deleteAccount(int accountId) async {
     await _supabase
-        .from(UserAdvantageAccount.table)
+        .from(UserAdvantageAccountTable.tableName)
         .delete()
-        .eq(UserAdvantageAccount.id, accountId);
+        .eq(UserAdvantageAccountTable.id, accountId);
   }
 }

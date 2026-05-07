@@ -1,7 +1,8 @@
+import 'package:patrimoine360/bdd/banks_table.dart';
+import 'package:patrimoine360/bdd/investment_source_table.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
-import '../bdd/database_columns.dart';
-import '../bdd/database_tables.dart';
 import '../bdd/storage_buckets.dart';
+import '../bdd/user_investment_account_table.dart';
 import '../models/investment_position.dart';
 import '../models/investments/user_investment_account_view.dart';
 import '../models/user_investment_account.dart';
@@ -16,17 +17,17 @@ class InvestmentService {
   // ─── Requêtes SELECT ────────────────────────────────────────────────────────
 
   static const _selectAccountsWithPrices = '''
-    ${InvestmentAccountColumns.id},
-    ${InvestmentAccountColumns.totalContribution},
-    ${InvestmentAccountColumns.cashBalance},
-    ${InvestmentAccountColumns.amount},
-    ${DatabaseTables.investmentSource} (
-      ${InvestmentSourceColumns.id},
-      ${InvestmentSourceColumns.bankId},
-      ${DatabaseTables.banks} (
-        ${BankColumns.id},
-        ${BankColumns.name},
-        ${BankColumns.icon}
+    ${UserInvestmentAccountTable.id},
+    ${UserInvestmentAccountTable.totalContribution},
+    ${UserInvestmentAccountTable.cashBalance},
+    ${UserInvestmentAccountTable.amount},
+    ${InvestmentSourceTable.tableName} (
+      ${InvestmentSourceTable.id},
+      ${InvestmentSourceTable.bankId},
+      ${BanksTable.tableName} (
+        ${BanksTable.id},
+        ${BanksTable.name},
+        ${BanksTable.icon}
       ),
       ${DatabaseTables.investmentCategory} (
         ${InvestmentCategoryColumns.name}
@@ -36,9 +37,9 @@ class InvestmentService {
 
   static const _selectSourceWithBank = '''
     *,
-    ${DatabaseTables.banks} (
-      ${BankColumns.name},
-      ${BankColumns.icon}
+    ${BanksTable.tableName} (
+      ${BanksTable.name},
+      ${BanksTable.icon}
     )
   ''';
 

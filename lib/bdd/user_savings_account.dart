@@ -1,4 +1,4 @@
-class UserSAvingsAccount {
+class UserSavingsAccount {
   static const String table = 'user_savings_account';
   static const String id = 'id';
   static const String userId = 'user_id';
