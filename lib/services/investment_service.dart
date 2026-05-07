@@ -1,4 +1,5 @@
 import 'package:patrimoine360/bdd/banks_table.dart';
+import 'package:patrimoine360/bdd/investment_category_table.dart';
 import 'package:patrimoine360/bdd/investment_source_table.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../bdd/storage_buckets.dart';
@@ -16,7 +17,8 @@ class InvestmentService {
 
   // ─── Requêtes SELECT ────────────────────────────────────────────────────────
 
-  static const _selectAccountsWithPrices = '''
+  static const _selectAccountsWithPrices =
+      '''
     ${UserInvestmentAccountTable.id},
     ${UserInvestmentAccountTable.totalContribution},
     ${UserInvestmentAccountTable.cashBalance},
@@ -29,13 +31,14 @@ class InvestmentService {
         ${BanksTable.name},
         ${BanksTable.icon}
       ),
-      ${DatabaseTables.investmentCategory} (
-        ${InvestmentCategoryColumns.name}
+      ${InvestmentCategoryTable.tableName} (
+        ${InvestmentCategoryTable.name}
       )
     )
   ''';
 
-  static const _selectSourceWithBank = '''
+  static const _selectSourceWithBank =
+      '''
     *,
     ${BanksTable.tableName} (
       ${BanksTable.name},
@@ -43,7 +46,8 @@ class InvestmentService {
     )
   ''';
 
-  static const _selectPositions = '''
+  static const _selectPositions =
+      '''
     ${InvestmentPositionColumns.id},
     ${InvestmentPositionColumns.userInvestmentAccountId},
     ${InvestmentPositionColumns.quantity},
@@ -59,7 +63,8 @@ class InvestmentService {
 
   // ─── Lecture ────────────────────────────────────────────────────────────────
 
-  Future<List<UserInvestmentAccountView>> getInvestmentAccountsForUserWithPrices() async {
+  Future<List<UserInvestmentAccountView>>
+  getInvestmentAccountsForUserWithPrices() async {
     try {
       final user = _supabase.auth.currentUser;
       if (user == null) throw Exception('Utilisateur non connecté');
@@ -69,7 +74,9 @@ class InvestmentService {
           .select(_selectAccountsWithPrices)
           .eq(InvestmentAccountColumns.userId, user.id);
 
-      return response.map<UserInvestmentAccountView>(_mapToAccountView).toList();
+      return response
+          .map<UserInvestmentAccountView>(_mapToAccountView)
+          .toList();
     } catch (e) {
       return [];
     }
@@ -89,7 +96,8 @@ class InvestmentService {
         .toList();
   }
 
-  Future<List<UserInvestmentAccountView>> getUserInvestmentAccountsView() async {
+  Future<List<UserInvestmentAccountView>>
+  getUserInvestmentAccountsView() async {
     final uiaList = await getUserInvestmentAccounts();
     final List<UserInvestmentAccountView> views = [];
 
@@ -103,31 +111,41 @@ class InvestmentService {
       final category = await _supabase
           .from(DatabaseTables.investmentCategory)
           .select(InvestmentCategoryColumns.name)
-          .eq(InvestmentCategoryColumns.id, source[InvestmentAccountColumns.investmentCategoryId])
+          .eq(
+            InvestmentCategoryColumns.id,
+            source[InvestmentAccountColumns.investmentCategoryId],
+          )
           .single();
 
       final bank = source[DatabaseTables.banks] as Map<String, dynamic>;
       final totalAmount = await getTotalValueOfInvestmentAccount(uia);
 
-      views.add(UserInvestmentAccountView(
-        id: uia.id,
-        sourceName: category[InvestmentCategoryColumns.name] as String,
-        bankName: bank[BankColumns.name] as String,
-        logoUrl: _resolveLogoUrl(bank[BankColumns.icon] as String?),
-        totalContribution: uia.cumulativeDeposits,
-        cashBalance: uia.cashBalance,
-        amount: totalAmount,
-      ));
+      views.add(
+        UserInvestmentAccountView(
+          id: uia.id,
+          sourceName: category[InvestmentCategoryColumns.name] as String,
+          bankName: bank[BankColumns.name] as String,
+          logoUrl: _resolveLogoUrl(bank[BankColumns.icon] as String?),
+          totalContribution: uia.cumulativeDeposits,
+          cashBalance: uia.cashBalance,
+          amount: totalAmount,
+        ),
+      );
     }
 
     return views;
   }
 
-  Future<List<InvestmentPosition>> getInvestmentPositions(int userInvestmentAccountId) async {
+  Future<List<InvestmentPosition>> getInvestmentPositions(
+    int userInvestmentAccountId,
+  ) async {
     final response = await _supabase
         .from(DatabaseTables.userInvestmentPosition)
         .select(_selectPositions)
-        .eq(InvestmentPositionColumns.userInvestmentAccountId, userInvestmentAccountId)
+        .eq(
+          InvestmentPositionColumns.userInvestmentAccountId,
+          userInvestmentAccountId,
+        )
         .order(InvestmentPositionColumns.createdAt);
 
     return response
@@ -146,12 +164,16 @@ class InvestmentService {
     return total;
   }
 
-  Future<double> getTotalValueOfInvestmentAccount(UserInvestmentAccount account) async {
+  Future<double> getTotalValueOfInvestmentAccount(
+    UserInvestmentAccount account,
+  ) async {
     final positionsValue = await getPositionsValueForAccount(account.id);
     return account.cashBalance + positionsValue;
   }
 
-  Future<double> getPositionsValueForAccount(int userInvestmentAccountId) async {
+  Future<double> getPositionsValueForAccount(
+    int userInvestmentAccountId,
+  ) async {
     final positions = await getInvestmentPositions(userInvestmentAccountId);
     return positions.fold<double>(0.0, (sum, p) => sum + p.totalValue);
   }
@@ -165,22 +187,30 @@ class InvestmentService {
   }) async {
     final current = await _supabase
         .from(DatabaseTables.userInvestmentAccount)
-        .select('${InvestmentAccountColumns.cashBalance}, ${InvestmentAccountColumns.totalContribution}')
+        .select(
+          '${InvestmentAccountColumns.cashBalance}, ${InvestmentAccountColumns.totalContribution}',
+        )
         .eq(InvestmentAccountColumns.id, userInvestmentAccountId)
         .single();
 
-    final currentCash = (current[InvestmentAccountColumns.cashBalance] as num?)?.toDouble() ?? 0.0;
-    final currentDeposits = (current[InvestmentAccountColumns.totalContribution] as num?)?.toDouble() ?? 0.0;
+    final currentCash =
+        (current[InvestmentAccountColumns.cashBalance] as num?)?.toDouble() ??
+        0.0;
+    final currentDeposits =
+        (current[InvestmentAccountColumns.totalContribution] as num?)
+            ?.toDouble() ??
+        0.0;
 
-    if (currentCash == cashBalance && currentDeposits == cumulativeDeposits) return false;
+    if (currentCash == cashBalance && currentDeposits == cumulativeDeposits)
+      return false;
 
     await _supabase
         .from(DatabaseTables.userInvestmentAccount)
         .update({
-      InvestmentAccountColumns.cashBalance: cashBalance,
-      InvestmentAccountColumns.totalContribution: cumulativeDeposits,
-      InvestmentAccountColumns.updatedAt: DateTime.now().toIso8601String(),
-    })
+          InvestmentAccountColumns.cashBalance: cashBalance,
+          InvestmentAccountColumns.totalContribution: cumulativeDeposits,
+          InvestmentAccountColumns.updatedAt: DateTime.now().toIso8601String(),
+        })
         .eq(InvestmentAccountColumns.id, userInvestmentAccountId);
 
     return true;
@@ -196,23 +226,33 @@ class InvestmentService {
   // ─── Helpers privés ──────────────────────────────────────────────────────────
 
   UserInvestmentAccountView _mapToAccountView(Map<String, dynamic> item) {
-    final source = item[DatabaseTables.investmentSource] as Map<String, dynamic>;
+    final source =
+        item[DatabaseTables.investmentSource] as Map<String, dynamic>;
     final bank = source[DatabaseTables.banks] as Map<String, dynamic>;
-    final category = source[DatabaseTables.investmentCategory] as Map<String, dynamic>;
+    final category =
+        source[DatabaseTables.investmentCategory] as Map<String, dynamic>;
 
     return UserInvestmentAccountView(
       id: item[InvestmentAccountColumns.id] as int,
       sourceName: category[InvestmentCategoryColumns.name] as String,
       bankName: bank[BankColumns.name] as String,
       logoUrl: _resolveLogoUrl(bank[BankColumns.icon] as String?),
-      totalContribution: (item[InvestmentAccountColumns.totalContribution] as num?)?.toDouble() ?? 0.0,
-      cashBalance: (item[InvestmentAccountColumns.cashBalance] as num?)?.toDouble() ?? 0.0,
-      amount: (item[InvestmentAccountColumns.amount] as num?)?.toDouble() ?? 0.0,
+      totalContribution:
+          (item[InvestmentAccountColumns.totalContribution] as num?)
+              ?.toDouble() ??
+          0.0,
+      cashBalance:
+          (item[InvestmentAccountColumns.cashBalance] as num?)?.toDouble() ??
+          0.0,
+      amount:
+          (item[InvestmentAccountColumns.amount] as num?)?.toDouble() ?? 0.0,
     );
   }
 
   String _resolveLogoUrl(String? iconPath) {
     if (iconPath == null || iconPath.isEmpty) return '';
-    return _supabase.storage.from(StorageBuckets.banksIcons).getPublicUrl(iconPath);
+    return _supabase.storage
+        .from(StorageBuckets.banksIcons)
+        .getPublicUrl(iconPath);
   }
 }

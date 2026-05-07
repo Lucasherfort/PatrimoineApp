@@ -36,7 +36,9 @@ class PatrimoineService {
 
     final savings = await _supabase
         .from(DatabaseTables.userSavingsAccounts)
-        .select('${SavingsAccountColumns.principal}, ${SavingsAccountColumns.interest}')
+        .select(
+          '${SavingsAccountColumns.principal}, ${SavingsAccountColumns.interest}',
+        )
         .eq(SavingsAccountColumns.userId, userId);
 
     final advantage = await _supabase
@@ -48,13 +50,15 @@ class PatrimoineService {
 
     total += liquidity.fold<double>(
       0.0,
-          (sum, row) => sum + ((row[LiquidityAccountColumns.amount] as num?)?.toDouble() ?? 0),
+      (sum, row) =>
+          sum +
+          ((row[LiquidityAccountColumns.amount] as num?)?.toDouble() ?? 0),
     );
 
     total += savings.fold<double>(
       0.0,
-          (sum, row) =>
-      sum +
+      (sum, row) =>
+          sum +
           ((row[SavingsAccountColumns.principal] as num?)?.toDouble() ?? 0) +
           ((row[SavingsAccountColumns.interest] as num?)?.toDouble() ?? 0),
     );
@@ -63,7 +67,8 @@ class PatrimoineService {
 
     total += advantage.fold<double>(
       0.0,
-          (sum, row) => sum + ((row[AdvantageAccountColumns.value] as num?)?.toDouble() ?? 0),
+      (sum, row) =>
+          sum + ((row[AdvantageAccountColumns.value] as num?)?.toDouble() ?? 0),
     );
 
     return total;
@@ -106,15 +111,19 @@ class PatrimoineService {
   Future<List<PatrimoineCategory>> getPatrimoineCategories() async {
     final response = await _supabase
         .from(DatabaseTables.patrimoineCategory)
-        .select('${PatrimoineCategoryColumns.id}, ${PatrimoineCategoryColumns.name}, ${PatrimoineCategoryColumns.label}')
+        .select(
+          '${PatrimoineCategoryColumns.id}, ${PatrimoineCategoryColumns.name}, ${PatrimoineCategoryColumns.label}',
+        )
         .order(PatrimoineCategoryColumns.name);
 
     return response
-        .map((item) => PatrimoineCategory(
-      id: item[PatrimoineCategoryColumns.id] as int,
-      name: item[PatrimoineCategoryColumns.name] as String,
-      label: item[PatrimoineCategoryColumns.label] as String? ?? '',
-    ))
+        .map(
+          (item) => PatrimoineCategory(
+            id: item[PatrimoineCategoryColumns.id] as int,
+            name: item[PatrimoineCategoryColumns.name] as String,
+            label: item[PatrimoineCategoryColumns.label] as String? ?? '',
+          ),
+        )
         .toList();
   }
 
@@ -123,15 +132,22 @@ class PatrimoineService {
   Future<double> getTotalDeposed() async {
     _requireUserId();
 
-    final liquidityAccounts = await LiquidityAccountService().getUserLiquidityAccounts();
-    final savingsAccounts = await SavingsAccountService().getUserSavingsAccounts();
-    final investmentAccounts = await InvestmentService().getUserInvestmentAccounts();
-    final advantageAccounts = await AdvantageService().getUserAdvantageAccounts();
+    final liquidityAccounts = await LiquidityAccountService()
+        .getUserLiquidityAccounts();
+    final savingsAccounts = await SavingsAccountService()
+        .getUserSavingsAccounts();
+    final investmentAccounts = await InvestmentService()
+        .getUserInvestmentAccounts();
+    final advantageAccounts = await AdvantageService()
+        .getUserAdvantageAccounts();
 
     return [
       liquidityAccounts.fold<double>(0.0, (sum, a) => sum + a.amount),
       savingsAccounts.fold<double>(0.0, (sum, a) => sum + a.principal),
-      investmentAccounts.fold<double>(0.0, (sum, a) => sum + a.cumulativeDeposits),
+      investmentAccounts.fold<double>(
+        0.0,
+        (sum, a) => sum + a.cumulativeDeposits,
+      ),
       advantageAccounts.fold<double>(0.0, (sum, a) => sum + a.value),
     ].fold<double>(0.0, (sum, subtotal) => sum + subtotal);
   }

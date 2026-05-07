@@ -9,7 +9,8 @@ class SavingsAccountService {
 
   // ─── Sélects ──────────────────────────────────────────────────────────────
 
-  static const _selectAccounts = '''
+  static const _selectAccounts =
+      '''
     ${UserSavingsAccountColumns.id},
     ${UserSavingsAccountColumns.principal},
     ${UserSavingsAccountColumns.interest},
@@ -59,10 +60,11 @@ class SavingsAccountService {
       await _supabase
           .from(DatabaseTables.userSavingsAccounts)
           .update({
-        UserSavingsAccountColumns.principal: principal,
-        UserSavingsAccountColumns.interest: interest,
-        UserSavingsAccountColumns.updatedAt: DateTime.now().toIso8601String(),
-      })
+            UserSavingsAccountColumns.principal: principal,
+            UserSavingsAccountColumns.interest: interest,
+            UserSavingsAccountColumns.updatedAt: DateTime.now()
+                .toIso8601String(),
+          })
           .eq(UserSavingsAccountColumns.id, savingsAccountId);
 
       return true;
@@ -131,24 +133,24 @@ class SavingsAccountService {
 
       final sourceId =
           existingSource?[SavingsSourceColumns.id] ??
-              (await _supabase
-                  .from(DatabaseTables.savingsSource)
-                  .insert({
+          (await _supabase
+              .from(DatabaseTables.savingsSource)
+              .insert({
                 SavingsSourceColumns.bankId: bankId,
                 SavingsSourceColumns.categoryId: categoryId,
                 SavingsSourceColumns.savingsCategoryId: savingsCategoryId,
               })
-                  .select(SavingsSourceColumns.id)
-                  .single())[SavingsSourceColumns.id];
+              .select(SavingsSourceColumns.id)
+              .single())[SavingsSourceColumns.id];
 
       final account = await _supabase
           .from(DatabaseTables.userSavingsAccounts)
           .insert({
-        UserSavingsAccountColumns.userId: user.id,
-        UserSavingsAccountColumns.savingsSourceId: sourceId,
-        UserSavingsAccountColumns.principal: 0,
-        UserSavingsAccountColumns.interest: 0,
-      })
+            UserSavingsAccountColumns.userId: user.id,
+            UserSavingsAccountColumns.savingsSourceId: sourceId,
+            UserSavingsAccountColumns.principal: 0,
+            UserSavingsAccountColumns.interest: 0,
+          })
           .select(UserSavingsAccountColumns.id)
           .single();
 
@@ -163,7 +165,8 @@ class SavingsAccountService {
   UserSavingsAccountView _mapToView(Map<String, dynamic> item) {
     final source = item[DatabaseTables.savingsSource] as Map<String, dynamic>;
     final bank = source[DatabaseTables.banks] as Map<String, dynamic>;
-    final category = source[DatabaseTables.savingsCategory] as Map<String, dynamic>;
+    final category =
+        source[DatabaseTables.savingsCategory] as Map<String, dynamic>;
 
     return UserSavingsAccountView(
       id: item[UserSavingsAccountColumns.id] as int,
@@ -172,13 +175,16 @@ class SavingsAccountService {
       logoUrl: _resolveLogoUrl(bank[BankColumns.icon] as String?),
       principal: (item[UserSavingsAccountColumns.principal] as num).toDouble(),
       interest: (item[UserSavingsAccountColumns.interest] as num).toDouble(),
-      interestRate: (category[SavingsCategoryColumns.interestRate] as num?)?.toDouble(),
+      interestRate: (category[SavingsCategoryColumns.interestRate] as num?)
+          ?.toDouble(),
       ceiling: (category[SavingsCategoryColumns.ceiling] as num?)?.toDouble(),
     );
   }
 
   String _resolveLogoUrl(String? iconPath) {
     if (iconPath == null || iconPath.isEmpty) return '';
-    return _supabase.storage.from(StorageBuckets.banksIcons).getPublicUrl(iconPath);
+    return _supabase.storage
+        .from(StorageBuckets.banksIcons)
+        .getPublicUrl(iconPath);
   }
 }

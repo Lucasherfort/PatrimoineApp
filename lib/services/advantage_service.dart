@@ -9,7 +9,8 @@ import '../models/advantage/user_advantage_account_view.dart';
 class AdvantageService {
   final SupabaseClient _supabase = Supabase.instance.client;
 
-  static const _selectQuery = '''
+  static const _selectQuery =
+      '''
     ${UserAdvantageAccountTable.id},
     ${UserAdvantageAccountTable.value},
     ${AdvantageSourceTable.tableName} (
@@ -53,8 +54,10 @@ class AdvantageService {
   /// puis résout l'URL publique du logo.
   UserAdvantageAccountView _mapToView(Map<String, dynamic> item) {
     final source = item[AdvantageSourceTable.tableName] as Map<String, dynamic>;
-    final provider = source[AdvantageProviderTable.tableName] as Map<String, dynamic>;
-    final category = source[AdvantageCategoryTable.tableName] as Map<String, dynamic>;
+    final provider =
+        source[AdvantageProviderTable.tableName] as Map<String, dynamic>;
+    final category =
+        source[AdvantageCategoryTable.tableName] as Map<String, dynamic>;
 
     final iconPath = provider[AdvantageProviderTable.icon] as String?;
     final logoUrl = _resolveLogoUrl(iconPath);

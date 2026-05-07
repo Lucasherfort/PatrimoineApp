@@ -44,7 +44,8 @@ class PositionService {
     if (user == null) throw Exception('Utilisateur non connecté');
 
     await _supabase.from(DatabaseTables.userInvestmentPosition).insert({
-      UserInvestmentPositionColumns.userInvestmentAccountId: userInvestmentAccountId,
+      UserInvestmentPositionColumns.userInvestmentAccountId:
+          userInvestmentAccountId,
       UserInvestmentPositionColumns.positionId: positionId,
       UserInvestmentPositionColumns.positionCategoryId: positionCategoryId,
       UserInvestmentPositionColumns.quantity: quantity,
@@ -60,10 +61,12 @@ class PositionService {
     final response = await _supabase
         .from(DatabaseTables.userInvestmentPosition)
         .update({
-      UserInvestmentPositionColumns.quantity: quantity,
-      UserInvestmentPositionColumns.pru: pru,
-      UserInvestmentPositionColumns.updatedAt: DateTime.now().toUtc().toIso8601String(),
-    })
+          UserInvestmentPositionColumns.quantity: quantity,
+          UserInvestmentPositionColumns.pru: pru,
+          UserInvestmentPositionColumns.updatedAt: DateTime.now()
+              .toUtc()
+              .toIso8601String(),
+        })
         .eq(UserInvestmentPositionColumns.id, positionId)
         .select();
 

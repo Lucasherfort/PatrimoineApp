@@ -42,7 +42,8 @@ class GraphService {
       final advantageService = AdvantageService();
 
       // Liquidité
-      final liquidityAccounts = await liquidityService.getUserLiquidityAccounts();
+      final liquidityAccounts = await liquidityService
+          .getUserLiquidityAccounts();
       final totalLiquidity = liquidityAccounts.fold<double>(
         0.0,
         (sum, account) => sum + account.amount,

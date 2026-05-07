@@ -9,25 +9,29 @@ import '../models/advantage/provider.dart';
 class PatrimoineWizardService {
   final SupabaseClient _supabase = Supabase.instance.client;
 
-  static final PatrimoineWizardService _instance = PatrimoineWizardService._internal();
+  static final PatrimoineWizardService _instance =
+      PatrimoineWizardService._internal();
   factory PatrimoineWizardService() => _instance;
   PatrimoineWizardService._internal();
 
   // ─── Sélects ──────────────────────────────────────────────────────────────
 
-  static const _selectBankWithId = '''
+  static const _selectBankWithId =
+      '''
     ${BankColumns.id},
     ${BankColumns.name}
   ''';
 
-  static const _selectBankNested = '''
+  static const _selectBankNested =
+      '''
     ${DatabaseTables.banks} (
       ${BankColumns.id},
       ${BankColumns.name}
     )
   ''';
 
-  static const _selectProviderNested = '''
+  static const _selectProviderNested =
+      '''
     ${AdvantageSourceColumns.providerId},
     ${DatabaseTables.advantageProvider} (
       ${AdvantageProviderColumns.id},
@@ -53,47 +57,69 @@ class PatrimoineWizardService {
   Future<List<PatrimoineCategory>> getPatrimoineCategories() async {
     final response = await _supabase
         .from(DatabaseTables.patrimoineCategory)
-        .select('${PatrimoineCategoryColumns.id}, ${PatrimoineCategoryColumns.name}, ${PatrimoineCategoryColumns.label}')
+        .select(
+          '${PatrimoineCategoryColumns.id}, ${PatrimoineCategoryColumns.name}, ${PatrimoineCategoryColumns.label}',
+        )
         .order(PatrimoineCategoryColumns.name);
 
     return response
-        .map((item) => PatrimoineCategory(
-      id: item[PatrimoineCategoryColumns.id] as int,
-      name: item[PatrimoineCategoryColumns.name] as String,
-      label: item[PatrimoineCategoryColumns.label] as String? ?? '',
-    ))
+        .map(
+          (item) => PatrimoineCategory(
+            id: item[PatrimoineCategoryColumns.id] as int,
+            name: item[PatrimoineCategoryColumns.name] as String,
+            label: item[PatrimoineCategoryColumns.label] as String? ?? '',
+          ),
+        )
         .toList();
   }
 
-  Future<List<SourceItem>> getSourcesForCategory(PatrimoineCategory category) async {
+  Future<List<SourceItem>> getSourcesForCategory(
+    PatrimoineCategory category,
+  ) async {
     final categoryName = category.name;
 
     if (categoryName == 'Cash') {
       final response = await _supabase
           .from(DatabaseTables.liquidityCategory)
-          .select('${LiquidityCategoryColumns.id}, ${LiquidityCategoryColumns.name}');
-      return response.map((item) => SourceItem.fromLiquiditySource(item)).toList();
+          .select(
+            '${LiquidityCategoryColumns.id}, ${LiquidityCategoryColumns.name}',
+          );
+      return response
+          .map((item) => SourceItem.fromLiquiditySource(item))
+          .toList();
     }
 
     if (categoryName.contains('Saving')) {
       final response = await _supabase
           .from(DatabaseTables.savingsCategory)
-          .select('${SavingsCategoryColumns.id}, ${SavingsCategoryColumns.name}, ${SavingsCategoryColumns.interestRate}, ${SavingsCategoryColumns.ceiling}');
-      return response.map((item) => SourceItem.fromSavingsCategory(item)).toList();
+          .select(
+            '${SavingsCategoryColumns.id}, ${SavingsCategoryColumns.name}, ${SavingsCategoryColumns.interestRate}, ${SavingsCategoryColumns.ceiling}',
+          );
+      return response
+          .map((item) => SourceItem.fromSavingsCategory(item))
+          .toList();
     }
 
     if (categoryName.contains('Investments')) {
       final response = await _supabase
           .from(DatabaseTables.investmentCategory)
-          .select('${InvestmentCategoryColumns.id}, ${InvestmentCategoryColumns.name}');
-      return response.map((item) => SourceItem.fromInvestmentCategory(item)).toList();
+          .select(
+            '${InvestmentCategoryColumns.id}, ${InvestmentCategoryColumns.name}',
+          );
+      return response
+          .map((item) => SourceItem.fromInvestmentCategory(item))
+          .toList();
     }
 
     if (categoryName.contains('Benefits')) {
       final response = await _supabase
           .from(DatabaseTables.advantageCategory)
-          .select('${AdvantageCategoryColumns.id}, ${AdvantageCategoryColumns.name}');
-      return response.map((item) => SourceItem.fromAdvantageCategory(item)).toList();
+          .select(
+            '${AdvantageCategoryColumns.id}, ${AdvantageCategoryColumns.name}',
+          );
+      return response
+          .map((item) => SourceItem.fromAdvantageCategory(item))
+          .toList();
     }
 
     return [];
@@ -108,10 +134,12 @@ class PatrimoineWizardService {
         .order(BankColumns.name);
 
     return response
-        .map((item) => Bank(
-      id: item[BankColumns.id] as int,
-      name: item[BankColumns.name] as String,
-    ))
+        .map(
+          (item) => Bank(
+            id: item[BankColumns.id] as int,
+            name: item[BankColumns.name] as String,
+          ),
+        )
         .toList();
   }
 
@@ -127,7 +155,9 @@ class PatrimoineWizardService {
         .eq(LiquidityUserAccountColumns.userId, userId);
 
     final liquiditySourceIds = existingAccounts
-        .map<int>((e) => e[LiquidityUserAccountColumns.liquiditySourceId] as int)
+        .map<int>(
+          (e) => e[LiquidityUserAccountColumns.liquiditySourceId] as int,
+        )
         .toList();
 
     final Set<int> existingBankIds = {};
@@ -135,7 +165,9 @@ class PatrimoineWizardService {
     if (liquiditySourceIds.isNotEmpty) {
       final usedSources = await _supabase
           .from(DatabaseTables.liquiditySource)
-          .select('${LiquiditySourceColumns.id}, ${LiquiditySourceColumns.bankId}')
+          .select(
+            '${LiquiditySourceColumns.id}, ${LiquiditySourceColumns.bankId}',
+          )
           .inFilter(LiquiditySourceColumns.id, liquiditySourceIds);
 
       existingBankIds.addAll(
@@ -150,7 +182,11 @@ class PatrimoineWizardService {
         .eq(LiquiditySourceColumns.liquidityCategoryId, liquidityCategoryId);
 
     return response
-        .where((item) => !existingBankIds.contains(item[LiquiditySourceColumns.bankId] as int))
+        .where(
+          (item) => !existingBankIds.contains(
+            item[LiquiditySourceColumns.bankId] as int,
+          ),
+        )
         .map<Bank>(_bankFromNested)
         .toList();
   }
@@ -194,7 +230,8 @@ class PatrimoineWizardService {
         .eq(AdvantageSourceColumns.advantageCategoryId, advantageCategoryId);
 
     return response.map<Provider>((item) {
-      final provider = item[DatabaseTables.advantageProvider] as Map<String, dynamic>;
+      final provider =
+          item[DatabaseTables.advantageProvider] as Map<String, dynamic>;
       return Provider(
         id: provider[AdvantageProviderColumns.id] as int,
         name: provider[AdvantageProviderColumns.name] as String,

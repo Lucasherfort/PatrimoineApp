@@ -7,7 +7,8 @@ import '../models/liquidity/user_liquidity_account_view.dart';
 class LiquidityAccountService {
   final SupabaseClient _supabase = Supabase.instance.client;
 
-  static const _selectAccounts = '''
+  static const _selectAccounts =
+      '''
     ${LiquidityAccountColumns.id},
     ${LiquidityAccountColumns.amount},
     ${DatabaseTables.liquiditySource} (
@@ -64,9 +65,9 @@ class LiquidityAccountService {
     await _supabase
         .from(DatabaseTables.userLiquidityAccounts)
         .update({
-      LiquidityAccountColumns.amount: amount,
-      LiquidityAccountColumns.updatedAt: DateTime.now().toIso8601String(),
-    })
+          LiquidityAccountColumns.amount: amount,
+          LiquidityAccountColumns.updatedAt: DateTime.now().toIso8601String(),
+        })
         .eq(LiquidityAccountColumns.id, accountId);
   }
 
@@ -82,7 +83,8 @@ class LiquidityAccountService {
   UserLiquidityAccountView _mapToView(Map<String, dynamic> item) {
     final source = item[DatabaseTables.liquiditySource] as Map<String, dynamic>;
     final bank = source[DatabaseTables.banks] as Map<String, dynamic>;
-    final category = source[DatabaseTables.liquidityCategory] as Map<String, dynamic>;
+    final category =
+        source[DatabaseTables.liquidityCategory] as Map<String, dynamic>;
 
     return UserLiquidityAccountView(
       id: item[LiquidityAccountColumns.id] as int,
@@ -95,6 +97,8 @@ class LiquidityAccountService {
 
   String _resolveLogoUrl(String? iconPath) {
     if (iconPath == null || iconPath.isEmpty) return '';
-    return _supabase.storage.from(StorageBuckets.banksIcons).getPublicUrl(iconPath);
+    return _supabase.storage
+        .from(StorageBuckets.banksIcons)
+        .getPublicUrl(iconPath);
   }
 }
