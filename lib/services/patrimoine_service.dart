@@ -1,7 +1,10 @@
 import 'package:patrimoine360/services/savings_account_service.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
-import '../bdd/database_columns.dart';
-import '../bdd/database_tables.dart';
+import '../bdd/patrimoine_category_table.dart';
+import '../bdd/user_advantage_account_table.dart';
+import '../bdd/user_investment_account_table.dart';
+import '../bdd/user_liquidity_account_table.dart';
+import '../bdd/user_savings_account_table.dart';
 import '../models/patrimoine/patrimoine_category.dart';
 import 'advantage_service.dart';
 import 'investment_service.dart';
@@ -30,21 +33,21 @@ class PatrimoineService {
     final userId = _requireUserId();
 
     final liquidity = await _supabase
-        .from(DatabaseTables.userLiquidityAccounts)
-        .select(LiquidityAccountColumns.amount)
-        .eq(LiquidityAccountColumns.userId, userId);
+        .from(UserLiquidityAccountTable.tableName)
+        .select(UserLiquidityAccountTable.amount)
+        .eq(UserLiquidityAccountTable.userId, userId);
 
     final savings = await _supabase
-        .from(DatabaseTables.userSavingsAccounts)
+        .from(UserSavingsAccountTable.tableName)
         .select(
-          '${SavingsAccountColumns.principal}, ${SavingsAccountColumns.interest}',
+          '${UserSavingsAccountTable.principal}, ${UserSavingsAccountTable.interest}',
         )
-        .eq(SavingsAccountColumns.userId, userId);
+        .eq(UserSavingsAccountTable.userId, userId);
 
     final advantage = await _supabase
-        .from(DatabaseTables.userAdvantageAccount)
-        .select(AdvantageAccountColumns.value)
-        .eq(AdvantageAccountColumns.userId, userId);
+        .from(UserAdvantageAccountTable.tableName)
+        .select(UserAdvantageAccountTable.value)
+        .eq(UserAdvantageAccountTable.userId, userId);
 
     double total = 0.0;
 
@@ -52,15 +55,15 @@ class PatrimoineService {
       0.0,
       (sum, row) =>
           sum +
-          ((row[LiquidityAccountColumns.amount] as num?)?.toDouble() ?? 0),
+          ((row[UserLiquidityAccountTable.amount] as num?)?.toDouble() ?? 0),
     );
 
     total += savings.fold<double>(
       0.0,
       (sum, row) =>
           sum +
-          ((row[SavingsAccountColumns.principal] as num?)?.toDouble() ?? 0) +
-          ((row[SavingsAccountColumns.interest] as num?)?.toDouble() ?? 0),
+          ((row[UserSavingsAccountTable.principal] as num?)?.toDouble() ?? 0) +
+          ((row[UserSavingsAccountTable.interest] as num?)?.toDouble() ?? 0),
     );
 
     total += await _investmentService.getUserInvestmentsTotalValue();
@@ -68,7 +71,7 @@ class PatrimoineService {
     total += advantage.fold<double>(
       0.0,
       (sum, row) =>
-          sum + ((row[AdvantageAccountColumns.value] as num?)?.toDouble() ?? 0),
+          sum + ((row[UserAdvantageAccountTable.value] as num?)?.toDouble() ?? 0),
     );
 
     return total;
@@ -77,23 +80,23 @@ class PatrimoineService {
   // ─── Présence des comptes ─────────────────────────────────────────────────
 
   Future<bool> hasLiquidityAccounts() => _hasAccounts(
-    DatabaseTables.userLiquidityAccounts,
-    LiquidityAccountColumns.id,
+    UserLiquidityAccountTable.tableName,
+    UserLiquidityAccountTable.id,
   );
 
   Future<bool> hasSavingsAccounts() => _hasAccounts(
-    DatabaseTables.userSavingsAccounts,
-    SavingsAccountColumns.id,
+    UserSavingsAccountTable.tableName,
+    UserSavingsAccountTable.id,
   );
 
   Future<bool> hasInvestmentAccounts() => _hasAccounts(
-    DatabaseTables.userInvestmentAccount,
-    InvestmentAccountColumns.id,
+    UserInvestmentAccountTable.tableName,
+    UserInvestmentAccountTable.id,
   );
 
   Future<bool> hasAdvantageAccounts() => _hasAccounts(
-    DatabaseTables.userAdvantageAccount,
-    AdvantageAccountColumns.id,
+    UserAdvantageAccountTable.tableName,
+    UserAdvantageAccountTable.id,
   );
 
   Future<bool> _hasAccounts(String table, String idColumn) async {
@@ -101,7 +104,7 @@ class PatrimoineService {
     final response = await _supabase
         .from(table)
         .select(idColumn)
-        .eq(LiquidityAccountColumns.userId, userId)
+        .eq(UserLiquidityAccountTable.userId, userId)
         .limit(1);
     return response.isNotEmpty;
   }
@@ -110,18 +113,18 @@ class PatrimoineService {
 
   Future<List<PatrimoineCategory>> getPatrimoineCategories() async {
     final response = await _supabase
-        .from(DatabaseTables.patrimoineCategory)
+        .from(PatrimoineCategoryTable.tableName)
         .select(
-          '${PatrimoineCategoryColumns.id}, ${PatrimoineCategoryColumns.name}, ${PatrimoineCategoryColumns.label}',
+          '${PatrimoineCategoryTable.id}, ${PatrimoineCategoryTable.name}, ${PatrimoineCategoryTable.label}',
         )
-        .order(PatrimoineCategoryColumns.name);
+        .order(PatrimoineCategoryTable.name);
 
     return response
         .map(
           (item) => PatrimoineCategory(
-            id: item[PatrimoineCategoryColumns.id] as int,
-            name: item[PatrimoineCategoryColumns.name] as String,
-            label: item[PatrimoineCategoryColumns.label] as String? ?? '',
+            id: item[PatrimoineCategoryTable.id] as int,
+            name: item[PatrimoineCategoryTable.name] as String,
+            label: item[PatrimoineCategoryTable.label] as String? ?? '',
           ),
         )
         .toList();
