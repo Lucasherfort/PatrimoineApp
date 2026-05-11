@@ -26,6 +26,7 @@ class _HomePageState extends State<HomePage> {
   double patrimoineTotal = 0.0;
   double totalDepose = 0.0;
   double capitalOwned = 0.0;
+  double patrimoineOwned = 0.0;
   bool isLoading = true;
 
   bool hasLiquidityAccounts = false;
@@ -46,6 +47,7 @@ class _HomePageState extends State<HomePage> {
       final total = await _service.getPatrimoine();
       final deposedAmount = await _service.getTotalDeposed();
       final capitalOwnedAmount = await _service.getTotalOwnedCapital();
+      final patrimoineOwnedAmount = await _service.getPatrimoineOwned();
       final liquidity = await _service.hasLiquidityAccounts();
       final savings = await _service.hasSavingsAccounts();
       final investments = await _service.hasInvestmentAccounts();
@@ -56,6 +58,7 @@ class _HomePageState extends State<HomePage> {
           patrimoineTotal = total;
           totalDepose = deposedAmount;
           capitalOwned = capitalOwnedAmount;
+          patrimoineOwned = patrimoineOwnedAmount;
           hasLiquidityAccounts = liquidity;
           hasSavingsAccounts = savings;
           hasInvestmentAccounts = investments;
@@ -254,6 +257,7 @@ class _HomePageState extends State<HomePage> {
                 patrimoineTotal: patrimoineTotal,
                 totalDepose: totalDepose,
                 capitalOwned: capitalOwned,
+                patrimoineOwned: patrimoineOwned,
                 onRefresh: _refreshAll,
               ),
               Expanded(

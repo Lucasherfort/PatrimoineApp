@@ -5,6 +5,7 @@ class PatrimoineHeader extends StatefulWidget {
   final double patrimoineTotal;
   final double totalDepose;
   final double capitalOwned;
+  final double patrimoineOwned;
   final VoidCallback? onRefresh;
 
   const PatrimoineHeader({
@@ -12,6 +13,7 @@ class PatrimoineHeader extends StatefulWidget {
     required this.patrimoineTotal,
     required this.totalDepose,
     required this.capitalOwned,
+    required this.patrimoineOwned,
     this.onRefresh,
   });
 
@@ -49,9 +51,11 @@ class _PatrimoineHeaderState extends State<PatrimoineHeader> {
   // ─────────────────────────────────────────────
   void _openDetailsSheet() {
     final capitalOwned = widget.capitalOwned;
-    final total = widget.patrimoineTotal;
+    final totalOwned = widget.patrimoineOwned;
 
-    final gainShare = total == 0 ? 0 : (total - capitalOwned) / total;
+    final gainShare = totalOwned == 0
+        ? 0
+        : (totalOwned - capitalOwned) / totalOwned;
 
     showModalBottomSheet(
       context: context,
@@ -64,8 +68,8 @@ class _PatrimoineHeaderState extends State<PatrimoineHeader> {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              _row("Capital owned", capitalOwned),
-              _row("Valorisation totale", total),
+              _row("Capital détenu", capitalOwned),
+              _row("Valorisation totale", totalOwned),
               _row("Part des gains", gainShare * 100, suffix: "%"),
             ],
           ),

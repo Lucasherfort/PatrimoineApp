@@ -78,6 +78,45 @@ class PatrimoineService {
     return total;
   }
 
+  // ─── Total patrimoine ─────────────────────────────────────────────────────
+
+  Future<double> getPatrimoineOwned() async {
+    final userId = _requireUserId();
+
+    final liquidity = await _supabase
+        .from(UserLiquidityAccountTable.tableName)
+        .select(UserLiquidityAccountTable.amount)
+        .eq(UserLiquidityAccountTable.userId, userId);
+
+    final savings = await _supabase
+        .from(UserSavingsAccountTable.tableName)
+        .select(
+          '${UserSavingsAccountTable.principal}, ${UserSavingsAccountTable.interest}',
+        )
+        .eq(UserSavingsAccountTable.userId, userId);
+
+    double total = 0.0;
+
+    total += liquidity.fold<double>(
+      0.0,
+      (sum, row) =>
+          sum +
+          ((row[UserLiquidityAccountTable.amount] as num?)?.toDouble() ?? 0),
+    );
+
+    total += savings.fold<double>(
+      0.0,
+      (sum, row) =>
+          sum +
+          ((row[UserSavingsAccountTable.principal] as num?)?.toDouble() ?? 0) +
+          ((row[UserSavingsAccountTable.interest] as num?)?.toDouble() ?? 0),
+    );
+
+    total += await _investmentService.getUserInvestmentsTotalValue();
+
+    return total;
+  }
+
   // ─── Présence des comptes ─────────────────────────────────────────────────
 
   Future<bool> hasLiquidityAccounts() => _hasAccounts(
