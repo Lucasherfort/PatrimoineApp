@@ -25,6 +25,7 @@ class _HomePageState extends State<HomePage> {
 
   double patrimoineTotal = 0.0;
   double totalDepose = 0.0;
+  double capitalOwned = 0.0;
   bool isLoading = true;
 
   bool hasLiquidityAccounts = false;
@@ -44,7 +45,7 @@ class _HomePageState extends State<HomePage> {
     try {
       final total = await _service.getPatrimoine();
       final deposedAmount = await _service.getTotalDeposed();
-
+      final capitalOwnedAmount = await _service.getTotalOwnedCapital();
       final liquidity = await _service.hasLiquidityAccounts();
       final savings = await _service.hasSavingsAccounts();
       final investments = await _service.hasInvestmentAccounts();
@@ -54,6 +55,7 @@ class _HomePageState extends State<HomePage> {
         setState(() {
           patrimoineTotal = total;
           totalDepose = deposedAmount;
+          capitalOwned = capitalOwnedAmount;
           hasLiquidityAccounts = liquidity;
           hasSavingsAccounts = savings;
           hasInvestmentAccounts = investments;
@@ -64,6 +66,7 @@ class _HomePageState extends State<HomePage> {
     } catch (e) {
       if (mounted) {
         setState(() => isLoading = false);
+
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text('Erreur chargement patrimoine: $e')),
         );
@@ -250,6 +253,7 @@ class _HomePageState extends State<HomePage> {
               PatrimoineHeader(
                 patrimoineTotal: patrimoineTotal,
                 totalDepose: totalDepose,
+                capitalOwned: capitalOwned,
                 onRefresh: _refreshAll,
               ),
               Expanded(

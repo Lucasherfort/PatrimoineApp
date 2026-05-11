@@ -1,100 +1,106 @@
 import 'package:supabase_flutter/supabase_flutter.dart';
-import '../bdd/database_tables.dart';
+import '../bdd/banks_table.dart';
+import '../bdd/liquidity_category_table.dart';
+import '../bdd/liquidity_source_table.dart';
+import '../bdd/storage_buckets.dart';
+import '../bdd/user_liquidity_account_table.dart';
 import '../models/liquidity/user_liquidity_account_view.dart';
 
 class LiquidityAccountService {
   final SupabaseClient _supabase = Supabase.instance.client;
 
-  // ─────────────────────────────────────────────
-  // 📥 LISTE DES COMPTES LIQUIDITÉS
-  // ─────────────────────────────────────────────
+  static const _selectAccounts =
+      '''
+    ${UserLiquidityAccountTable.id},
+    ${UserLiquidityAccountTable.amount},
+    ${LiquiditySourceTable.tableName} (
+      ${LiquiditySourceTable.id},
+      ${LiquiditySourceTable.liquidityCategoryId},
+      ${LiquiditySourceTable.bankId},
+      ${BanksTable.tableName} (
+        ${BanksTable.id},
+        ${BanksTable.name},
+        ${BanksTable.icon}
+      ),
+      ${LiquidityCategoryTable.tableName} (
+        ${LiquidityCategoryTable.name}
+      )
+    )
+  ''';
+
+  // ─── Lecture ──────────────────────────────────────────────────────────────
+
   Future<List<UserLiquidityAccountView>> getUserLiquidityAccounts() async {
     final user = _supabase.auth.currentUser;
-    if (user == null) {
-      throw Exception('Utilisateur non connecté');
-    }
+    if (user == null) throw Exception('Utilisateur non connecté');
 
     final response = await _supabase
-        .from(DatabaseTables.userLiquidityAccounts)
-        .select('''
-        id,
-        amount,
-        liquidity_source (
-          id,
-          liquidity_category_id,
-          bank_id,
-          banks (id, name, icon),
-          liquidity_category(name)
-        )
-      ''')
-        .eq('user_id', user.id)
-        .order('id');
+        .from(UserLiquidityAccountTable.tableName)
+        .select(_selectAccounts)
+        .eq(UserLiquidityAccountTable.userId, user.id)
+        .order(UserLiquidityAccountTable.id);
 
-    return response.map<UserLiquidityAccountView>((item) {
-      final source = item['liquidity_source'];
-      final bank = source['banks'];
-      final category = source['liquidity_category'];
-
-      // Construire l'URL publique complète pour l'icône
-      final iconPath = bank['icon'] as String?;
-      String logoUrl = '';
-
-      if (iconPath != null && iconPath.isNotEmpty) {
-        // getPublicUrl() retourne directement la String
-        logoUrl = _supabase.storage.from('banks-icons').getPublicUrl(iconPath);
-      }
-
-      return UserLiquidityAccountView(
-        id: item['id'] as int,
-        amount: (item['amount'] as num).toDouble(),
-        sourceName: category['name'] as String,
-        bankName: bank['name'] as String,
-        logoUrl: logoUrl, // 👈 Ajout du logo
-      );
-    }).toList();
+    return response.map<UserLiquidityAccountView>(_mapToView).toList();
   }
 
-  // ─────────────────────────────────────────────
-  // ➕ CRÉATION D’UN COMPTE
-  // ─────────────────────────────────────────────
+  // ─── Écriture ─────────────────────────────────────────────────────────────
+
   Future<void> createLiquidityAccount({required int liquiditySourceId}) async {
     final user = _supabase.auth.currentUser;
-    if (user == null) {
-      throw Exception('Utilisateur non connecté');
-    }
+    if (user == null) throw Exception('Utilisateur non connecté');
 
-    await _supabase.from(DatabaseTables.userLiquidityAccounts).insert({
-      'user_id': user.id,
-      'liquidity_source_id': liquiditySourceId,
-      'amount': 0,
-      'created_at': DateTime.now().toIso8601String(),
-      'updated_at': DateTime.now().toIso8601String(),
+    final now = DateTime.now().toIso8601String();
+
+    await _supabase.from(UserLiquidityAccountTable.tableName).insert({
+      UserLiquidityAccountTable.userId: user.id,
+      UserLiquidityAccountTable.liquiditySourceId: liquiditySourceId,
+      UserLiquidityAccountTable.amount: 0,
+      UserLiquidityAccountTable.createdAt: now,
+      UserLiquidityAccountTable.updatedAt: now,
     });
   }
 
-  // ─────────────────────────────────────────────
-  // ✏️ MISE À JOUR DU MONTANT
-  // ─────────────────────────────────────────────
   Future<void> updateAmount({
     required int accountId,
     required double amount,
   }) async {
     await _supabase
-        .from(DatabaseTables.userLiquidityAccounts)
+        .from(UserLiquidityAccountTable.tableName)
         .update({
-          'amount': amount,
-          'updated_at': DateTime.now().toIso8601String(),
+          UserLiquidityAccountTable.amount: amount,
+          UserLiquidityAccountTable.updatedAt: DateTime.now().toIso8601String(),
         })
-        .eq('id', accountId);
+        .eq(UserLiquidityAccountTable.id, accountId);
   }
 
-  // ─────────────────────────────────────────────
-  // 🗑️ SUPPRESSION
-  // ─────────────────────────────────────────────
   Future<void> deleteAccount(int accountId) async {
     await _supabase
-        .from(DatabaseTables.userLiquidityAccounts)
+        .from(UserLiquidityAccountTable.tableName)
         .delete()
-        .eq('id', accountId);
+        .eq(UserLiquidityAccountTable.id, accountId);
+  }
+
+  // ─── Helpers privés ───────────────────────────────────────────────────────
+
+  UserLiquidityAccountView _mapToView(Map<String, dynamic> item) {
+    final source = item[LiquiditySourceTable.tableName] as Map<String, dynamic>;
+    final bank = source[BanksTable.tableName] as Map<String, dynamic>;
+    final category =
+        source[LiquidityCategoryTable.tableName] as Map<String, dynamic>;
+
+    return UserLiquidityAccountView(
+      id: item[UserLiquidityAccountTable.id] as int,
+      amount: (item[UserLiquidityAccountTable.amount] as num).toDouble(),
+      sourceName: category[LiquidityCategoryTable.name] as String,
+      bankName: bank[BanksTable.name] as String,
+      logoUrl: _resolveLogoUrl(bank[BanksTable.icon] as String?),
+    );
+  }
+
+  String _resolveLogoUrl(String? iconPath) {
+    if (iconPath == null || iconPath.isEmpty) return '';
+    return _supabase.storage
+        .from(StorageBucketsTable.banksIcons)
+        .getPublicUrl(iconPath);
   }
 }

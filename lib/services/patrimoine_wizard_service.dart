@@ -1,5 +1,17 @@
+import 'package:flutter/cupertino.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
-import '../bdd/database_tables.dart';
+import '../bdd/advantage_category_table.dart';
+import '../bdd/advantage_provider_table.dart';
+import '../bdd/advantage_source_table.dart';
+import '../bdd/banks_table.dart';
+import '../bdd/investment_category_table.dart';
+import '../bdd/investment_source_table.dart';
+import '../bdd/liquidity_category_table.dart';
+import '../bdd/liquidity_source_table.dart';
+import '../bdd/patrimoine_category_table.dart';
+import '../bdd/savings_category_table.dart';
+import '../bdd/savings_source_table.dart';
+import '../bdd/user_liquidity_account_table.dart';
 import '../models/patrimoine/patrimoine_category.dart';
 import '../models/source_item.dart';
 import '../models/bank.dart';
@@ -13,101 +25,133 @@ class PatrimoineWizardService {
   factory PatrimoineWizardService() => _instance;
   PatrimoineWizardService._internal();
 
-  // ─────────────────────────────────────────────
-  // 🔐 Utils
-  // ─────────────────────────────────────────────
+  // ─── Sélects ──────────────────────────────────────────────────────────────
+
+  static const _selectBankWithId =
+      '''
+    ${BanksTable.id},
+    ${BanksTable.name}
+  ''';
+
+  static const _selectBankNested =
+      '''
+    ${BanksTable.tableName} (
+      ${BanksTable.id},
+      ${BanksTable.name}
+    )
+  ''';
+
+  static const _selectProviderNested =
+      '''
+    ${AdvantageSourceTable.providerId},
+    ${AdvantageProviderTable.tableName} (
+      ${AdvantageProviderTable.id},
+      ${AdvantageProviderTable.name}
+    )
+  ''';
+
+  // ─── Utils ────────────────────────────────────────────────────────────────
 
   String _requireUserId() {
     final user = _supabase.auth.currentUser;
-    if (user == null) {
-      throw Exception('Utilisateur non connecté');
-    }
+    if (user == null) throw Exception('Utilisateur non connecté');
     return user.id;
   }
 
-  Future<List<PatrimoineCategory>> getPatrimoineCategories() async {
-    try {
-      final response = await _supabase
-          .from(DatabaseTables.patrimoineCategory)
-          .select('id, name, label')
-          .order('name');
+  Bank _bankFromNested(Map<String, dynamic> item) => Bank(
+    id: item[BanksTable.tableName][BanksTable.id] as int,
+    name: item[BanksTable.tableName][BanksTable.name] as String,
+  );
 
-      return response
-          .map(
-            (item) => PatrimoineCategory(
-              id: item['id'] as int,
-              name: item['name'] as String,
-              label: item['label'] as String? ?? '',
-            ),
-          )
-          .toList();
-    } catch (e) {
-      rethrow;
-    }
+  // ─── Catégories ───────────────────────────────────────────────────────────
+
+  Future<List<PatrimoineCategory>> getPatrimoineCategories() async {
+    final response = await _supabase
+        .from(PatrimoineCategoryTable.tableName)
+        .select(
+          '${PatrimoineCategoryTable.id}, ${PatrimoineCategoryTable.name}, ${PatrimoineCategoryTable.label}',
+        )
+        .order(PatrimoineCategoryTable.name);
+
+    return response
+        .map(
+          (item) => PatrimoineCategory(
+            id: item[PatrimoineCategoryTable.id] as int,
+            name: item[PatrimoineCategoryTable.name] as String,
+            label: item[PatrimoineCategoryTable.label] as String? ?? '',
+          ),
+        )
+        .toList();
   }
 
   Future<List<SourceItem>> getSourcesForCategory(
     PatrimoineCategory category,
   ) async {
-    try {
-      final categoryName = category.name;
+    final categoryName = category.name;
 
-      if (categoryName == 'Cash') {
-        final response = await _supabase
-            .from(DatabaseTables.liquidityCategory)
-            .select('id, name');
-
-        return response
-            .map((item) => SourceItem.fromLiquiditySource(item))
-            .toList();
-      } else if (categoryName.contains('Saving')) {
-        final response = await _supabase
-            .from(DatabaseTables.savingsCategory)
-            .select('id, name, interest_rate, ceiling');
-
-        return response
-            .map((item) => SourceItem.fromSavingsCategory(item))
-            .toList();
-      } else if (categoryName.contains('Investments')) {
-        final response = await _supabase
-            .from(DatabaseTables.investmentCategory)
-            .select('id, name');
-
-        return response
-            .map((item) => SourceItem.fromInvestmentCategory(item))
-            .toList();
-      } else if (categoryName.contains('Benefits')) {
-        // 🔹 Nouvelle logique pour les avantages
-        final response = await _supabase
-            .from(DatabaseTables.advantageCategory)
-            .select('id, name');
-
-        return response
-            .map((item) => SourceItem.fromAdvantageCategory(item))
-            .toList();
-      } else {
-        return [];
-      }
-    } catch (e) {
-      rethrow;
+    if (categoryName == 'Cash') {
+      final response = await _supabase
+          .from(LiquidityCategoryTable.tableName)
+          .select(
+            '${LiquidityCategoryTable.id}, ${LiquidityCategoryTable.name}',
+          );
+      return response
+          .map((item) => SourceItem.fromLiquiditySource(item))
+          .toList();
     }
+
+    if (categoryName.contains('Saving')) {
+      final response = await _supabase
+          .from(SavingsCategoryTable.tableName)
+          .select(
+            '${SavingsCategoryTable.id}, ${SavingsCategoryTable.name}, ${SavingsCategoryTable.interestRate}, ${SavingsCategoryTable.ceiling}',
+          );
+      return response
+          .map((item) => SourceItem.fromSavingsCategory(item))
+          .toList();
+    }
+
+    if (categoryName.contains('Investments')) {
+      final response = await _supabase
+          .from(InvestmentCategoryTable.tableName)
+          .select(
+            '${InvestmentCategoryTable.id}, ${InvestmentCategoryTable.name}',
+          );
+      return response
+          .map((item) => SourceItem.fromInvestmentCategory(item))
+          .toList();
+    }
+
+    if (categoryName.contains('Benefits')) {
+      final response = await _supabase
+          .from(AdvantageCategoryTable.tableName)
+          .select(
+            '${AdvantageCategoryTable.id}, ${AdvantageCategoryTable.name}',
+          );
+      return response
+          .map((item) => SourceItem.fromAdvantageCategory(item))
+          .toList();
+    }
+
+    return [];
   }
 
-  Future<List<Bank>> getBanks() async {
-    try {
-      final response = await _supabase
-          .from(DatabaseTables.banks)
-          .select('id, name')
-          .order('name');
+  // ─── Banques ──────────────────────────────────────────────────────────────
 
-      return response
-          .map(
-            (item) => Bank(id: item['id'] as int, name: item['name'] as String),
-          )
-          .toList();
-    } catch (e) {
-      rethrow;
-    }
+  Future<List<Bank>> getBanks() async {
+    final response = await _supabase
+        .from(BanksTable.tableName)
+        .select(_selectBankWithId)
+        .order(BanksTable.name);
+
+    return response
+        .map(
+          (item) => Bank(
+            id: item[BanksTable.id] as int,
+            name: item[BanksTable.name] as String,
+          ),
+        )
+        .toList();
   }
 
   Future<List<Bank>> getBanksForLiquiditySource({
@@ -116,57 +160,89 @@ class PatrimoineWizardService {
   }) async {
     final userId = _requireUserId();
 
-    try {
-      // 1. Récupérer les liquidity_source déjà utilisés par l'utilisateur
-      final existingAccounts = await _supabase
-          .from(DatabaseTables.userLiquidityAccounts)
-          .select('liquidity_source_id')
-          .eq('user_id', userId);
+    debugPrint('========================================');
+    debugPrint('getBanksForLiquiditySource');
+    debugPrint('userId: $userId');
+    debugPrint('categoryId: $categoryId');
+    debugPrint('liquidityCategoryId: $liquidityCategoryId');
 
-      final liquiditySourceIds = existingAccounts
-          .map<int>((e) => e['liquidity_source_id'] as int)
-          .toList();
+    // ----------------------------------------
+    // 1. Récupération des comptes existants
+    // ----------------------------------------
 
-      // 2. Récupérer les bank_id déjà utilisés
-      List<int> existingBankIds = [];
+    final existingAccounts = await _supabase
+        .from(UserLiquidityAccountTable.tableName)
+        .select(UserLiquidityAccountTable.liquiditySourceId)
+        .eq(UserLiquidityAccountTable.userId, userId);
 
-      if (liquiditySourceIds.isNotEmpty) {
-        final usedSources = await _supabase
-            .from(DatabaseTables.liquiditySource)
-            .select('id, bank_id')
-            .inFilter('id', liquiditySourceIds);
+    debugPrint('existingAccounts: $existingAccounts');
 
-        existingBankIds = usedSources
-            .map<int>((e) => e['bank_id'] as int)
-            .toSet()
-            .toList();
-      }
+    final liquiditySourceIds = existingAccounts
+        .map<int>((e) => e[UserLiquidityAccountTable.liquiditySourceId] as int)
+        .toList();
 
-      // 3. Récupérer les liquidity sources compatibles
-      final response = await _supabase
-          .from(DatabaseTables.liquiditySource)
-          .select('id, bank_id, banks (id, name)')
-          .eq('category_id', categoryId)
-          .eq('liquidity_category_id', liquidityCategoryId);
+    debugPrint('liquiditySourceIds: $liquiditySourceIds');
 
-      // 4. Filtrer les banques déjà utilisées
-      final filtered = response.where((item) {
-        final bankId = item['bank_id'] as int;
-        return !existingBankIds.contains(bankId);
-      }).toList();
+    // ----------------------------------------
+    // 2. Récupération des banques déjà utilisées
+    // ----------------------------------------
 
-      // 5. Mapping vers Bank
-      return filtered
-          .map<Bank>(
-            (item) => Bank(
-              id: item['banks']['id'] as int,
-              name: item['banks']['name'] as String,
-            ),
-          )
-          .toList();
-    } catch (e) {
-      throw Exception('Failed to fetch available banks: $e');
+    final Set<int> existingBankIds = {};
+
+    if (liquiditySourceIds.isNotEmpty) {
+      final usedSources = await _supabase
+          .from(LiquiditySourceTable.tableName)
+          .select('${LiquiditySourceTable.id}, ${LiquiditySourceTable.bankId}')
+          .inFilter(LiquiditySourceTable.id, liquiditySourceIds);
+
+      debugPrint('usedSources: $usedSources');
+
+      existingBankIds.addAll(
+        usedSources.map<int>((e) => e[LiquiditySourceTable.bankId] as int),
+      );
     }
+
+    debugPrint('existingBankIds: $existingBankIds');
+
+    // ----------------------------------------
+    // 3. Récupération des banques disponibles
+    // ----------------------------------------
+
+    final response = await _supabase
+        .from(LiquiditySourceTable.tableName)
+        .select('${LiquiditySourceTable.bankId}, $_selectBankNested')
+        .eq(LiquiditySourceTable.categoryId, categoryId)
+        .eq(LiquiditySourceTable.liquidityCategoryId, liquidityCategoryId);
+
+    debugPrint('raw response: $response');
+
+    // ----------------------------------------
+    // 4. Filtrage des banques déjà utilisées
+    // ----------------------------------------
+
+    final filteredResponse = response.where((item) {
+      final bankId = item[LiquiditySourceTable.bankId] as int;
+
+      final alreadyExists = existingBankIds.contains(bankId);
+
+      debugPrint('Checking bankId=$bankId -> alreadyExists=$alreadyExists');
+
+      return !alreadyExists;
+    }).toList();
+
+    debugPrint('filteredResponse: $filteredResponse');
+
+    // ----------------------------------------
+    // 5. Mapping final
+    // ----------------------------------------
+
+    final banks = filteredResponse.map<Bank>(_bankFromNested).toList();
+
+    debugPrint('banks result count: ${banks.length}');
+    debugPrint('banks: $banks');
+    debugPrint('========================================');
+
+    return banks;
   }
 
   Future<List<Bank>> getBanksForSavingsSource({
@@ -174,60 +250,135 @@ class PatrimoineWizardService {
     required int savingsCategoryId,
   }) async {
     final response = await _supabase
-        .from(DatabaseTables.savingsSource)
-        .select('bank_id, banks ( id, name )')
-        .eq('category_id', categoryId)
-        .eq('savings_category_id', savingsCategoryId);
+        .from(SavingsSourceTable.tableName)
+        .select('${SavingsSourceTable.bankId}, $_selectBankNested')
+        .eq(SavingsSourceTable.categoryId, categoryId)
+        .eq(SavingsSourceTable.savingsCategoryId, savingsCategoryId);
 
-    return response
-        .map<Bank>(
-          (item) => Bank(
-            id: item['banks']['id'] as int,
-            name: item['banks']['name'] as String,
-          ),
-        )
-        .toList();
+    return response.map<Bank>(_bankFromNested).toList();
   }
 
-  // Récupère la liste des banques selon le type d'investissement
   Future<List<Bank>> getBanksForInvestmentSource({
     required int categoryId,
     required int investmentCategoryId,
   }) async {
-    final response = await _supabase
-        .from(DatabaseTables.investmentSource)
-        .select('bank_id, banks ( id, name )')
-        .eq('category_id', categoryId)
-        .eq('investment_category_id', investmentCategoryId);
+    debugPrint('========================================');
+    debugPrint('getBanksForInvestmentSource');
+    debugPrint('categoryId: $categoryId');
+    debugPrint('investmentCategoryId: $investmentCategoryId');
 
-    return response
-        .map<Bank>(
-          (item) => Bank(
-            id: item['banks']['id'] as int,
-            name: item['banks']['name'] as String,
-          ),
-        )
-        .toList();
+    try {
+      debugPrint('----------------------------------------');
+      debugPrint('TABLE: ${InvestmentSourceTable.tableName}');
+      debugPrint('SELECT: ${InvestmentSourceTable.bankId}, $_selectBankNested');
+
+      final response = await _supabase
+          .from(InvestmentSourceTable.tableName)
+          .select('${InvestmentSourceTable.bankId}, $_selectBankNested')
+          // ⚠️ Vérifie bien cette ligne
+          .eq(InvestmentSourceTable.categoryId, categoryId)
+          // ⚠️ Avant tu filtrais deux fois categoryId
+          .eq(InvestmentSourceTable.investmentCategoryId, investmentCategoryId);
+
+      debugPrint('----------------------------------------');
+      debugPrint('RAW RESPONSE: $response');
+      debugPrint('RESPONSE LENGTH: ${response.length}');
+
+      final banks = response.map<Bank>((item) {
+        debugPrint('----------------------------------------');
+        debugPrint('ITEM: $item');
+
+        final bankId = item[InvestmentSourceTable.bankId];
+
+        debugPrint('bankId: $bankId');
+
+        final bank = _bankFromNested(item);
+
+        debugPrint('BANK RESULT: $bank');
+
+        return bank;
+      }).toList();
+
+      debugPrint('----------------------------------------');
+      debugPrint('FINAL BANKS COUNT: ${banks.length}');
+      debugPrint('FINAL BANKS: $banks');
+
+      debugPrint('========================================');
+
+      return banks;
+    } catch (e, stackTrace) {
+      debugPrint('----------------------------------------');
+      debugPrint('ERROR getBanksForInvestmentSource');
+      debugPrint('error: $e');
+      debugPrint('stackTrace: $stackTrace');
+      debugPrint('========================================');
+
+      rethrow;
+    }
   }
 
-  // Récupère la liste des fournisseurs selon le type d'avantage
+  // ─── Fournisseurs ─────────────────────────────────────────────────────────
+
   Future<List<Provider>> getProvidersForAdvantageSource({
     required int categoryId,
     required int advantageCategoryId,
   }) async {
-    final response = await _supabase
-        .from(DatabaseTables.advantageSource)
-        .select('provider_id, advantage_provider ( id, name )')
-        .eq('category_id', categoryId)
-        .eq('advantage_category_id', advantageCategoryId);
+    debugPrint('========================================');
+    debugPrint('getProvidersForAdvantageSource');
+    debugPrint('categoryId: $categoryId');
+    debugPrint('advantageCategoryId: $advantageCategoryId');
 
-    return response.map<Provider>((item) {
-      final provider = item['advantage_provider'];
+    try {
+      debugPrint('----------------------------------------');
+      debugPrint('TABLE: ${AdvantageSourceTable.tableName}');
+      debugPrint('SELECT: $_selectProviderNested');
 
-      return Provider(
-        id: provider['id'] as int,
-        name: provider['name'] as String,
-      );
-    }).toList();
+      final response = await _supabase
+          .from(AdvantageSourceTable.tableName)
+          .select(_selectProviderNested)
+          // ⚠️ Vérifie bien cette ligne
+          .eq(AdvantageSourceTable.categoryId, categoryId)
+          // ⚠️ Et celle-ci
+          .eq(AdvantageSourceTable.advantageCategoryId, advantageCategoryId);
+
+      debugPrint('----------------------------------------');
+      debugPrint('RAW RESPONSE: $response');
+      debugPrint('RESPONSE LENGTH: ${response.length}');
+
+      final providers = response.map<Provider>((item) {
+        debugPrint('----------------------------------------');
+        debugPrint('ITEM: $item');
+
+        final provider =
+            item[AdvantageProviderTable.tableName] as Map<String, dynamic>;
+
+        debugPrint('PROVIDER MAP: $provider');
+
+        final providerId = provider[AdvantageProviderTable.id] as int;
+
+        final providerName = provider[AdvantageProviderTable.name] as String;
+
+        debugPrint('providerId: $providerId');
+        debugPrint('providerName: $providerName');
+
+        return Provider(id: providerId, name: providerName);
+      }).toList();
+
+      debugPrint('----------------------------------------');
+      debugPrint('FINAL PROVIDERS COUNT: ${providers.length}');
+      debugPrint('FINAL PROVIDERS: $providers');
+
+      debugPrint('========================================');
+
+      return providers;
+    } catch (e, stackTrace) {
+      debugPrint('----------------------------------------');
+      debugPrint('ERROR getProvidersForAdvantageSource');
+      debugPrint('error: $e');
+      debugPrint('stackTrace: $stackTrace');
+      debugPrint('========================================');
+
+      rethrow;
+    }
   }
 }

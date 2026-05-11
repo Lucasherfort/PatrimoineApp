@@ -1,6 +1,10 @@
 import 'package:patrimoine360/services/savings_account_service.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
-import '../bdd/database_tables.dart';
+import '../bdd/patrimoine_category_table.dart';
+import '../bdd/user_advantage_account_table.dart';
+import '../bdd/user_investment_account_table.dart';
+import '../bdd/user_liquidity_account_table.dart';
+import '../bdd/user_savings_account_table.dart';
 import '../models/patrimoine/patrimoine_category.dart';
 import 'advantage_service.dart';
 import 'investment_service.dart';
@@ -9,195 +13,205 @@ import 'liquidity_account_service.dart';
 class PatrimoineService {
   final SupabaseClient _supabase = Supabase.instance.client;
 
-  // ✅ Singleton
   static final PatrimoineService _instance = PatrimoineService._internal();
   factory PatrimoineService() => _instance;
   PatrimoineService._internal();
+
   final InvestmentService _investmentService = InvestmentService();
 
-  // ─────────────────────────────────────────────
-  // 🔐 Utils
-  // ─────────────────────────────────────────────
+  // ─── Utils ────────────────────────────────────────────────────────────────
 
   String _requireUserId() {
     final user = _supabase.auth.currentUser;
-    if (user == null) {
-      throw Exception('Utilisateur non connecté');
-    }
+    if (user == null) throw Exception('Utilisateur non connecté');
     return user.id;
   }
 
-  // ─────────────────────────────────────────────
-  // 💰 TOTAL PATRIMOINE
-  // ─────────────────────────────────────────────
+  // ─── Total patrimoine ─────────────────────────────────────────────────────
 
   Future<double> getPatrimoine() async {
     final userId = _requireUserId();
 
-    try {
-      double total = 0;
+    final liquidity = await _supabase
+        .from(UserLiquidityAccountTable.tableName)
+        .select(UserLiquidityAccountTable.amount)
+        .eq(UserLiquidityAccountTable.userId, userId);
 
-      // 🔹 Liquidité
-      final liquidity = await _supabase
-          .from(DatabaseTables.userLiquidityAccounts)
-          .select('amount')
-          .eq('user_id', userId);
+    final savings = await _supabase
+        .from(UserSavingsAccountTable.tableName)
+        .select(
+          '${UserSavingsAccountTable.principal}, ${UserSavingsAccountTable.interest}',
+        )
+        .eq(UserSavingsAccountTable.userId, userId);
 
-      for (final row in liquidity) {
-        total += (row['amount'] as num?)?.toDouble() ?? 0;
-      }
+    final advantage = await _supabase
+        .from(UserAdvantageAccountTable.tableName)
+        .select(UserAdvantageAccountTable.value)
+        .eq(UserAdvantageAccountTable.userId, userId);
 
-      // 🔹 Épargne
-      final savings = await _supabase
-          .from(DatabaseTables.userSavingsAccounts)
-          .select('principal, interest')
-          .eq('user_id', userId);
+    double total = 0.0;
 
-      for (final row in savings) {
-        total +=
-            ((row['principal'] as num?)?.toDouble() ?? 0) +
-            ((row['interest'] as num?)?.toDouble() ?? 0);
-      }
+    total += liquidity.fold<double>(
+      0.0,
+      (sum, row) =>
+          sum +
+          ((row[UserLiquidityAccountTable.amount] as num?)?.toDouble() ?? 0),
+    );
 
-      // 🔹 (Investissements
-      total += await _investmentService.getUserInvestmentsTotalValue();
+    total += savings.fold<double>(
+      0.0,
+      (sum, row) =>
+          sum +
+          ((row[UserSavingsAccountTable.principal] as num?)?.toDouble() ?? 0) +
+          ((row[UserSavingsAccountTable.interest] as num?)?.toDouble() ?? 0),
+    );
 
-      // Advantage
-      final advantage = await _supabase
-          .from(DatabaseTables.userAdvantageAccount)
-          .select('value')
-          .eq('user_id', userId);
+    total += await _investmentService.getUserInvestmentsTotalValue();
 
-      for (final row in advantage) {
-        total += ((row['value'] as num?)?.toDouble() ?? 0);
-      }
+    total += advantage.fold<double>(
+      0.0,
+      (sum, row) =>
+          sum +
+          ((row[UserAdvantageAccountTable.value] as num?)?.toDouble() ?? 0),
+    );
 
-      return total;
-    } catch (e) {
-      rethrow;
-    }
+    return total;
   }
 
-  // ─────────────────────────────────────────────
-  // 📊 PRÉSENCE DES COMPTES
-  // ─────────────────────────────────────────────
+  // ─── Présence des comptes ─────────────────────────────────────────────────
 
-  Future<bool> hasLiquidityAccounts() async {
+  Future<bool> hasLiquidityAccounts() => _hasAccounts(
+    UserLiquidityAccountTable.tableName,
+    UserLiquidityAccountTable.id,
+  );
+
+  Future<bool> hasSavingsAccounts() => _hasAccounts(
+    UserSavingsAccountTable.tableName,
+    UserSavingsAccountTable.id,
+  );
+
+  Future<bool> hasInvestmentAccounts() => _hasAccounts(
+    UserInvestmentAccountTable.tableName,
+    UserInvestmentAccountTable.id,
+  );
+
+  Future<bool> hasAdvantageAccounts() => _hasAccounts(
+    UserAdvantageAccountTable.tableName,
+    UserAdvantageAccountTable.id,
+  );
+
+  Future<bool> _hasAccounts(String table, String idColumn) async {
     final userId = _requireUserId();
-
     final response = await _supabase
-        .from(DatabaseTables.userLiquidityAccounts)
-        .select('id')
-        .eq('user_id', userId)
+        .from(table)
+        .select(idColumn)
+        .eq(UserLiquidityAccountTable.userId, userId)
         .limit(1);
-
     return response.isNotEmpty;
   }
 
-  Future<bool> hasSavingsAccounts() async {
-    final userId = _requireUserId();
-
-    final response = await _supabase
-        .from(DatabaseTables.userSavingsAccounts)
-        .select('id')
-        .eq('user_id', userId)
-        .limit(1);
-
-    return response.isNotEmpty;
-  }
-
-  Future<bool> hasInvestmentAccounts() async {
-    final userId = _requireUserId();
-
-    final response = await _supabase
-        .from(DatabaseTables.userInvestmentAccount)
-        .select('id')
-        .eq('user_id', userId)
-        .limit(1);
-
-    return response.isNotEmpty;
-  }
-
-  Future<bool> hasAdvantageAccounts() async {
-    final userId = _requireUserId();
-
-    final response = await _supabase
-        .from(DatabaseTables.userAdvantageAccount)
-        .select('id')
-        .eq('user_id', userId)
-        .limit(1);
-
-    return response.isNotEmpty;
-  }
-
-  // ─────────────────────────────────────────────
-  // 📂 CATÉGORIES
-  // ─────────────────────────────────────────────
+  // ─── Catégories ───────────────────────────────────────────────────────────
 
   Future<List<PatrimoineCategory>> getPatrimoineCategories() async {
-    try {
-      final response = await _supabase
-          .from(DatabaseTables.patrimoineCategory)
-          .select('id, name, label')
-          .order('name');
+    final response = await _supabase
+        .from(PatrimoineCategoryTable.tableName)
+        .select(
+          '${PatrimoineCategoryTable.id}, ${PatrimoineCategoryTable.name}, ${PatrimoineCategoryTable.label}',
+        )
+        .order(PatrimoineCategoryTable.name);
 
-      return response
-          .map(
-            (item) => PatrimoineCategory(
-              id: item['id'] as int,
-              name: item['name'] as String,
-              label: item['label'] as String? ?? '',
-            ),
-          )
-          .toList();
-    } catch (e) {
-      rethrow;
-    }
+    return response
+        .map(
+          (item) => PatrimoineCategory(
+            id: item[PatrimoineCategoryTable.id] as int,
+            name: item[PatrimoineCategoryTable.name] as String,
+            label: item[PatrimoineCategoryTable.label] as String? ?? '',
+          ),
+        )
+        .toList();
   }
 
-  /// Calcule le total déposé (argent investi sans les gains)
+  // ─── Total déposé ─────────────────────────────────────────────────────────
+
   Future<double> getTotalDeposed() async {
-    final user = _supabase.auth.currentUser;
-    if (user == null) return 0.0;
+    _requireUserId();
 
-    try {
-      double total = 0.0;
+    final liquidityAccounts = await LiquidityAccountService()
+        .getUserLiquidityAccounts();
+    final savingsAccounts = await SavingsAccountService()
+        .getUserSavingsAccounts();
+    final investmentAccounts = await InvestmentService()
+        .getUserInvestmentAccounts();
+    final advantageAccounts = await AdvantageService()
+        .getUserAdvantageAccounts();
 
-      // Liquidité (tout = déposé)
-      final liquidityAccounts = await LiquidityAccountService()
-          .getUserLiquidityAccounts();
-      total += liquidityAccounts.fold<double>(
+    return [
+      liquidityAccounts.fold<double>(0.0, (sum, a) => sum + a.amount),
+      savingsAccounts.fold<double>(0.0, (sum, a) => sum + a.principal),
+      investmentAccounts.fold<double>(
         0.0,
-        (sum, account) => sum + account.amount,
-      );
+        (sum, a) => sum + a.cumulativeDeposits,
+      ),
+      advantageAccounts.fold<double>(0.0, (sum, a) => sum + a.value),
+    ].fold<double>(0.0, (sum, subtotal) => sum + subtotal);
+  }
 
-      // Épargne (seulement principal, pas intérêts)
-      final savingsAccounts = await SavingsAccountService()
-          .getUserSavingsAccounts();
-      total += savingsAccounts.fold<double>(
-        0.0,
-        (sum, account) => sum + account.principal,
-      );
+  Future<double> getTotalOwnedCapital() async {
+    final userId = _requireUserId();
 
-      // Investissement (seulement total_contribution)
-      final investmentAccounts = await InvestmentService()
-          .getUserInvestmentAccounts();
-      total += investmentAccounts.fold<double>(
-        0.0,
-        (sum, account) => sum + account.cumulativeDeposits,
-      );
+    // ─────────────────────────────────────────────
+    // LIQUIDITÉS (compte courant / cash dispo)
+    // ─────────────────────────────────────────────
+    final liquidity = await _supabase
+        .from(UserLiquidityAccountTable.tableName)
+        .select(UserLiquidityAccountTable.amount)
+        .eq(UserLiquidityAccountTable.userId, userId);
 
-      // Avantages (tout = déposé)
-      final advantageAccounts = await AdvantageService()
-          .getUserAdvantageAccounts();
-      total += advantageAccounts.fold<double>(
-        0.0,
-        (sum, account) => sum + account.value,
-      );
+    final liquidityTotal = liquidity.fold<double>(
+      0.0,
+      (sum, row) =>
+          sum +
+          ((row[UserLiquidityAccountTable.amount] as num?)?.toDouble() ?? 0),
+    );
 
-      return total;
-    } catch (e) {
-      rethrow;
-    }
+    // ─────────────────────────────────────────────
+    // ÉPARGNE (uniquement capital, sans intérêts)
+    // ─────────────────────────────────────────────
+    final savings = await _supabase
+        .from(UserSavingsAccountTable.tableName)
+        .select(UserSavingsAccountTable.principal)
+        .eq(UserSavingsAccountTable.userId, userId);
+
+    final savingsTotal = savings.fold<double>(
+      0.0,
+      (sum, row) =>
+          sum +
+          ((row[UserSavingsAccountTable.principal] as num?)?.toDouble() ?? 0),
+    );
+
+    // ─────────────────────────────────────────────
+    // INVESTISSEMENTS (uniquement dépôts versés)
+    // ─────────────────────────────────────────────
+    final investments = await _supabase
+        .from(UserInvestmentAccountTable.tableName)
+        .select(UserInvestmentAccountTable.totalContribution)
+        .eq(UserInvestmentAccountTable.userId, userId);
+
+    final investmentTotal = investments.fold<double>(
+      0.0,
+      (sum, row) =>
+          sum +
+          ((row[UserInvestmentAccountTable.totalContribution] as num?)
+                  ?.toDouble() ??
+              0),
+    );
+
+    // ─────────────────────────────────────────────
+    // AVANTAGES SALARIÉS (exclus ici volontairement)
+    // ─────────────────────────────────────────────
+
+    final totalOwnedCapital = liquidityTotal + savingsTotal + investmentTotal;
+
+    return totalOwnedCapital;
   }
 }
