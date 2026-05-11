@@ -1,6 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
-import '../../bdd/database_tables.dart';
+import '../../bdd/advantage_source_table.dart';
+import '../../bdd/investment_source_table.dart';
+import '../../bdd/liquidity_source_table.dart';
+import '../../bdd/savings_source_table.dart';
+import '../../bdd/user_advantage_account_table.dart';
+import '../../bdd/user_investment_account_table.dart';
+import '../../bdd/user_liquidity_account_table.dart';
 import '../../models/advantage/provider.dart';
 import '../../models/patrimoine/patrimoine_category.dart';
 import '../../models/source_item.dart';
@@ -199,7 +205,7 @@ class _AddPatrimoineWizardState extends State<AddPatrimoineWizard> {
       if (selectedSource!.type == 'liquidity') {
         // Charge si le compte existe
         final existing = await Supabase.instance.client
-            .from(DatabaseTables.liquiditySource)
+            .from(LiquiditySourceTable.tableName)
             .select('id')
             .eq('bank_id', selectedBank!.id)
             .eq('category_id', selectedCategory!.id)
@@ -212,7 +218,7 @@ class _AddPatrimoineWizardState extends State<AddPatrimoineWizard> {
 
           // 3️⃣ Crée le user_savings_account
           await Supabase.instance.client
-              .from(DatabaseTables.userLiquidityAccounts)
+              .from(UserLiquidityAccountTable.tableName)
               .insert({
                 'user_id': user.id,
                 'liquidity_source_id': liquiditySourceId,
@@ -222,7 +228,7 @@ class _AddPatrimoineWizardState extends State<AddPatrimoineWizard> {
       } else if (selectedSource!.type == 'savings') {
         // 1️⃣ Cherche si savings_source existe
         final existing = await Supabase.instance.client
-            .from(DatabaseTables.savingsSource)
+            .from(SavingsSourceTable.tableName)
             .select('id')
             .eq('bank_id', selectedBank!.id)
             .eq('category_id', selectedCategory!.id)
@@ -244,7 +250,7 @@ class _AddPatrimoineWizardState extends State<AddPatrimoineWizard> {
       } else if (selectedSource!.type == 'investment') {
         // 1️⃣ Cherche si savings_source existe
         final existing = await Supabase.instance.client
-            .from(DatabaseTables.investmentSource)
+            .from(InvestmentSourceTable.tableName)
             .select('id')
             .eq('bank_id', selectedBank!.id)
             .eq('category_id', selectedCategory!.id)
@@ -257,7 +263,7 @@ class _AddPatrimoineWizardState extends State<AddPatrimoineWizard> {
 
           // 3️⃣ Crée le user_savings_account
           await Supabase.instance.client
-              .from(DatabaseTables.userInvestmentAccount)
+              .from(UserInvestmentAccountTable.tableName)
               .insert({
                 'user_id': user.id,
                 'investment_source_id': savingsSourceId,
@@ -268,7 +274,7 @@ class _AddPatrimoineWizardState extends State<AddPatrimoineWizard> {
         }
       } else if (selectedSource!.type == 'advantage') {
         final existing = await Supabase.instance.client
-            .from(DatabaseTables.advantageSource)
+            .from(AdvantageSourceTable.tableName)
             .select('id')
             .eq('provider_id', selectedProvider!.id)
             .eq('category_id', selectedCategory!.id)
@@ -280,7 +286,7 @@ class _AddPatrimoineWizardState extends State<AddPatrimoineWizard> {
           advantageSourceId = existing['id'] as int;
 
           await Supabase.instance.client
-              .from(DatabaseTables.userAdvantageAccount)
+              .from(UserAdvantageAccountTable.tableName)
               .insert({
                 'user_id': user.id,
                 'advantage_source_id': advantageSourceId,
