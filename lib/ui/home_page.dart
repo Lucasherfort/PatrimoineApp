@@ -42,13 +42,25 @@ class _HomePageState extends State<HomePage> {
     setState(() => isLoading = true);
 
     try {
+      print("getPatrimoine()");
       final total = await _service.getPatrimoine();
+
+      print("getTotalDeposed()");
       final deposedAmount = await _service.getTotalDeposed();
 
+      print("hasLiquidityAccounts()");
       final liquidity = await _service.hasLiquidityAccounts();
+
+      print("hasSavingsAccounts()");
       final savings = await _service.hasSavingsAccounts();
+
+      print("hasInvestmentAccounts()");
       final investments = await _service.hasInvestmentAccounts();
+
+      print("hasAdvantageAccounts()");
       final advantages = await _service.hasAdvantageAccounts();
+
+      print("Toutes les requêtes sont OK");
 
       if (mounted) {
         setState(() {
@@ -61,11 +73,17 @@ class _HomePageState extends State<HomePage> {
           isLoading = false;
         });
       }
-    } catch (e) {
+    } catch (e, stacktrace) {
+      print("ERREUR _loadPatrimoine : $e");
+      print(stacktrace);
+
       if (mounted) {
         setState(() => isLoading = false);
+
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Erreur chargement patrimoine: $e')),
+          SnackBar(
+            content: Text('Erreur chargement patrimoine: $e'),
+          ),
         );
       }
     }

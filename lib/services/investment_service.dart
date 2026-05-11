@@ -140,20 +140,31 @@ class InvestmentService {
   }
 
   Future<List<InvestmentPosition>> getInvestmentPositions(
-    int userInvestmentAccountId,
-  ) async {
-    final response = await _supabase
-        .from(UserInvestmentPositionTable.tableName)
-        .select(_selectPositions)
-        .eq(
-      UserInvestmentPositionTable.userInvestmentAccountId,
-          userInvestmentAccountId,
-        )
-        .order(UserInvestmentPositionTable.createdAt);
+      int userInvestmentAccountId,
+      ) async {
+    try {
+      final response = await _supabase
+          .from(UserInvestmentPositionTable.tableName)
+          .select(_selectPositions)
+          .eq(
+        UserInvestmentPositionTable.userInvestmentAccountId,
+        userInvestmentAccountId,
+      )
+          .order(UserInvestmentPositionTable.createdAt);
 
-    return response
-        .map<InvestmentPosition>((e) => InvestmentPosition.fromMap(e))
-        .toList();
+      final positions = response
+          .map<InvestmentPosition>((e) {
+
+        final position = InvestmentPosition.fromMap(e);
+
+        return position;
+      })
+          .toList();
+
+      return positions;
+    } catch (e) {
+      rethrow;
+    }
   }
 
   // ─── Calculs ─────────────────────────────────────────────────────────────────
