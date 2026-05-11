@@ -154,4 +154,62 @@ class PatrimoineService {
       advantageAccounts.fold<double>(0.0, (sum, a) => sum + a.value),
     ].fold<double>(0.0, (sum, subtotal) => sum + subtotal);
   }
+
+  Future<double> getTotalOwnedCapital() async {
+    final userId = _requireUserId();
+
+    // ─────────────────────────────────────────────
+    // LIQUIDITÉS (compte courant / cash dispo)
+    // ─────────────────────────────────────────────
+    final liquidity = await _supabase
+        .from(UserLiquidityAccountTable.tableName)
+        .select(UserLiquidityAccountTable.amount)
+        .eq(UserLiquidityAccountTable.userId, userId);
+
+    final liquidityTotal = liquidity.fold<double>(
+      0.0,
+          (sum, row) =>
+      sum + ((row[UserLiquidityAccountTable.amount] as num?)?.toDouble() ?? 0),
+    );
+
+    // ─────────────────────────────────────────────
+    // ÉPARGNE (uniquement capital, sans intérêts)
+    // ─────────────────────────────────────────────
+    final savings = await _supabase
+        .from(UserSavingsAccountTable.tableName)
+        .select(UserSavingsAccountTable.principal)
+        .eq(UserSavingsAccountTable.userId, userId);
+
+    final savingsTotal = savings.fold<double>(
+      0.0,
+          (sum, row) =>
+      sum + ((row[UserSavingsAccountTable.principal] as num?)?.toDouble() ?? 0),
+    );
+
+    // ─────────────────────────────────────────────
+    // INVESTISSEMENTS (uniquement dépôts versés)
+    // ─────────────────────────────────────────────
+    final investments = await _supabase
+        .from(UserInvestmentAccountTable.tableName)
+        .select(UserInvestmentAccountTable.totalContribution)
+        .eq(UserInvestmentAccountTable.userId, userId);
+
+    final investmentTotal = investments.fold<double>(
+      0.0,
+          (sum, row) =>
+      sum +
+          ((row[UserInvestmentAccountTable.totalContribution] as num?)
+              ?.toDouble() ??
+              0),
+    );
+
+    // ─────────────────────────────────────────────
+    // AVANTAGES SALARIÉS (exclus ici volontairement)
+    // ─────────────────────────────────────────────
+
+    final totalOwnedCapital =
+        liquidityTotal + savingsTotal + investmentTotal;
+
+    return totalOwnedCapital;
+  }
 }

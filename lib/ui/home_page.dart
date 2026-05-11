@@ -25,6 +25,7 @@ class _HomePageState extends State<HomePage> {
 
   double patrimoineTotal = 0.0;
   double totalDepose = 0.0;
+  double capitalOwned = 0.0;
   bool isLoading = true;
 
   bool hasLiquidityAccounts = false;
@@ -42,30 +43,19 @@ class _HomePageState extends State<HomePage> {
     setState(() => isLoading = true);
 
     try {
-      print("getPatrimoine()");
       final total = await _service.getPatrimoine();
-
-      print("getTotalDeposed()");
       final deposedAmount = await _service.getTotalDeposed();
-
-      print("hasLiquidityAccounts()");
+      final capitalOwnedAmount = await _service.getTotalOwnedCapital();
       final liquidity = await _service.hasLiquidityAccounts();
-
-      print("hasSavingsAccounts()");
       final savings = await _service.hasSavingsAccounts();
-
-      print("hasInvestmentAccounts()");
       final investments = await _service.hasInvestmentAccounts();
-
-      print("hasAdvantageAccounts()");
       final advantages = await _service.hasAdvantageAccounts();
-
-      print("Toutes les requêtes sont OK");
 
       if (mounted) {
         setState(() {
           patrimoineTotal = total;
           totalDepose = deposedAmount;
+          capitalOwned = capitalOwnedAmount;
           hasLiquidityAccounts = liquidity;
           hasSavingsAccounts = savings;
           hasInvestmentAccounts = investments;
@@ -73,10 +63,7 @@ class _HomePageState extends State<HomePage> {
           isLoading = false;
         });
       }
-    } catch (e, stacktrace) {
-      print("ERREUR _loadPatrimoine : $e");
-      print(stacktrace);
-
+    } catch (e) {
       if (mounted) {
         setState(() => isLoading = false);
 
@@ -268,6 +255,7 @@ class _HomePageState extends State<HomePage> {
               PatrimoineHeader(
                 patrimoineTotal: patrimoineTotal,
                 totalDepose: totalDepose,
+                capitalOwned: capitalOwned,
                 onRefresh: _refreshAll,
               ),
               Expanded(

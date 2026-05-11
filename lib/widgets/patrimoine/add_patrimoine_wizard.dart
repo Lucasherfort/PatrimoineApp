@@ -121,38 +121,108 @@ class _AddPatrimoineWizardState extends State<AddPatrimoineWizard> {
   }
 
   Future<void> _onSourceSelected(SourceItem? source) async {
-    if (source == null) return;
+    debugPrint('========================================');
+    debugPrint('_onSourceSelected CALLED');
+    debugPrint('source: $source');
+
+    if (source == null) {
+      debugPrint('source IS NULL -> RETURN');
+      debugPrint('========================================');
+      return;
+    }
+
+    debugPrint('source.id: ${source.id}');
+    debugPrint('source.name: ${source.name}');
+    debugPrint('source.type: ${source.type}');
 
     setState(() {
+      debugPrint('RESET STATE');
+
       selectedSource = source;
       isLoading = true;
+
       banks = [];
       providers = [];
+
       selectedBank = null;
       selectedProvider = null;
+
       step3SelectionType = null;
     });
 
     try {
+      debugPrint('----------------------------------------');
+      debugPrint('LOADING BANKS...');
+
       List<Bank> loadedBanks = await _loadBanksBySourceType(source);
-      List<Provider> loadedProviders = await _loadProvidersBySourceType(source);
+
+      debugPrint('loadedBanks count: ${loadedBanks.length}');
+      debugPrint('loadedBanks: $loadedBanks');
+
+      debugPrint('----------------------------------------');
+      debugPrint('LOADING PROVIDERS...');
+
+      List<Provider> loadedProviders =
+      await _loadProvidersBySourceType(source);
+
+      debugPrint('loadedProviders count: ${loadedProviders.length}');
+      debugPrint('loadedProviders: $loadedProviders');
+
+      debugPrint('----------------------------------------');
+      debugPrint('source.type CHECK');
+
+      if (source.type == 'advantage') {
+        debugPrint('TYPE = advantage');
+        debugPrint('USING PROVIDERS');
+      } else {
+        debugPrint('TYPE != advantage');
+        debugPrint('USING BANKS');
+      }
 
       setState(() {
+        debugPrint('SETSTATE FINAL');
+
         if (source.type == 'advantage') {
           providers = loadedProviders;
           step3SelectionType = Step3SelectionType.provider;
+
+          debugPrint(
+            'step3SelectionType = provider',
+          );
         } else {
           banks = loadedBanks;
           step3SelectionType = Step3SelectionType.bank;
+
+          debugPrint(
+            'step3SelectionType = bank',
+          );
         }
 
         currentStep = 2;
         isLoading = false;
+
+        debugPrint('currentStep: $currentStep');
+        debugPrint('isLoading: $isLoading');
+
+        debugPrint('banks final count: ${banks.length}');
+        debugPrint('providers final count: ${providers.length}');
       });
-    } catch (e) {
-      setState(() => isLoading = false);
+
+      debugPrint('_onSourceSelected SUCCESS');
+    } catch (e, stackTrace) {
+      debugPrint('----------------------------------------');
+      debugPrint('ERROR IN _onSourceSelected');
+      debugPrint('error: $e');
+      debugPrint('stackTrace: $stackTrace');
+
+      setState(() {
+        isLoading = false;
+      });
+
       _showError('Erreur chargement étape 3: $e');
     }
+
+    debugPrint('========================================');
   }
 
   void _onBankSelected(Bank? bank) {
