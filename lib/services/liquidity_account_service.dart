@@ -1,7 +1,9 @@
 import 'package:supabase_flutter/supabase_flutter.dart';
-import '../bdd/database_columns.dart';
-import '../bdd/database_tables.dart';
+import '../bdd/banks_table.dart';
+import '../bdd/liquidity_category_table.dart';
+import '../bdd/liquidity_source_table.dart';
 import '../bdd/storage_buckets.dart';
+import '../bdd/user_liquidity_account_table.dart';
 import '../models/liquidity/user_liquidity_account_view.dart';
 
 class LiquidityAccountService {
@@ -9,19 +11,19 @@ class LiquidityAccountService {
 
   static const _selectAccounts =
       '''
-    ${LiquidityAccountColumns.id},
-    ${LiquidityAccountColumns.amount},
-    ${DatabaseTables.liquiditySource} (
-      ${LiquiditySourceColumns.id},
-      ${LiquiditySourceColumns.liquidityCategoryId},
-      ${LiquiditySourceColumns.bankId},
-      ${DatabaseTables.banks} (
-        ${BankColumns.id},
-        ${BankColumns.name},
-        ${BankColumns.icon}
+    ${UserLiquidityAccountTable.id},
+    ${UserLiquidityAccountTable.amount},
+    ${LiquiditySourceTable.tableName} (
+      ${LiquiditySourceTable.id},
+      ${LiquiditySourceTable.liquidityCategoryId},
+      ${LiquiditySourceTable.bankId},
+      ${BanksTable.tableName} (
+        ${BanksTable.id},
+        ${BanksTable.name},
+        ${BanksTable.icon}
       ),
-      ${DatabaseTables.liquidityCategory} (
-        ${LiquidityCategoryColumns.name}
+      ${LiquidityCategoryTable.tableName} (
+        ${LiquidityCategoryTable.name}
       )
     )
   ''';
@@ -33,10 +35,10 @@ class LiquidityAccountService {
     if (user == null) throw Exception('Utilisateur non connecté');
 
     final response = await _supabase
-        .from(DatabaseTables.userLiquidityAccounts)
+        .from(UserLiquidityAccountTable.tableName)
         .select(_selectAccounts)
-        .eq(LiquidityAccountColumns.userId, user.id)
-        .order(LiquidityAccountColumns.id);
+        .eq(UserLiquidityAccountTable.userId, user.id)
+        .order(UserLiquidityAccountTable.id);
 
     return response.map<UserLiquidityAccountView>(_mapToView).toList();
   }
@@ -49,12 +51,12 @@ class LiquidityAccountService {
 
     final now = DateTime.now().toIso8601String();
 
-    await _supabase.from(DatabaseTables.userLiquidityAccounts).insert({
-      LiquidityAccountColumns.userId: user.id,
-      LiquidityAccountColumns.liquiditySourceId: liquiditySourceId,
-      LiquidityAccountColumns.amount: 0,
-      LiquidityAccountColumns.createdAt: now,
-      LiquidityAccountColumns.updatedAt: now,
+    await _supabase.from(UserLiquidityAccountTable.tableName).insert({
+      UserLiquidityAccountTable.userId: user.id,
+      UserLiquidityAccountTable.liquiditySourceId: liquiditySourceId,
+      UserLiquidityAccountTable.amount: 0,
+      UserLiquidityAccountTable.createdAt: now,
+      UserLiquidityAccountTable.updatedAt: now,
     });
   }
 
@@ -63,42 +65,42 @@ class LiquidityAccountService {
     required double amount,
   }) async {
     await _supabase
-        .from(DatabaseTables.userLiquidityAccounts)
+        .from(UserLiquidityAccountTable.tableName)
         .update({
-          LiquidityAccountColumns.amount: amount,
-          LiquidityAccountColumns.updatedAt: DateTime.now().toIso8601String(),
+          UserLiquidityAccountTable.amount: amount,
+          UserLiquidityAccountTable.updatedAt: DateTime.now().toIso8601String(),
         })
-        .eq(LiquidityAccountColumns.id, accountId);
+        .eq(UserLiquidityAccountTable.id, accountId);
   }
 
   Future<void> deleteAccount(int accountId) async {
     await _supabase
-        .from(DatabaseTables.userLiquidityAccounts)
+        .from(UserLiquidityAccountTable.tableName)
         .delete()
-        .eq(LiquidityAccountColumns.id, accountId);
+        .eq(UserLiquidityAccountTable.id, accountId);
   }
 
   // ─── Helpers privés ───────────────────────────────────────────────────────
 
   UserLiquidityAccountView _mapToView(Map<String, dynamic> item) {
-    final source = item[DatabaseTables.liquiditySource] as Map<String, dynamic>;
-    final bank = source[DatabaseTables.banks] as Map<String, dynamic>;
+    final source = item[LiquiditySourceTable.tableName] as Map<String, dynamic>;
+    final bank = source[BanksTable.tableName] as Map<String, dynamic>;
     final category =
-        source[DatabaseTables.liquidityCategory] as Map<String, dynamic>;
+        source[LiquidityCategoryTable.tableName] as Map<String, dynamic>;
 
     return UserLiquidityAccountView(
-      id: item[LiquidityAccountColumns.id] as int,
-      amount: (item[LiquidityAccountColumns.amount] as num).toDouble(),
-      sourceName: category[LiquidityCategoryColumns.name] as String,
-      bankName: bank[BankColumns.name] as String,
-      logoUrl: _resolveLogoUrl(bank[BankColumns.icon] as String?),
+      id: item[UserLiquidityAccountTable.id] as int,
+      amount: (item[UserLiquidityAccountTable.amount] as num).toDouble(),
+      sourceName: category[LiquidityCategoryTable.name] as String,
+      bankName: bank[BanksTable.name] as String,
+      logoUrl: _resolveLogoUrl(bank[BanksTable.icon] as String?),
     );
   }
 
   String _resolveLogoUrl(String? iconPath) {
     if (iconPath == null || iconPath.isEmpty) return '';
     return _supabase.storage
-        .from(StorageBuckets.banksIcons)
+        .from(StorageBucketsTable.banksIcons)
         .getPublicUrl(iconPath);
   }
 }

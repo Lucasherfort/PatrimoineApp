@@ -77,7 +77,7 @@ class AdvantageService {
   String _resolveLogoUrl(String? iconPath) {
     if (iconPath == null || iconPath.isEmpty) return '';
     return _supabase.storage
-        .from(StorageBuckets.banksIcons)
+        .from(StorageBucketsTable.banksIcons)
         .getPublicUrl(iconPath);
   }
 

@@ -1,5 +1,5 @@
-class UserSavingsAccount {
-  static const String table = 'user_savings_account';
+class UserSavingsAccountTable {
+  static const String tableName = 'user_savings_account';
   static const String id = 'id';
   static const String userId = 'user_id';
   static const String savingsSourceId = 'savings_source_id';
