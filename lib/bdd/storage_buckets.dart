@@ -1,4 +1,4 @@
 // storage_buckets.dart
-class StorageBuckets {
+class StorageBucketsTable {
   static const String banksIcons = 'banks-icons';
 }
