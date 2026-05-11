@@ -178,9 +178,7 @@ class PatrimoineWizardService {
     debugPrint('existingAccounts: $existingAccounts');
 
     final liquiditySourceIds = existingAccounts
-        .map<int>(
-          (e) => e[UserLiquidityAccountTable.liquiditySourceId] as int,
-    )
+        .map<int>((e) => e[UserLiquidityAccountTable.liquiditySourceId] as int)
         .toList();
 
     debugPrint('liquiditySourceIds: $liquiditySourceIds');
@@ -194,17 +192,13 @@ class PatrimoineWizardService {
     if (liquiditySourceIds.isNotEmpty) {
       final usedSources = await _supabase
           .from(LiquiditySourceTable.tableName)
-          .select(
-        '${LiquiditySourceTable.id}, ${LiquiditySourceTable.bankId}',
-      )
+          .select('${LiquiditySourceTable.id}, ${LiquiditySourceTable.bankId}')
           .inFilter(LiquiditySourceTable.id, liquiditySourceIds);
 
       debugPrint('usedSources: $usedSources');
 
       existingBankIds.addAll(
-        usedSources.map<int>(
-              (e) => e[LiquiditySourceTable.bankId] as int,
-        ),
+        usedSources.map<int>((e) => e[LiquiditySourceTable.bankId] as int),
       );
     }
 
@@ -218,10 +212,7 @@ class PatrimoineWizardService {
         .from(LiquiditySourceTable.tableName)
         .select('${LiquiditySourceTable.bankId}, $_selectBankNested')
         .eq(LiquiditySourceTable.categoryId, categoryId)
-        .eq(
-      LiquiditySourceTable.liquidityCategoryId,
-      liquidityCategoryId,
-    );
+        .eq(LiquiditySourceTable.liquidityCategoryId, liquidityCategoryId);
 
     debugPrint('raw response: $response');
 
@@ -234,9 +225,7 @@ class PatrimoineWizardService {
 
       final alreadyExists = existingBankIds.contains(bankId);
 
-      debugPrint(
-        'Checking bankId=$bankId -> alreadyExists=$alreadyExists',
-      );
+      debugPrint('Checking bankId=$bankId -> alreadyExists=$alreadyExists');
 
       return !alreadyExists;
     }).toList();
@@ -247,9 +236,7 @@ class PatrimoineWizardService {
     // 5. Mapping final
     // ----------------------------------------
 
-    final banks = filteredResponse
-        .map<Bank>(_bankFromNested)
-        .toList();
+    final banks = filteredResponse.map<Bank>(_bankFromNested).toList();
 
     debugPrint('banks result count: ${banks.length}');
     debugPrint('banks: $banks');
@@ -283,27 +270,15 @@ class PatrimoineWizardService {
     try {
       debugPrint('----------------------------------------');
       debugPrint('TABLE: ${InvestmentSourceTable.tableName}');
-      debugPrint(
-        'SELECT: ${InvestmentSourceTable.bankId}, $_selectBankNested',
-      );
+      debugPrint('SELECT: ${InvestmentSourceTable.bankId}, $_selectBankNested');
 
       final response = await _supabase
           .from(InvestmentSourceTable.tableName)
-          .select(
-        '${InvestmentSourceTable.bankId}, $_selectBankNested',
-      )
-
-      // ⚠️ Vérifie bien cette ligne
-          .eq(
-        InvestmentSourceTable.categoryId,
-        categoryId,
-      )
-
-      // ⚠️ Avant tu filtrais deux fois categoryId
-          .eq(
-        InvestmentSourceTable.investmentCategoryId,
-        investmentCategoryId,
-      );
+          .select('${InvestmentSourceTable.bankId}, $_selectBankNested')
+          // ⚠️ Vérifie bien cette ligne
+          .eq(InvestmentSourceTable.categoryId, categoryId)
+          // ⚠️ Avant tu filtrais deux fois categoryId
+          .eq(InvestmentSourceTable.investmentCategoryId, investmentCategoryId);
 
       debugPrint('----------------------------------------');
       debugPrint('RAW RESPONSE: $response');
@@ -313,8 +288,7 @@ class PatrimoineWizardService {
         debugPrint('----------------------------------------');
         debugPrint('ITEM: $item');
 
-        final bankId =
-        item[InvestmentSourceTable.bankId];
+        final bankId = item[InvestmentSourceTable.bankId];
 
         debugPrint('bankId: $bankId');
 
@@ -362,18 +336,10 @@ class PatrimoineWizardService {
       final response = await _supabase
           .from(AdvantageSourceTable.tableName)
           .select(_selectProviderNested)
-
-      // ⚠️ Vérifie bien cette ligne
-          .eq(
-        AdvantageSourceTable.categoryId,
-        categoryId,
-      )
-
-      // ⚠️ Et celle-ci
-          .eq(
-        AdvantageSourceTable.advantageCategoryId,
-        advantageCategoryId,
-      );
+          // ⚠️ Vérifie bien cette ligne
+          .eq(AdvantageSourceTable.categoryId, categoryId)
+          // ⚠️ Et celle-ci
+          .eq(AdvantageSourceTable.advantageCategoryId, advantageCategoryId);
 
       debugPrint('----------------------------------------');
       debugPrint('RAW RESPONSE: $response');
@@ -384,24 +350,18 @@ class PatrimoineWizardService {
         debugPrint('ITEM: $item');
 
         final provider =
-        item[AdvantageProviderTable.tableName]
-        as Map<String, dynamic>;
+            item[AdvantageProviderTable.tableName] as Map<String, dynamic>;
 
         debugPrint('PROVIDER MAP: $provider');
 
-        final providerId =
-        provider[AdvantageProviderTable.id] as int;
+        final providerId = provider[AdvantageProviderTable.id] as int;
 
-        final providerName =
-        provider[AdvantageProviderTable.name] as String;
+        final providerName = provider[AdvantageProviderTable.name] as String;
 
         debugPrint('providerId: $providerId');
         debugPrint('providerName: $providerName');
 
-        return Provider(
-          id: providerId,
-          name: providerName,
-        );
+        return Provider(id: providerId, name: providerName);
       }).toList();
 
       debugPrint('----------------------------------------');

@@ -115,7 +115,7 @@ class InvestmentService {
           .from(InvestmentCategoryTable.tableName)
           .select(InvestmentCategoryTable.name)
           .eq(
-        InvestmentCategoryTable.id,
+            InvestmentCategoryTable.id,
             source[InvestmentSourceTable.investmentCategoryId],
           )
           .single();
@@ -140,26 +140,23 @@ class InvestmentService {
   }
 
   Future<List<InvestmentPosition>> getInvestmentPositions(
-      int userInvestmentAccountId,
-      ) async {
+    int userInvestmentAccountId,
+  ) async {
     try {
       final response = await _supabase
           .from(UserInvestmentPositionTable.tableName)
           .select(_selectPositions)
           .eq(
-        UserInvestmentPositionTable.userInvestmentAccountId,
-        userInvestmentAccountId,
-      )
+            UserInvestmentPositionTable.userInvestmentAccountId,
+            userInvestmentAccountId,
+          )
           .order(UserInvestmentPositionTable.createdAt);
 
-      final positions = response
-          .map<InvestmentPosition>((e) {
-
+      final positions = response.map<InvestmentPosition>((e) {
         final position = InvestmentPosition.fromMap(e);
 
         return position;
-      })
-          .toList();
+      }).toList();
 
       return positions;
     } catch (e) {
@@ -224,7 +221,8 @@ class InvestmentService {
         .update({
           UserInvestmentAccountTable.cashBalance: cashBalance,
           UserInvestmentAccountTable.totalContribution: cumulativeDeposits,
-          UserInvestmentAccountTable.updatedAt: DateTime.now().toIso8601String(),
+          UserInvestmentAccountTable.updatedAt: DateTime.now()
+              .toIso8601String(),
         })
         .eq(UserInvestmentAccountTable.id, userInvestmentAccountId);
 

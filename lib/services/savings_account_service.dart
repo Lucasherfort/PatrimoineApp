@@ -62,10 +62,9 @@ class SavingsAccountService {
       await _supabase
           .from(UserSavingsAccountTable.tableName)
           .update({
-              UserSavingsAccountTable.principal: principal,
-              UserSavingsAccountTable.interest: interest,
-              UserSavingsAccountTable.updatedAt: DateTime.now()
-                .toIso8601String(),
+            UserSavingsAccountTable.principal: principal,
+            UserSavingsAccountTable.interest: interest,
+            UserSavingsAccountTable.updatedAt: DateTime.now().toIso8601String(),
           })
           .eq(UserSavingsAccountTable.id, savingsAccountId);
 

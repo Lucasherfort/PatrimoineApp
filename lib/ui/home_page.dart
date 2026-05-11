@@ -68,9 +68,7 @@ class _HomePageState extends State<HomePage> {
         setState(() => isLoading = false);
 
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Erreur chargement patrimoine: $e'),
-          ),
+          SnackBar(content: Text('Erreur chargement patrimoine: $e')),
         );
       }
     }

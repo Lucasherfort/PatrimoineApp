@@ -162,8 +162,7 @@ class _AddPatrimoineWizardState extends State<AddPatrimoineWizard> {
       debugPrint('----------------------------------------');
       debugPrint('LOADING PROVIDERS...');
 
-      List<Provider> loadedProviders =
-      await _loadProvidersBySourceType(source);
+      List<Provider> loadedProviders = await _loadProvidersBySourceType(source);
 
       debugPrint('loadedProviders count: ${loadedProviders.length}');
       debugPrint('loadedProviders: $loadedProviders');
@@ -186,16 +185,12 @@ class _AddPatrimoineWizardState extends State<AddPatrimoineWizard> {
           providers = loadedProviders;
           step3SelectionType = Step3SelectionType.provider;
 
-          debugPrint(
-            'step3SelectionType = provider',
-          );
+          debugPrint('step3SelectionType = provider');
         } else {
           banks = loadedBanks;
           step3SelectionType = Step3SelectionType.bank;
 
-          debugPrint(
-            'step3SelectionType = bank',
-          );
+          debugPrint('step3SelectionType = bank');
         }
 
         currentStep = 2;

@@ -71,7 +71,8 @@ class PatrimoineService {
     total += advantage.fold<double>(
       0.0,
       (sum, row) =>
-          sum + ((row[UserAdvantageAccountTable.value] as num?)?.toDouble() ?? 0),
+          sum +
+          ((row[UserAdvantageAccountTable.value] as num?)?.toDouble() ?? 0),
     );
 
     return total;
@@ -168,8 +169,9 @@ class PatrimoineService {
 
     final liquidityTotal = liquidity.fold<double>(
       0.0,
-          (sum, row) =>
-      sum + ((row[UserLiquidityAccountTable.amount] as num?)?.toDouble() ?? 0),
+      (sum, row) =>
+          sum +
+          ((row[UserLiquidityAccountTable.amount] as num?)?.toDouble() ?? 0),
     );
 
     // ─────────────────────────────────────────────
@@ -182,8 +184,9 @@ class PatrimoineService {
 
     final savingsTotal = savings.fold<double>(
       0.0,
-          (sum, row) =>
-      sum + ((row[UserSavingsAccountTable.principal] as num?)?.toDouble() ?? 0),
+      (sum, row) =>
+          sum +
+          ((row[UserSavingsAccountTable.principal] as num?)?.toDouble() ?? 0),
     );
 
     // ─────────────────────────────────────────────
@@ -196,10 +199,10 @@ class PatrimoineService {
 
     final investmentTotal = investments.fold<double>(
       0.0,
-          (sum, row) =>
-      sum +
+      (sum, row) =>
+          sum +
           ((row[UserInvestmentAccountTable.totalContribution] as num?)
-              ?.toDouble() ??
+                  ?.toDouble() ??
               0),
     );
 
@@ -207,8 +210,7 @@ class PatrimoineService {
     // AVANTAGES SALARIÉS (exclus ici volontairement)
     // ─────────────────────────────────────────────
 
-    final totalOwnedCapital =
-        liquidityTotal + savingsTotal + investmentTotal;
+    final totalOwnedCapital = liquidityTotal + savingsTotal + investmentTotal;
 
     return totalOwnedCapital;
   }
