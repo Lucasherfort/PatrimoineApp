@@ -1,9 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import 'budget_page.dart';
 import 'home_page.dart';
 import 'login_page.dart';
-import 'graphs_page.dart'; // <--- Assure-toi que l'import est correct
+import 'graphs_page.dart';
 
 class MainNavigation extends StatefulWidget {
   const MainNavigation({super.key});
@@ -17,7 +18,11 @@ class _MainNavigationState extends State<MainNavigation> {
   String appVersion = '';
   String appName = 'Patrimoine 360';
 
-  // La clé pour piloter la HomePage (Patrimoine)
+  // Tes couleurs officielles
+  static const Color colorBlueMain = Color(0xFF0D71EE);
+  static const Color colorDarkBg = Color(0xFF060B26);
+  static const Color colorSurface = Color(0xFF1E293B);
+
   final GlobalKey<HomePageState> _homeKey = GlobalKey<HomePageState>();
 
   @override
@@ -42,37 +47,44 @@ class _MainNavigationState extends State<MainNavigation> {
 
   @override
   Widget build(BuildContext context) {
-    // 1. Définition des titres (on garde les textes simples pour le reste de la logique)
+    // Liste des textes d'onglets
     final List<String> titles = [
       "Patrimoine",
       "Analyses",
-      "Mes Dépenses",
+      "Mon Budget",
       "Mon Profil"
+    ];
+
+    // Liste des icônes correspondantes pour l'AppBar
+    final List<IconData> titleIcons = [
+      Icons.account_balance,
+      Icons.insights,
+      Icons.receipt_long,
+      Icons.manage_accounts,
     ];
 
     final List<Widget> pages = [
       HomePage(key: _homeKey, appName: appName, appVersion: appVersion),
-      const GraphsPage(appName: '', appVersion: '',),
-      _buildExpenseSection(),
+      const GraphsPage(appName: '', appVersion: ''),
+      const BudgetPage(), // <--- Remplace _buildExpenseSection() par ton nouveau Widget
       _buildProfileSection(),
     ];
 
     return Scaffold(
-      backgroundColor: const Color(0xFF0F172A),
+      backgroundColor: colorDarkBg,
       appBar: AppBar(
-        backgroundColor: const Color(0xFF1E293B),
+        backgroundColor: colorSurface,
         elevation: 0,
-        // MODIFICATION ICI : On utilise une Row pour le titre
+        titleSpacing: 20, // Un peu plus d'air à gauche
         title: Row(
           children: [
-            if (_currentIndex == 0) ...[
-              const Icon(
-                Icons.account_balance, // Le même logo que la barre du bas
-                color: Colors.blueAccent,
-                size: 24,
-              ),
-              const SizedBox(width: 10), // Espace entre l'icône et le texte
-            ],
+            // Le logo dynamique à gauche
+            Icon(
+              titleIcons[_currentIndex],
+              color: colorBlueMain,
+              size: 24,
+            ),
+            const SizedBox(width: 12),
             Text(
               titles[_currentIndex],
               style: const TextStyle(
@@ -86,9 +98,10 @@ class _MainNavigationState extends State<MainNavigation> {
         actions: [
           if (_currentIndex == 0)
             IconButton(
-              icon: const Icon(Icons.add_circle, color: Colors.blueAccent, size: 28),
+              icon: const Icon(Icons.add_circle, color: colorBlueMain, size: 28),
               onPressed: () => _homeKey.currentState?.openAddPatrimoinePanel(),
             ),
+          const SizedBox(width: 8),
         ],
       ),
       body: IndexedStack(
@@ -98,24 +111,20 @@ class _MainNavigationState extends State<MainNavigation> {
       bottomNavigationBar: BottomNavigationBar(
         currentIndex: _currentIndex,
         onTap: (index) => setState(() => _currentIndex = index),
-        backgroundColor: const Color(0xFF0F172A),
-        selectedItemColor: Colors.blueAccent,
-        unselectedItemColor: Colors.white.withOpacity(0.5),
+        backgroundColor: colorDarkBg,
+        selectedItemColor: colorBlueMain,
+        unselectedItemColor: Colors.white.withOpacity(0.4),
         type: BottomNavigationBarType.fixed,
         showUnselectedLabels: true,
+        selectedFontSize: 12,
+        unselectedFontSize: 12,
         items: const [
           BottomNavigationBarItem(icon: Icon(Icons.account_balance), label: 'Patrimoine'),
           BottomNavigationBarItem(icon: Icon(Icons.insights), label: 'Graphiques'),
-          BottomNavigationBarItem(icon: Icon(Icons.receipt_long), label: 'Dépenses'),
+          BottomNavigationBarItem(icon: Icon(Icons.receipt_long), label: 'Budget'),
           BottomNavigationBarItem(icon: Icon(Icons.manage_accounts), label: 'Profil'),
         ],
       ),
-    );
-  }
-
-  Widget _buildExpenseSection() {
-    return const Center(
-      child: Text("Gestion des dépenses à venir", style: TextStyle(color: Colors.white54)),
     );
   }
 

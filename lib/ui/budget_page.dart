@@ -4,57 +4,85 @@ class BudgetPage extends StatefulWidget {
   const BudgetPage({super.key});
 
   @override
-  State<BudgetPage> createState() => _BudgetViewState();
+  State<BudgetPage> createState() => _BudgetPageState();
 }
 
-class _BudgetViewState extends State<BudgetPage> {
-  double salary = 3000.0;
-  double mealVouchers = 200.0;
-  List<Map<String, dynamic>> expenses = [
-    {'title': 'Loyer', 'amount': 800.0},
-    {'title': 'Courses', 'amount': 300.0},
-  ];
-
-  double get totalExpenses => expenses.fold(0, (sum, item) => sum + item['amount']);
-  double get remaining => (salary + mealVouchers) - totalExpenses;
+class _BudgetPageState extends State<BudgetPage> {
+  // Tes couleurs officielles
+  static const Color colorBlueMain = Color(0xFF0D71EE);
+  static const Color colorDarkBg = Color(0xFF060B26);
+  static const Color colorGreenLogo = Color(0xFF2DB23A);
 
   @override
   Widget build(BuildContext context) {
-    return SingleChildScrollView(
-      padding: const EdgeInsets.all(16),
-      child: Column(
-        children: [
-          _buildSummaryCard(), // Carte affichant le "Reste à épargner"
-          const SizedBox(height: 20),
-          _buildInputSection("Revenus", Icons.trending_up, [
-            {'label': 'Salaire', 'value': salary},
-            {'label': 'Tickets Resto', 'value': mealVouchers},
-          ]),
-          const SizedBox(height: 20),
-          _buildExpensesList(),
-        ],
+    return Scaffold(
+      backgroundColor: colorDarkBg,
+      body: Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            // Illustration icône avec dégradé subtil
+            Container(
+              padding: const EdgeInsets.all(30),
+              decoration: BoxDecoration(
+                color: colorBlueMain.withOpacity(0.05),
+                shape: BoxShape.circle,
+                border: Border.all(
+                  color: colorBlueMain.withOpacity(0.1),
+                  width: 2,
+                ),
+              ),
+              child: const Icon(
+                Icons.account_balance_wallet_rounded,
+                size: 80,
+                color: colorBlueMain,
+              ),
+            ),
+            const SizedBox(height: 24),
+            // Titre avec ton identité visuelle
+            const Text(
+              "Mon Budget",
+              style: TextStyle(
+                fontSize: 24,
+                fontWeight: FontWeight.bold,
+                color: Colors.white,
+              ),
+            ),
+            const SizedBox(height: 12),
+            // Texte explicatif
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 40),
+              child: Text(
+                "La gestion intelligente de vos revenus et dépenses arrive bientôt.",
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                  fontSize: 16,
+                  color: Colors.white.withOpacity(0.5),
+                  height: 1.5,
+                ),
+              ),
+            ),
+            const SizedBox(height: 32),
+            // Badge "En cours de développement"
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+              decoration: BoxDecoration(
+                color: colorGreenLogo.withOpacity(0.1),
+                borderRadius: BorderRadius.circular(20),
+                border: Border.all(color: colorGreenLogo.withOpacity(0.3)),
+              ),
+              child: const Text(
+                "SOON",
+                style: TextStyle(
+                  color: colorGreenLogo,
+                  fontWeight: FontWeight.bold,
+                  letterSpacing: 1.2,
+                ),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
-
-  Widget _buildSummaryCard() {
-    return Container(
-      padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        gradient: LinearGradient(colors: [Colors.green.shade700, Colors.teal.shade900]),
-        borderRadius: BorderRadius.circular(20),
-      ),
-      child: Column(
-        children: [
-          const Text("Capacité d'épargne", style: TextStyle(color: Colors.white70)),
-          Text("${remaining.toStringAsFixed(2)}€",
-              style: const TextStyle(color: Colors.white, fontSize: 32, fontWeight: FontWeight.bold)),
-        ],
-      ),
-    );
-  }
-
-  _buildInputSection(String s, IconData trending_up, List<Map<String, Object>> list) {}
-
-  _buildExpensesList() {}
 }
