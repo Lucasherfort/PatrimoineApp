@@ -6,6 +6,7 @@ class PatrimoineHeader extends StatefulWidget {
   final double totalDepose;
   final double capitalOwned;
   final double patrimoineOwned;
+  final bool hasInvestments; // <--- Nouveau paramètre
   final VoidCallback? onRefresh;
 
   const PatrimoineHeader({
@@ -14,6 +15,7 @@ class PatrimoineHeader extends StatefulWidget {
     required this.totalDepose,
     required this.capitalOwned,
     required this.patrimoineOwned,
+    this.hasInvestments = true, // Par défaut à true pour ne pas tout casser ailleurs
     this.onRefresh,
   });
 
@@ -24,18 +26,14 @@ class PatrimoineHeader extends StatefulWidget {
 class _PatrimoineHeaderState extends State<PatrimoineHeader> {
   bool _isVisible = true;
 
-  // Tes couleurs de logo
   static const Color colorBlueSky = Color(0xFF67C6F2);
   static const Color colorBlueMain = Color(0xFF0D71EE);
-  static const Color colorGreenLogo = Color(0xFF2DB23A);
+  static const Color colorGreenFlash = Color(0xFF65E046);
   static const Color colorOrangeLogo = Color(0xFFD98006);
+  static const Color colorDarkBlue = Color(0xFF060B26);
 
   String _formatAmount(double amount) {
-    final formatter = NumberFormat.currency(
-      locale: 'fr_FR',
-      symbol: '',
-      decimalDigits: 2,
-    );
+    final formatter = NumberFormat.currency(locale: 'fr_FR', symbol: '', decimalDigits: 2);
     return formatter.format(amount).trim();
   }
 
@@ -47,116 +45,137 @@ class _PatrimoineHeaderState extends State<PatrimoineHeader> {
   }
 
   Color get _gainsColor {
-    if (_gains > 0) return colorGreenLogo;
+    if (_gains > 0) return colorGreenFlash;
     if (_gains < 0) return colorOrangeLogo;
-    return Colors.grey.shade600;
+    return Colors.white70;
   }
 
   @override
   Widget build(BuildContext context) {
+    final bool showGains = widget.hasInvestments && widget.totalDepose > 0;
+
     return Container(
       width: double.infinity,
       margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
       decoration: BoxDecoration(
-        // Utilisation de ton dégradé de logo
         gradient: const LinearGradient(
           colors: [colorBlueSky, colorBlueMain],
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
         ),
-        borderRadius: BorderRadius.circular(24),
+        // Si on cache les gains, on arrondit les 4 coins, sinon seulement le haut
+        borderRadius: BorderRadius.circular(28),
         boxShadow: [
           BoxShadow(
-            color: colorBlueMain.withOpacity(0.3),
-            blurRadius: 15,
-            offset: const Offset(0, 8),
+            color: colorBlueMain.withValues(alpha: 0.3),
+            blurRadius: 20,
+            offset: const Offset(0, 10),
           ),
         ],
       ),
       child: Column(
         children: [
-          // --- Montant Centré ---
+          // --- Section Montant ---
           Padding(
-            padding: const EdgeInsets.symmetric(vertical: 22, horizontal: 8),
+            padding: EdgeInsets.symmetric(
+              vertical: showGains ? 24 : 32, // Un peu plus d'air si c'est le seul élément
+              horizontal: 12,
+            ),
             child: Stack(
               alignment: Alignment.center,
               children: [
                 Align(
                   alignment: Alignment.centerLeft,
-                  child: IconButton(
-                    icon: const Icon(Icons.refresh, color: Colors.white, size: 22),
-                    onPressed: widget.onRefresh,
-                  ),
+                  child: _buildCircleAction(Icons.refresh, widget.onRefresh),
                 ),
                 AnimatedSwitcher(
-                  duration: const Duration(milliseconds: 200),
+                  duration: const Duration(milliseconds: 300),
                   child: Text(
-                    _isVisible
-                        ? "${_formatAmount(widget.patrimoineTotal)} €"
-                        : "•••••••• €",
+                    _isVisible ? "${_formatAmount(widget.patrimoineTotal)} €" : "•••••••• €",
                     key: ValueKey(_isVisible),
                     style: const TextStyle(
-                      fontSize: 32,
+                      fontSize: 34,
                       fontWeight: FontWeight.w900,
                       color: Colors.white,
-                      letterSpacing: -0.5,
+                      letterSpacing: -1,
                     ),
                   ),
                 ),
                 Align(
                   alignment: Alignment.centerRight,
-                  child: IconButton(
-                    icon: Icon(
-                      _isVisible ? Icons.visibility : Icons.visibility_off,
-                      color: Colors.white,
-                      size: 22,
-                    ),
-                    onPressed: () => setState(() => _isVisible = !_isVisible),
+                  child: _buildCircleAction(
+                    _isVisible ? Icons.visibility : Icons.visibility_off,
+                        () => setState(() => _isVisible = !_isVisible),
                   ),
                 ),
               ],
             ),
           ),
 
-          // --- Barre de Gains (Fond blanc pur pour faire ressortir ton vert) ---
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
-            decoration: const BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.vertical(bottom: Radius.circular(24)),
-            ),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                Icon(
-                  _gains >= 0 ? Icons.trending_up : Icons.trending_down,
-                  size: 18,
-                  color: _gainsColor,
-                ),
-                const SizedBox(width: 8),
-                Text(
-                  _isVisible ? "${_gains >= 0 ? '+' : ''}${_formatAmount(_gains)} €" : "•••• €",
-                  style: TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.bold,
-                    color: _gainsColor,
+          // --- Section Gains conditionnelle ---
+          if (showGains)
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+              decoration: BoxDecoration(
+                color: colorDarkBlue.withValues(alpha: 0.25),
+                borderRadius: const BorderRadius.vertical(bottom: Radius.circular(28)),
+              ),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                    decoration: BoxDecoration(
+                      color: _gainsColor.withValues(alpha: 0.15),
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: Row(
+                      children: [
+                        Icon(
+                          _gains >= 0 ? Icons.trending_up : Icons.trending_down,
+                          size: 16,
+                          color: _gainsColor,
+                        ),
+                        const SizedBox(width: 6),
+                        Text(
+                          _isVisible ? "${_gains >= 0 ? '+' : ''}${_formatAmount(_gains)} €" : "•••• €",
+                          style: TextStyle(
+                            fontSize: 15,
+                            fontWeight: FontWeight.bold,
+                            color: _gainsColor,
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
-                ),
-                const SizedBox(width: 15),
-                Container(width: 1, height: 15, color: Colors.grey.shade200),
-                const SizedBox(width: 15),
-                Text(
-                  _isVisible ? "${_gainsPercentage >= 0 ? '+' : ''}${_gainsPercentage.toStringAsFixed(2)}%" : "••%",
-                  style: TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.w900,
-                    color: _gainsColor,
+                  const SizedBox(width: 12),
+                  Text(
+                    _isVisible ? "${_gainsPercentage >= 0 ? '+' : ''}${_gainsPercentage.toStringAsFixed(2)}%" : "••%",
+                    style: TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.w900,
+                      color: _gainsColor,
+                    ),
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
-          ),
         ],
+      ),
+    );
+  }
+
+  Widget _buildCircleAction(IconData icon, VoidCallback? onTap) {
+    return Material(
+      color: Colors.white.withValues(alpha: 0.15),
+      shape: const CircleBorder(),
+      child: InkWell(
+        onTap: onTap,
+        customBorder: const CircleBorder(),
+        child: Padding(
+          padding: const EdgeInsets.all(8),
+          child: Icon(icon, color: Colors.white, size: 20),
+        ),
       ),
     );
   }
