@@ -40,312 +40,124 @@ class _PatrimoineHeaderState extends State<PatrimoineHeader> {
     return (_gains / widget.totalDepose) * 100;
   }
 
+  // Vert beaucoup plus sombre et saturé pour trancher sur le cyan
   Color get _gainsColor {
-    if (_gains > 0) return Colors.green.shade600;
-    if (_gains < 0) return Colors.red.shade600;
-    return Colors.blueGrey.shade600;
-  }
-
-  // ─────────────────────────────────────────────
-  // AJOUT : BOTTOM SHEET (sans toucher UI)
-  // ─────────────────────────────────────────────
-  void _openDetailsSheet() {
-    final capitalOwned = widget.capitalOwned;
-    final totalOwned = widget.patrimoineOwned;
-
-    final gainShare = totalOwned == 0
-        ? 0
-        : (totalOwned - capitalOwned) / totalOwned;
-
-    showModalBottomSheet(
-      context: context,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-      ),
-      builder: (_) {
-        return Padding(
-          padding: const EdgeInsets.all(20),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              _row("Capital détenu", capitalOwned),
-              _row("Valorisation totale", totalOwned),
-              _row("Part des gains", gainShare * 100, suffix: "%"),
-            ],
-          ),
-        );
-      },
-    );
-  }
-
-  Widget _row(String label, double value, {String suffix = " €"}) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 12),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          Text(label),
-          Text(
-            "${value.toStringAsFixed(2)}$suffix",
-            style: const TextStyle(fontWeight: FontWeight.bold),
-          ),
-        ],
-      ),
-    );
+    if (_gains > 0) return const Color(0xFF00C853); // Vert émeraude ultra-flash
+    if (_gains < 0) return Colors.redAccent.shade700;
+    return Colors.white70;
   }
 
   @override
   Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: _openDetailsSheet, // 👈 AJOUT MINIMAL UNIQUEMENT
-
-      child: Container(
-        width: double.infinity,
-        margin: const EdgeInsets.all(16),
-        decoration: BoxDecoration(
-          gradient: LinearGradient(
-            colors: [Colors.blue.shade50, Colors.purple.shade50],
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-          ),
-          borderRadius: BorderRadius.circular(16),
-          border: Border.all(
-            color: Colors.blue.shade200.withValues(alpha: 0.5),
-            width: 1.5,
-          ),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.blue.shade200.withValues(alpha: 0.3),
-              blurRadius: 20,
-              offset: const Offset(0, 8),
-            ),
-          ],
+    return Container(
+      width: double.infinity,
+      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          colors: [Colors.blue.shade400, Colors.cyan.shade300],
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
         ),
-
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            // ─── Section patrimoine total ─────────────────────
-            Padding(
-              padding: const EdgeInsets.fromLTRB(16, 14, 16, 12),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Row(
-                          children: [
-                            Icon(
-                              Icons.account_balance_wallet_rounded,
-                              size: 14,
-                              color: Colors.blue.shade700,
-                            ),
-                            const SizedBox(width: 6),
-                            Text(
-                              "Mon patrimoine",
-                              style: TextStyle(
-                                fontSize: 12,
-                                fontWeight: FontWeight.w600,
-                                color: Colors.blue.shade900,
-                                letterSpacing: 0.2,
-                              ),
-                            ),
-                          ],
-                        ),
-                        const SizedBox(height: 4),
-                        AnimatedSwitcher(
-                          duration: const Duration(milliseconds: 200),
-                          child: _isVisible
-                              ? Text(
-                                  "${_formatAmount(widget.patrimoineTotal)} €",
-                                  key: const ValueKey('visible'),
-                                  style: TextStyle(
-                                    fontSize: 26,
-                                    fontWeight: FontWeight.w900,
-                                    color: Colors.blue.shade900,
-                                    letterSpacing: -0.5,
-                                  ),
-                                )
-                              : Text(
-                                  "• • • • • •",
-                                  key: const ValueKey('hidden'),
-                                  style: TextStyle(
-                                    fontSize: 26,
-                                    fontWeight: FontWeight.w900,
-                                    letterSpacing: 4,
-                                    color: Colors.blue.shade300,
-                                  ),
-                                ),
-                        ),
-                      ],
+        borderRadius: BorderRadius.circular(24),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.blue.shade900.withOpacity(0.15),
+            blurRadius: 20,
+            offset: const Offset(0, 10),
+          ),
+        ],
+      ),
+      child: Column(
+        children: [
+          // --- Partie Haute : Montant Centré ---
+          Padding(
+            padding: const EdgeInsets.fromLTRB(8, 20, 8, 20),
+            child: Stack(
+              alignment: Alignment.center,
+              children: [
+                // Bouton Refresh à gauche
+                Align(
+                  alignment: Alignment.centerLeft,
+                  child: IconButton(
+                    icon: const Icon(Icons.refresh, color: Colors.white, size: 20),
+                    onPressed: widget.onRefresh,
+                  ),
+                ),
+                // MONTANT CENTRAL
+                AnimatedSwitcher(
+                  duration: const Duration(milliseconds: 200),
+                  child: Text(
+                    _isVisible
+                        ? "${_formatAmount(widget.patrimoineTotal)} €"
+                        : "•••••••• €",
+                    key: ValueKey(_isVisible),
+                    style: const TextStyle(
+                      fontSize: 32,
+                      fontWeight: FontWeight.w900,
+                      color: Colors.white,
+                      letterSpacing: -1,
                     ),
                   ),
-                  Row(
-                    children: [
-                      if (widget.onRefresh != null)
-                        Material(
-                          color: Colors.transparent,
-                          child: InkWell(
-                            onTap: widget.onRefresh,
-                            borderRadius: BorderRadius.circular(8),
-                            child: Padding(
-                              padding: const EdgeInsets.all(8),
-                              child: Icon(
-                                Icons.refresh_rounded,
-                                size: 20,
-                                color: Colors.blue.shade700,
-                              ),
-                            ),
-                          ),
-                        ),
-                      const SizedBox(width: 4),
-                      Material(
-                        color: Colors.transparent,
-                        child: InkWell(
-                          onTap: () {
-                            setState(() => _isVisible = !_isVisible);
-                          },
-                          borderRadius: BorderRadius.circular(8),
-                          child: Padding(
-                            padding: const EdgeInsets.all(8),
-                            child: Icon(
-                              _isVisible
-                                  ? Icons.visibility_rounded
-                                  : Icons.visibility_off_rounded,
-                              size: 20,
-                              color: Colors.blue.shade700,
-                            ),
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                ],
-              ),
-            ),
-
-            // ─── Divider ─────────────────────────────────────
-            Container(
-              height: 1,
-              margin: const EdgeInsets.symmetric(horizontal: 16),
-              decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  colors: [
-                    Colors.blue.shade200.withValues(alpha: 0),
-                    Colors.blue.shade200,
-                    Colors.blue.shade200.withValues(alpha: 0),
-                  ],
                 ),
-              ),
+                // Bouton Visibilité à droite
+                Align(
+                  alignment: Alignment.centerRight,
+                  child: IconButton(
+                    icon: Icon(
+                      _isVisible ? Icons.visibility : Icons.visibility_off,
+                      color: Colors.white,
+                      size: 20,
+                    ),
+                    onPressed: () => setState(() => _isVisible = !_isVisible),
+                  ),
+                ),
+              ],
             ),
+          ),
 
-            // ─── Section gains ───────────────────────────────
-            Padding(
-              padding: const EdgeInsets.fromLTRB(16, 12, 16, 14),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Row(
-                    children: [
-                      Container(
-                        padding: const EdgeInsets.all(6),
-                        decoration: BoxDecoration(
-                          color: _gainsColor.withValues(alpha: 0.12),
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                        child: Icon(
-                          _gains >= 0
-                              ? Icons.trending_up_rounded
-                              : Icons.trending_down_rounded,
-                          size: 16,
-                          color: _gainsColor,
-                        ),
-                      ),
-                      const SizedBox(width: 12),
-                      Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            'Plus/moins-value',
-                            style: TextStyle(
-                              fontSize: 10,
-                              fontWeight: FontWeight.w500,
-                              color: Colors.grey.shade600,
-                              letterSpacing: 0.3,
-                            ),
-                          ),
-                          const SizedBox(height: 2),
-                          AnimatedSwitcher(
-                            duration: const Duration(milliseconds: 200),
-                            child: _isVisible
-                                ? Text(
-                                    "${_gains >= 0 ? '+' : ''}${_formatAmount(_gains)} €",
-                                    key: const ValueKey('gains-visible'),
-                                    style: TextStyle(
-                                      fontSize: 15,
-                                      fontWeight: FontWeight.w800,
-                                      color: _gainsColor,
-                                    ),
-                                  )
-                                : Text(
-                                    "• • • •",
-                                    key: const ValueKey('gains-hidden'),
-                                    style: TextStyle(
-                                      fontSize: 15,
-                                      fontWeight: FontWeight.w800,
-                                      color: Colors.grey.shade400,
-                                    ),
-                                  ),
-                          ),
-                        ],
-                      ),
-                    ],
-                  ),
-                  AnimatedSwitcher(
-                    duration: const Duration(milliseconds: 200),
-                    child: _isVisible
-                        ? Container(
-                            key: const ValueKey('percent-visible'),
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 10,
-                              vertical: 6,
-                            ),
-                            decoration: BoxDecoration(
-                              color: _gainsColor.withValues(alpha: 0.12),
-                              borderRadius: BorderRadius.circular(6),
-                            ),
-                            child: Text(
-                              "${_gainsPercentage >= 0 ? '+' : ''}${_gainsPercentage.toStringAsFixed(2)}%",
-                              style: TextStyle(
-                                fontSize: 15,
-                                fontWeight: FontWeight.w900,
-                                color: _gainsColor,
-                              ),
-                            ),
-                          )
-                        : Container(
-                            key: const ValueKey('percent-hidden'),
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 10,
-                              vertical: 6,
-                            ),
-                            child: Text(
-                              "• •",
-                              style: TextStyle(
-                                fontSize: 15,
-                                fontWeight: FontWeight.w900,
-                                color: Colors.grey.shade400,
-                              ),
-                            ),
-                          ),
-                  ),
-                ],
-              ),
+          // --- Partie Basse : Gains avec fond contrasté ---
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
+            decoration: BoxDecoration(
+              color: Colors.white.withOpacity(0.9), // Fond blanc quasi-opaque pour que le vert ressorte
+              borderRadius: const BorderRadius.vertical(bottom: Radius.circular(24)),
             ),
-          ],
-        ),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center, // Centré aussi
+              children: [
+                Icon(
+                  _gains >= 0 ? Icons.trending_up : Icons.trending_down,
+                  size: 18,
+                  color: _gainsColor,
+                ),
+                const SizedBox(width: 8),
+                Text(
+                  _isVisible ? "${_gains >= 0 ? '+' : ''}${_formatAmount(_gains)} €" : "•••• €",
+                  style: TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
+                    color: _gainsColor,
+                  ),
+                ),
+                const SizedBox(width: 12),
+                Container(
+                  width: 1,
+                  height: 15,
+                  color: Colors.grey.shade300,
+                ),
+                const SizedBox(width: 12),
+                Text(
+                  _isVisible ? "${_gainsPercentage >= 0 ? '+' : ''}${_gainsPercentage.toStringAsFixed(2)}%" : "••%",
+                  style: TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.w900,
+                    color: _gainsColor,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
       ),
     );
   }
