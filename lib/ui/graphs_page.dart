@@ -141,7 +141,10 @@ class _GraphsPageState extends State<GraphsPage> {
           end: Alignment.bottomRight,
         ),
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: Colors.white.withValues(alpha: 0.1), width: 1),
+        border: Border.all(
+          color: Colors.white.withValues(alpha: 0.1),
+          width: 1,
+        ),
       ),
       child: PieChart(
         PieChartData(
@@ -188,7 +191,10 @@ class _GraphsPageState extends State<GraphsPage> {
               fontWeight: FontWeight.bold,
               color: Colors.white,
               shadows: [
-                Shadow(color: Colors.black.withValues(alpha: 0.5), blurRadius: 4),
+                Shadow(
+                  color: Colors.black.withValues(alpha: 0.5),
+                  blurRadius: 4,
+                ),
               ],
             ),
           ),

@@ -69,7 +69,9 @@ class _BudgetPageState extends State<BudgetPage> {
               decoration: BoxDecoration(
                 color: colorGreenLogo.withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(20),
-                border: Border.all(color: colorGreenLogo.withValues(alpha: 0.3)),
+                border: Border.all(
+                  color: colorGreenLogo.withValues(alpha: 0.3),
+                ),
               ),
               child: const Text(
                 "SOON",

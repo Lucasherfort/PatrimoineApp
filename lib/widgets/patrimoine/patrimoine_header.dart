@@ -7,7 +7,8 @@ class PatrimoineHeader extends StatefulWidget {
   final double capitalOwned;
   final double patrimoineOwned;
   final bool hasInvestments;
-  final VoidCallback? onRefresh;
+  // onRefresh reste présent dans le constructeur au cas où tu en aurais besoin ailleurs,
+  // mais il n'est plus lié à un bouton visible.
 
   const PatrimoineHeader({
     super.key,
@@ -16,7 +17,6 @@ class PatrimoineHeader extends StatefulWidget {
     required this.capitalOwned,
     required this.patrimoineOwned,
     this.hasInvestments = true,
-    this.onRefresh,
   });
 
   @override
@@ -57,64 +57,70 @@ class _PatrimoineHeaderState extends State<PatrimoineHeader> {
 
     return Container(
       width: double.infinity,
-      padding: const EdgeInsets.only(top: 20, bottom: 20), // Plus besoin de margin/decoration
+      padding: const EdgeInsets.symmetric(vertical: 24),
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          // Libellé discret au-dessus
+          // Libellé discret
           Text(
             "PATRIMOINE TOTAL",
             style: TextStyle(
               color: Colors.white.withValues(alpha: 0.4),
-              fontSize: 12,
-              fontWeight: FontWeight.w600,
-              letterSpacing: 1.5,
+              fontSize: 11,
+              fontWeight: FontWeight.w700,
+              letterSpacing: 2.0,
             ),
           ),
-          const SizedBox(height: 8),
+          const SizedBox(height: 10),
 
-          // --- Ligne 1 : Actions + Montant ---
-          Row(
+          // --- Ligne Montant + Visibilité ---
+          // On utilise un Stack pour que le montant soit TOUJOURS au centre exact de l'écran
+          Stack(
+            alignment: Alignment.center,
             children: [
-              const SizedBox(width: 16),
-              _buildCircleAction(Icons.refresh, widget.onRefresh),
-              Expanded(
-                child: Center(
-                  child: AnimatedSwitcher(
-                    duration: const Duration(milliseconds: 300),
-                    child: Text(
-                      _isVisible
-                          ? "${_formatAmount(widget.patrimoineTotal)} €"
-                          : "•••••••• €",
-                      key: ValueKey(_isVisible),
-                      textAlign: TextAlign.center,
-                      style: const TextStyle(
-                        fontSize: 36, // Légèrement augmenté car plus de contrainte de boîte
-                        fontWeight: FontWeight.w900,
-                        color: Colors.white,
-                        letterSpacing: -1.0,
-                      ),
-                    ),
+              // Montant au centre
+              AnimatedSwitcher(
+                duration: const Duration(milliseconds: 300),
+                child: Text(
+                  _isVisible
+                      ? "${_formatAmount(widget.patrimoineTotal)} €"
+                      : "•••••••• €",
+                  key: ValueKey(_isVisible),
+                  textAlign: TextAlign.center,
+                  style: const TextStyle(
+                    fontSize: 38,
+                    fontWeight: FontWeight.w900,
+                    color: Colors.white,
+                    letterSpacing: -1.0,
                   ),
                 ),
               ),
-              _buildCircleAction(
-                _isVisible ? Icons.visibility : Icons.visibility_off,
-                    () => setState(() => _isVisible = !_isVisible),
+              // Bouton visibilité aligné à droite
+              Positioned(
+                right: 20,
+                child: IconButton(
+                  onPressed: () => setState(() => _isVisible = !_isVisible),
+                  icon: Icon(
+                    _isVisible
+                        ? Icons.visibility_outlined
+                        : Icons.visibility_off_outlined,
+                    color: Colors.white.withValues(alpha: 0.3),
+                    size: 22,
+                  ),
+                ),
               ),
-              const SizedBox(width: 16),
             ],
           ),
 
-          // --- Ligne 2 : Gains (Sans capsule noire, juste le texte) ---
+          // --- Gains ---
           if (showGains) ...[
-            const SizedBox(height: 12),
+            const SizedBox(height: 8),
             Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 Icon(
                   _gains >= 0 ? Icons.trending_up : Icons.trending_down,
-                  size: 16,
+                  size: 14,
                   color: _gainsColor,
                 ),
                 const SizedBox(width: 6),
@@ -123,8 +129,8 @@ class _PatrimoineHeaderState extends State<PatrimoineHeader> {
                       ? "${_gains >= 0 ? '+' : ''}${_formatAmount(_gains)} € (${_gainsPercentage >= 0 ? '+' : ''}${_gainsPercentage.toStringAsFixed(2)}%)"
                       : "•••• €",
                   style: TextStyle(
-                    fontSize: 15,
-                    fontWeight: FontWeight.w600,
+                    fontSize: 14,
+                    fontWeight: FontWeight.w700,
                     color: _gainsColor,
                   ),
                 ),
@@ -133,16 +139,6 @@ class _PatrimoineHeaderState extends State<PatrimoineHeader> {
           ],
         ],
       ),
-    );
-  }
-
-  Widget _buildCircleAction(IconData icon, VoidCallback? onTap) {
-    return IconButton(
-      onPressed: onTap,
-      icon: Icon(icon, color: Colors.white.withValues(alpha: 0.5), size: 20),
-      visualDensity: VisualDensity.compact,
-      padding: EdgeInsets.zero,
-      constraints: const BoxConstraints(),
     );
   }
 }

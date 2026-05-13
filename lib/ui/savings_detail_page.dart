@@ -1,4 +1,3 @@
-import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import '../../models/savings/user_savings_account_view.dart';
@@ -7,10 +6,7 @@ import '../services/savings_account_service.dart';
 class SavingsDetailPage extends StatefulWidget {
   final UserSavingsAccountView account;
 
-  const SavingsDetailPage({
-    super.key,
-    required this.account,
-  });
+  const SavingsDetailPage({super.key, required this.account});
 
   @override
   State<SavingsDetailPage> createState() => _SavingsDetailPageState();
@@ -22,7 +18,6 @@ class _SavingsDetailPageState extends State<SavingsDetailPage> {
   static const Color colorBlueMain = Color(0xFF0D71EE);
   static const Color colorBlueSky = Color(0xFF67C6F2);
   static const Color colorGreenFlash = Color(0xFF65E046);
-  static const Color colorOrangeLogo = Color(0xFFD98006);
 
   late TextEditingController _principalController;
   late TextEditingController _interestController;
@@ -69,18 +64,21 @@ class _SavingsDetailPageState extends State<SavingsDetailPage> {
     setState(() {
       _currentPrincipal = p;
       _currentInterest = i;
-      _hasChanges = p != widget.account.principal ||
+      _hasChanges =
+          p != widget.account.principal ||
           i != widget.account.interest ||
           _automaticCalculation != widget.account.automaticInterestCalculation;
     });
   }
 
-  double get _fillPercentage => (widget.account.ceiling != null && widget.account.ceiling! > 0)
+  double get _fillPercentage =>
+      (widget.account.ceiling != null && widget.account.ceiling! > 0)
       ? (_currentPrincipal / widget.account.ceiling!)
       : 0.0;
 
   Future<void> _saveChanges() async {
-    if (widget.account.ceiling != null && _currentPrincipal > widget.account.ceiling!) {
+    if (widget.account.ceiling != null &&
+        _currentPrincipal > widget.account.ceiling!) {
       _showError('Le capital dépasse le plafond autorisé.');
       return;
     }
@@ -199,7 +197,8 @@ class _SavingsDetailPageState extends State<SavingsDetailPage> {
             if (widget.account.interestRate != null)
               _buildBadge(
                 icon: Icons.show_chart,
-                label: "${percentFormat.format(widget.account.interestRate! * 100)} %",
+                label:
+                    "${percentFormat.format(widget.account.interestRate! * 100)} %",
                 color: colorGreenFlash,
                 opacity: 0.15,
                 hasBorder: true,
@@ -220,11 +219,19 @@ class _SavingsDetailPageState extends State<SavingsDetailPage> {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              const Text("Utilisation du plafond",
-                  style: TextStyle(color: Colors.white70, fontWeight: FontWeight.w500)),
+              const Text(
+                "Utilisation du plafond",
+                style: TextStyle(
+                  color: Colors.white70,
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
               Text(
                 "${(_fillPercentage * 100).toStringAsFixed(1)}%",
-                style: const TextStyle(color: colorBlueSky, fontWeight: FontWeight.bold),
+                style: const TextStyle(
+                  color: colorBlueSky,
+                  fontWeight: FontWeight.bold,
+                ),
               ),
             ],
           ),
@@ -244,11 +251,22 @@ class _SavingsDetailPageState extends State<SavingsDetailPage> {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Text(currency.format(_currentPrincipal),
-                  style: const TextStyle(color: Colors.white, fontSize: 12, fontWeight: FontWeight.w600)),
               Text(
-                widget.account.ceiling != null ? currency.format(widget.account.ceiling) : "Sans plafond",
-                style: TextStyle(color: Colors.white.withValues(alpha: 0.4), fontSize: 12),
+                currency.format(_currentPrincipal),
+                style: const TextStyle(
+                  color: Colors.white,
+                  fontSize: 12,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+              Text(
+                widget.account.ceiling != null
+                    ? currency.format(widget.account.ceiling)
+                    : "Sans plafond",
+                style: TextStyle(
+                  color: Colors.white.withValues(alpha: 0.4),
+                  fontSize: 12,
+                ),
               ),
             ],
           ),
@@ -263,27 +281,58 @@ class _SavingsDetailPageState extends State<SavingsDetailPage> {
       decoration: _glassDecoration(),
       child: Column(
         children: [
-          _buildElegantField(_principalController, "Capital déposé", Icons.account_balance_wallet_outlined),
-          Divider(color: Colors.white.withValues(alpha: 0.05), height: 1, indent: 20, endIndent: 20),
-          _buildElegantField(_interestController, "Intérêts cumulés", Icons.add_chart_rounded),
+          _buildElegantField(
+            _principalController,
+            "Capital déposé",
+            Icons.account_balance_wallet_outlined,
+          ),
+          Divider(
+            color: Colors.white.withValues(alpha: 0.05),
+            height: 1,
+            indent: 20,
+            endIndent: 20,
+          ),
+          _buildElegantField(
+            _interestController,
+            "Intérêts cumulés",
+            Icons.add_chart_rounded,
+          ),
         ],
       ),
     );
   }
 
-  Widget _buildElegantField(TextEditingController controller, String label, IconData icon) {
+  Widget _buildElegantField(
+    TextEditingController controller,
+    String label,
+    IconData icon,
+  ) {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
       child: TextField(
         controller: controller,
         keyboardType: const TextInputType.numberWithOptions(decimal: true),
-        style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 18),
+        style: const TextStyle(
+          color: Colors.white,
+          fontWeight: FontWeight.bold,
+          fontSize: 18,
+        ),
         decoration: InputDecoration(
-          icon: Icon(icon, color: colorBlueSky.withValues(alpha: 0.4), size: 22),
+          icon: Icon(
+            icon,
+            color: colorBlueSky.withValues(alpha: 0.4),
+            size: 22,
+          ),
           labelText: label,
-          labelStyle: TextStyle(color: Colors.white.withValues(alpha: 0.3), fontSize: 14),
+          labelStyle: TextStyle(
+            color: Colors.white.withValues(alpha: 0.3),
+            fontSize: 14,
+          ),
           suffixText: "€",
-          suffixStyle: const TextStyle(color: Colors.white24, fontWeight: FontWeight.bold),
+          suffixStyle: const TextStyle(
+            color: Colors.white24,
+            fontWeight: FontWeight.bold,
+          ),
           border: InputBorder.none,
         ),
       ),
@@ -296,12 +345,16 @@ class _SavingsDetailPageState extends State<SavingsDetailPage> {
       decoration: _glassDecoration(),
       child: SwitchListTile(
         value: _automaticCalculation,
-        activeColor: colorGreenFlash,
+        activeThumbColor: colorGreenFlash,
         contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 4),
-        title: const Text("Calculateur intelligent",
-            style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
-        subtitle: const Text("Précision basée sur les quinzaines",
-            style: TextStyle(color: Colors.white54, fontSize: 12)),
+        title: const Text(
+          "Calculateur intelligent",
+          style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+        ),
+        subtitle: const Text(
+          "Précision basée sur les quinzaines",
+          style: TextStyle(color: Colors.white54, fontSize: 12),
+        ),
         onChanged: (v) => setState(() {
           _automaticCalculation = v;
           _checkChanges();
@@ -317,8 +370,14 @@ class _SavingsDetailPageState extends State<SavingsDetailPage> {
       elevation: 0,
       leading: const BackButton(color: Colors.white),
       centerTitle: true,
-      title: Text(widget.account.sourceName,
-          style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.white)),
+      title: Text(
+        widget.account.sourceName,
+        style: const TextStyle(
+          fontSize: 16,
+          fontWeight: FontWeight.bold,
+          color: Colors.white,
+        ),
+      ),
     );
   }
 
@@ -334,14 +393,22 @@ class _SavingsDetailPageState extends State<SavingsDetailPage> {
       decoration: BoxDecoration(
         color: color.withValues(alpha: opacity),
         borderRadius: BorderRadius.circular(14),
-        border: hasBorder ? Border.all(color: color.withValues(alpha: 0.3)) : null,
+        border: hasBorder
+            ? Border.all(color: color.withValues(alpha: 0.3))
+            : null,
       ),
       child: Row(
         children: [
           Icon(icon, size: 14, color: color),
           const SizedBox(width: 8),
-          Text(label,
-              style: TextStyle(color: color, fontSize: 12, fontWeight: FontWeight.bold)),
+          Text(
+            label,
+            style: TextStyle(
+              color: color,
+              fontSize: 12,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
         ],
       ),
     );
@@ -357,13 +424,21 @@ class _SavingsDetailPageState extends State<SavingsDetailPage> {
           style: ElevatedButton.styleFrom(
             backgroundColor: colorBlueMain,
             foregroundColor: Colors.white,
-            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(20),
+            ),
             elevation: 10,
             shadowColor: colorBlueMain.withValues(alpha: 0.4),
           ),
           onPressed: _saveChanges,
-          child: const Text("ENREGISTRER",
-              style: TextStyle(fontWeight: FontWeight.w900, fontSize: 16, letterSpacing: 1.2)),
+          child: const Text(
+            "ENREGISTRER",
+            style: TextStyle(
+              fontWeight: FontWeight.w900,
+              fontSize: 16,
+              letterSpacing: 1.2,
+            ),
+          ),
         ),
       ),
     );

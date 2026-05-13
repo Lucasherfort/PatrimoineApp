@@ -90,9 +90,9 @@ class HomePageState extends State<HomePage> {
     } catch (e) {
       if (mounted) {
         setState(() => isLoading = false);
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Erreur chargement: $e')),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Erreur chargement: $e')));
       }
     }
   }
@@ -108,9 +108,9 @@ class HomePageState extends State<HomePage> {
 
     final hasAnyAccount =
         hasLiquidityAccounts ||
-            hasSavingsAccounts ||
-            hasInvestmentAccounts ||
-            hasAdvantageAccounts;
+        hasSavingsAccounts ||
+        hasInvestmentAccounts ||
+        hasAdvantageAccounts;
 
     return Scaffold(
       backgroundColor: colorDarkBg, // Couleur de base
@@ -151,28 +151,37 @@ class HomePageState extends State<HomePage> {
                   totalDepose: totalDepose,
                   capitalOwned: capitalOwned,
                   patrimoineOwned: patrimoineOwned,
-                  onRefresh: _loadPatrimoine,
                 ),
                 Expanded(
                   child: hasAnyAccount
                       ? RefreshIndicator(
-                    onRefresh: _loadPatrimoine,
-                    color: Colors.white,
-                    backgroundColor: colorBlueMain,
-                    child: ListView(
-                      padding: const EdgeInsets.only(bottom: 100), // Espace pour la barre de navigation
-                      children: [
-                        if (hasLiquidityAccounts)
-                          LiquidityAccountList(onAccountUpdated: _loadPatrimoine),
-                        if (hasSavingsAccounts)
-                          SavingsAccountList(onAccountUpdated: _loadPatrimoine),
-                        if (hasInvestmentAccounts)
-                          InvestmentList(onAccountUpdated: _loadPatrimoine),
-                        if (hasAdvantageAccounts)
-                          AdvantageAccountList(onAccountUpdated: _loadPatrimoine),
-                      ],
-                    ),
-                  )
+                          onRefresh: _loadPatrimoine,
+                          color: Colors.white,
+                          backgroundColor: colorBlueMain,
+                          child: ListView(
+                            padding: const EdgeInsets.only(
+                              bottom: 100,
+                            ), // Espace pour la barre de navigation
+                            children: [
+                              if (hasLiquidityAccounts)
+                                LiquidityAccountList(
+                                  onAccountUpdated: _loadPatrimoine,
+                                ),
+                              if (hasSavingsAccounts)
+                                SavingsAccountList(
+                                  onAccountUpdated: _loadPatrimoine,
+                                ),
+                              if (hasInvestmentAccounts)
+                                InvestmentList(
+                                  onAccountUpdated: _loadPatrimoine,
+                                ),
+                              if (hasAdvantageAccounts)
+                                AdvantageAccountList(
+                                  onAccountUpdated: _loadPatrimoine,
+                                ),
+                            ],
+                          ),
+                        )
                       : _buildEmptyState(),
                 ),
               ],

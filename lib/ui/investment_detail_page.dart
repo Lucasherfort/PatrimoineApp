@@ -48,10 +48,11 @@ class _InvestmentDetailPageState extends State<InvestmentDetailPage> {
       final fetchedPositions = await _investmentService.getInvestmentPositions(
         widget.userInvestmentAccountId,
       );
-      final accounts = await _investmentService.getInvestmentAccountsForUserWithPrices();
+      final accounts = await _investmentService
+          .getInvestmentAccountsForUserWithPrices();
 
       final account = accounts.firstWhere(
-            (acc) => acc.id == widget.userInvestmentAccountId,
+        (acc) => acc.id == widget.userInvestmentAccountId,
         orElse: () => UserInvestmentAccountView(
           id: widget.userInvestmentAccountId,
           sourceName: widget.accountName,
@@ -72,7 +73,9 @@ class _InvestmentDetailPageState extends State<InvestmentDetailPage> {
     } catch (e) {
       if (!mounted) return;
       setState(() => isLoading = false);
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Erreur: $e')));
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Erreur: $e')));
     }
   }
 
@@ -89,10 +92,16 @@ class _InvestmentDetailPageState extends State<InvestmentDetailPage> {
               quantity: quantity,
               averagePurchasePrice: pru,
             );
+
+            if (!context.mounted) return;
+
             await _loadPositionsAndAccount();
           } catch (e) {
-            if (!mounted) return;
-            ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Erreur: $e')));
+            if (!context.mounted) return;
+
+            ScaffoldMessenger.of(
+              context,
+            ).showSnackBar(SnackBar(content: Text('Erreur: $e')));
           }
         },
       ),
@@ -128,7 +137,9 @@ class _InvestmentDetailPageState extends State<InvestmentDetailPage> {
               height: 350,
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
-                color: Colors.purple.withValues(alpha: 0.08), // Un rappel de la couleur investissement
+                color: Colors.purple.withValues(
+                  alpha: 0.08,
+                ), // Un rappel de la couleur investissement
               ),
             ),
           ),
@@ -136,25 +147,27 @@ class _InvestmentDetailPageState extends State<InvestmentDetailPage> {
           // --- CONTENU ---
           SafeArea(
             child: isLoading
-                ? const Center(child: CircularProgressIndicator(color: Colors.white))
+                ? const Center(
+                    child: CircularProgressIndicator(color: Colors.white),
+                  )
                 : Column(
-              children: [
-                if (accountView != null)
-                  InvestmentSummaryHeader(
-                    account: accountView!,
-                    positions: positions,
-                    onValueUpdated: _handleValueUpdated,
+                    children: [
+                      if (accountView != null)
+                        InvestmentSummaryHeader(
+                          account: accountView!,
+                          positions: positions,
+                          onValueUpdated: _handleValueUpdated,
+                        ),
+                      Expanded(
+                        child: InvestmentPositionList(
+                          positions: positions,
+                          isLoading: false,
+                          positionService: _positionService,
+                          onPositionUpdated: _loadPositionsAndAccount,
+                        ),
+                      ),
+                    ],
                   ),
-                Expanded(
-                  child: InvestmentPositionList(
-                    positions: positions,
-                    isLoading: false,
-                    positionService: _positionService,
-                    onPositionUpdated: _loadPositionsAndAccount,
-                  ),
-                ),
-              ],
-            ),
           ),
         ],
       ),
@@ -166,7 +179,11 @@ class _InvestmentDetailPageState extends State<InvestmentDetailPage> {
       backgroundColor: Colors.transparent,
       elevation: 0,
       leading: IconButton(
-        icon: const Icon(Icons.arrow_back_ios_new, color: Colors.white, size: 20),
+        icon: const Icon(
+          Icons.arrow_back_ios_new,
+          color: Colors.white,
+          size: 20,
+        ),
         onPressed: () => Navigator.pop(context, true),
       ),
       centerTitle: true,
@@ -174,11 +191,18 @@ class _InvestmentDetailPageState extends State<InvestmentDetailPage> {
         children: [
           Text(
             widget.accountName,
-            style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.white),
+            style: const TextStyle(
+              fontSize: 16,
+              fontWeight: FontWeight.bold,
+              color: Colors.white,
+            ),
           ),
           Text(
             widget.bankName,
-            style: TextStyle(fontSize: 12, color: Colors.white.withValues(alpha: 0.5)),
+            style: TextStyle(
+              fontSize: 12,
+              color: Colors.white.withValues(alpha: 0.5),
+            ),
           ),
         ],
       ),
@@ -202,7 +226,9 @@ class _InvestmentDetailPageState extends State<InvestmentDetailPage> {
       await _loadPositionsAndAccount();
     } catch (e) {
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Erreur: $e')));
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Erreur: $e')));
     }
   }
 }
