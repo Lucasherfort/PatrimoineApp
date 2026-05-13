@@ -24,6 +24,12 @@ class PatrimoineHeader extends StatefulWidget {
 class _PatrimoineHeaderState extends State<PatrimoineHeader> {
   bool _isVisible = true;
 
+  // Tes couleurs de logo
+  static const Color colorBlueSky = Color(0xFF67C6F2);
+  static const Color colorBlueMain = Color(0xFF0D71EE);
+  static const Color colorGreenLogo = Color(0xFF2DB23A);
+  static const Color colorOrangeLogo = Color(0xFFD98006);
+
   String _formatAmount(double amount) {
     final formatter = NumberFormat.currency(
       locale: 'fr_FR',
@@ -40,11 +46,10 @@ class _PatrimoineHeaderState extends State<PatrimoineHeader> {
     return (_gains / widget.totalDepose) * 100;
   }
 
-  // Vert beaucoup plus sombre et saturé pour trancher sur le cyan
   Color get _gainsColor {
-    if (_gains > 0) return const Color(0xFF00C853); // Vert émeraude ultra-flash
-    if (_gains < 0) return Colors.redAccent.shade700;
-    return Colors.white70;
+    if (_gains > 0) return colorGreenLogo;
+    if (_gains < 0) return colorOrangeLogo;
+    return Colors.grey.shade600;
   }
 
   @override
@@ -53,37 +58,36 @@ class _PatrimoineHeaderState extends State<PatrimoineHeader> {
       width: double.infinity,
       margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
       decoration: BoxDecoration(
-        gradient: LinearGradient(
-          colors: [Colors.blue.shade400, Colors.cyan.shade300],
+        // Utilisation de ton dégradé de logo
+        gradient: const LinearGradient(
+          colors: [colorBlueSky, colorBlueMain],
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
         ),
         borderRadius: BorderRadius.circular(24),
         boxShadow: [
           BoxShadow(
-            color: Colors.blue.shade900.withOpacity(0.15),
-            blurRadius: 20,
-            offset: const Offset(0, 10),
+            color: colorBlueMain.withOpacity(0.3),
+            blurRadius: 15,
+            offset: const Offset(0, 8),
           ),
         ],
       ),
       child: Column(
         children: [
-          // --- Partie Haute : Montant Centré ---
+          // --- Montant Centré ---
           Padding(
-            padding: const EdgeInsets.fromLTRB(8, 20, 8, 20),
+            padding: const EdgeInsets.symmetric(vertical: 22, horizontal: 8),
             child: Stack(
               alignment: Alignment.center,
               children: [
-                // Bouton Refresh à gauche
                 Align(
                   alignment: Alignment.centerLeft,
                   child: IconButton(
-                    icon: const Icon(Icons.refresh, color: Colors.white, size: 20),
+                    icon: const Icon(Icons.refresh, color: Colors.white, size: 22),
                     onPressed: widget.onRefresh,
                   ),
                 ),
-                // MONTANT CENTRAL
                 AnimatedSwitcher(
                   duration: const Duration(milliseconds: 200),
                   child: Text(
@@ -95,18 +99,17 @@ class _PatrimoineHeaderState extends State<PatrimoineHeader> {
                       fontSize: 32,
                       fontWeight: FontWeight.w900,
                       color: Colors.white,
-                      letterSpacing: -1,
+                      letterSpacing: -0.5,
                     ),
                   ),
                 ),
-                // Bouton Visibilité à droite
                 Align(
                   alignment: Alignment.centerRight,
                   child: IconButton(
                     icon: Icon(
                       _isVisible ? Icons.visibility : Icons.visibility_off,
                       color: Colors.white,
-                      size: 20,
+                      size: 22,
                     ),
                     onPressed: () => setState(() => _isVisible = !_isVisible),
                   ),
@@ -115,15 +118,15 @@ class _PatrimoineHeaderState extends State<PatrimoineHeader> {
             ),
           ),
 
-          // --- Partie Basse : Gains avec fond contrasté ---
+          // --- Barre de Gains (Fond blanc pur pour faire ressortir ton vert) ---
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
-            decoration: BoxDecoration(
-              color: Colors.white.withOpacity(0.9), // Fond blanc quasi-opaque pour que le vert ressorte
-              borderRadius: const BorderRadius.vertical(bottom: Radius.circular(24)),
+            decoration: const BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.vertical(bottom: Radius.circular(24)),
             ),
             child: Row(
-              mainAxisAlignment: MainAxisAlignment.center, // Centré aussi
+              mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 Icon(
                   _gains >= 0 ? Icons.trending_up : Icons.trending_down,
@@ -139,13 +142,9 @@ class _PatrimoineHeaderState extends State<PatrimoineHeader> {
                     color: _gainsColor,
                   ),
                 ),
-                const SizedBox(width: 12),
-                Container(
-                  width: 1,
-                  height: 15,
-                  color: Colors.grey.shade300,
-                ),
-                const SizedBox(width: 12),
+                const SizedBox(width: 15),
+                Container(width: 1, height: 15, color: Colors.grey.shade200),
+                const SizedBox(width: 15),
                 Text(
                   _isVisible ? "${_gainsPercentage >= 0 ? '+' : ''}${_gainsPercentage.toStringAsFixed(2)}%" : "••%",
                   style: TextStyle(
