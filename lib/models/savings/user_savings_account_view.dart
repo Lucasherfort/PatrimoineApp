@@ -5,6 +5,7 @@ class UserSavingsAccountView {
   final String logoUrl;
   double principal;
   double interest;
+  bool automaticInterestCalculation;
   final double? interestRate; // 👈 Nouveau (nullable)
   final double? ceiling; // 👈 Nouveau (nullable)
 
@@ -15,6 +16,7 @@ class UserSavingsAccountView {
     required this.logoUrl,
     required this.principal,
     required this.interest,
+    required this.automaticInterestCalculation,
     this.interestRate, // 👈 Optionnel
     this.ceiling, // 👈 Optionnel
   });

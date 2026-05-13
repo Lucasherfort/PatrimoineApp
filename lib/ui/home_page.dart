@@ -14,11 +14,15 @@ class HomePage extends StatefulWidget {
   const HomePage({super.key, required this.appName, required this.appVersion});
 
   @override
-  State<HomePage> createState() => HomePageState(); // Nom public sans "_"
+  State<HomePage> createState() => HomePageState();
 }
 
 class HomePageState extends State<HomePage> {
   final PatrimoineService _service = PatrimoineService();
+
+  // Couleurs cohérentes avec le reste de l'app
+  static const Color colorDarkBg = Color(0xFF060B26);
+  static const Color colorBlueMain = Color(0xFF0D71EE);
 
   double patrimoineTotal = 0.0;
   double totalDepose = 0.0;
@@ -37,7 +41,6 @@ class HomePageState extends State<HomePage> {
     _loadPatrimoine();
   }
 
-  // APPELÉ DEPUIS MAIN_NAVIGATION
   Future<void> openAddPatrimoinePanel() async {
     final result = await showModalBottomSheet<bool>(
       context: context,
@@ -87,9 +90,9 @@ class HomePageState extends State<HomePage> {
     } catch (e) {
       if (mounted) {
         setState(() => isLoading = false);
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text('Erreur chargement: $e')));
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Erreur chargement: $e')),
+        );
       }
     }
   }
@@ -97,63 +100,85 @@ class HomePageState extends State<HomePage> {
   @override
   Widget build(BuildContext context) {
     if (isLoading) {
-      return const Center(
-        child: CircularProgressIndicator(color: Colors.white),
+      return const Scaffold(
+        backgroundColor: colorDarkBg,
+        body: Center(child: CircularProgressIndicator(color: Colors.white)),
       );
     }
 
     final hasAnyAccount =
         hasLiquidityAccounts ||
-        hasSavingsAccounts ||
-        hasInvestmentAccounts ||
-        hasAdvantageAccounts;
+            hasSavingsAccounts ||
+            hasInvestmentAccounts ||
+            hasAdvantageAccounts;
 
-    return Container(
-      decoration: const BoxDecoration(
-        gradient: LinearGradient(
-          begin: Alignment.topCenter,
-          end: Alignment.bottomCenter,
-          colors: [Color(0xFF1E293B), Color(0xFF0F172A), Colors.black],
-        ),
-      ),
-      child: SafeArea(
-        child: Column(
-          children: [
-            PatrimoineHeader(
-              patrimoineTotal: patrimoineTotal,
-              totalDepose: totalDepose,
-              capitalOwned: capitalOwned,
-              patrimoineOwned: patrimoineOwned,
-              onRefresh: _loadPatrimoine,
+    return Scaffold(
+      backgroundColor: colorDarkBg, // Couleur de base
+      body: Stack(
+        children: [
+          // --- EFFET DE FOND (Halos) ---
+          Positioned(
+            top: -100,
+            right: -50,
+            child: Container(
+              width: 350,
+              height: 350,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                color: colorBlueMain.withValues(alpha: 0.12),
+              ),
             ),
-            Expanded(
-              child: hasAnyAccount
-                  ? RefreshIndicator(
-                      onRefresh: _loadPatrimoine,
-                      child: ListView(
-                        padding: const EdgeInsets.only(bottom: 24),
-                        children: [
-                          if (hasLiquidityAccounts)
-                            LiquidityAccountList(
-                              onAccountUpdated: _loadPatrimoine,
-                            ),
-                          if (hasSavingsAccounts)
-                            SavingsAccountList(
-                              onAccountUpdated: _loadPatrimoine,
-                            ),
-                          if (hasInvestmentAccounts)
-                            InvestmentList(onAccountUpdated: _loadPatrimoine),
-                          if (hasAdvantageAccounts)
-                            AdvantageAccountList(
-                              onAccountUpdated: _loadPatrimoine,
-                            ),
-                        ],
-                      ),
-                    )
-                  : _buildEmptyState(),
+          ),
+          Positioned(
+            bottom: 100,
+            left: -100,
+            child: Container(
+              width: 400,
+              height: 400,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                color: colorBlueMain.withValues(alpha: 0.08),
+              ),
             ),
-          ],
-        ),
+          ),
+
+          // --- CONTENU PRINCIPAL ---
+          SafeArea(
+            child: Column(
+              children: [
+                PatrimoineHeader(
+                  patrimoineTotal: patrimoineTotal,
+                  totalDepose: totalDepose,
+                  capitalOwned: capitalOwned,
+                  patrimoineOwned: patrimoineOwned,
+                  onRefresh: _loadPatrimoine,
+                ),
+                Expanded(
+                  child: hasAnyAccount
+                      ? RefreshIndicator(
+                    onRefresh: _loadPatrimoine,
+                    color: Colors.white,
+                    backgroundColor: colorBlueMain,
+                    child: ListView(
+                      padding: const EdgeInsets.only(bottom: 100), // Espace pour la barre de navigation
+                      children: [
+                        if (hasLiquidityAccounts)
+                          LiquidityAccountList(onAccountUpdated: _loadPatrimoine),
+                        if (hasSavingsAccounts)
+                          SavingsAccountList(onAccountUpdated: _loadPatrimoine),
+                        if (hasInvestmentAccounts)
+                          InvestmentList(onAccountUpdated: _loadPatrimoine),
+                        if (hasAdvantageAccounts)
+                          AdvantageAccountList(onAccountUpdated: _loadPatrimoine),
+                      ],
+                    ),
+                  )
+                      : _buildEmptyState(),
+                ),
+              ],
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -163,19 +188,26 @@ class HomePageState extends State<HomePage> {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          const Icon(
+          Icon(
             Icons.account_balance_wallet_outlined,
             size: 60,
-            color: Colors.white24,
+            color: Colors.white.withValues(alpha: 0.1),
           ),
           const SizedBox(height: 16),
-          const Text(
+          Text(
             "Aucun compte disponible",
-            style: TextStyle(color: Colors.white70),
+            style: TextStyle(
+              color: Colors.white.withValues(alpha: 0.6),
+              fontWeight: FontWeight.bold,
+            ),
           ),
-          const Text(
-            "Utilisez le bouton + pour en ajouter",
-            style: TextStyle(color: Colors.white24, fontSize: 12),
+          const SizedBox(height: 8),
+          Text(
+            "Utilisez le bouton + pour commencer",
+            style: TextStyle(
+              color: Colors.white.withValues(alpha: 0.3),
+              fontSize: 12,
+            ),
           ),
         ],
       ),

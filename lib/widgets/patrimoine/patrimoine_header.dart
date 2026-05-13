@@ -26,8 +26,6 @@ class PatrimoineHeader extends StatefulWidget {
 class _PatrimoineHeaderState extends State<PatrimoineHeader> {
   bool _isVisible = true;
 
-  static const Color colorBlueSky = Color(0xFF67C6F2);
-  static const Color colorBlueMain = Color(0xFF0D71EE);
   static const Color colorGreenFlash = Color(0xFF65E046);
   static const Color colorOrangeLogo = Color(0xFFD98006);
 
@@ -59,32 +57,26 @@ class _PatrimoineHeaderState extends State<PatrimoineHeader> {
 
     return Container(
       width: double.infinity,
-      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-      padding: const EdgeInsets.symmetric(
-        vertical: 12,
-        horizontal: 12,
-      ), // Padding interne très serré
-      decoration: BoxDecoration(
-        gradient: const LinearGradient(
-          colors: [colorBlueSky, colorBlueMain],
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-        ),
-        borderRadius: BorderRadius.circular(20),
-        boxShadow: [
-          BoxShadow(
-            color: colorBlueMain.withValues(alpha: 0.2),
-            blurRadius: 12,
-            offset: const Offset(0, 4),
-          ),
-        ],
-      ),
+      padding: const EdgeInsets.only(top: 20, bottom: 20), // Plus besoin de margin/decoration
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
+          // Libellé discret au-dessus
+          Text(
+            "PATRIMOINE TOTAL",
+            style: TextStyle(
+              color: Colors.white.withValues(alpha: 0.4),
+              fontSize: 12,
+              fontWeight: FontWeight.w600,
+              letterSpacing: 1.5,
+            ),
+          ),
+          const SizedBox(height: 8),
+
           // --- Ligne 1 : Actions + Montant ---
           Row(
             children: [
+              const SizedBox(width: 16),
               _buildCircleAction(Icons.refresh, widget.onRefresh),
               Expanded(
                 child: Center(
@@ -95,11 +87,12 @@ class _PatrimoineHeaderState extends State<PatrimoineHeader> {
                           ? "${_formatAmount(widget.patrimoineTotal)} €"
                           : "•••••••• €",
                       key: ValueKey(_isVisible),
+                      textAlign: TextAlign.center,
                       style: const TextStyle(
-                        fontSize: 28, // Taille optimisée
+                        fontSize: 36, // Légèrement augmenté car plus de contrainte de boîte
                         fontWeight: FontWeight.w900,
                         color: Colors.white,
-                        letterSpacing: -0.8,
+                        letterSpacing: -1.0,
                       ),
                     ),
                   ),
@@ -107,41 +100,35 @@ class _PatrimoineHeaderState extends State<PatrimoineHeader> {
               ),
               _buildCircleAction(
                 _isVisible ? Icons.visibility : Icons.visibility_off,
-                () => setState(() => _isVisible = !_isVisible),
+                    () => setState(() => _isVisible = !_isVisible),
               ),
+              const SizedBox(width: 16),
             ],
           ),
 
-          // --- Ligne 2 : Gains (Capsule minimaliste) ---
+          // --- Ligne 2 : Gains (Sans capsule noire, juste le texte) ---
           if (showGains) ...[
-            const SizedBox(height: 8),
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-              decoration: BoxDecoration(
-                color: Colors.black.withValues(alpha: 0.15),
-                borderRadius: BorderRadius.circular(8),
-              ),
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Icon(
-                    _gains >= 0 ? Icons.trending_up : Icons.trending_down,
-                    size: 12,
+            const SizedBox(height: 12),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(
+                  _gains >= 0 ? Icons.trending_up : Icons.trending_down,
+                  size: 16,
+                  color: _gainsColor,
+                ),
+                const SizedBox(width: 6),
+                Text(
+                  _isVisible
+                      ? "${_gains >= 0 ? '+' : ''}${_formatAmount(_gains)} € (${_gainsPercentage >= 0 ? '+' : ''}${_gainsPercentage.toStringAsFixed(2)}%)"
+                      : "•••• €",
+                  style: TextStyle(
+                    fontSize: 15,
+                    fontWeight: FontWeight.w600,
                     color: _gainsColor,
                   ),
-                  const SizedBox(width: 4),
-                  Text(
-                    _isVisible
-                        ? "${_gains >= 0 ? '+' : ''}${_formatAmount(_gains)} € (${_gainsPercentage >= 0 ? '+' : ''}${_gainsPercentage.toStringAsFixed(2)}%)"
-                        : "•••",
-                    style: TextStyle(
-                      fontSize: 12,
-                      fontWeight: FontWeight.bold,
-                      color: _gainsColor,
-                    ),
-                  ),
-                ],
-              ),
+                ),
+              ],
             ),
           ],
         ],
@@ -150,17 +137,12 @@ class _PatrimoineHeaderState extends State<PatrimoineHeader> {
   }
 
   Widget _buildCircleAction(IconData icon, VoidCallback? onTap) {
-    return InkWell(
-      onTap: onTap,
-      borderRadius: BorderRadius.circular(12),
-      child: Container(
-        padding: const EdgeInsets.all(8),
-        decoration: BoxDecoration(
-          color: Colors.white.withValues(alpha: 0.1),
-          borderRadius: BorderRadius.circular(10),
-        ),
-        child: Icon(icon, color: Colors.white, size: 18),
-      ),
+    return IconButton(
+      onPressed: onTap,
+      icon: Icon(icon, color: Colors.white.withValues(alpha: 0.5), size: 20),
+      visualDensity: VisualDensity.compact,
+      padding: EdgeInsets.zero,
+      constraints: const BoxConstraints(),
     );
   }
 }
