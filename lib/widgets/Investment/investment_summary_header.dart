@@ -6,8 +6,7 @@ import '../../models/investments/user_investment_account_view.dart';
 class InvestmentSummaryHeader extends StatelessWidget {
   final UserInvestmentAccountView account;
   final List<InvestmentPosition> positions;
-  final void Function(double newCashBalance, double newCumulativeDeposits)?
-  onValueUpdated;
+  final void Function(double newCashBalance, double newCumulativeDeposits)? onValueUpdated;
 
   const InvestmentSummaryHeader({
     super.key,
@@ -16,393 +15,212 @@ class InvestmentSummaryHeader extends StatelessWidget {
     this.onValueUpdated,
   });
 
+  // --- Palette ---
+  static const Color colorGreenFlash = Color(0xFF65E046);
+  static const Color colorOrangeLogo = Color(0xFFD98006);
+  static const Color colorBlueMain = Color(0xFF0D71EE);
+
   String _formatAmount(double amount) {
-    final formatter = NumberFormat.currency(
-      locale: 'fr_FR',
-      symbol: '',
-      decimalDigits: 2,
-    );
+    final formatter = NumberFormat.currency(locale: 'fr_FR', symbol: '', decimalDigits: 2);
     return formatter.format(amount).trim();
   }
 
   bool get isAssuranceVie => account.isAssuranceVie;
-
-  double get positionsValue {
-    return positions.fold(0.0, (sum, position) => sum + position.totalValue);
-  }
-
-  double get totalValue =>
-      isAssuranceVie ? positionsValue : account.cashBalance + positionsValue;
-
-  double get totalProfitLoss {
-    return totalValue - account.totalContribution;
-  }
-
+  double get positionsValue => positions.fold(0.0, (sum, pos) => sum + pos.totalValue);
+  double get totalValue => isAssuranceVie ? positionsValue : account.cashBalance + positionsValue;
+  double get totalProfitLoss => totalValue - account.totalContribution;
   double get performancePercentage {
     if (account.totalContribution <= 0) return 0.0;
-    return ((totalValue - account.totalContribution) /
-            account.totalContribution) *
-        100;
-  }
-
-  void _openEditPanel(BuildContext context) {
-    final cashController = TextEditingController(
-      text: account.cashBalance.toStringAsFixed(2).replaceAll('.', ','),
-    );
-    final depositsController = TextEditingController(
-      text: account.totalContribution.toStringAsFixed(2).replaceAll('.', ','),
-    );
-
-    showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      backgroundColor: Colors.transparent,
-      builder: (context) {
-        return Container(
-          decoration: const BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-          ),
-          child: Padding(
-            padding: EdgeInsets.only(
-              left: 16,
-              right: 16,
-              top: 16,
-              bottom: MediaQuery.of(context).viewInsets.bottom + 16,
-            ),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  "Modifier ${account.sourceName}",
-                  style: const TextStyle(
-                    fontSize: 20,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-                const SizedBox(height: 20),
-
-                if (!isAssuranceVie) ...[
-                  TextField(
-                    controller: cashController,
-                    keyboardType: const TextInputType.numberWithOptions(
-                      decimal: true,
-                    ),
-                    decoration: InputDecoration(
-                      labelText: "Espèces disponibles",
-                      suffixText: "€",
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      focusedBorder: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(12),
-                        borderSide: BorderSide(
-                          color: Colors.purple.shade600,
-                          width: 2,
-                        ),
-                      ),
-                      prefixIcon: const Icon(Icons.account_balance_wallet),
-                      helperText: "Montant en espèces sur le compte",
-                    ),
-                  ),
-                  const SizedBox(height: 16),
-                ],
-
-                TextField(
-                  controller: depositsController,
-                  keyboardType: const TextInputType.numberWithOptions(
-                    decimal: true,
-                  ),
-                  decoration: InputDecoration(
-                    labelText: "Versements cumulés",
-                    suffixText: "€",
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    focusedBorder: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(12),
-                      borderSide: BorderSide(
-                        color: Colors.purple.shade600,
-                        width: 2,
-                      ),
-                    ),
-                    prefixIcon: const Icon(Icons.savings),
-                    helperText: "Total des versements effectués",
-                  ),
-                ),
-                const SizedBox(height: 20),
-
-                SizedBox(
-                  width: double.infinity,
-                  child: ElevatedButton(
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.purple.shade600,
-                      padding: const EdgeInsets.symmetric(vertical: 14),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                    ),
-                    onPressed: () {
-                      final cashText = cashController.text.replaceAll(',', '.');
-                      final depositsText = depositsController.text.replaceAll(
-                        ',',
-                        '.',
-                      );
-
-                      final cash = isAssuranceVie
-                          ? 0.0
-                          : double.tryParse(cashText);
-                      final deposits = double.tryParse(depositsText);
-
-                      if ((isAssuranceVie || cash != null) &&
-                          deposits != null &&
-                          onValueUpdated != null) {
-                        final newCash = isAssuranceVie ? 0.0 : cash!;
-                        final newDeposits = deposits;
-
-                        final cashChanged =
-                            !isAssuranceVie &&
-                            newCash.toStringAsFixed(2) !=
-                                account.cashBalance.toStringAsFixed(2);
-
-                        final depositsChanged =
-                            newDeposits.toStringAsFixed(2) !=
-                            account.totalContribution.toStringAsFixed(2);
-
-                        if (cashChanged || depositsChanged) {
-                          onValueUpdated!(newCash, newDeposits);
-                        }
-                      }
-
-                      Navigator.pop(context);
-                    },
-                    child: const Text(
-                      "Valider",
-                      style: TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.white,
-                      ),
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          ),
-        );
-      },
-    );
+    return ((totalValue - account.totalContribution) / account.totalContribution) * 100;
   }
 
   @override
   Widget build(BuildContext context) {
     final isProfit = totalProfitLoss >= 0;
+    final statusColor = isProfit ? colorGreenFlash : colorOrangeLogo;
 
-    return InkWell(
-      onTap: () => _openEditPanel(context),
-      borderRadius: BorderRadius.circular(16),
-      child: Container(
-        margin: const EdgeInsets.all(16),
-        decoration: BoxDecoration(
-          gradient: LinearGradient(
-            colors: [
-              Colors.purple.shade900.withValues(alpha: 0.4),
-              Colors.purple.shade800.withValues(alpha: 0.3),
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.symmetric(vertical: 24, horizontal: 20),
+      child: Column(
+        children: [
+          // Titre discret
+          Text(
+            "VALEUR TOTALE ESTIMÉE",
+            style: TextStyle(
+              color: Colors.white.withValues(alpha: 0.4),
+              fontSize: 11,
+              fontWeight: FontWeight.w700,
+              letterSpacing: 1.5,
+            ),
+          ),
+          const SizedBox(height: 8),
+
+          // Montant Principal
+          Text(
+            "${_formatAmount(totalValue)} €",
+            style: const TextStyle(
+              fontSize: 38,
+              fontWeight: FontWeight.w900,
+              color: Colors.white,
+              letterSpacing: -1.0,
+            ),
+          ),
+          const SizedBox(height: 12),
+
+          // Badge de Performance
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                decoration: BoxDecoration(
+                  color: statusColor.withValues(alpha: 0.1),
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(color: statusColor.withValues(alpha: 0.2)),
+                ),
+                child: Row(
+                  children: [
+                    Icon(isProfit ? Icons.trending_up : Icons.trending_down,
+                        color: statusColor, size: 16),
+                    const SizedBox(width: 6),
+                    Text(
+                      "${isProfit ? '+' : ''}${_formatAmount(totalProfitLoss)} € (${performancePercentage.toStringAsFixed(2)}%)",
+                      style: TextStyle(
+                        color: statusColor,
+                        fontWeight: FontWeight.bold,
+                        fontSize: 14,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(width: 10),
+              // Petit bouton info/edit style "Glass"
+              GestureDetector(
+                onTap: () => _openEditPanel(context),
+                child: Container(
+                  padding: const EdgeInsets.all(8),
+                  decoration: BoxDecoration(
+                    color: Colors.white.withValues(alpha: 0.05),
+                    shape: BoxShape.circle,
+                  ),
+                  child: const Icon(Icons.edit_outlined, color: Colors.white54, size: 16),
+                ),
+              ),
             ],
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
           ),
-          borderRadius: BorderRadius.circular(16),
-          border: Border.all(
-            color: Colors.purple.shade400.withValues(alpha: 0.3),
-            width: 1,
+
+          const SizedBox(height: 32),
+
+          // Métriques secondaires en ligne épurée
+          IntrinsicHeight(
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+              children: [
+                if (!isAssuranceVie) ...[
+                  _buildMetricItem("ESPÈCES", "${_formatAmount(account.cashBalance)} €"),
+                  VerticalDivider(color: Colors.white.withValues(alpha: 0.1), indent: 8, endIndent: 8),
+                ],
+                _buildMetricItem("VERSEMENTS", "${_formatAmount(account.totalContribution)} €"),
+              ],
+            ),
           ),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withValues(alpha: 0.3),
-              blurRadius: 16,
-              offset: const Offset(0, 6),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildMetricItem(String label, String value) {
+    return Column(
+      children: [
+        Text(
+          label,
+          style: TextStyle(
+            color: Colors.white.withValues(alpha: 0.3),
+            fontSize: 10,
+            fontWeight: FontWeight.w600,
+            letterSpacing: 1.0,
+          ),
+        ),
+        const SizedBox(height: 4),
+        Text(
+          value,
+          style: const TextStyle(color: Colors.white, fontSize: 15, fontWeight: FontWeight.bold),
+        ),
+      ],
+    );
+  }
+
+  // --- MODAL DE MODIFICATION (VERSION DARK PREMIUM) ---
+  void _openEditPanel(BuildContext context) {
+    final cashController = TextEditingController(text: account.cashBalance.toStringAsFixed(2).replaceAll('.', ','));
+    final depositsController = TextEditingController(text: account.totalContribution.toStringAsFixed(2).replaceAll('.', ','));
+
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (context) => Container(
+        decoration: const BoxDecoration(
+          color: Color(0xFF0F172A), // Dark Navy
+          borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
+        ),
+        padding: EdgeInsets.only(
+          left: 24, right: 24, top: 12,
+          bottom: MediaQuery.of(context).viewInsets.bottom + 24,
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Container(width: 40, height: 4, decoration: BoxDecoration(color: Colors.white24, borderRadius: BorderRadius.circular(2))),
+            const SizedBox(height: 24),
+            const Text("Ajuster le compte", style: TextStyle(color: Colors.white, fontSize: 20, fontWeight: FontWeight.w900)),
+            const SizedBox(height: 24),
+            if (!isAssuranceVie)
+              _buildModernField(cashController, "Espèces disponibles", Icons.account_balance_wallet_outlined),
+            const SizedBox(height: 16),
+            _buildModernField(depositsController, "Total des versements", Icons.savings_outlined),
+            const SizedBox(height: 24),
+            SizedBox(
+              width: double.infinity,
+              height: 54,
+              child: ElevatedButton(
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: colorBlueMain,
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                ),
+                onPressed: () {
+                  final cash = double.tryParse(cashController.text.replaceAll(',', '.'));
+                  final deposits = double.tryParse(depositsController.text.replaceAll(',', '.'));
+                  if (deposits != null && onValueUpdated != null) {
+                    onValueUpdated!(isAssuranceVie ? 0.0 : (cash ?? 0.0), deposits);
+                  }
+                  Navigator.pop(context);
+                },
+                child: const Text("SAUVEGARDER", style: TextStyle(color: Colors.white, fontWeight: FontWeight.w900)),
+              ),
             ),
           ],
-        ),
-        child: Padding(
-          padding: const EdgeInsets.all(16),
-          child: Column(
-            children: [
-              // Ligne principale : Valeur totale + Performance
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  // Valeur totale
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        "Valeur totale",
-                        style: TextStyle(
-                          fontSize: 13,
-                          color: Colors.white.withValues(alpha: 0.7),
-                          fontWeight: FontWeight.w500,
-                        ),
-                      ),
-                      const SizedBox(height: 4),
-                      Text(
-                        "${_formatAmount(totalValue)} €",
-                        style: const TextStyle(
-                          fontSize: 26,
-                          fontWeight: FontWeight.bold,
-                          color: Colors.white,
-                          letterSpacing: -0.5,
-                        ),
-                      ),
-                    ],
-                  ),
-                  // Performance mise en évidence
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.end,
-                    children: [
-                      // Pourcentage de gain en grand
-                      Text(
-                        "${isProfit ? '+' : ''}${performancePercentage.toStringAsFixed(2)}%",
-                        style: TextStyle(
-                          fontSize: 28,
-                          fontWeight: FontWeight.w900,
-                          color: isProfit
-                              ? Colors.green.shade400
-                              : Colors.red.shade400,
-                          letterSpacing: -0.5,
-                        ),
-                      ),
-                      const SizedBox(height: 2),
-                      // Montant du gain avec icône
-                      Row(
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Icon(
-                            isProfit
-                                ? Icons.arrow_upward
-                                : Icons.arrow_downward,
-                            color: isProfit
-                                ? Colors.green.shade300
-                                : Colors.red.shade300,
-                            size: 15,
-                          ),
-                          const SizedBox(width: 4),
-                          Text(
-                            "${isProfit ? '+' : ''}${_formatAmount(totalProfitLoss)} €",
-                            style: TextStyle(
-                              fontSize: 16,
-                              fontWeight: FontWeight.w700,
-                              color: isProfit
-                                  ? Colors.green.shade300
-                                  : Colors.red.shade300,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ],
-                  ),
-                ],
-              ),
-              const SizedBox(height: 14),
-              // Ligne inférieure : Métriques compactes
-              Container(
-                padding: const EdgeInsets.symmetric(
-                  vertical: 10,
-                  horizontal: 14,
-                ),
-                decoration: BoxDecoration(
-                  color: Colors.white.withValues(alpha: 0.1),
-                  borderRadius: BorderRadius.circular(12),
-                  border: Border.all(
-                    color: Colors.white.withValues(alpha: 0.15),
-                    width: 1,
-                  ),
-                ),
-                child: isAssuranceVie
-                    ? _buildAssuranceVieMetrics()
-                    : _buildPEAMetrics(),
-              ),
-            ],
-          ),
         ),
       ),
     );
   }
 
-  // Métriques PEA compactes
-  Widget _buildPEAMetrics() {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceAround,
-      children: [
-        _buildCompactMetric(
-          icon: Icons.account_balance_wallet,
-          label: "Espèces",
-          value: "${_formatAmount(account.cashBalance)} €",
-        ),
-        Container(
-          width: 1,
-          height: 36,
-          color: Colors.white.withValues(alpha: 0.2),
-        ),
-        _buildCompactMetric(
-          icon: Icons.savings,
-          label: "Versements",
-          value: "${_formatAmount(account.totalContribution)} €",
-        ),
-      ],
-    );
-  }
-
-  // Métriques Assurance Vie compactes
-  Widget _buildAssuranceVieMetrics() {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.center,
-      children: [
-        _buildCompactMetric(
-          icon: Icons.savings,
-          label: "Versements cumulés",
-          value: "${_formatAmount(account.totalContribution)} €",
-        ),
-      ],
-    );
-  }
-
-  Widget _buildCompactMetric({
-    required IconData icon,
-    required String label,
-    required String value,
-  }) {
-    return Row(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        Icon(icon, color: Colors.purple.shade200, size: 18),
-        const SizedBox(width: 8),
-        Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              label,
-              style: TextStyle(
-                fontSize: 11,
-                color: Colors.white.withValues(alpha: 0.7),
-                fontWeight: FontWeight.w500,
-              ),
-            ),
-            const SizedBox(height: 2),
-            Text(
-              value,
-              style: const TextStyle(
-                fontSize: 13,
-                fontWeight: FontWeight.bold,
-                color: Colors.white,
-              ),
-            ),
-          ],
-        ),
-      ],
+  Widget _buildModernField(TextEditingController controller, String label, IconData icon) {
+    return TextField(
+      controller: controller,
+      style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+      keyboardType: const TextInputType.numberWithOptions(decimal: true),
+      decoration: InputDecoration(
+        labelText: label,
+        labelStyle: const TextStyle(color: Colors.white38),
+        prefixIcon: Icon(icon, color: colorBlueMain),
+        suffixText: "€",
+        filled: true,
+        fillColor: Colors.white.withValues(alpha: 0.05),
+        border: OutlineInputBorder(borderRadius: BorderRadius.circular(16), borderSide: BorderSide.none),
+      ),
     );
   }
 }
