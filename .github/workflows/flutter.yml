@@ -2,48 +2,112 @@ name: Flutter CI/CD
 
 on:
   push:
-    branches: ["main"]
+    branches:
+      - main
+
+  pull_request:
+    branches:
+      - main
 
 jobs:
 
   android:
+    name: Android Build
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v4
+      # Checkout
+      - name: Checkout repository
+        uses: actions/checkout@v4
 
-      - uses: subosito/flutter-action@v2
+      # Flutter
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
         with:
+          flutter-version: 3.24.0
           channel: stable
+          cache: true
 
-      - run: flutter pub get
+      # Dependencies
+      - name: Install dependencies
+        run: flutter pub get
 
-      - run: flutter build apk --release
+      # Analyze
+      - name: Analyze project
+        run: flutter analyze
 
-      - uses: actions/upload-artifact@v4
+      # Tests
+      - name: Run tests
+        run: flutter test
+
+      # Build APK
+      - name: Build APK
+        run: flutter build apk --release
+
+      # Build App Bundle
+      - name: Build AAB
+        run: flutter build appbundle --release
+
+      # Upload APK
+      - name: Upload APK artifact
+        uses: actions/upload-artifact@v4
         with:
           name: android-apk
           path: build/app/outputs/flutter-apk/app-release.apk
+          retention-days: 14
+
+      # Upload AAB
+      - name: Upload AAB artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: android-aab
+          path: build/app/outputs/bundle/release/app-release.aab
+          retention-days: 14
 
   ios:
+    name: iOS Build
     runs-on: macos-latest
 
     steps:
-      - uses: actions/checkout@v4
+      # Checkout
+      - name: Checkout repository
+        uses: actions/checkout@v4
 
-      - uses: subosito/flutter-action@v2
+      # Flutter
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
         with:
+          flutter-version: 3.24.0
           channel: stable
+          cache: true
 
-      - run: flutter pub get
+      # Cache CocoaPods
+      - name: Cache CocoaPods
+        uses: actions/cache@v4
+        with:
+          path: ios/Pods
+          key: ${{ runner.os }}-pods-${{ hashFiles('ios/Podfile.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-pods-
 
-      - run: |
+      # Dependencies
+      - name: Install dependencies
+        run: flutter pub get
+
+      # Install Pods
+      - name: Install CocoaPods
+        run: |
           cd ios
           pod install
 
-      - run: flutter build ipa --release --no-codesign
+      # Build IPA
+      - name: Build IPA
+        run: flutter build ipa --release --no-codesign
 
-      - uses: actions/upload-artifact@v4
+      # Upload IPA
+      - name: Upload IPA artifact
+        uses: actions/upload-artifact@v4
         with:
           name: ios-ipa
           path: build/ios/ipa/*.ipa
+          retention-days: 14
