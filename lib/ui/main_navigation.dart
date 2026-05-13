@@ -52,7 +52,7 @@ class _MainNavigationState extends State<MainNavigation> {
       "Patrimoine",
       "Analyses",
       "Mon Budget",
-      "Mon Profil"
+      "Mon Profil",
     ];
 
     // Liste des icônes correspondantes pour l'AppBar
@@ -79,11 +79,7 @@ class _MainNavigationState extends State<MainNavigation> {
         title: Row(
           children: [
             // Le logo dynamique à gauche
-            Icon(
-              titleIcons[_currentIndex],
-              color: colorBlueMain,
-              size: 24,
-            ),
+            Icon(titleIcons[_currentIndex], color: colorBlueMain, size: 24),
             const SizedBox(width: 12),
             Text(
               titles[_currentIndex],
@@ -98,16 +94,17 @@ class _MainNavigationState extends State<MainNavigation> {
         actions: [
           if (_currentIndex == 0)
             IconButton(
-              icon: const Icon(Icons.add_circle, color: colorBlueMain, size: 28),
+              icon: const Icon(
+                Icons.add_circle,
+                color: colorBlueMain,
+                size: 28,
+              ),
               onPressed: () => _homeKey.currentState?.openAddPatrimoinePanel(),
             ),
           const SizedBox(width: 8),
         ],
       ),
-      body: IndexedStack(
-        index: _currentIndex,
-        children: pages,
-      ),
+      body: IndexedStack(index: _currentIndex, children: pages),
       bottomNavigationBar: BottomNavigationBar(
         currentIndex: _currentIndex,
         onTap: (index) => setState(() => _currentIndex = index),
@@ -119,10 +116,22 @@ class _MainNavigationState extends State<MainNavigation> {
         selectedFontSize: 12,
         unselectedFontSize: 12,
         items: const [
-          BottomNavigationBarItem(icon: Icon(Icons.account_balance), label: 'Patrimoine'),
-          BottomNavigationBarItem(icon: Icon(Icons.insights), label: 'Graphiques'),
-          BottomNavigationBarItem(icon: Icon(Icons.receipt_long), label: 'Budget'),
-          BottomNavigationBarItem(icon: Icon(Icons.manage_accounts), label: 'Profil'),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.account_balance),
+            label: 'Patrimoine',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.insights),
+            label: 'Graphiques',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.receipt_long),
+            label: 'Budget',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.manage_accounts),
+            label: 'Profil',
+          ),
         ],
       ),
     );
@@ -151,7 +160,10 @@ class _MainNavigationState extends State<MainNavigation> {
             label: const Text("Déconnexion"),
           ),
           const SizedBox(height: 20),
-          Text(appVersion, style: const TextStyle(color: Colors.white24, fontSize: 12)),
+          Text(
+            appVersion,
+            style: const TextStyle(color: Colors.white24, fontSize: 12),
+          ),
         ],
       ),
     );
@@ -162,7 +174,7 @@ class _MainNavigationState extends State<MainNavigation> {
     if (mounted) {
       Navigator.of(context).pushAndRemoveUntil(
         MaterialPageRoute(builder: (_) => const LoginPage()),
-            (route) => false,
+        (route) => false,
       );
     }
   }

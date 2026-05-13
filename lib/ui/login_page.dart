@@ -23,14 +23,20 @@ class _LoginPageState extends State<LoginPage> {
   static const Color colorSurface = Color(0xFF1E293B);
 
   Future<void> _login() async {
-    setState(() { isLoading = true; errorMessage = null; });
+    setState(() {
+      isLoading = true;
+      errorMessage = null;
+    });
     try {
       await _authService.signIn(
         email: _emailController.text.trim(),
         password: _passwordController.text,
       );
     } catch (e) {
-      if (mounted) setState(() => errorMessage = e.toString().replaceFirst('Exception: ', ''));
+      if (mounted)
+        setState(
+          () => errorMessage = e.toString().replaceFirst('Exception: ', ''),
+        );
     } finally {
       if (mounted) setState(() => isLoading = false);
     }
@@ -38,17 +44,26 @@ class _LoginPageState extends State<LoginPage> {
 
   Future<void> _signup() async {
     final scaffoldMessenger = ScaffoldMessenger.of(context);
-    setState(() { isLoading = true; errorMessage = null; });
+    setState(() {
+      isLoading = true;
+      errorMessage = null;
+    });
     try {
       await _authService.signUp(
         email: _emailController.text.trim(),
         password: _passwordController.text,
       );
       scaffoldMessenger.showSnackBar(
-        const SnackBar(content: Text('Compte créé, vérifie tes emails'), backgroundColor: colorBlueMain),
+        const SnackBar(
+          content: Text('Compte créé, vérifie tes emails'),
+          backgroundColor: colorBlueMain,
+        ),
       );
     } catch (e) {
-      if (mounted) setState(() => errorMessage = e.toString().replaceFirst('Exception: ', ''));
+      if (mounted)
+        setState(
+          () => errorMessage = e.toString().replaceFirst('Exception: ', ''),
+        );
     } finally {
       if (mounted) setState(() => isLoading = false);
     }
@@ -66,10 +81,7 @@ class _LoginPageState extends State<LoginPage> {
           gradient: RadialGradient(
             center: const Alignment(-0.8, -0.7),
             radius: 1.2,
-            colors: [
-              colorBlueMain.withValues(alpha: 0.1),
-              colorDarkBg,
-            ],
+            colors: [colorBlueMain.withValues(alpha: 0.1), colorDarkBg],
           ),
         ),
         child: Center(
@@ -78,16 +90,19 @@ class _LoginPageState extends State<LoginPage> {
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-// --- LOGO SECTION (ÉPURÉE) ---
+                // --- LOGO SECTION (ÉPURÉE) ---
                 Column(
                   children: [
                     Image.asset(
                       'assets/icon/patrimoine360.png',
-                      width: 120, // Taille augmentée puisqu'il n'y a plus de container
+                      width:
+                          120, // Taille augmentée puisqu'il n'y a plus de container
                       height: 120,
                       fit: BoxFit.contain,
                     ),
-                    const SizedBox(height: 16), // Espace réduit pour coller au logo
+                    const SizedBox(
+                      height: 16,
+                    ), // Espace réduit pour coller au logo
                     const Text(
                       'Patrimoine 360',
                       style: TextStyle(
@@ -130,7 +145,10 @@ class _LoginPageState extends State<LoginPage> {
                     child: Text(
                       errorMessage!,
                       textAlign: TextAlign.center,
-                      style: const TextStyle(color: Color(0xFFF87171), fontSize: 13),
+                      style: const TextStyle(
+                        color: Color(0xFFF87171),
+                        fontSize: 13,
+                      ),
                     ),
                   ),
 
@@ -160,18 +178,27 @@ class _LoginPageState extends State<LoginPage> {
                     style: ElevatedButton.styleFrom(
                       backgroundColor: Colors.transparent,
                       shadowColor: Colors.transparent,
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(16),
+                      ),
                     ),
                     child: isLoading
                         ? const SizedBox(
-                      width: 24,
-                      height: 24,
-                      child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2),
-                    )
+                            width: 24,
+                            height: 24,
+                            child: CircularProgressIndicator(
+                              color: Colors.white,
+                              strokeWidth: 2,
+                            ),
+                          )
                         : const Text(
-                      'Se connecter',
-                      style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.white),
-                    ),
+                            'Se connecter',
+                            style: TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.white,
+                            ),
+                          ),
                   ),
                 ),
 
@@ -183,11 +210,16 @@ class _LoginPageState extends State<LoginPage> {
                   child: RichText(
                     text: TextSpan(
                       text: "Pas encore de compte ? ",
-                      style: TextStyle(color: Colors.white.withValues(alpha: 0.6)),
+                      style: TextStyle(
+                        color: Colors.white.withValues(alpha: 0.6),
+                      ),
                       children: const [
                         TextSpan(
                           text: "S'inscrire",
-                          style: TextStyle(color: colorBlueSky, fontWeight: FontWeight.bold),
+                          style: TextStyle(
+                            color: colorBlueSky,
+                            fontWeight: FontWeight.bold,
+                          ),
                         ),
                       ],
                     ),
@@ -215,7 +247,11 @@ class _LoginPageState extends State<LoginPage> {
       keyboardType: keyboardType,
       style: const TextStyle(color: Colors.white),
       decoration: InputDecoration(
-        prefixIcon: Icon(icon, color: colorBlueSky.withValues(alpha: 0.7), size: 22),
+        prefixIcon: Icon(
+          icon,
+          color: colorBlueSky.withValues(alpha: 0.7),
+          size: 22,
+        ),
         labelText: label,
         labelStyle: TextStyle(color: Colors.white.withValues(alpha: 0.5)),
         filled: true,

@@ -87,9 +87,9 @@ class HomePageState extends State<HomePage> {
     } catch (e) {
       if (mounted) {
         setState(() => isLoading = false);
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Erreur chargement: $e')),
-        );
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Erreur chargement: $e')));
       }
     }
   }
@@ -97,10 +97,13 @@ class HomePageState extends State<HomePage> {
   @override
   Widget build(BuildContext context) {
     if (isLoading) {
-      return const Center(child: CircularProgressIndicator(color: Colors.white));
+      return const Center(
+        child: CircularProgressIndicator(color: Colors.white),
+      );
     }
 
-    final hasAnyAccount = hasLiquidityAccounts ||
+    final hasAnyAccount =
+        hasLiquidityAccounts ||
         hasSavingsAccounts ||
         hasInvestmentAccounts ||
         hasAdvantageAccounts;
@@ -126,17 +129,27 @@ class HomePageState extends State<HomePage> {
             Expanded(
               child: hasAnyAccount
                   ? RefreshIndicator(
-                onRefresh: _loadPatrimoine,
-                child: ListView(
-                  padding: const EdgeInsets.only(bottom: 24),
-                  children: [
-                    if (hasLiquidityAccounts) LiquidityAccountList(onAccountUpdated: _loadPatrimoine),
-                    if (hasSavingsAccounts) SavingsAccountList(onAccountUpdated: _loadPatrimoine),
-                    if (hasInvestmentAccounts) InvestmentList(onAccountUpdated: _loadPatrimoine),
-                    if (hasAdvantageAccounts) AdvantageAccountList(onAccountUpdated: _loadPatrimoine),
-                  ],
-                ),
-              )
+                      onRefresh: _loadPatrimoine,
+                      child: ListView(
+                        padding: const EdgeInsets.only(bottom: 24),
+                        children: [
+                          if (hasLiquidityAccounts)
+                            LiquidityAccountList(
+                              onAccountUpdated: _loadPatrimoine,
+                            ),
+                          if (hasSavingsAccounts)
+                            SavingsAccountList(
+                              onAccountUpdated: _loadPatrimoine,
+                            ),
+                          if (hasInvestmentAccounts)
+                            InvestmentList(onAccountUpdated: _loadPatrimoine),
+                          if (hasAdvantageAccounts)
+                            AdvantageAccountList(
+                              onAccountUpdated: _loadPatrimoine,
+                            ),
+                        ],
+                      ),
+                    )
                   : _buildEmptyState(),
             ),
           ],
@@ -150,10 +163,20 @@ class HomePageState extends State<HomePage> {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          const Icon(Icons.account_balance_wallet_outlined, size: 60, color: Colors.white24),
+          const Icon(
+            Icons.account_balance_wallet_outlined,
+            size: 60,
+            color: Colors.white24,
+          ),
           const SizedBox(height: 16),
-          const Text("Aucun compte disponible", style: TextStyle(color: Colors.white70)),
-          const Text("Utilisez le bouton + pour en ajouter", style: TextStyle(color: Colors.white24, fontSize: 12)),
+          const Text(
+            "Aucun compte disponible",
+            style: TextStyle(color: Colors.white70),
+          ),
+          const Text(
+            "Utilisez le bouton + pour en ajouter",
+            style: TextStyle(color: Colors.white24, fontSize: 12),
+          ),
         ],
       ),
     );

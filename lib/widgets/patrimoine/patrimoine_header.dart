@@ -33,7 +33,11 @@ class _PatrimoineHeaderState extends State<PatrimoineHeader> {
   static const Color colorDarkBlue = Color(0xFF060B26);
 
   String _formatAmount(double amount) {
-    final formatter = NumberFormat.currency(locale: 'fr_FR', symbol: '', decimalDigits: 2);
+    final formatter = NumberFormat.currency(
+      locale: 'fr_FR',
+      symbol: '',
+      decimalDigits: 2,
+    );
     return formatter.format(amount).trim();
   }
 
@@ -57,7 +61,10 @@ class _PatrimoineHeaderState extends State<PatrimoineHeader> {
     return Container(
       width: double.infinity,
       margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-      padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 12), // Padding interne très serré
+      padding: const EdgeInsets.symmetric(
+        vertical: 12,
+        horizontal: 12,
+      ), // Padding interne très serré
       decoration: BoxDecoration(
         gradient: const LinearGradient(
           colors: [colorBlueSky, colorBlueMain],
@@ -85,7 +92,9 @@ class _PatrimoineHeaderState extends State<PatrimoineHeader> {
                   child: AnimatedSwitcher(
                     duration: const Duration(milliseconds: 300),
                     child: Text(
-                      _isVisible ? "${_formatAmount(widget.patrimoineTotal)} €" : "•••••••• €",
+                      _isVisible
+                          ? "${_formatAmount(widget.patrimoineTotal)} €"
+                          : "•••••••• €",
                       key: ValueKey(_isVisible),
                       style: const TextStyle(
                         fontSize: 28, // Taille optimisée
@@ -99,7 +108,7 @@ class _PatrimoineHeaderState extends State<PatrimoineHeader> {
               ),
               _buildCircleAction(
                 _isVisible ? Icons.visibility : Icons.visibility_off,
-                    () => setState(() => _isVisible = !_isVisible),
+                () => setState(() => _isVisible = !_isVisible),
               ),
             ],
           ),

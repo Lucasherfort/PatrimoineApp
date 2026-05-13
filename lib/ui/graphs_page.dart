@@ -8,7 +8,9 @@ class GraphsPage extends StatefulWidget {
   final String appVersion;
 
   const GraphsPage({
-    super.key, required this.appName, required this.appVersion
+    super.key,
+    required this.appName,
+    required this.appVersion,
   });
 
   @override
@@ -61,11 +63,11 @@ class _GraphsPageState extends State<GraphsPage> {
       body: SafeArea(
         child: _isLoading
             ? const Center(
-          child: CircularProgressIndicator(
-            color: Color(0xFF0D71EE), // Ton bleu principal
-            strokeWidth: 3,
-          ),
-        )
+                child: CircularProgressIndicator(
+                  color: Color(0xFF0D71EE), // Ton bleu principal
+                  strokeWidth: 3,
+                ),
+              )
             : _distribution == null || _distribution!.total == 0
             ? _buildEmptyState()
             : _buildContent(),
@@ -139,10 +141,7 @@ class _GraphsPageState extends State<GraphsPage> {
           end: Alignment.bottomRight,
         ),
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(
-          color: Colors.white.withOpacity(0.1),
-          width: 1,
-        ),
+        border: Border.all(color: Colors.white.withOpacity(0.1), width: 1),
       ),
       child: PieChart(
         PieChartData(
@@ -189,10 +188,7 @@ class _GraphsPageState extends State<GraphsPage> {
               fontWeight: FontWeight.bold,
               color: Colors.white,
               shadows: [
-                Shadow(
-                  color: Colors.black.withOpacity(0.5),
-                  blurRadius: 4,
-                ),
+                Shadow(color: Colors.black.withOpacity(0.5), blurRadius: 4),
               ],
             ),
           ),
@@ -272,12 +268,12 @@ class _GraphsPageState extends State<GraphsPage> {
   }
 
   Widget _categoryCard(
-      String label,
-      double value,
-      double total,
-      Color color,
-      IconData icon,
-      ) {
+    String label,
+    double value,
+    double total,
+    Color color,
+    IconData icon,
+  ) {
     final currencyFormat = NumberFormat.currency(locale: 'fr_FR', symbol: '€');
     final percent = (value / total) * 100;
 
