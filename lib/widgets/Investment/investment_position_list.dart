@@ -20,151 +20,69 @@ class InvestmentPositionList extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     if (isLoading) {
-      return const Center(
-        child: CircularProgressIndicator(color: Colors.white, strokeWidth: 3),
-      );
+      return const Center(child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2));
     }
 
     if (positions.isEmpty) {
       return Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(
-              Icons.inbox_outlined,
-              size: 80,
-              color: Colors.white.withValues(alpha: 0.3),
-            ),
-            const SizedBox(height: 16),
-            Text(
-              'Aucune position dans ce compte',
-              style: TextStyle(
-                fontSize: 16,
-                color: Colors.white.withValues(alpha: 0.7),
-                fontWeight: FontWeight.w500,
+        child: Opacity(
+          opacity: 0.5,
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              const Icon(Icons. analytics_outlined, size: 60, color: Colors.white),
+              const SizedBox(height: 16),
+              const Text(
+                'Aucune position active',
+                style: TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.w600),
               ),
-            ),
-            const SizedBox(height: 8),
-            Text(
-              'Appuyez sur "Ajouter" pour créer une position',
-              style: TextStyle(
-                fontSize: 13,
-                color: Colors.white.withValues(alpha: 0.5),
-              ),
-            ),
-          ],
+              const SizedBox(height: 4),
+              const Text('Ajoutez votre premier actif', style: TextStyle(color: Colors.white70, fontSize: 13)),
+            ],
+          ),
         ),
       );
     }
 
-    return ListView.builder(
-      padding: const EdgeInsets.all(16),
+    return ListView.separated(
+      padding: const EdgeInsets.fromLTRB(16, 8, 16, 100), // Espace pour le scroll
       itemCount: positions.length,
+      separatorBuilder: (context, index) => const SizedBox(height: 12),
       itemBuilder: (context, index) {
+        final position = positions[index];
         return InvestmentPositionCard(
-          position: positions[index],
-          onValueUpdated: (newPru, newQuantity) {
-            _updatePosition(context, positions[index], newPru, newQuantity);
-          },
-          onDelete: () {
-            _deletePosition(context, positions[index]);
-          },
+          position: position,
+          onValueUpdated: (newPru, newQuantity) => _updatePosition(context, position, newPru, newQuantity),
+          onDelete: () => _deletePosition(context, position),
         );
       },
     );
   }
 
-  Future<void> _updatePosition(
-    BuildContext context,
-    InvestmentPosition position,
-    double newPru,
-    double newQuantity,
-  ) async {
+  // --- Logique de mise à jour (simplifiée pour la lisibilité) ---
+  Future<void> _updatePosition(BuildContext context, InvestmentPosition position, double newPru, double newQuantity) async {
     try {
       final hasChanged = await positionService.updatePosition(
-        positionId: position.id,
-        pru: newPru,
-        quantity: newQuantity,
+          positionId: position.id,
+          pru: newPru,
+          quantity: newQuantity
       );
-
-      if (hasChanged && onPositionUpdated != null) {
-        onPositionUpdated!();
-      }
-
-      if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(
-              hasChanged
-                  ? 'Position ${position.ticker} mise à jour'
-                  : 'Position ${position.ticker} : aucun changement',
-            ),
-            backgroundColor: hasChanged
-                ? Colors.green.shade700
-                : Colors.blue.shade700,
-            duration: const Duration(seconds: 2),
-            behavior: SnackBarBehavior.floating,
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(8),
-            ),
-          ),
-        );
-      }
+      if (hasChanged) onPositionUpdated?.call();
     } catch (e) {
-      if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Erreur lors de la mise à jour : $e'),
-            backgroundColor: Colors.red.shade700,
-            duration: const Duration(seconds: 3),
-            behavior: SnackBarBehavior.floating,
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(8),
-            ),
-          ),
-        );
-      }
+      _showError(context, e.toString());
     }
   }
 
-  Future<void> _deletePosition(
-    BuildContext context,
-    InvestmentPosition position,
-  ) async {
+  Future<void> _deletePosition(BuildContext context, InvestmentPosition position) async {
     try {
       await positionService.deletePosition(position.id);
-
-      if (onPositionUpdated != null) {
-        onPositionUpdated!();
-      }
-
-      if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Position ${position.ticker} supprimée'),
-            backgroundColor: Colors.orange.shade700,
-            duration: const Duration(seconds: 2),
-            behavior: SnackBarBehavior.floating,
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(8),
-            ),
-          ),
-        );
-      }
+      onPositionUpdated?.call();
     } catch (e) {
-      if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Erreur lors de la suppression : $e'),
-            backgroundColor: Colors.red.shade700,
-            duration: const Duration(seconds: 3),
-            behavior: SnackBarBehavior.floating,
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(8),
-            ),
-          ),
-        );
-      }
+      _showError(context, e.toString());
     }
+  }
+
+  void _showError(BuildContext context, String msg) {
+    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(msg), backgroundColor: Colors.redAccent));
   }
 }

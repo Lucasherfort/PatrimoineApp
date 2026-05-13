@@ -4,8 +4,7 @@ import '../../models/investment_position.dart';
 
 class InvestmentPositionCard extends StatelessWidget {
   final InvestmentPosition position;
-  final void Function(double newAveragePurchasePrice, double newQuantity)?
-  onValueUpdated;
+  final void Function(double newPru, double newQty)? onValueUpdated;
   final VoidCallback? onDelete;
 
   const InvestmentPositionCard({
@@ -15,427 +14,256 @@ class InvestmentPositionCard extends StatelessWidget {
     this.onDelete,
   });
 
-  String _formatAmount(double amount) {
-    final formatter = NumberFormat.currency(
-      locale: 'fr_FR',
-      symbol: '',
-      decimalDigits: 2,
-    );
-    return formatter.format(amount).trim();
-  }
+  // --- Palette de couleurs pour fond clair ---
+  static const Color colorGreen = Color(0xFF1B823D); // Vert plus dense pour le contraste
+  static const Color colorRed = Color(0xFFD32F2F);   // Rouge plus dense
+  static const Color colorBlue = Color(0xFF0D71EE);
+  static const Color textDark = Color(0xFF0F172A);   // Bleu nuit très profond pour les textes
 
-  String _formatQuantity(double quantity) {
-    if (quantity % 1 == 0) {
-      return quantity.toInt().toString();
-    } else {
-      return quantity.toStringAsFixed(4).replaceAll(RegExp(r'\.?0+$'), '');
-    }
-  }
-
-  void _confirmDelete(BuildContext context) {
-    showDialog(
-      context: context,
-      builder: (BuildContext dialogContext) {
-        return AlertDialog(
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(16),
-          ),
-          title: const Text('Supprimer la position'),
-          content: RichText(
-            text: TextSpan(
-              style: DefaultTextStyle.of(context).style,
-              children: [
-                const TextSpan(
-                  text: 'Voulez-vous vraiment supprimer la position ',
-                ),
-                TextSpan(
-                  text: position.name,
-                  style: const TextStyle(fontWeight: FontWeight.bold),
-                ),
-                const TextSpan(text: ' ?'),
-              ],
-            ),
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(dialogContext),
-              child: const Text('Annuler'),
-            ),
-            ElevatedButton(
-              onPressed: () {
-                Navigator.pop(dialogContext);
-                if (onDelete != null) {
-                  onDelete!();
-                }
-              },
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.red,
-                foregroundColor: Colors.white,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(8),
-                ),
-              ),
-              child: const Text('Supprimer'),
-            ),
-          ],
-        );
-      },
-    );
+  String _format(double val) {
+    return NumberFormat.currency(
+        locale: 'fr_FR',
+        symbol: '',
+        decimalDigits: 2
+    ).format(val).trim();
   }
 
   @override
   Widget build(BuildContext context) {
-    final isPositive = position.latentGain >= 0;
+    final isProfit = position.latentGain >= 0;
+    final trendColor = isProfit ? colorGreen : colorRed;
 
     return Container(
-      margin: const EdgeInsets.only(bottom: 8),
+      margin: const EdgeInsets.symmetric(vertical: 6, horizontal: 2),
       decoration: BoxDecoration(
-        gradient: LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-          colors: [
-            Colors.white.withValues(alpha: 0.12),
-            Colors.white.withValues(alpha: 0.08),
-          ],
-        ),
-        borderRadius: BorderRadius.circular(12),
+        // Fond blanc lumineux (92% d'opacité pour garder un léger effet de profondeur)
+        color: Colors.white.withValues(alpha: 0.92),
+        borderRadius: BorderRadius.circular(20),
         border: Border.all(
-          color: Colors.white.withValues(alpha: 0.15),
-          width: 1,
+          color: Colors.white,
+          width: 1.5,
         ),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.15),
-            blurRadius: 8,
-            offset: const Offset(0, 2),
+            color: Colors.black.withValues(alpha: 0.08),
+            blurRadius: 15,
+            offset: const Offset(0, 6),
           ),
         ],
       ),
-      child: InkWell(
-        borderRadius: BorderRadius.circular(12),
-        onTap: () => _openEditPanel(context),
-        onLongPress: () => _confirmDelete(context),
-        child: Padding(
-          padding: const EdgeInsets.all(10.0),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              // En-tête compact
-              Row(
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(20),
+        child: Material(
+          color: Colors.transparent,
+          child: InkWell(
+            onTap: () => _openEditPanel(context),
+            onLongPress: () => _confirmDelete(context),
+            child: Padding(
+              padding: const EdgeInsets.all(16.0),
+              child: Column(
                 children: [
-                  Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 6,
-                      vertical: 3,
-                    ),
-                    decoration: BoxDecoration(
-                      color: Colors.purple.shade400.withValues(alpha: 0.3),
-                      borderRadius: BorderRadius.circular(6),
-                      border: Border.all(
-                        color: Colors.purple.shade300.withValues(alpha: 0.4),
-                        width: 1,
-                      ),
-                    ),
-                    child: Text(
-                      position.ticker,
-                      style: TextStyle(
-                        fontWeight: FontWeight.bold,
-                        color: Colors.purple.shade200,
-                        fontSize: 11,
-                      ),
-                    ),
-                  ),
-                  const SizedBox(width: 8),
-                  Expanded(
-                    child: Text(
-                      position.name,
-                      style: const TextStyle(
-                        fontWeight: FontWeight.w600,
-                        fontSize: 13,
-                        color: Colors.white,
-                      ),
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                  ),
-                  Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 6,
-                      vertical: 3,
-                    ),
-                    decoration: BoxDecoration(
-                      color: isPositive
-                          ? Colors.green.shade600
-                          : Colors.red.shade600,
-                      borderRadius: BorderRadius.circular(6),
-                    ),
-                    child: Text(
-                      "${isPositive ? '+' : ''}${position.performance.toStringAsFixed(1)}%",
-                      style: const TextStyle(
-                        fontSize: 11,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.white,
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 8),
-              // Valeur et gain sur une ligne
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
+                  // --- LIGNE 1 : TITRE & PERFORMANCE ---
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      Text(
-                        "Valeur",
-                        style: TextStyle(
-                          fontSize: 9,
-                          color: Colors.white.withValues(alpha: 0.6),
-                          fontWeight: FontWeight.w500,
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              position.ticker.toUpperCase(),
+                              style: const TextStyle(
+                                color: colorBlue,
+                                fontWeight: FontWeight.w900,
+                                fontSize: 11,
+                                letterSpacing: 1.2,
+                              ),
+                            ),
+                            const SizedBox(height: 2),
+                            Text(
+                              position.name,
+                              style: const TextStyle(
+                                color: textDark,
+                                fontWeight: FontWeight.w800,
+                                fontSize: 16,
+                              ),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ],
                         ),
                       ),
-                      const SizedBox(height: 1),
-                      Text(
-                        "${_formatAmount(position.totalValue)} €",
-                        style: const TextStyle(
-                          fontSize: 15,
-                          fontWeight: FontWeight.bold,
-                          color: Colors.white,
+                      const SizedBox(width: 8),
+                      // Badge de performance
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                        decoration: BoxDecoration(
+                          color: trendColor.withValues(alpha: 0.1),
+                          borderRadius: BorderRadius.circular(12),
                         ),
-                      ),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.end,
+                          children: [
+                            Text(
+                              "${isProfit ? '+' : ''}${_format(position.latentGain)} €",
+                              style: TextStyle(
+                                color: trendColor,
+                                fontWeight: FontWeight.bold,
+                                fontSize: 14,
+                              ),
+                            ),
+                            Text(
+                              "${isProfit ? '+' : ''}${position.performance.toStringAsFixed(2)}%",
+                              style: TextStyle(
+                                color: trendColor.withValues(alpha: 0.8),
+                                fontSize: 11,
+                                fontWeight: FontWeight.w900,
+                              ),
+                            ),
+                          ],
+                        ),
+                      )
                     ],
                   ),
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.end,
+
+                  const Padding(
+                    padding: EdgeInsets.symmetric(vertical: 14),
+                    child: Divider(color: Colors.black12, height: 1),
+                  ),
+
+                  // --- LIGNE 2 : GRILLE DE DONNÉES ---
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      Text(
-                        "Plus-value",
-                        style: TextStyle(
-                          fontSize: 9,
-                          color: Colors.white.withValues(alpha: 0.6),
-                          fontWeight: FontWeight.w500,
-                        ),
-                      ),
-                      const SizedBox(height: 1),
-                      Text(
-                        "${isPositive ? '+' : ''}${_formatAmount(position.latentGain)} €",
-                        style: TextStyle(
-                          fontSize: 15,
-                          fontWeight: FontWeight.bold,
-                          color: isPositive
-                              ? Colors.green.shade400
-                              : Colors.red.shade400,
-                        ),
-                      ),
+                      _buildDataColumn("VALEUR", "${_format(position.totalValue)} €", isBold: true),
+                      _buildDataColumn("QTÉ", position.quantity.toStringAsFixed(2)),
+                      _buildDataColumn("PRU", "${_format(position.pru)} €"),
+                      _buildDataColumn("COURS", "${_format(position.currentPrice)} €"),
                     ],
                   ),
                 ],
               ),
-              const SizedBox(height: 8),
-              // Détails ultra-compacts
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
-                decoration: BoxDecoration(
-                  color: Colors.white.withValues(alpha: 0.06),
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    _buildCompactInfo(
-                      "Qté",
-                      _formatQuantity(position.quantity),
-                    ),
-                    _buildCompactInfo(
-                      "PRU",
-                      "${_formatAmount(position.pru)} €",
-                    ),
-                    _buildCompactInfo(
-                      "Actuel",
-                      "${_formatAmount(position.currentPrice)} €",
-                    ),
-                  ],
-                ),
-              ),
-            ],
+            ),
           ),
         ),
       ),
     );
   }
 
-  Widget _buildCompactInfo(String label, String value) {
-    return Row(
+  Widget _buildDataColumn(String label, String value, {bool isBold = false}) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          "$label: ",
+          label,
           style: TextStyle(
-            fontSize: 10,
-            color: Colors.white.withValues(alpha: 0.5),
-            fontWeight: FontWeight.w500,
+            color: textDark.withValues(alpha: 0.4),
+            fontSize: 9,
+            fontWeight: FontWeight.bold,
+            letterSpacing: 0.5,
           ),
         ),
+        const SizedBox(height: 4),
         Text(
           value,
-          style: const TextStyle(
-            fontSize: 10,
-            fontWeight: FontWeight.w600,
-            color: Colors.white,
+          style: TextStyle(
+            color: isBold ? textDark : textDark.withValues(alpha: 0.85),
+            fontSize: 13,
+            fontWeight: isBold ? FontWeight.w900 : FontWeight.w600,
           ),
         ),
       ],
     );
   }
 
+  // --- MODAL DE MODIFICATION (DARK POUR LE CONTRASTE) ---
   void _openEditPanel(BuildContext context) {
-    final pruController = TextEditingController(
-      text: position.pru.toStringAsFixed(2).replaceAll('.', ','),
-    );
-    final quantityController = TextEditingController(
-      text: _formatQuantity(position.quantity).replaceAll('.', ','),
-    );
+    final pruController = TextEditingController(text: position.pru.toString().replaceAll('.', ','));
+    final qtyController = TextEditingController(text: position.quantity.toString().replaceAll('.', ','));
 
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
-      builder: (context) {
-        return Container(
-          decoration: const BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-          ),
-          child: Padding(
-            padding: EdgeInsets.only(
-              left: 16,
-              right: 16,
-              top: 16,
-              bottom: MediaQuery.of(context).viewInsets.bottom + 16,
+      builder: (context) => Container(
+        decoration: const BoxDecoration(
+          color: Color(0xFF0F172A), // On garde la modal sombre pour le style "Premium"
+          borderRadius: BorderRadius.vertical(top: Radius.circular(30)),
+        ),
+        padding: EdgeInsets.only(
+          left: 24, right: 24, top: 12,
+          bottom: MediaQuery.of(context).viewInsets.bottom + 24,
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Container(width: 40, height: 4, decoration: BoxDecoration(color: Colors.white24, borderRadius: BorderRadius.circular(2))),
+            const SizedBox(height: 24),
+            Text(position.name, style: const TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold)),
+            const SizedBox(height: 24),
+            _buildField(qtyController, "Quantité détenue", Icons.layers_outlined),
+            const SizedBox(height: 16),
+            _buildField(pruController, "Prix de revient (PRU)", Icons.euro_symbol_rounded),
+            const SizedBox(height: 24),
+            SizedBox(
+              width: double.infinity,
+              height: 56,
+              child: ElevatedButton(
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: colorBlue,
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                  elevation: 0,
+                ),
+                onPressed: () {
+                  final p = double.tryParse(pruController.text.replaceAll(',', '.'));
+                  final q = double.tryParse(qtyController.text.replaceAll(',', '.'));
+                  if (p != null && q != null) onValueUpdated?.call(p, q);
+                  Navigator.pop(context);
+                },
+                child: const Text("METTRE À JOUR", style: TextStyle(color: Colors.white, fontWeight: FontWeight.w900, letterSpacing: 1.0)),
+              ),
             ),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  children: [
-                    Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 10,
-                        vertical: 5,
-                      ),
-                      decoration: BoxDecoration(
-                        color: Colors.purple.shade50,
-                        borderRadius: BorderRadius.circular(8),
-                      ),
-                      child: Text(
-                        position.ticker,
-                        style: TextStyle(
-                          fontWeight: FontWeight.bold,
-                          color: Colors.purple.shade700,
-                          fontSize: 13,
-                        ),
-                      ),
-                    ),
-                    const SizedBox(width: 10),
-                    Expanded(
-                      child: Text(
-                        position.name,
-                        style: const TextStyle(
-                          fontSize: 20,
-                          fontWeight: FontWeight.bold,
-                        ),
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 20),
-                TextField(
-                  controller: quantityController,
-                  keyboardType: const TextInputType.numberWithOptions(
-                    decimal: true,
-                  ),
-                  decoration: InputDecoration(
-                    labelText: "Quantité",
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    focusedBorder: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(12),
-                      borderSide: BorderSide(
-                        color: Colors.purple.shade600,
-                        width: 2,
-                      ),
-                    ),
-                    helperText: "Nombre d'actions/parts détenues",
-                  ),
-                ),
-                const SizedBox(height: 16),
-                TextField(
-                  controller: pruController,
-                  keyboardType: const TextInputType.numberWithOptions(
-                    decimal: true,
-                  ),
-                  decoration: InputDecoration(
-                    labelText: "Prix de Revient Unitaire (PRU)",
-                    suffixText: "€",
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    focusedBorder: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(12),
-                      borderSide: BorderSide(
-                        color: Colors.purple.shade600,
-                        width: 2,
-                      ),
-                    ),
-                    helperText: "Prix moyen d'achat par unité",
-                  ),
-                ),
-                const SizedBox(height: 20),
-                SizedBox(
-                  width: double.infinity,
-                  child: ElevatedButton(
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.purple.shade600,
-                      padding: const EdgeInsets.symmetric(vertical: 14),
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                    ),
-                    onPressed: () {
-                      final pru = double.tryParse(
-                        pruController.text.replaceAll(',', '.'),
-                      );
-                      final quantity = double.tryParse(
-                        quantityController.text.replaceAll(',', '.'),
-                      );
+          ],
+        ),
+      ),
+    );
+  }
 
-                      if (pru != null &&
-                          quantity != null &&
-                          onValueUpdated != null) {
-                        onValueUpdated!(pru, quantity);
-                      }
-                      Navigator.pop(context);
-                    },
-                    child: const Text(
-                      "Valider",
-                      style: TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.white,
-                      ),
-                    ),
-                  ),
-                ),
-              ],
-            ),
+  Widget _buildField(TextEditingController ctrl, String label, IconData icon) {
+    return TextField(
+      controller: ctrl,
+      style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+      keyboardType: const TextInputType.numberWithOptions(decimal: true),
+      decoration: InputDecoration(
+        labelText: label,
+        labelStyle: const TextStyle(color: Colors.white38),
+        prefixIcon: Icon(icon, color: colorBlue, size: 22),
+        filled: true,
+        fillColor: Colors.white.withValues(alpha: 0.05),
+        border: OutlineInputBorder(borderRadius: BorderRadius.circular(16), borderSide: BorderSide.none),
+      ),
+    );
+  }
+
+  void _confirmDelete(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        backgroundColor: const Color(0xFF1E293B),
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        title: const Text("Supprimer la position", style: TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold)),
+        content: Text("Voulez-vous retirer ${position.ticker} de votre portefeuille ?", style: const TextStyle(color: Colors.white70)),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(context), child: const Text("Annuler", style: TextStyle(color: Colors.white38))),
+          TextButton(
+              onPressed: () {
+                Navigator.pop(context);
+                onDelete?.call();
+              },
+              child: const Text("Supprimer", style: TextStyle(color: colorRed, fontWeight: FontWeight.bold))
           ),
-        );
-      },
+        ],
+      ),
     );
   }
 }
