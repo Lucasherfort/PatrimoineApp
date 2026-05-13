@@ -55,16 +55,17 @@ class _GraphsPageState extends State<GraphsPage> {
 
   @override
   Widget build(BuildContext context) {
+    // Utilisation de ta couleur de logo très sombre pour le fond
     return Scaffold(
-      backgroundColor: const Color(0xFF0F172A),
+      backgroundColor: const Color(0xFF060B26),
       body: SafeArea(
         child: _isLoading
             ? const Center(
-                child: CircularProgressIndicator(
-                  color: Colors.purple,
-                  strokeWidth: 3,
-                ),
-              )
+          child: CircularProgressIndicator(
+            color: Color(0xFF0D71EE), // Ton bleu principal
+            strokeWidth: 3,
+          ),
+        )
             : _distribution == null || _distribution!.total == 0
             ? _buildEmptyState()
             : _buildContent(),
@@ -80,7 +81,7 @@ class _GraphsPageState extends State<GraphsPage> {
           Container(
             padding: const EdgeInsets.all(24),
             decoration: BoxDecoration(
-              color: Colors.white.withValues(alpha: 0.05),
+              color: Colors.white.withOpacity(0.05),
               shape: BoxShape.circle,
             ),
             child: Icon(
@@ -115,16 +116,7 @@ class _GraphsPageState extends State<GraphsPage> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const SizedBox(height: 24),
-          Text(
-            'Répartition du patrimoine :',
-            style: TextStyle(
-              fontSize: 22,
-              fontWeight: FontWeight.bold,
-              color: Colors.white.withValues(alpha: 0.9),
-            ),
-          ),
-          const SizedBox(height: 20),
+          const SizedBox(height: 10), // Espace réduit car le titre est supprimé
           _buildCompactPieChart(),
           const SizedBox(height: 24),
           _buildCategoryCards(),
@@ -140,15 +132,15 @@ class _GraphsPageState extends State<GraphsPage> {
       decoration: BoxDecoration(
         gradient: LinearGradient(
           colors: [
-            Colors.white.withValues(alpha: 0.05),
-            Colors.white.withValues(alpha: 0.02),
+            Colors.white.withOpacity(0.05),
+            Colors.white.withOpacity(0.02),
           ],
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
         ),
         borderRadius: BorderRadius.circular(20),
         border: Border.all(
-          color: Colors.white.withValues(alpha: 0.1),
+          color: Colors.white.withOpacity(0.1),
           width: 1,
         ),
       ),
@@ -198,7 +190,7 @@ class _GraphsPageState extends State<GraphsPage> {
               color: Colors.white,
               shadows: [
                 Shadow(
-                  color: Colors.black.withValues(alpha: 0.5),
+                  color: Colors.black.withOpacity(0.5),
                   blurRadius: 4,
                 ),
               ],
@@ -209,27 +201,28 @@ class _GraphsPageState extends State<GraphsPage> {
       }
     }
 
+    // Utilisation de tes couleurs de logo pour les catégories
     addSection(
       distribution.liquidite,
-      Colors.green.shade400,
+      const Color(0xFF65E046), // Ton vert clair
       'Liquidité',
       Icons.water_drop_rounded,
     );
     addSection(
       distribution.epargne,
-      Colors.blue.shade400,
+      const Color(0xFF67C6F2), // Ton bleu ciel
       'Épargne',
       Icons.savings_rounded,
     );
     addSection(
       distribution.investissement,
-      Colors.purple.shade400,
+      const Color(0xFF0D71EE), // Ton bleu principal
       'Invest.',
       Icons.trending_up_rounded,
     );
     addSection(
       distribution.avantages,
-      Colors.orange.shade400,
+      const Color(0xFFF8CC22), // Ton jaune/or
       'Avantages',
       Icons.card_giftcard_rounded,
     );
@@ -247,7 +240,7 @@ class _GraphsPageState extends State<GraphsPage> {
             'Liquidités',
             distribution.liquidite,
             distribution.total,
-            Colors.green.shade400,
+            const Color(0xFF65E046),
             Icons.water_drop_rounded,
           ),
         if (distribution.epargne > 0)
@@ -255,7 +248,7 @@ class _GraphsPageState extends State<GraphsPage> {
             'Épargne',
             distribution.epargne,
             distribution.total,
-            Colors.blue.shade400,
+            const Color(0xFF67C6F2),
             Icons.savings_rounded,
           ),
         if (distribution.investissement > 0)
@@ -263,7 +256,7 @@ class _GraphsPageState extends State<GraphsPage> {
             'Investissements',
             distribution.investissement,
             distribution.total,
-            Colors.purple.shade400,
+            const Color(0xFF0D71EE),
             Icons.trending_up_rounded,
           ),
         if (distribution.avantages > 0)
@@ -271,7 +264,7 @@ class _GraphsPageState extends State<GraphsPage> {
             'Avantages',
             distribution.avantages,
             distribution.total,
-            Colors.orange.shade400,
+            const Color(0xFFF8CC22),
             Icons.card_giftcard_rounded,
           ),
       ],
@@ -279,12 +272,12 @@ class _GraphsPageState extends State<GraphsPage> {
   }
 
   Widget _categoryCard(
-    String label,
-    double value,
-    double total,
-    Color color,
-    IconData icon,
-  ) {
+      String label,
+      double value,
+      double total,
+      Color color,
+      IconData icon,
+      ) {
     final currencyFormat = NumberFormat.currency(locale: 'fr_FR', symbol: '€');
     final percent = (value / total) * 100;
 
@@ -292,23 +285,16 @@ class _GraphsPageState extends State<GraphsPage> {
       margin: const EdgeInsets.only(bottom: 10),
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
-        gradient: LinearGradient(
-          colors: [
-            color.withValues(alpha: 0.15),
-            color.withValues(alpha: 0.08),
-          ],
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-        ),
+        color: color.withOpacity(0.05),
         borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: color.withValues(alpha: 0.3), width: 1),
+        border: Border.all(color: color.withOpacity(0.2), width: 1),
       ),
       child: Row(
         children: [
           Container(
             padding: const EdgeInsets.all(10),
             decoration: BoxDecoration(
-              color: color.withValues(alpha: 0.2),
+              color: color.withOpacity(0.1),
               borderRadius: BorderRadius.circular(10),
             ),
             child: Icon(icon, color: color, size: 22),
@@ -341,7 +327,7 @@ class _GraphsPageState extends State<GraphsPage> {
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
             decoration: BoxDecoration(
-              color: color.withValues(alpha: 0.2),
+              color: color.withOpacity(0.1),
               borderRadius: BorderRadius.circular(10),
             ),
             child: Text(
