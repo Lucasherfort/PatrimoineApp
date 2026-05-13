@@ -30,7 +30,6 @@ class _PatrimoineHeaderState extends State<PatrimoineHeader> {
   static const Color colorBlueMain = Color(0xFF0D71EE);
   static const Color colorGreenFlash = Color(0xFF65E046);
   static const Color colorOrangeLogo = Color(0xFFD98006);
-  static const Color colorDarkBlue = Color(0xFF060B26);
 
   String _formatAmount(double amount) {
     final formatter = NumberFormat.currency(

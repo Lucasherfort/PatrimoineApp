@@ -110,7 +110,7 @@ class _MainNavigationState extends State<MainNavigation> {
         onTap: (index) => setState(() => _currentIndex = index),
         backgroundColor: colorDarkBg,
         selectedItemColor: colorBlueMain,
-        unselectedItemColor: Colors.white.withOpacity(0.4),
+        unselectedItemColor: Colors.white.withValues(alpha: 0.4),
         type: BottomNavigationBarType.fixed,
         showUnselectedLabels: true,
         selectedFontSize: 12,
@@ -151,7 +151,7 @@ class _MainNavigationState extends State<MainNavigation> {
           const SizedBox(height: 40),
           ElevatedButton.icon(
             style: ElevatedButton.styleFrom(
-              backgroundColor: Colors.red.withOpacity(0.1),
+              backgroundColor: Colors.red.withValues(alpha: 0.1),
               foregroundColor: Colors.red,
               side: const BorderSide(color: Colors.red),
             ),

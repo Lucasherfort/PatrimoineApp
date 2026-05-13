@@ -83,7 +83,7 @@ class _GraphsPageState extends State<GraphsPage> {
           Container(
             padding: const EdgeInsets.all(24),
             decoration: BoxDecoration(
-              color: Colors.white.withOpacity(0.05),
+              color: Colors.white.withValues(alpha: 0.05),
               shape: BoxShape.circle,
             ),
             child: Icon(
@@ -134,14 +134,14 @@ class _GraphsPageState extends State<GraphsPage> {
       decoration: BoxDecoration(
         gradient: LinearGradient(
           colors: [
-            Colors.white.withOpacity(0.05),
-            Colors.white.withOpacity(0.02),
+            Colors.white.withValues(alpha: 0.05),
+            Colors.white.withValues(alpha: 0.02),
           ],
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
         ),
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: Colors.white.withOpacity(0.1), width: 1),
+        border: Border.all(color: Colors.white.withValues(alpha: 0.1), width: 1),
       ),
       child: PieChart(
         PieChartData(
@@ -188,7 +188,7 @@ class _GraphsPageState extends State<GraphsPage> {
               fontWeight: FontWeight.bold,
               color: Colors.white,
               shadows: [
-                Shadow(color: Colors.black.withOpacity(0.5), blurRadius: 4),
+                Shadow(color: Colors.black.withValues(alpha: 0.5), blurRadius: 4),
               ],
             ),
           ),
@@ -281,16 +281,16 @@ class _GraphsPageState extends State<GraphsPage> {
       margin: const EdgeInsets.only(bottom: 10),
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
-        color: color.withOpacity(0.05),
+        color: color.withValues(alpha: 0.05),
         borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: color.withOpacity(0.2), width: 1),
+        border: Border.all(color: color.withValues(alpha: 0.2), width: 1),
       ),
       child: Row(
         children: [
           Container(
             padding: const EdgeInsets.all(10),
             decoration: BoxDecoration(
-              color: color.withOpacity(0.1),
+              color: color.withValues(alpha: 0.1),
               borderRadius: BorderRadius.circular(10),
             ),
             child: Icon(icon, color: color, size: 22),
@@ -323,7 +323,7 @@ class _GraphsPageState extends State<GraphsPage> {
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
             decoration: BoxDecoration(
-              color: color.withOpacity(0.1),
+              color: color.withValues(alpha: 0.1),
               borderRadius: BorderRadius.circular(10),
             ),
             child: Text(

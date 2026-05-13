@@ -25,10 +25,10 @@ class _BudgetPageState extends State<BudgetPage> {
             Container(
               padding: const EdgeInsets.all(30),
               decoration: BoxDecoration(
-                color: colorBlueMain.withOpacity(0.05),
+                color: colorBlueMain.withValues(alpha: 0.05),
                 shape: BoxShape.circle,
                 border: Border.all(
-                  color: colorBlueMain.withOpacity(0.1),
+                  color: colorBlueMain.withValues(alpha: 0.1),
                   width: 2,
                 ),
               ),
@@ -57,7 +57,7 @@ class _BudgetPageState extends State<BudgetPage> {
                 textAlign: TextAlign.center,
                 style: TextStyle(
                   fontSize: 16,
-                  color: Colors.white.withOpacity(0.5),
+                  color: Colors.white.withValues(alpha: 0.5),
                   height: 1.5,
                 ),
               ),
@@ -67,9 +67,9 @@ class _BudgetPageState extends State<BudgetPage> {
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
               decoration: BoxDecoration(
-                color: colorGreenLogo.withOpacity(0.1),
+                color: colorGreenLogo.withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(20),
-                border: Border.all(color: colorGreenLogo.withOpacity(0.3)),
+                border: Border.all(color: colorGreenLogo.withValues(alpha: 0.3)),
               ),
               child: const Text(
                 "SOON",

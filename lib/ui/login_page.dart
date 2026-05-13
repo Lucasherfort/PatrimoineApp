@@ -33,10 +33,11 @@ class _LoginPageState extends State<LoginPage> {
         password: _passwordController.text,
       );
     } catch (e) {
-      if (mounted)
+      if (mounted) {
         setState(
           () => errorMessage = e.toString().replaceFirst('Exception: ', ''),
         );
+      }
     } finally {
       if (mounted) setState(() => isLoading = false);
     }
@@ -60,10 +61,11 @@ class _LoginPageState extends State<LoginPage> {
         ),
       );
     } catch (e) {
-      if (mounted)
+      if (mounted) {
         setState(
           () => errorMessage = e.toString().replaceFirst('Exception: ', ''),
         );
+      }
     } finally {
       if (mounted) setState(() => isLoading = false);
     }
