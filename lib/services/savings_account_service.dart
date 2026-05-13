@@ -57,6 +57,7 @@ class SavingsAccountService {
     required int savingsAccountId,
     required double principal,
     required double interest,
+    required bool automaticInterestCalculation,
   }) async {
     try {
       await _supabase
@@ -176,6 +177,7 @@ class SavingsAccountService {
       logoUrl: _resolveLogoUrl(bank[BanksTable.icon] as String?),
       principal: (item[UserSavingsAccountTable.principal] as num).toDouble(),
       interest: (item[UserSavingsAccountTable.interest] as num).toDouble(),
+      automaticInterestCalculation: false,
       interestRate: (category[SavingsCategoryTable.interestRate] as num?)
           ?.toDouble(),
       ceiling: (category[SavingsCategoryTable.ceiling] as num?)?.toDouble(),

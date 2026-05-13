@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:package_info_plus/package_info_plus.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
+import 'budget_page.dart';
 import 'home_page.dart';
+import 'login_page.dart';
 import 'graphs_page.dart';
 
 class MainNavigation extends StatefulWidget {
@@ -14,6 +17,13 @@ class _MainNavigationState extends State<MainNavigation> {
   int _currentIndex = 0;
   String appVersion = '';
   String appName = 'Patrimoine 360';
+
+  // Tes couleurs officielles
+  static const Color colorBlueMain = Color(0xFF0D71EE);
+  static const Color colorDarkBg = Color(0xFF060B26);
+  static const Color colorSurface = Color(0xFF1E293B);
+
+  final GlobalKey<HomePageState> _homeKey = GlobalKey<HomePageState>();
 
   @override
   void initState() {
@@ -31,60 +41,141 @@ class _MainNavigationState extends State<MainNavigation> {
         });
       }
     } catch (e) {
-      debugPrint('Erreur récupération infos application: $e');
+      debugPrint('Erreur infos app: $e');
     }
   }
 
   @override
   Widget build(BuildContext context) {
-    // Les deux pages (onglets)
-    final pages = [
-      HomePage(appName: appName, appVersion: appVersion), // Onglet "Comptes"
-      GraphsPage(
-        appName: appName,
-        appVersion: appVersion,
-      ), // Onglet "Graphiques"
+    // Liste des textes d'onglets
+    final List<String> titles = [
+      "Patrimoine",
+      "Analyses",
+      "Mon Budget",
+      "Mon Profil",
+    ];
+
+    // Liste des icônes correspondantes pour l'AppBar
+    final List<IconData> titleIcons = [
+      Icons.account_balance,
+      Icons.insights,
+      Icons.receipt_long,
+      Icons.manage_accounts,
+    ];
+
+    final List<Widget> pages = [
+      HomePage(key: _homeKey, appName: appName, appVersion: appVersion),
+      const GraphsPage(appName: '', appVersion: ''),
+      const BudgetPage(), // <--- Remplace _buildExpenseSection() par ton nouveau Widget
+      _buildProfileSection(),
     ];
 
     return Scaffold(
+      backgroundColor: colorDarkBg,
+      appBar: AppBar(
+        backgroundColor: colorSurface,
+        elevation: 0,
+        titleSpacing: 20, // Un peu plus d'air à gauche
+        title: Row(
+          children: [
+            // Le logo dynamique à gauche
+            Icon(titleIcons[_currentIndex], color: colorBlueMain, size: 24),
+            const SizedBox(width: 12),
+            Text(
+              titles[_currentIndex],
+              style: const TextStyle(
+                color: Colors.white,
+                fontWeight: FontWeight.bold,
+                fontSize: 20,
+              ),
+            ),
+          ],
+        ),
+        actions: [
+          if (_currentIndex == 0)
+            IconButton(
+              icon: const Icon(
+                Icons.add_circle,
+                color: colorBlueMain,
+                size: 28,
+              ),
+              onPressed: () => _homeKey.currentState?.openAddPatrimoinePanel(),
+            ),
+          const SizedBox(width: 8),
+        ],
+      ),
       body: IndexedStack(index: _currentIndex, children: pages),
-      bottomNavigationBar: Container(
-        decoration: BoxDecoration(
-          color: const Color(0xFF0F172A), // slate-900
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withValues(alpha: 0.4),
-              blurRadius: 10,
-              offset: const Offset(0, -4),
-            ),
-          ],
-        ),
-        child: BottomNavigationBar(
-          currentIndex: _currentIndex,
-          onTap: (index) {
-            setState(() {
-              _currentIndex = index;
-            });
-          },
-          backgroundColor: Colors.transparent,
-          elevation: 0,
-          selectedItemColor: Colors.white,
-          unselectedItemColor: Colors.white.withValues(alpha: 0.5),
-          selectedLabelStyle: const TextStyle(fontWeight: FontWeight.w600),
-          unselectedLabelStyle: const TextStyle(fontWeight: FontWeight.w500),
-          type: BottomNavigationBarType.fixed,
-          items: const [
-            BottomNavigationBarItem(
-              icon: Icon(Icons.account_balance_wallet),
-              label: 'Comptes',
-            ),
-            BottomNavigationBarItem(
-              icon: Icon(Icons.bar_chart),
-              label: 'Graphiques',
-            ),
-          ],
-        ),
+      bottomNavigationBar: BottomNavigationBar(
+        currentIndex: _currentIndex,
+        onTap: (index) => setState(() => _currentIndex = index),
+        backgroundColor: colorDarkBg,
+        selectedItemColor: colorBlueMain,
+        unselectedItemColor: Colors.white.withValues(alpha: 0.4),
+        type: BottomNavigationBarType.fixed,
+        showUnselectedLabels: true,
+        selectedFontSize: 12,
+        unselectedFontSize: 12,
+        items: const [
+          BottomNavigationBarItem(
+            icon: Icon(Icons.account_balance),
+            label: 'Patrimoine',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.insights),
+            label: 'Graphiques',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.receipt_long),
+            label: 'Budget',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.manage_accounts),
+            label: 'Profil',
+          ),
+        ],
       ),
     );
+  }
+
+  Widget _buildProfileSection() {
+    return Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          const Icon(Icons.person_outline, size: 80, color: Colors.white24),
+          const SizedBox(height: 16),
+          Text(
+            Supabase.instance.client.auth.currentUser?.email ?? "Utilisateur",
+            style: const TextStyle(color: Colors.white, fontSize: 16),
+          ),
+          const SizedBox(height: 40),
+          ElevatedButton.icon(
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.red.withValues(alpha: 0.1),
+              foregroundColor: Colors.red,
+              side: const BorderSide(color: Colors.red),
+            ),
+            onPressed: _handleLogout,
+            icon: const Icon(Icons.logout),
+            label: const Text("Déconnexion"),
+          ),
+          const SizedBox(height: 20),
+          Text(
+            appVersion,
+            style: const TextStyle(color: Colors.white24, fontSize: 12),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Future<void> _handleLogout() async {
+    await Supabase.instance.client.auth.signOut();
+    if (mounted) {
+      Navigator.of(context).pushAndRemoveUntil(
+        MaterialPageRoute(builder: (_) => const LoginPage()),
+        (route) => false,
+      );
+    }
   }
 }

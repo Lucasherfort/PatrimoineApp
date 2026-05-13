@@ -28,6 +28,10 @@ class _InvestmentDetailPageState extends State<InvestmentDetailPage> {
   final InvestmentService _investmentService = InvestmentService();
   final PositionService _positionService = PositionService();
 
+  // --- Palette de couleurs cohérente ---
+  static const Color colorDarkBg = Color(0xFF060B26);
+  static const Color colorBlueMain = Color(0xFF0D71EE);
+
   List<InvestmentPosition> positions = [];
   UserInvestmentAccountView? accountView;
   bool isLoading = true;
@@ -40,12 +44,10 @@ class _InvestmentDetailPageState extends State<InvestmentDetailPage> {
 
   Future<void> _loadPositionsAndAccount() async {
     setState(() => isLoading = true);
-
     try {
       final fetchedPositions = await _investmentService.getInvestmentPositions(
         widget.userInvestmentAccountId,
       );
-
       final accounts = await _investmentService
           .getInvestmentAccountsForUserWithPrices();
 
@@ -63,45 +65,17 @@ class _InvestmentDetailPageState extends State<InvestmentDetailPage> {
       );
 
       if (!mounted) return;
-
       setState(() {
         positions = fetchedPositions;
         accountView = account;
         isLoading = false;
       });
-
-      if (account.totalContribution == 0) {
-        WidgetsBinding.instance.addPostFrameCallback((_) {
-          if (!mounted) return;
-
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: const Text(
-                'Attention : les dépôts cumulés de ce compte sont à 0.',
-              ),
-              backgroundColor: Colors.orange.shade700,
-              duration: const Duration(seconds: 4),
-              behavior: SnackBarBehavior.floating,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(8),
-              ),
-            ),
-          );
-        });
-      }
     } catch (e) {
       if (!mounted) return;
-
       setState(() => isLoading = false);
-
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Erreur de chargement: $e'),
-          backgroundColor: Colors.red.shade700,
-          behavior: SnackBarBehavior.floating,
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
-        ),
-      );
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Erreur: $e')));
     }
   }
 
@@ -109,10 +83,8 @@ class _InvestmentDetailPageState extends State<InvestmentDetailPage> {
     showDialog(
       context: context,
       builder: (context) => AddPositionDialog(
-        existingPositions: positions, // ✅ PASSEZ LA LISTE
+        existingPositions: positions,
         onAdd: (Position position, double quantity, double pru) async {
-          final scaffoldMessenger = ScaffoldMessenger.of(context);
-
           try {
             await _positionService.addPosition(
               userInvestmentAccountId: widget.userInvestmentAccountId,
@@ -121,35 +93,15 @@ class _InvestmentDetailPageState extends State<InvestmentDetailPage> {
               averagePurchasePrice: pru,
             );
 
+            if (!context.mounted) return;
+
             await _loadPositionsAndAccount();
-
-            if (!mounted) return;
-
-            scaffoldMessenger.showSnackBar(
-              SnackBar(
-                content: Text(
-                  'Position ${position.ticker} ajoutée avec succès',
-                ),
-                backgroundColor: Colors.green.shade700,
-                behavior: SnackBarBehavior.floating,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(8),
-                ),
-              ),
-            );
           } catch (e) {
-            if (!mounted) return;
+            if (!context.mounted) return;
 
-            scaffoldMessenger.showSnackBar(
-              SnackBar(
-                content: Text('Erreur : $e'),
-                backgroundColor: Colors.red.shade700,
-                behavior: SnackBarBehavior.floating,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(8),
-                ),
-              ),
-            );
+            ScaffoldMessenger.of(
+              context,
+            ).showSnackBar(SnackBar(content: Text('Erreur: $e')));
           }
         },
       ),
@@ -159,165 +111,124 @@ class _InvestmentDetailPageState extends State<InvestmentDetailPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: colorDarkBg, // Fond ultra sombre
       extendBodyBehindAppBar: true,
-      appBar: AppBar(
-        backgroundColor: Colors.transparent,
-        elevation: 0,
-        leading: Container(
-          margin: const EdgeInsets.all(8),
-          decoration: BoxDecoration(
-            color: Colors.white.withValues(alpha: 0.1),
-            borderRadius: BorderRadius.circular(10),
-          ),
-          child: IconButton(
-            icon: const Icon(Icons.arrow_back, color: Colors.white),
-            onPressed: () => Navigator.pop(context, true),
-          ),
-        ),
-        title: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              widget.accountName,
-              style: const TextStyle(
-                fontSize: 18,
-                fontWeight: FontWeight.bold,
-                color: Colors.white,
-              ),
-            ),
-            Text(
-              widget.bankName,
-              style: TextStyle(
-                fontSize: 13,
-                color: Colors.white.withValues(alpha: 0.7),
-              ),
-            ),
-          ],
-        ),
-        actions: [
-          if (!isLoading)
-            Container(
-              margin: const EdgeInsets.only(right: 8),
+      appBar: _buildAppBar(),
+      body: Stack(
+        children: [
+          // --- EFFET DE FOND (Halos lumineux) ---
+          Positioned(
+            top: -100,
+            right: -50,
+            child: Container(
+              width: 300,
+              height: 300,
               decoration: BoxDecoration(
-                color: Colors.white.withValues(alpha: 0.1),
-                borderRadius: BorderRadius.circular(10),
-              ),
-              child: IconButton(
-                icon: const Icon(Icons.refresh, color: Colors.white, size: 22),
-                onPressed: _loadPositionsAndAccount,
-                tooltip: 'Actualiser les cours',
+                shape: BoxShape.circle,
+                color: colorBlueMain.withValues(alpha: 0.15),
               ),
             ),
-          if (!isLoading)
-            Container(
-              margin: const EdgeInsets.only(right: 12),
+          ),
+          Positioned(
+            bottom: 200,
+            left: -100,
+            child: Container(
+              width: 350,
+              height: 350,
               decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(12),
-                gradient: LinearGradient(
-                  colors: [Colors.purple.shade600, Colors.purple.shade800],
-                ),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.purple.shade800.withValues(alpha: 0.4),
-                    blurRadius: 8,
-                    offset: const Offset(0, 3),
+                shape: BoxShape.circle,
+                color: Colors.purple.withValues(
+                  alpha: 0.08,
+                ), // Un rappel de la couleur investissement
+              ),
+            ),
+          ),
+
+          // --- CONTENU ---
+          SafeArea(
+            child: isLoading
+                ? const Center(
+                    child: CircularProgressIndicator(color: Colors.white),
+                  )
+                : Column(
+                    children: [
+                      if (accountView != null)
+                        InvestmentSummaryHeader(
+                          account: accountView!,
+                          positions: positions,
+                          onValueUpdated: _handleValueUpdated,
+                        ),
+                      Expanded(
+                        child: InvestmentPositionList(
+                          positions: positions,
+                          isLoading: false,
+                          positionService: _positionService,
+                          onPositionUpdated: _loadPositionsAndAccount,
+                        ),
+                      ),
+                    ],
                   ),
-                ],
-              ),
-              child: IconButton(
-                icon: const Icon(Icons.add, color: Colors.white),
-                onPressed: _openAddPositionDialog,
-                tooltip: 'Ajouter une position',
-              ),
-            ),
+          ),
         ],
       ),
-      body: Container(
-        decoration: const BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
-            colors: [Color(0xFF1E293B), Color(0xFF0F172A), Colors.black],
-          ),
-        ),
-        child: SafeArea(
-          child: isLoading
-              ? const Center(
-                  child: CircularProgressIndicator(
-                    color: Colors.white,
-                    strokeWidth: 3,
-                  ),
-                )
-              : Column(
-                  children: [
-                    if (accountView != null)
-                      InvestmentSummaryHeader(
-                        account: accountView!,
-                        positions: positions,
-                        onValueUpdated: (newCash, newDeposits) async {
-                          final scaffoldMessenger = ScaffoldMessenger.of(
-                            context,
-                          );
-
-                          try {
-                            final hasChanged = await _investmentService
-                                .updateInvestmentAccount(
-                                  userInvestmentAccountId:
-                                      widget.userInvestmentAccountId,
-                                  cashBalance: newCash,
-                                  cumulativeDeposits: newDeposits,
-                                );
-
-                            await _loadPositionsAndAccount();
-
-                            if (!mounted) return;
-
-                            scaffoldMessenger.showSnackBar(
-                              SnackBar(
-                                content: Text(
-                                  hasChanged
-                                      ? 'Compte mis à jour'
-                                      : 'Aucun changement détecté',
-                                ),
-                                backgroundColor: hasChanged
-                                    ? Colors.green.shade700
-                                    : Colors.blue.shade700,
-                                duration: const Duration(seconds: 2),
-                                behavior: SnackBarBehavior.floating,
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(8),
-                                ),
-                              ),
-                            );
-                          } catch (e) {
-                            if (!mounted) return;
-
-                            scaffoldMessenger.showSnackBar(
-                              SnackBar(
-                                content: Text('Erreur: $e'),
-                                backgroundColor: Colors.red.shade700,
-                                duration: const Duration(seconds: 3),
-                                behavior: SnackBarBehavior.floating,
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(8),
-                                ),
-                              ),
-                            );
-                          }
-                        },
-                      ),
-                    Expanded(
-                      child: InvestmentPositionList(
-                        positions: positions,
-                        isLoading: false,
-                        positionService: _positionService,
-                        onPositionUpdated: _loadPositionsAndAccount,
-                      ),
-                    ),
-                  ],
-                ),
-        ),
-      ),
     );
+  }
+
+  PreferredSizeWidget _buildAppBar() {
+    return AppBar(
+      backgroundColor: Colors.transparent,
+      elevation: 0,
+      leading: IconButton(
+        icon: const Icon(
+          Icons.arrow_back_ios_new,
+          color: Colors.white,
+          size: 20,
+        ),
+        onPressed: () => Navigator.pop(context, true),
+      ),
+      centerTitle: true,
+      title: Column(
+        children: [
+          Text(
+            widget.accountName,
+            style: const TextStyle(
+              fontSize: 16,
+              fontWeight: FontWeight.bold,
+              color: Colors.white,
+            ),
+          ),
+          Text(
+            widget.bankName,
+            style: TextStyle(
+              fontSize: 12,
+              color: Colors.white.withValues(alpha: 0.5),
+            ),
+          ),
+        ],
+      ),
+      actions: [
+        IconButton(
+          icon: const Icon(Icons.add_circle_outline, color: Colors.white),
+          onPressed: _openAddPositionDialog,
+        ),
+        const SizedBox(width: 8),
+      ],
+    );
+  }
+
+  Future<void> _handleValueUpdated(double newCash, double newDeposits) async {
+    try {
+      await _investmentService.updateInvestmentAccount(
+        userInvestmentAccountId: widget.userInvestmentAccountId,
+        cashBalance: newCash,
+        cumulativeDeposits: newDeposits,
+      );
+      await _loadPositionsAndAccount();
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Erreur: $e')));
+    }
   }
 }
