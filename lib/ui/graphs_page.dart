@@ -8,9 +8,7 @@ class GraphsPage extends StatefulWidget {
   final String appVersion;
 
   const GraphsPage({
-    super.key,
-    required this.appName,
-    required this.appVersion,
+    super.key, required this.appName, required this.appVersion
   });
 
   @override
