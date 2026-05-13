@@ -6,7 +6,7 @@ class PatrimoineHeader extends StatefulWidget {
   final double totalDepose;
   final double capitalOwned;
   final double patrimoineOwned;
-  final bool hasInvestments; // <--- Nouveau paramètre
+  final bool hasInvestments;
   final VoidCallback? onRefresh;
 
   const PatrimoineHeader({
@@ -15,7 +15,7 @@ class PatrimoineHeader extends StatefulWidget {
     required this.totalDepose,
     required this.capitalOwned,
     required this.patrimoineOwned,
-    this.hasInvestments = true, // Par défaut à true pour ne pas tout casser ailleurs
+    this.hasInvestments = true,
     this.onRefresh,
   });
 
@@ -56,126 +56,102 @@ class _PatrimoineHeaderState extends State<PatrimoineHeader> {
 
     return Container(
       width: double.infinity,
-      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 12), // Padding interne très serré
       decoration: BoxDecoration(
         gradient: const LinearGradient(
           colors: [colorBlueSky, colorBlueMain],
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
         ),
-        // Si on cache les gains, on arrondit les 4 coins, sinon seulement le haut
-        borderRadius: BorderRadius.circular(28),
+        borderRadius: BorderRadius.circular(20),
         boxShadow: [
           BoxShadow(
-            color: colorBlueMain.withValues(alpha: 0.3),
-            blurRadius: 20,
-            offset: const Offset(0, 10),
+            color: colorBlueMain.withValues(alpha: 0.2),
+            blurRadius: 12,
+            offset: const Offset(0, 4),
           ),
         ],
       ),
       child: Column(
+        mainAxisSize: MainAxisSize.min,
         children: [
-          // --- Section Montant ---
-          Padding(
-            padding: EdgeInsets.symmetric(
-              vertical: showGains ? 24 : 32, // Un peu plus d'air si c'est le seul élément
-              horizontal: 12,
-            ),
-            child: Stack(
-              alignment: Alignment.center,
-              children: [
-                Align(
-                  alignment: Alignment.centerLeft,
-                  child: _buildCircleAction(Icons.refresh, widget.onRefresh),
-                ),
-                AnimatedSwitcher(
-                  duration: const Duration(milliseconds: 300),
-                  child: Text(
-                    _isVisible ? "${_formatAmount(widget.patrimoineTotal)} €" : "•••••••• €",
-                    key: ValueKey(_isVisible),
-                    style: const TextStyle(
-                      fontSize: 34,
-                      fontWeight: FontWeight.w900,
-                      color: Colors.white,
-                      letterSpacing: -1,
+          // --- Ligne 1 : Actions + Montant ---
+          Row(
+            children: [
+              _buildCircleAction(Icons.refresh, widget.onRefresh),
+              Expanded(
+                child: Center(
+                  child: AnimatedSwitcher(
+                    duration: const Duration(milliseconds: 300),
+                    child: Text(
+                      _isVisible ? "${_formatAmount(widget.patrimoineTotal)} €" : "•••••••• €",
+                      key: ValueKey(_isVisible),
+                      style: const TextStyle(
+                        fontSize: 28, // Taille optimisée
+                        fontWeight: FontWeight.w900,
+                        color: Colors.white,
+                        letterSpacing: -0.8,
+                      ),
                     ),
                   ),
                 ),
-                Align(
-                  alignment: Alignment.centerRight,
-                  child: _buildCircleAction(
-                    _isVisible ? Icons.visibility : Icons.visibility_off,
-                        () => setState(() => _isVisible = !_isVisible),
-                  ),
-                ),
-              ],
-            ),
+              ),
+              _buildCircleAction(
+                _isVisible ? Icons.visibility : Icons.visibility_off,
+                    () => setState(() => _isVisible = !_isVisible),
+              ),
+            ],
           ),
 
-          // --- Section Gains conditionnelle ---
-          if (showGains)
+          // --- Ligne 2 : Gains (Capsule minimaliste) ---
+          if (showGains) ...[
+            const SizedBox(height: 8),
             Container(
-              padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
               decoration: BoxDecoration(
-                color: colorDarkBlue.withValues(alpha: 0.25),
-                borderRadius: const BorderRadius.vertical(bottom: Radius.circular(28)),
+                color: Colors.black.withValues(alpha: 0.15),
+                borderRadius: BorderRadius.circular(8),
               ),
               child: Row(
-                mainAxisAlignment: MainAxisAlignment.center,
+                mainAxisSize: MainAxisSize.min,
                 children: [
-                  Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                    decoration: BoxDecoration(
-                      color: _gainsColor.withValues(alpha: 0.15),
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    child: Row(
-                      children: [
-                        Icon(
-                          _gains >= 0 ? Icons.trending_up : Icons.trending_down,
-                          size: 16,
-                          color: _gainsColor,
-                        ),
-                        const SizedBox(width: 6),
-                        Text(
-                          _isVisible ? "${_gains >= 0 ? '+' : ''}${_formatAmount(_gains)} €" : "•••• €",
-                          style: TextStyle(
-                            fontSize: 15,
-                            fontWeight: FontWeight.bold,
-                            color: _gainsColor,
-                          ),
-                        ),
-                      ],
-                    ),
+                  Icon(
+                    _gains >= 0 ? Icons.trending_up : Icons.trending_down,
+                    size: 12,
+                    color: _gainsColor,
                   ),
-                  const SizedBox(width: 12),
+                  const SizedBox(width: 4),
                   Text(
-                    _isVisible ? "${_gainsPercentage >= 0 ? '+' : ''}${_gainsPercentage.toStringAsFixed(2)}%" : "••%",
+                    _isVisible
+                        ? "${_gains >= 0 ? '+' : ''}${_formatAmount(_gains)} € (${_gainsPercentage >= 0 ? '+' : ''}${_gainsPercentage.toStringAsFixed(2)}%)"
+                        : "•••",
                     style: TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.w900,
+                      fontSize: 12,
+                      fontWeight: FontWeight.bold,
                       color: _gainsColor,
                     ),
                   ),
                 ],
               ),
             ),
+          ],
         ],
       ),
     );
   }
 
   Widget _buildCircleAction(IconData icon, VoidCallback? onTap) {
-    return Material(
-      color: Colors.white.withValues(alpha: 0.15),
-      shape: const CircleBorder(),
-      child: InkWell(
-        onTap: onTap,
-        customBorder: const CircleBorder(),
-        child: Padding(
-          padding: const EdgeInsets.all(8),
-          child: Icon(icon, color: Colors.white, size: 20),
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(12),
+      child: Container(
+        padding: const EdgeInsets.all(8),
+        decoration: BoxDecoration(
+          color: Colors.white.withValues(alpha: 0.1),
+          borderRadius: BorderRadius.circular(10),
         ),
+        child: Icon(icon, color: Colors.white, size: 18),
       ),
     );
   }
