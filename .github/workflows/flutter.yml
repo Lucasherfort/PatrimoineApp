@@ -2,112 +2,81 @@ name: Flutter CI/CD
 
 on:
   push:
-    branches:
-      - main
-
+    branches: [ main ]
   pull_request:
-    branches:
-      - main
+    branches: [ main ]
+
+# Fix pour le warning Node.js 20
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
 
 jobs:
+  validation:
+    name: Unit Tests & Analysis
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: 3.41.5
+          channel: stable
+          cache: true
+      - run: flutter pub get
+      - run: flutter analyze
+      - run: flutter test
 
   android:
     name: Android Build
+    needs: validation
     runs-on: ubuntu-latest
-
     steps:
-      # Checkout
-      - name: Checkout repository
-        uses: actions/checkout@v4
-
-      # Flutter
-      - name: Setup Flutter
-        uses: subosito/flutter-action@v2
+      - uses: actions/checkout@v4
+      - uses: subosito/flutter-action@v2
         with:
           flutter-version: 3.41.5
-          channel: stable
           cache: true
+      - run: flutter pub get
+      - run: |
+          flutter build apk --release --build-number=$GITHUB_RUN_NUMBER
+          flutter build appbundle --release --build-number=$GITHUB_RUN_NUMBER
 
-      # Dependencies
-      - name: Install dependencies
-        run: flutter pub get
-
-      # Analyze
-      - name: Analyze project
-        run: flutter analyze
-
-      # Tests
-      - name: Run tests
-        run: flutter test
-
-      # Build APK
-      - name: Build APK
-        run: flutter build apk --release
-
-      # Build App Bundle
-      - name: Build AAB
-        run: flutter build appbundle --release
-
-      # Upload APK
-      - name: Upload APK artifact
+      - name: Upload Android Artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: android-apk
-          path: build/app/outputs/flutter-apk/app-release.apk
-          retention-days: 14
-
-      # Upload AAB
-      - name: Upload AAB artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: android-aab
-          path: build/app/outputs/bundle/release/app-release.aab
-          retention-days: 14
+          name: android-release
+          path: |
+            build/app/outputs/flutter-apk/app-release.apk
+            build/app/outputs/bundle/release/app-release.aab
+          retention-days: 7
 
   ios:
     name: iOS Build
+    needs: validation
     runs-on: macos-latest
-
     steps:
-      # Checkout
-      - name: Checkout repository
-        uses: actions/checkout@v4
-
-      # Flutter
-      - name: Setup Flutter
-        uses: subosito/flutter-action@v2
+      - uses: actions/checkout@v4
+      - uses: subosito/flutter-action@v2
         with:
           flutter-version: 3.41.5
-          channel: stable
           cache: true
-
-      # Cache CocoaPods
       - name: Cache CocoaPods
         uses: actions/cache@v4
         with:
           path: ios/Pods
           key: ${{ runner.os }}-pods-${{ hashFiles('ios/Podfile.lock') }}
-          restore-keys: |
-            ${{ runner.os }}-pods-
-
-      # Dependencies
-      - name: Install dependencies
-        run: flutter pub get
-
-      # Install Pods
-      - name: Install CocoaPods
-        run: |
+      - run: |
+          flutter pub get
           cd ios
           pod install
+      
+      # On build pour simulateur/générique pour valider la compilation sans signature
+      - name: Build iOS
+        run: flutter build ios --release --no-codesign --build-number=$GITHUB_RUN_NUMBER
 
-      # Build IPA
-      - name: Build IPA
-        run: flutter build ipa --release --no-codesign
-
-      # Upload IPA
-      - name: Upload IPA artifact
+      - name: Upload iOS Artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: ios-ipa
-          path: build/ios/ipa/*.ipa
-          retention-days: 14
+          name: ios-app-bundle
+          # On capture le .app qui est le résultat du build sans signature
+          path: build/ios/iphoneos/*.app
+          retention-days: 7
