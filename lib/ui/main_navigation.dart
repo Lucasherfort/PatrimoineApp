@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:package_info_plus/package_info_plus.dart';
+import 'package:patrimoine360/ui/profile_page.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'budget_page.dart';
 import 'home_page.dart';
@@ -66,8 +67,8 @@ class _MainNavigationState extends State<MainNavigation> {
     final List<Widget> pages = [
       HomePage(key: _homeKey, appName: appName, appVersion: appVersion),
       const GraphsPage(appName: '', appVersion: ''),
-      const BudgetPage(), // <--- Remplace _buildExpenseSection() par ton nouveau Widget
-      _buildProfileSection(),
+      const BudgetPage(),
+      ProfilePage(appVersion: appVersion),
     ];
 
     return Scaffold(

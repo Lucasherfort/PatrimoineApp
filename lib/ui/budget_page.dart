@@ -3,6 +3,7 @@ import 'package:intl/intl.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../models/Budget/budget_category.dart';
 import '../services/budget_service.dart';
+import '../services/settings_service.dart';
 
 class BudgetPage extends StatefulWidget {
   const BudgetPage({super.key});
@@ -24,6 +25,9 @@ class _BudgetPageState extends State<BudgetPage> {
   List<Map<String, dynamic>> _transactions = [];
   double _totalBalance = 0;
 
+  final SettingsService _settingsService = SettingsService();
+  double _investableSurplus = 0;
+
   @override
   void initState() {
     super.initState();
@@ -36,6 +40,7 @@ class _BudgetPageState extends State<BudgetPage> {
 
     try {
       final data = await _budgetService.getMonthlyTransactions();
+      double target = await _settingsService.getTargetBalance(); // <-- Récupère ton 300€ (ou autre)
 
       // Tri : Revenus, puis Dépenses, puis Avantages
       data.sort((a, b) {
@@ -51,20 +56,15 @@ class _BudgetPageState extends State<BudgetPage> {
         if (tx['budget_category'] != null) {
           final val = (tx['value'] as num).toDouble();
           final type = tx['budget_category']['type'];
-
-          // LOGIQUE : Seuls les revenus et dépenses affectent le solde investissable
-          if (type == 'income') {
-            balance += val;
-          } else if (type == 'expense') {
-            balance -= val;
-          }
-          // Si type == 'perk' (Titres resto, etc.), on ignore le calcul du solde
+          if (type == 'income') balance += val;
+          else if (type == 'expense') balance -= val;
         }
       }
 
       setState(() {
         _transactions = data;
         _totalBalance = balance;
+        _investableSurplus = _totalBalance - target; // <-- Ton vrai montant épargnable
         _isLoading = false;
       });
     } catch (e) {
@@ -109,14 +109,33 @@ class _BudgetPageState extends State<BudgetPage> {
     );
   }
 
+// Mise à jour du Header
   Widget _buildHeader() {
     final currencyFormat = NumberFormat.currency(locale: 'fr_FR', symbol: '€');
     final currentMonth = DateFormat.MMMM('fr_FR').format(DateTime.now()).toUpperCase();
+
     return Column(
       children: [
-        Text("SOLDE INVESTISSABLE $currentMonth", style: TextStyle(color: Colors.white.withOpacity(0.4), letterSpacing: 1.5, fontSize: 10, fontWeight: FontWeight.bold)),
+        Text("SOLDE ACTUEL ESTIMÉ", style: TextStyle(color: Colors.white.withOpacity(0.4), letterSpacing: 1.5, fontSize: 10, fontWeight: FontWeight.bold)),
         const SizedBox(height: 8),
-        Text(currencyFormat.format(_totalBalance), style: const TextStyle(color: Colors.white, fontSize: 40, fontWeight: FontWeight.w900)),
+        Text(currencyFormat.format(_totalBalance), style: const TextStyle(color: Colors.white, fontSize: 32, fontWeight: FontWeight.w900)),
+        const SizedBox(height: 16),
+
+        // Petit badge de surplus
+        Container(
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+          decoration: BoxDecoration(
+            color: _investableSurplus >= 0 ? colorGreenLogo.withOpacity(0.1) : colorRed.withOpacity(0.1),
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(color: (_investableSurplus >= 0 ? colorGreenLogo : colorRed).withOpacity(0.2)),
+          ),
+          child: Text(
+            _investableSurplus >= 0
+                ? "ÉPARGNABLE : ${currencyFormat.format(_investableSurplus)}"
+                : "À RÉINJECTER : ${currencyFormat.format(_investableSurplus.abs())}",
+            style: TextStyle(color: _investableSurplus >= 0 ? colorGreenLogo : colorRed, fontWeight: FontWeight.bold, fontSize: 12),
+          ),
+        ),
       ],
     );
   }
