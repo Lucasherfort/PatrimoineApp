@@ -3,7 +3,6 @@ import 'package:intl/intl.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../models/Budget/budget_category.dart';
 import '../services/budget_service.dart';
-import '../services/settings_service.dart';
 
 class BudgetPage extends StatefulWidget {
   const BudgetPage({super.key});
@@ -25,9 +24,6 @@ class _BudgetPageState extends State<BudgetPage> {
   List<Map<String, dynamic>> _transactions = [];
   double _totalBalance = 0;
 
-  final SettingsService _settingsService = SettingsService();
-  double _investableSurplus = 0;
-
   @override
   void initState() {
     super.initState();
@@ -40,7 +36,6 @@ class _BudgetPageState extends State<BudgetPage> {
 
     try {
       final data = await _budgetService.getMonthlyTransactions();
-      double target = await _settingsService.getTargetBalance(); // <-- Récupère ton 300€ (ou autre)
 
       // Tri : Revenus, puis Dépenses, puis Avantages
       data.sort((a, b) {
@@ -56,15 +51,20 @@ class _BudgetPageState extends State<BudgetPage> {
         if (tx['budget_category'] != null) {
           final val = (tx['value'] as num).toDouble();
           final type = tx['budget_category']['type'];
-          if (type == 'income') balance += val;
-          else if (type == 'expense') balance -= val;
+
+          // LOGIQUE : Seuls les revenus et dépenses affectent le solde investissable
+          if (type == 'income') {
+            balance += val;
+          } else if (type == 'expense') {
+            balance -= val;
+          }
+          // Si type == 'perk' (Titres resto, etc.), on ignore le calcul du solde
         }
       }
 
       setState(() {
         _transactions = data;
         _totalBalance = balance;
-        _investableSurplus = _totalBalance - target; // <-- Ton vrai montant épargnable
         _isLoading = false;
       });
     } catch (e) {
@@ -76,9 +76,15 @@ class _BudgetPageState extends State<BudgetPage> {
   Future<void> _deleteTx(String id) async {
     try {
       await _budgetService.deleteTransaction(id);
+      // On vérifie si la page est toujours affichée
+      if (!mounted) return;
       _loadData();
     } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("Erreur suppression: $e")));
+      // Ici aussi, on vérifie avant d'afficher la SnackBar
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text("Erreur suppression: $e")),
+      );
     }
   }
 
@@ -109,33 +115,14 @@ class _BudgetPageState extends State<BudgetPage> {
     );
   }
 
-// Mise à jour du Header
   Widget _buildHeader() {
     final currencyFormat = NumberFormat.currency(locale: 'fr_FR', symbol: '€');
     final currentMonth = DateFormat.MMMM('fr_FR').format(DateTime.now()).toUpperCase();
-
     return Column(
       children: [
-        Text("SOLDE ACTUEL ESTIMÉ", style: TextStyle(color: Colors.white.withOpacity(0.4), letterSpacing: 1.5, fontSize: 10, fontWeight: FontWeight.bold)),
+        Text("SOLDE INVESTISSABLE $currentMonth", style: TextStyle(color: Colors.white.withValues(alpha: 0.4), letterSpacing: 1.5, fontSize: 10, fontWeight: FontWeight.bold)),
         const SizedBox(height: 8),
-        Text(currencyFormat.format(_totalBalance), style: const TextStyle(color: Colors.white, fontSize: 32, fontWeight: FontWeight.w900)),
-        const SizedBox(height: 16),
-
-        // Petit badge de surplus
-        Container(
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-          decoration: BoxDecoration(
-            color: _investableSurplus >= 0 ? colorGreenLogo.withOpacity(0.1) : colorRed.withOpacity(0.1),
-            borderRadius: BorderRadius.circular(12),
-            border: Border.all(color: (_investableSurplus >= 0 ? colorGreenLogo : colorRed).withOpacity(0.2)),
-          ),
-          child: Text(
-            _investableSurplus >= 0
-                ? "ÉPARGNABLE : ${currencyFormat.format(_investableSurplus)}"
-                : "À RÉINJECTER : ${currencyFormat.format(_investableSurplus.abs())}",
-            style: TextStyle(color: _investableSurplus >= 0 ? colorGreenLogo : colorRed, fontWeight: FontWeight.bold, fontSize: 12),
-          ),
-        ),
+        Text(currencyFormat.format(_totalBalance), style: const TextStyle(color: Colors.white, fontSize: 40, fontWeight: FontWeight.w900)),
       ],
     );
   }
@@ -162,9 +149,9 @@ class _BudgetPageState extends State<BudgetPage> {
       child: Container(
         padding: const EdgeInsets.symmetric(vertical: 14),
         decoration: BoxDecoration(
-          color: color.withOpacity(0.08),
+          color: color.withValues(alpha: 0.08),
           borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: color.withOpacity(0.15)),
+          border: Border.all(color: color.withValues(alpha: 0.15)),
         ),
         child: Column(children: [Icon(icon, color: color, size: 24), const SizedBox(height: 6), Text(label, style: TextStyle(color: color, fontSize: 12, fontWeight: FontWeight.w800))]),
       ),
@@ -214,17 +201,17 @@ class _BudgetPageState extends State<BudgetPage> {
               child: Container(
                 margin: const EdgeInsets.only(bottom: 12),
                 padding: const EdgeInsets.all(14),
-                decoration: BoxDecoration(color: Colors.white.withOpacity(0.04), borderRadius: BorderRadius.circular(18), border: Border.all(color: Colors.white.withOpacity(0.05))),
+                decoration: BoxDecoration(color: Colors.white.withValues(alpha: 0.04), borderRadius: BorderRadius.circular(18), border: Border.all(color: Colors.white.withValues(alpha: 0.05))),
                 child: Row(
                   children: [
-                    CircleAvatar(backgroundColor: amountColor.withOpacity(0.1), child: Icon(_getIconData(category['icon']), color: amountColor, size: 20)),
+                    CircleAvatar(backgroundColor: amountColor.withValues(alpha: 0.1), child: Icon(_getIconData(category['icon']), color: amountColor, size: 20)),
                     const SizedBox(width: 16),
                     Expanded(
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(category['name'], style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
-                          if (tx['note'] != null && tx['note'].isNotEmpty) Text(tx['note'], style: TextStyle(color: Colors.white.withOpacity(0.3), fontSize: 11)),
+                          if (tx['note'] != null && tx['note'].isNotEmpty) Text(tx['note'], style: TextStyle(color: Colors.white.withValues(alpha: 0.3), fontSize: 11)),
                         ],
                       ),
                     ),
@@ -361,12 +348,12 @@ class _AddTransactionFormState extends State<_AddTransactionForm> {
             keyboardType: TextInputType.number,
             style: const TextStyle(color: Colors.white, fontSize: 24, fontWeight: FontWeight.bold),
             textAlign: TextAlign.center,
-            decoration: InputDecoration(hintText: "0.00 €", filled: true, fillColor: Colors.white.withOpacity(0.05), border: OutlineInputBorder(borderRadius: BorderRadius.circular(16), borderSide: BorderSide.none)),
+            decoration: InputDecoration(hintText: "0.00 €", filled: true, fillColor: Colors.white.withValues(alpha: 0.05), border: OutlineInputBorder(borderRadius: BorderRadius.circular(16), borderSide: BorderSide.none)),
           ),
           const SizedBox(height: 16),
           if (!_isLoading) Container(
             padding: const EdgeInsets.symmetric(horizontal: 16),
-            decoration: BoxDecoration(color: Colors.white.withOpacity(0.05), borderRadius: BorderRadius.circular(16)),
+            decoration: BoxDecoration(color: Colors.white.withValues(alpha: 0.05), borderRadius: BorderRadius.circular(16)),
             child: DropdownButtonHideUnderline(
               child: DropdownButton<BudgetCategory>(
                 value: _selectedCategory,
@@ -378,7 +365,7 @@ class _AddTransactionFormState extends State<_AddTransactionForm> {
             ),
           ),
           const SizedBox(height: 16),
-          TextField(controller: _noteController, style: const TextStyle(color: Colors.white), decoration: InputDecoration(hintText: "Note", prefixIcon: const Icon(Icons.edit, color: Colors.white54), filled: true, fillColor: Colors.white.withOpacity(0.05), border: OutlineInputBorder(borderRadius: BorderRadius.circular(16), borderSide: BorderSide.none))),
+          TextField(controller: _noteController, style: const TextStyle(color: Colors.white), decoration: InputDecoration(hintText: "Note", prefixIcon: const Icon(Icons.edit, color: Colors.white54), filled: true, fillColor: Colors.white.withValues(alpha: 0.05), border: OutlineInputBorder(borderRadius: BorderRadius.circular(16), borderSide: BorderSide.none))),
           const SizedBox(height: 32),
           SizedBox(width: double.infinity, height: 56, child: ElevatedButton(onPressed: _isSaving ? null : _submit, style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF0D71EE), shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16))), child: _isSaving ? const CircularProgressIndicator() : const Text("VALIDER", style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)))),
         ],
