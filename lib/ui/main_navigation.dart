@@ -1,9 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:package_info_plus/package_info_plus.dart';
-import 'package:supabase_flutter/supabase_flutter.dart';
+import 'package:patrimoine360/ui/profile_page.dart';
 import 'budget_page.dart';
 import 'home_page.dart';
-import 'login_page.dart';
 import 'graphs_page.dart';
 
 class MainNavigation extends StatefulWidget {
@@ -66,8 +65,8 @@ class _MainNavigationState extends State<MainNavigation> {
     final List<Widget> pages = [
       HomePage(key: _homeKey, appName: appName, appVersion: appVersion),
       const GraphsPage(appName: '', appVersion: ''),
-      const BudgetPage(), // <--- Remplace _buildExpenseSection() par ton nouveau Widget
-      _buildProfileSection(),
+      const BudgetPage(),
+      ProfilePage(appVersion: appVersion),
     ];
 
     return Scaffold(
@@ -135,47 +134,5 @@ class _MainNavigationState extends State<MainNavigation> {
         ],
       ),
     );
-  }
-
-  Widget _buildProfileSection() {
-    return Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          const Icon(Icons.person_outline, size: 80, color: Colors.white24),
-          const SizedBox(height: 16),
-          Text(
-            Supabase.instance.client.auth.currentUser?.email ?? "Utilisateur",
-            style: const TextStyle(color: Colors.white, fontSize: 16),
-          ),
-          const SizedBox(height: 40),
-          ElevatedButton.icon(
-            style: ElevatedButton.styleFrom(
-              backgroundColor: Colors.red.withValues(alpha: 0.1),
-              foregroundColor: Colors.red,
-              side: const BorderSide(color: Colors.red),
-            ),
-            onPressed: _handleLogout,
-            icon: const Icon(Icons.logout),
-            label: const Text("Déconnexion"),
-          ),
-          const SizedBox(height: 20),
-          Text(
-            appVersion,
-            style: const TextStyle(color: Colors.white24, fontSize: 12),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Future<void> _handleLogout() async {
-    await Supabase.instance.client.auth.signOut();
-    if (mounted) {
-      Navigator.of(context).pushAndRemoveUntil(
-        MaterialPageRoute(builder: (_) => const LoginPage()),
-        (route) => false,
-      );
-    }
   }
 }

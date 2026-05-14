@@ -14,15 +14,15 @@ class InvestmentPositionCard extends StatelessWidget {
     this.onDelete,
   });
 
-  // --- Palette de couleurs pour fond clair ---
-  static const Color colorGreen = Color(
-    0xFF1B823D,
-  ); // Vert plus dense pour le contraste
-  static const Color colorRed = Color(0xFFD32F2F); // Rouge plus dense
-  static const Color colorBlue = Color(0xFF0D71EE);
-  static const Color textDark = Color(
-    0xFF0F172A,
-  ); // Bleu nuit très profond pour les textes
+  // --- Palette "Slate Modern" (Équilibre entre visibilité et thème sombre) ---
+  static const Color colorCardBg = Color(
+    0xFF2D3748,
+  ); // Gris-bleu acier (plus clair)
+  static const Color colorAccentBlue = Color(0xFF3182CE);
+  static const Color colorGreen = Color(0xFF48BB78);
+  static const Color colorRed = Color(0xFFF56565);
+  static const Color textMain = Colors.white;
+  static const Color textDim = Color(0xFFA0AEC0);
 
   String _format(double val) {
     return NumberFormat.currency(
@@ -38,125 +38,127 @@ class InvestmentPositionCard extends StatelessWidget {
     final trendColor = isProfit ? colorGreen : colorRed;
 
     return Container(
-      margin: const EdgeInsets.symmetric(vertical: 6, horizontal: 2),
+      margin: const EdgeInsets.symmetric(vertical: 6, horizontal: 12),
       decoration: BoxDecoration(
-        // Fond blanc lumineux (92% d'opacité pour garder un léger effet de profondeur)
-        color: Colors.white.withValues(alpha: 0.92),
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: Colors.white, width: 1.5),
+        color: colorCardBg,
+        borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.08),
-            blurRadius: 15,
-            offset: const Offset(0, 6),
+            color: Colors.black.withValues(alpha: 0.15),
+            blurRadius: 8,
+            offset: const Offset(0, 4),
           ),
         ],
       ),
-      child: ClipRRect(
-        borderRadius: BorderRadius.circular(20),
-        child: Material(
-          color: Colors.transparent,
-          child: InkWell(
-            onTap: () => _openEditPanel(context),
-            onLongPress: () => _confirmDelete(context),
-            child: Padding(
-              padding: const EdgeInsets.all(16.0),
-              child: Column(
-                children: [
-                  // --- LIGNE 1 : TITRE & PERFORMANCE ---
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              position.ticker.toUpperCase(),
-                              style: const TextStyle(
-                                color: colorBlue,
-                                fontWeight: FontWeight.w900,
-                                fontSize: 11,
-                                letterSpacing: 1.2,
-                              ),
-                            ),
-                            const SizedBox(height: 2),
-                            Text(
-                              position.name,
-                              style: const TextStyle(
-                                color: textDark,
-                                fontWeight: FontWeight.w800,
-                                fontSize: 16,
-                              ),
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
-                            ),
-                          ],
-                        ),
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          borderRadius: BorderRadius.circular(16),
+          onTap: () => _openEditPanel(context),
+          onLongPress: () => _confirmDelete(context),
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+            child: Row(
+              children: [
+                // 1. INDICATEUR VISUEL (Ticker)
+                Container(
+                  width: 40,
+                  height: 40,
+                  decoration: BoxDecoration(
+                    color: Colors.black.withValues(alpha: 0.2),
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  child: Center(
+                    child: Text(
+                      position.ticker.substring(0, 1).toUpperCase(),
+                      style: const TextStyle(
+                        color: colorAccentBlue,
+                        fontWeight: FontWeight.bold,
+                        fontSize: 18,
                       ),
-                      const SizedBox(width: 8),
-                      // Badge de performance
-                      Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 10,
-                          vertical: 6,
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 12),
+
+                // 2. NOM ET TICKER
+                Expanded(
+                  flex: 3,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        position.name,
+                        style: const TextStyle(
+                          color: textMain,
+                          fontWeight: FontWeight.w700,
+                          fontSize: 14,
                         ),
-                        decoration: BoxDecoration(
-                          color: trendColor.withValues(alpha: 0.1),
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.end,
-                          children: [
-                            Text(
-                              "${isProfit ? '+' : ''}${_format(position.latentGain)} €",
-                              style: TextStyle(
-                                color: trendColor,
-                                fontWeight: FontWeight.bold,
-                                fontSize: 14,
-                              ),
-                            ),
-                            Text(
-                              "${isProfit ? '+' : ''}${position.performance.toStringAsFixed(2)}%",
-                              style: TextStyle(
-                                color: trendColor.withValues(alpha: 0.8),
-                                fontSize: 11,
-                                fontWeight: FontWeight.w900,
-                              ),
-                            ),
-                          ],
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                      Text(
+                        position.ticker.toUpperCase(),
+                        style: const TextStyle(
+                          color: textDim,
+                          fontSize: 11,
+                          fontWeight: FontWeight.w600,
                         ),
                       ),
                     ],
                   ),
+                ),
 
-                  const Padding(
-                    padding: EdgeInsets.symmetric(vertical: 14),
-                    child: Divider(color: Colors.black12, height: 1),
-                  ),
-
-                  // --- LIGNE 2 : GRILLE DE DONNÉES ---
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                // 3. PRU & QUANTITÉ (Discret)
+                Expanded(
+                  flex: 2,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.end,
                     children: [
-                      _buildDataColumn(
-                        "VALEUR",
+                      Text(
+                        "${_format(position.pru)}€",
+                        style: const TextStyle(
+                          color: textMain,
+                          fontSize: 12,
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                      Text(
+                        "${position.quantity.toStringAsFixed(2)} qty",
+                        style: const TextStyle(color: textDim, fontSize: 10),
+                      ),
+                    ],
+                  ),
+                ),
+
+                const SizedBox(width: 12),
+
+                // 4. VALEUR TOTALE ET PERFORMANCE
+                Expanded(
+                  flex: 3,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.end,
+                    children: [
+                      Text(
                         "${_format(position.totalValue)} €",
-                        isBold: true,
+                        style: const TextStyle(
+                          color: textMain,
+                          fontWeight: FontWeight.w900,
+                          fontSize: 15,
+                        ),
                       ),
-                      _buildDataColumn(
-                        "QTÉ",
-                        position.quantity.toStringAsFixed(2),
-                      ),
-                      _buildDataColumn("PRU", "${_format(position.pru)} €"),
-                      _buildDataColumn(
-                        "COURS",
-                        "${_format(position.currentPrice)} €",
+                      Text(
+                        "${isProfit ? '+' : ''}${position.performance.toStringAsFixed(2)}%",
+                        style: TextStyle(
+                          color: trendColor,
+                          fontWeight: FontWeight.bold,
+                          fontSize: 12,
+                        ),
                       ),
                     ],
                   ),
-                ],
-              ),
+                ),
+              ],
             ),
           ),
         ),
@@ -164,33 +166,7 @@ class InvestmentPositionCard extends StatelessWidget {
     );
   }
 
-  Widget _buildDataColumn(String label, String value, {bool isBold = false}) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          label,
-          style: TextStyle(
-            color: textDark.withValues(alpha: 0.4),
-            fontSize: 9,
-            fontWeight: FontWeight.bold,
-            letterSpacing: 0.5,
-          ),
-        ),
-        const SizedBox(height: 4),
-        Text(
-          value,
-          style: TextStyle(
-            color: isBold ? textDark : textDark.withValues(alpha: 0.85),
-            fontSize: 13,
-            fontWeight: isBold ? FontWeight.w900 : FontWeight.w600,
-          ),
-        ),
-      ],
-    );
-  }
-
-  // --- MODAL DE MODIFICATION (DARK POUR LE CONTRASTE) ---
+  // --- MODAL DE MODIFICATION ---
   void _openEditPanel(BuildContext context) {
     final pruController = TextEditingController(
       text: position.pru.toString().replaceAll('.', ','),
@@ -205,10 +181,8 @@ class InvestmentPositionCard extends StatelessWidget {
       backgroundColor: Colors.transparent,
       builder: (context) => Container(
         decoration: const BoxDecoration(
-          color: Color(
-            0xFF0F172A,
-          ), // On garde la modal sombre pour le style "Premium"
-          borderRadius: BorderRadius.vertical(top: Radius.circular(30)),
+          color: Color(0xFF1A202C), // Fond modal très sombre
+          borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
         ),
         padding: EdgeInsets.only(
           left: 24,
@@ -251,14 +225,13 @@ class InvestmentPositionCard extends StatelessWidget {
             const SizedBox(height: 24),
             SizedBox(
               width: double.infinity,
-              height: 56,
+              height: 54,
               child: ElevatedButton(
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: colorBlue,
+                  backgroundColor: colorAccentBlue,
                   shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(16),
+                    borderRadius: BorderRadius.circular(14),
                   ),
-                  elevation: 0,
                 ),
                 onPressed: () {
                   final p = double.tryParse(
@@ -274,8 +247,7 @@ class InvestmentPositionCard extends StatelessWidget {
                   "METTRE À JOUR",
                   style: TextStyle(
                     color: Colors.white,
-                    fontWeight: FontWeight.w900,
-                    letterSpacing: 1.0,
+                    fontWeight: FontWeight.bold,
                   ),
                 ),
               ),
@@ -289,16 +261,16 @@ class InvestmentPositionCard extends StatelessWidget {
   Widget _buildField(TextEditingController ctrl, String label, IconData icon) {
     return TextField(
       controller: ctrl,
-      style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+      style: const TextStyle(color: Colors.white),
       keyboardType: const TextInputType.numberWithOptions(decimal: true),
       decoration: InputDecoration(
         labelText: label,
-        labelStyle: const TextStyle(color: Colors.white38),
-        prefixIcon: Icon(icon, color: colorBlue, size: 22),
+        labelStyle: const TextStyle(color: textDim),
+        prefixIcon: Icon(icon, color: colorAccentBlue),
         filled: true,
         fillColor: Colors.white.withValues(alpha: 0.05),
         border: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(16),
+          borderRadius: BorderRadius.circular(12),
           borderSide: BorderSide.none,
         ),
       ),
@@ -309,27 +281,16 @@ class InvestmentPositionCard extends StatelessWidget {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        backgroundColor: const Color(0xFF1E293B),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-        title: const Text(
-          "Supprimer la position",
-          style: TextStyle(
-            color: Colors.white,
-            fontSize: 18,
-            fontWeight: FontWeight.bold,
-          ),
-        ),
+        backgroundColor: const Color(0xFF2D3748),
+        title: const Text("Supprimer ?", style: TextStyle(color: Colors.white)),
         content: Text(
-          "Voulez-vous retirer ${position.ticker} de votre portefeuille ?",
-          style: const TextStyle(color: Colors.white70),
+          "Retirer ${position.ticker} ?",
+          style: const TextStyle(color: textDim),
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: const Text(
-              "Annuler",
-              style: TextStyle(color: Colors.white38),
-            ),
+            child: const Text("Non", style: TextStyle(color: textDim)),
           ),
           TextButton(
             onPressed: () {
@@ -337,7 +298,7 @@ class InvestmentPositionCard extends StatelessWidget {
               onDelete?.call();
             },
             child: const Text(
-              "Supprimer",
+              "Oui, supprimer",
               style: TextStyle(color: colorRed, fontWeight: FontWeight.bold),
             ),
           ),

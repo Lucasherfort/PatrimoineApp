@@ -2,15 +2,23 @@ import 'package:flutter/material.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:intl/date_symbol_data_local.dart'; // 👈 AJOUTÉ
+import 'package:intl/intl.dart'; // 👈 AJOUTÉ
 
-import 'ui/main_navigation.dart'; // 👈 Changé
+import 'ui/main_navigation.dart';
 import 'ui/login_page.dart';
 import 'ui/app_blocked_page.dart';
 import 'services/app_version_service.dart';
 
 void main() async {
+  // 1. Indispensable pour les appels asynchrones au démarrage
   WidgetsFlutterBinding.ensureInitialized();
 
+  // 2. Initialisation des données de localisation (Correction erreur LocaleDataException)
+  await initializeDateFormatting('fr_FR', null);
+  Intl.defaultLocale = 'fr_FR';
+
+  // 3. Initialisation Supabase
   await Supabase.initialize(
     url: 'https://hkwrmzubtmdoolleqnyt.supabase.co',
     anonKey:
@@ -28,7 +36,12 @@ class PatrimoineApp extends StatelessWidget {
     return MaterialApp(
       title: 'Patrimoine App',
       debugShowCheckedModeBanner: false,
-      theme: ThemeData(primarySwatch: Colors.blue),
+      // Thème global sombre pour cohérence avec ton design
+      theme: ThemeData(
+        brightness: Brightness.dark,
+        primarySwatch: Colors.blue,
+        scaffoldBackgroundColor: const Color(0xFF060B26),
+      ),
       home: const AppVersionChecker(),
     );
   }
@@ -54,13 +67,13 @@ class _AppVersionCheckerState extends State<AppVersionChecker> {
   Future<void> _checkVersion() async {
     try {
       final info = await PackageInfo.fromPlatform();
-
       final status = await _versionService.checkAppStatus(info.version);
 
       if (mounted) {
         setState(() => _appStatus = status);
       }
     } catch (e) {
+      // En cas d'erreur réseau, on laisse passer par défaut
       if (mounted) {
         setState(() => _appStatus = AppStatus(status: AppStatusType.ok));
       }
@@ -71,33 +84,38 @@ class _AppVersionCheckerState extends State<AppVersionChecker> {
 
   @override
   Widget build(BuildContext context) {
-    // Bloquer si maintenance ou update obligatoire
+    // 1. Écran de chargement tant que le statut n'est pas récupéré
+    if (_appStatus == null) {
+      return const Scaffold(
+        body: Center(
+          child: CircularProgressIndicator(color: Color(0xFF0D71EE)),
+        ),
+      );
+    }
+
+    // 2. Bloquer si maintenance ou mise à jour obligatoire
     if (_appStatus?.status == AppStatusType.maintenance ||
         _appStatus?.status == AppStatusType.updateRequired) {
       return AppBlockedPage(appStatus: _appStatus!, onRetry: _handleRetry);
     }
 
+    // 3. Gestion de l'authentification si l'app est OK
     return StreamBuilder<AuthState>(
       stream: Supabase.instance.client.auth.onAuthStateChange,
-      initialData: AuthState(
-        AuthChangeEvent.initialSession,
-        Supabase.instance.client.auth.currentSession,
-      ),
       builder: (context, snapshot) {
         final session = snapshot.hasData ? snapshot.data!.session : null;
 
-        // Notification si update disponible
+        // Notification si mise à jour facultative disponible (Post Frame pour éviter build error)
         if (_appStatus?.status == AppStatusType.updateAvailable) {
           WidgetsBinding.instance.addPostFrameCallback((_) {
             if (mounted) _showUpdateAvailableDialog(context);
           });
         }
 
-        // Affiche MainNavigation si session existante, sinon LoginPage
         if (session == null) {
           return const LoginPage();
         } else {
-          return const MainNavigation(); // 👈 Changé de HomePage à MainNavigation
+          return const MainNavigation();
         }
       },
     );
@@ -110,6 +128,7 @@ class _AppVersionCheckerState extends State<AppVersionChecker> {
       context: context,
       barrierDismissible: true,
       builder: (context) => AlertDialog(
+        backgroundColor: const Color(0xFF0F172A),
         title: const Text('Mise à jour disponible'),
         content: Text(
           _appStatus?.message ?? 'Une nouvelle version est disponible.',
@@ -117,9 +136,15 @@ class _AppVersionCheckerState extends State<AppVersionChecker> {
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: const Text('Plus tard'),
+            child: const Text(
+              'Plus tard',
+              style: TextStyle(color: Colors.white38),
+            ),
           ),
           ElevatedButton(
+            style: ElevatedButton.styleFrom(
+              backgroundColor: const Color(0xFF0D71EE),
+            ),
             onPressed: () async {
               Navigator.pop(context);
 
@@ -130,7 +155,10 @@ class _AppVersionCheckerState extends State<AppVersionChecker> {
                 }
               }
             },
-            child: const Text('Mettre à jour'),
+            child: const Text(
+              'Mettre à jour',
+              style: TextStyle(color: Colors.white),
+            ),
           ),
         ],
       ),

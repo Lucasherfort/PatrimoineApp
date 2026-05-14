@@ -7,8 +7,6 @@ class PatrimoineHeader extends StatefulWidget {
   final double capitalOwned;
   final double patrimoineOwned;
   final bool hasInvestments;
-  // onRefresh reste présent dans le constructeur au cas où tu en aurais besoin ailleurs,
-  // mais il n'est plus lié à un bouton visible.
 
   const PatrimoineHeader({
     super.key,
@@ -73,32 +71,47 @@ class _PatrimoineHeaderState extends State<PatrimoineHeader> {
           ),
           const SizedBox(height: 10),
 
-          // --- Ligne Montant + Visibilité ---
-          // On utilise un Stack pour que le montant soit TOUJOURS au centre exact de l'écran
-          Stack(
-            alignment: Alignment.center,
-            children: [
-              // Montant au centre
-              AnimatedSwitcher(
-                duration: const Duration(milliseconds: 300),
-                child: Text(
-                  _isVisible
-                      ? "${_formatAmount(widget.patrimoineTotal)} €"
-                      : "•••••••• €",
-                  key: ValueKey(_isVisible),
-                  textAlign: TextAlign.center,
-                  style: const TextStyle(
-                    fontSize: 38,
-                    fontWeight: FontWeight.w900,
-                    color: Colors.white,
-                    letterSpacing: -1.0,
+          // --- Zone Montant (Correction du centrage et superposition) ---
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                // 1. Placeholder invisible pour équilibrer le centrage
+                const Opacity(
+                  opacity: 0,
+                  child: IconButton(
+                    onPressed: null,
+                    icon: Icon(Icons.visibility_outlined, size: 22),
                   ),
                 ),
-              ),
-              // Bouton visibilité aligné à droite
-              Positioned(
-                right: 20,
-                child: IconButton(
+
+                // 2. Montant centré
+                Expanded(
+                  child: AnimatedSwitcher(
+                    duration: const Duration(milliseconds: 300),
+                    child: FittedBox(
+                      fit: BoxFit
+                          .scaleDown, // Empêche le chevauchement si le chiffre est long
+                      child: Text(
+                        _isVisible
+                            ? "${_formatAmount(widget.patrimoineTotal)} €"
+                            : "•••••••• €",
+                        key: ValueKey(_isVisible),
+                        textAlign: TextAlign.center,
+                        style: const TextStyle(
+                          fontSize: 38,
+                          fontWeight: FontWeight.w900,
+                          color: Colors.white,
+                          letterSpacing: -1.0,
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+
+                // 3. Bouton visibilité réel
+                IconButton(
                   onPressed: () => setState(() => _isVisible = !_isVisible),
                   icon: Icon(
                     _isVisible
@@ -108,8 +121,8 @@ class _PatrimoineHeaderState extends State<PatrimoineHeader> {
                     size: 22,
                   ),
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
 
           // --- Gains ---
