@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
@@ -14,14 +15,16 @@ class BudgetPage extends StatefulWidget {
 class _BudgetPageState extends State<BudgetPage> {
   final BudgetService _budgetService = BudgetService();
 
+  // --- Palette de couleurs ---
   static const Color colorDarkBg = Color(0xFF060B26);
   static const Color colorBlueMain = Color(0xFF0D71EE);
-  static const Color colorGreenLogo = Color(0xFF2DB23A);
+  static const Color colorGreen = Color(0xFF2DB23A);
   static const Color colorRed = Color(0xFFFC5555);
-  static const Color colorOrangePerk = Color(0xFFFF9800); // Couleur pour les avantages
+  static const Color colorOrangePerk = Color(0xFFFF9800);
 
   bool _isLoading = true;
   List<Map<String, dynamic>> _transactions = [];
+  Map<String, Map<String, dynamic>> _categoryTotals = {};
   double _totalBalance = 0;
 
   @override
@@ -37,54 +40,46 @@ class _BudgetPageState extends State<BudgetPage> {
     try {
       final data = await _budgetService.getMonthlyTransactions();
 
-      // Tri : Revenus, puis Dépenses, puis Avantages
-      data.sort((a, b) {
-        final typeA = a['budget_category']['type'];
-        final typeB = b['budget_category']['type'];
-        if (typeA == 'income' && typeB != 'income') return -1;
-        if (typeA == 'expense' && typeB == 'perk') return -1;
-        return 1;
-      });
-
       double balance = 0;
-      for (var tx in data) {
-        if (tx['budget_category'] != null) {
-          final val = (tx['value'] as num).toDouble();
-          final type = tx['budget_category']['type'];
+      Map<String, Map<String, dynamic>> totals = {};
 
-          // LOGIQUE : Seuls les revenus et dépenses affectent le solde investissable
+      for (var tx in data) {
+        final cat = tx['budget_category'];
+        if (cat != null) {
+          final val = (tx['value'] as num).toDouble();
+          final type = cat['type'];
+          final catName = cat['name'] as String;
+
+          // 1. Calcul du solde (uniquement income et expense)
           if (type == 'income') {
             balance += val;
           } else if (type == 'expense') {
             balance -= val;
           }
-          // Si type == 'perk' (Titres resto, etc.), on ignore le calcul du solde
+
+          // 2. Aggrégation pour le Dashboard
+          if (!totals.containsKey(catName)) {
+            totals[catName] = {
+              'sum': 0.0,
+              'count': 0,
+              'icon': cat['icon'],
+              'type': type
+            };
+          }
+          totals[catName]!['sum'] += val;
+          totals[catName]!['count'] += 1;
         }
       }
 
       setState(() {
         _transactions = data;
+        _categoryTotals = totals;
         _totalBalance = balance;
         _isLoading = false;
       });
     } catch (e) {
       debugPrint("Erreur Budget: $e");
       setState(() => _isLoading = false);
-    }
-  }
-
-  Future<void> _deleteTx(String id) async {
-    try {
-      await _budgetService.deleteTransaction(id);
-      // On vérifie si la page est toujours affichée
-      if (!mounted) return;
-      _loadData();
-    } catch (e) {
-      // Ici aussi, on vérifie avant d'afficher la SnackBar
-      if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text("Erreur suppression: $e")),
-      );
     }
   }
 
@@ -98,15 +93,29 @@ class _BudgetPageState extends State<BudgetPage> {
           color: colorBlueMain,
           child: CustomScrollView(
             slivers: [
-              const SliverToBoxAdapter(child: SizedBox(height: 40)),
+              const SliverToBoxAdapter(child: SizedBox(height: 30)),
               SliverToBoxAdapter(child: _buildHeader()),
-              const SliverToBoxAdapter(child: SizedBox(height: 40)),
-              SliverToBoxAdapter(child: _buildQuickActions()),
+              const SliverToBoxAdapter(child: SizedBox(height: 30)),
+
+              // --- DASHBOARD : SYNTHÈSE PAR CATÉGORIE ---
+              if (!_isLoading && _categoryTotals.isNotEmpty)
+                SliverToBoxAdapter(child: _buildCategoryDashboard()),
+
               const SliverToBoxAdapter(child: SizedBox(height: 32)),
+              SliverToBoxAdapter(child: _buildQuickActions()),
+
+              const SliverToBoxAdapter(
+                child: Padding(
+                  padding: EdgeInsets.fromLTRB(24, 32, 24, 12),
+                  child: Text("HISTORIQUE DÉTAILLÉ",
+                      style: TextStyle(color: Colors.white24, fontSize: 11, fontWeight: FontWeight.w800, letterSpacing: 1.5)),
+                ),
+              ),
+
               _isLoading
                   ? const SliverFillRemaining(child: Center(child: CircularProgressIndicator(color: colorBlueMain)))
                   : _transactions.isEmpty
-                  ? const SliverFillRemaining(child: Center(child: Text("Aucune transaction", style: TextStyle(color: Colors.white24))))
+                  ? const SliverFillRemaining(child: Center(child: Text("Aucune donnée", style: TextStyle(color: Colors.white24))))
                   : _buildTransactionList(),
             ],
           ),
@@ -117,13 +126,70 @@ class _BudgetPageState extends State<BudgetPage> {
 
   Widget _buildHeader() {
     final currencyFormat = NumberFormat.currency(locale: 'fr_FR', symbol: '€');
-    final currentMonth = DateFormat.MMMM('fr_FR').format(DateTime.now()).toUpperCase();
     return Column(
       children: [
-        Text("SOLDE INVESTISSABLE $currentMonth", style: TextStyle(color: Colors.white.withValues(alpha: 0.4), letterSpacing: 1.5, fontSize: 10, fontWeight: FontWeight.bold)),
+        Text("SOLDE INVESTISSABLE",
+            style: TextStyle(color: Colors.white.withValues(alpha: 0.4), letterSpacing: 1.2, fontSize: 11, fontWeight: FontWeight.bold)),
         const SizedBox(height: 8),
-        Text(currencyFormat.format(_totalBalance), style: const TextStyle(color: Colors.white, fontSize: 40, fontWeight: FontWeight.w900)),
+        Text(currencyFormat.format(_totalBalance),
+            style: const TextStyle(color: Colors.white, fontSize: 38, fontWeight: FontWeight.w900)),
       ],
+    );
+  }
+
+  Widget _buildCategoryDashboard() {
+    final categories = _categoryTotals.keys.toList();
+    return SizedBox(
+      height: 115,
+      child: ListView.builder(
+        padding: const EdgeInsets.symmetric(horizontal: 18),
+        scrollDirection: Axis.horizontal,
+        itemCount: categories.length,
+        itemBuilder: (context, index) {
+          final name = categories[index];
+          final data = _categoryTotals[name]!;
+          final isIncome = data['type'] == 'income';
+          final isPerk = data['type'] == 'perk';
+
+          Color accentColor = isIncome ? colorGreen : (isPerk ? colorOrangePerk : colorBlueMain);
+
+          return Container(
+            width: 155,
+            margin: const EdgeInsets.only(right: 12),
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              color: Colors.white.withValues(alpha: 0.04),
+              borderRadius: BorderRadius.circular(24),
+              border: Border.all(color: accentColor.withValues(alpha: 0.2)),
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.all(6),
+                      decoration: BoxDecoration(color: accentColor.withValues(alpha: 0.1), borderRadius: BorderRadius.circular(8)),
+                      child: Icon(_getIconData(data['icon']), color: accentColor, size: 18),
+                    ),
+                    Text("${data['count']} lignes", style: const TextStyle(color: Colors.white24, fontSize: 10, fontWeight: FontWeight.bold)),
+                  ],
+                ),
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(name, style: const TextStyle(color: Colors.white60, fontSize: 12, fontWeight: FontWeight.w600), maxLines: 1),
+                    Text("${data['sum'].toStringAsFixed(2)}€",
+                        style: TextStyle(color: isIncome ? colorGreen : Colors.white, fontSize: 17, fontWeight: FontWeight.w900)),
+                  ],
+                )
+              ],
+            ),
+          );
+        },
+      ),
     );
   }
 
@@ -132,54 +198,52 @@ class _BudgetPageState extends State<BudgetPage> {
       padding: const EdgeInsets.symmetric(horizontal: 20),
       child: Row(
         children: [
-          Expanded(child: _actionButton(label: "Revenu", icon: Icons.add_chart_rounded, color: colorGreenLogo, onTap: () => _showAddTransactionSheet(TransactionType.income))),
-          const SizedBox(width: 12),
-          Expanded(child: _actionButton(label: "Dépense", icon: Icons.shopping_cart_checkout_rounded, color: colorRed, onTap: () => _showAddTransactionSheet(TransactionType.expense))),
-          const SizedBox(width: 12),
-          Expanded(child: _actionButton(label: "Avantage", icon: Icons.card_giftcard_rounded, color: colorOrangePerk, onTap: () => _showAddTransactionSheet(TransactionType.perk))),
+          _actionBtn("Revenu", Icons.add_rounded, colorGreen, TransactionType.income),
+          const SizedBox(width: 10),
+          _actionBtn("Dépense", Icons.remove_rounded, colorRed, TransactionType.expense),
+          const SizedBox(width: 10),
+          _actionBtn("Perk", Icons.star_rounded, colorOrangePerk, TransactionType.perk),
         ],
       ),
     );
   }
 
-  Widget _actionButton({required String label, required IconData icon, required Color color, required VoidCallback onTap}) {
-    return InkWell(
-      onTap: onTap,
-      borderRadius: BorderRadius.circular(16),
-      child: Container(
-        padding: const EdgeInsets.symmetric(vertical: 14),
-        decoration: BoxDecoration(
-          color: color.withValues(alpha: 0.08),
-          borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: color.withValues(alpha: 0.15)),
+  Widget _actionBtn(String label, IconData icon, Color color, TransactionType type) {
+    return Expanded(
+      child: InkWell(
+        onTap: () => _showAddTransactionSheet(type),
+        borderRadius: BorderRadius.circular(16),
+        child: Container(
+          padding: const EdgeInsets.symmetric(vertical: 12),
+          decoration: BoxDecoration(
+            color: color.withValues(alpha: 0.1),
+            borderRadius: BorderRadius.circular(16),
+          ),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(icon, color: color, size: 18),
+              const SizedBox(width: 4),
+              Text(label, style: TextStyle(color: color, fontSize: 12, fontWeight: FontWeight.bold)),
+            ],
+          ),
         ),
-        child: Column(children: [Icon(icon, color: color, size: 24), const SizedBox(height: 6), Text(label, style: TextStyle(color: color, fontSize: 12, fontWeight: FontWeight.w800))]),
       ),
     );
   }
 
   Widget _buildTransactionList() {
     return SliverPadding(
-      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+      padding: const EdgeInsets.symmetric(horizontal: 20),
       sliver: SliverList(
         delegate: SliverChildBuilderDelegate((context, index) {
           final tx = _transactions[index];
           final category = tx['budget_category'];
           final type = category['type'];
+          final isExpense = type == 'expense';
+          final isIncome = type == 'income';
 
-          Color amountColor;
-          String prefix = "";
-
-          if (type == 'expense') {
-            amountColor = colorRed;
-            prefix = "-";
-          } else if (type == 'income') {
-            amountColor = colorGreenLogo;
-            prefix = "+";
-          } else {
-            amountColor = colorOrangePerk;
-            prefix = "🍱 "; // Indicateur visuel pour Titres Resto / Avantages
-          }
+          Color color = isIncome ? colorGreen : (isExpense ? colorRed : colorOrangePerk);
 
           return Dismissible(
             key: Key(tx['id'].toString()),
@@ -188,34 +252,38 @@ class _BudgetPageState extends State<BudgetPage> {
             background: Container(
               alignment: Alignment.centerRight,
               padding: const EdgeInsets.only(right: 20),
-              margin: const EdgeInsets.only(bottom: 12),
-              decoration: BoxDecoration(color: colorRed, borderRadius: BorderRadius.circular(18)),
-              child: const Icon(Icons.delete, color: Colors.white),
+              decoration: BoxDecoration(color: colorRed.withValues(alpha: 0.2), borderRadius: BorderRadius.circular(18)),
+              child: const Icon(Icons.delete_outline, color: colorRed),
             ),
             child: GestureDetector(
               onTap: () => _showAddTransactionSheet(
-                  type == 'income' ? TransactionType.income : (type == 'expense' ? TransactionType.expense : TransactionType.perk),
+                  isIncome ? TransactionType.income : (isExpense ? TransactionType.expense : TransactionType.perk),
                   existingTx: tx
               ),
-              onLongPress: () => _showDeleteDialog(tx['id'].toString(), category['name']),
               child: Container(
-                margin: const EdgeInsets.only(bottom: 12),
-                padding: const EdgeInsets.all(14),
-                decoration: BoxDecoration(color: Colors.white.withValues(alpha: 0.04), borderRadius: BorderRadius.circular(18), border: Border.all(color: Colors.white.withValues(alpha: 0.05))),
+                margin: const EdgeInsets.only(bottom: 10),
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  color: Colors.white.withValues(alpha: 0.02),
+                  borderRadius: BorderRadius.circular(20),
+                  border: Border.all(color: Colors.white.withValues(alpha: 0.05)),
+                ),
                 child: Row(
                   children: [
-                    CircleAvatar(backgroundColor: amountColor.withValues(alpha: 0.1), child: Icon(_getIconData(category['icon']), color: amountColor, size: 20)),
+                    Icon(_getIconData(category['icon']), color: color.withValues(alpha: 0.5), size: 22),
                     const SizedBox(width: 16),
                     Expanded(
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Text(category['name'], style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
-                          if (tx['note'] != null && tx['note'].isNotEmpty) Text(tx['note'], style: TextStyle(color: Colors.white.withValues(alpha: 0.3), fontSize: 11)),
+                          Text(category['name'], style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w700, fontSize: 14)),
+                          if (tx['note'] != null && tx['note'].isNotEmpty)
+                            Text(tx['note'], style: TextStyle(color: Colors.white24, fontSize: 11)),
                         ],
                       ),
                     ),
-                    Text("$prefix${tx['value'].toStringAsFixed(2)} €", style: TextStyle(color: amountColor, fontWeight: FontWeight.w900)),
+                    Text("${isIncome ? '+' : (isExpense ? '-' : '')}${tx['value'].toStringAsFixed(2)} €",
+                        style: TextStyle(color: color, fontWeight: FontWeight.w900, fontSize: 15)),
                   ],
                 ),
               ),
@@ -226,30 +294,30 @@ class _BudgetPageState extends State<BudgetPage> {
     );
   }
 
-  void _showDeleteDialog(String id, String categoryName) {
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        backgroundColor: const Color(0xFF0F172A),
-        title: const Text("Supprimer ?", style: TextStyle(color: Colors.white)),
-        content: Text("Voulez-vous supprimer cette ligne de '$categoryName' ?", style: const TextStyle(color: Colors.white70)),
-        actions: [
-          TextButton(onPressed: () => Navigator.pop(context), child: const Text("Annuler", style: TextStyle(color: Colors.white38))),
-          TextButton(onPressed: () { Navigator.pop(context); _deleteTx(id); }, child: const Text("Supprimer", style: TextStyle(color: colorRed, fontWeight: FontWeight.bold))),
-        ],
-      ),
-    );
-  }
-
-  IconData _getIconData(String iconName) {
+  IconData _getIconData(String? iconName) {
     switch (iconName) {
+      case 'work': return Icons.work_rounded;
       case 'shopping_cart': return Icons.shopping_cart_rounded;
+      case 'food': return Icons.restaurant_rounded;
       case 'home': return Icons.home_rounded;
       case 'phone_android': return Icons.phone_android_rounded;
-      case 'restaurant': return Icons.restaurant_rounded;
-      case 'directions_car': return Icons.directions_car_rounded; // Pour Transport
-      case 'confirmation_number': return Icons.confirmation_number_rounded; // Pour Titres Resto
+      case 'directions_car': return Icons.directions_car_rounded;
+      case 'account_balance': return Icons.account_balance_rounded;
+      case 'smart_display': return Icons.smart_display_rounded;
+      case 'security': return Icons.security_rounded;
       default: return Icons.category_rounded;
+    }
+  }
+
+  // --- LOGIQUE SERVICES ---
+  Future<void> _deleteTx(String id) async {
+    try {
+      await _budgetService.deleteTransaction(id);
+      if (!mounted) return;
+      _loadData();
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text("Erreur: $e")));
     }
   }
 
@@ -267,7 +335,7 @@ class _BudgetPageState extends State<BudgetPage> {
   }
 }
 
-// --- FORMULAIRE D'AJOUT ET D'EDITION ---
+// --- FORMULAIRE (IDENTIQUE MAIS STYLE MODAL AJUSTÉ) ---
 class _AddTransactionForm extends StatefulWidget {
   final TransactionType type;
   final Map<String, dynamic>? existingTx;
@@ -285,7 +353,6 @@ class _AddTransactionFormState extends State<_AddTransactionForm> {
   List<BudgetCategory> _categories = [];
   BudgetCategory? _selectedCategory;
   bool _isLoading = true;
-  bool _isSaving = false;
 
   @override
   void initState() {
@@ -308,10 +375,77 @@ class _AddTransactionFormState extends State<_AddTransactionForm> {
     });
   }
 
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      decoration: const BoxDecoration(color: Color(0xFF111827), borderRadius: BorderRadius.vertical(top: Radius.circular(32))),
+      padding: EdgeInsets.only(left: 24, right: 24, top: 12, bottom: MediaQuery.of(context).viewInsets.bottom + 24),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Container(width: 40, height: 4, decoration: BoxDecoration(color: Colors.white10, borderRadius: BorderRadius.circular(2))),
+          const SizedBox(height: 24),
+          Text(widget.existingTx != null ? "Modifier" : "Nouvelle entrée", style: const TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold)),
+          const SizedBox(height: 24),
+          TextField(
+            controller: _amountController,
+            keyboardType: const TextInputType.numberWithOptions(decimal: true),
+            style: const TextStyle(color: Colors.white, fontSize: 32, fontWeight: FontWeight.w900),
+            textAlign: TextAlign.center,
+            decoration: InputDecoration(hintText: "0.00", hintStyle: TextStyle(color: Colors.white10), border: InputBorder.none),
+          ),
+          const SizedBox(height: 24),
+          if (!_isLoading) _buildCategoryPicker(),
+          const SizedBox(height: 16),
+          TextField(
+            controller: _noteController,
+            style: const TextStyle(color: Colors.white),
+            decoration: InputDecoration(
+              hintText: "Note ou description",
+              hintStyle: const TextStyle(color: Colors.white24),
+              filled: true,
+              fillColor: Colors.white.withValues(alpha: 0.05),
+              border: OutlineInputBorder(borderRadius: BorderRadius.circular(16), borderSide: BorderSide.none),
+            ),
+          ),
+          const SizedBox(height: 32),
+          SizedBox(
+            width: double.infinity,
+            height: 56,
+            child: ElevatedButton(
+              onPressed: _submit,
+              style: ElevatedButton.styleFrom(backgroundColor: _BudgetPageState.colorBlueMain, shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(18))),
+              child: const Text("SAUVEGARDER", style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, letterSpacing: 1.2)),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildCategoryPicker() {
+    return Wrap(
+      spacing: 8,
+      runSpacing: 8,
+      alignment: WrapAlignment.center,
+      children: _categories.map((c) {
+        final isSelected = _selectedCategory?.id == c.id;
+        return ChoiceChip(
+          label: Text(c.name),
+          selected: isSelected,
+          onSelected: (s) => setState(() => _selectedCategory = c),
+          backgroundColor: Colors.white.withValues(alpha: 0.05),
+          selectedColor: _BudgetPageState.colorBlueMain.withValues(alpha: 0.2),
+          labelStyle: TextStyle(color: isSelected ? _BudgetPageState.colorBlueMain : Colors.white60, fontSize: 12),
+          side: BorderSide(color: isSelected ? _BudgetPageState.colorBlueMain : Colors.transparent),
+        );
+      }).toList(),
+    );
+  }
+
   Future<void> _submit() async {
     final amount = double.tryParse(_amountController.text.replaceAll(',', '.'));
     if (amount == null || _selectedCategory == null) return;
-    setState(() => _isSaving = true);
     try {
       final tx = BudgetTransaction(
         userId: Supabase.instance.client.auth.currentUser!.id,
@@ -327,49 +461,9 @@ class _AddTransactionFormState extends State<_AddTransactionForm> {
       }
       widget.onSuccess();
     } catch (e) {
-      setState(() => _isSaving = false);
+      if (kDebugMode) {
+        print(e);
+      }
     }
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      decoration: const BoxDecoration(color: Color(0xFF0F172A), borderRadius: BorderRadius.vertical(top: Radius.circular(28))),
-      padding: EdgeInsets.only(left: 24, right: 24, top: 12, bottom: MediaQuery.of(context).viewInsets.bottom + 24),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Container(width: 40, height: 4, decoration: BoxDecoration(color: Colors.white24, borderRadius: BorderRadius.circular(2))),
-          const SizedBox(height: 24),
-          Text(widget.existingTx != null ? "Modifier" : "Ajouter", style: const TextStyle(color: Colors.white, fontSize: 20, fontWeight: FontWeight.w900)),
-          const SizedBox(height: 24),
-          TextField(
-            controller: _amountController,
-            keyboardType: TextInputType.number,
-            style: const TextStyle(color: Colors.white, fontSize: 24, fontWeight: FontWeight.bold),
-            textAlign: TextAlign.center,
-            decoration: InputDecoration(hintText: "0.00 €", filled: true, fillColor: Colors.white.withValues(alpha: 0.05), border: OutlineInputBorder(borderRadius: BorderRadius.circular(16), borderSide: BorderSide.none)),
-          ),
-          const SizedBox(height: 16),
-          if (!_isLoading) Container(
-            padding: const EdgeInsets.symmetric(horizontal: 16),
-            decoration: BoxDecoration(color: Colors.white.withValues(alpha: 0.05), borderRadius: BorderRadius.circular(16)),
-            child: DropdownButtonHideUnderline(
-              child: DropdownButton<BudgetCategory>(
-                value: _selectedCategory,
-                dropdownColor: const Color(0xFF1E293B),
-                isExpanded: true,
-                items: _categories.map((c) => DropdownMenuItem(value: c, child: Text(c.name, style: const TextStyle(color: Colors.white)))).toList(),
-                onChanged: (v) => setState(() => _selectedCategory = v),
-              ),
-            ),
-          ),
-          const SizedBox(height: 16),
-          TextField(controller: _noteController, style: const TextStyle(color: Colors.white), decoration: InputDecoration(hintText: "Note", prefixIcon: const Icon(Icons.edit, color: Colors.white54), filled: true, fillColor: Colors.white.withValues(alpha: 0.05), border: OutlineInputBorder(borderRadius: BorderRadius.circular(16), borderSide: BorderSide.none))),
-          const SizedBox(height: 32),
-          SizedBox(width: double.infinity, height: 56, child: ElevatedButton(onPressed: _isSaving ? null : _submit, style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF0D71EE), shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16))), child: _isSaving ? const CircularProgressIndicator() : const Text("VALIDER", style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)))),
-        ],
-      ),
-    );
   }
 }
