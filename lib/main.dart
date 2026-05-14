@@ -22,7 +22,7 @@ void main() async {
   await Supabase.initialize(
     url: 'https://hkwrmzubtmdoolleqnyt.supabase.co',
     anonKey:
-    'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imhrd3JtenVidG1kb29sbGVxbnl0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjgwNTk3NTIsImV4cCI6MjA4MzYzNTc1Mn0.5h6Fcn5MmrEun3OutmI12M8_gk8LFr5WeZomK-fl9FA',
+        'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imhrd3JtenVidG1kb29sbGVxbnl0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjgwNTk3NTIsImV4cCI6MjA4MzYzNTc1Mn0.5h6Fcn5MmrEun3OutmI12M8_gk8LFr5WeZomK-fl9FA',
   );
 
   runApp(const PatrimoineApp());
@@ -87,7 +87,9 @@ class _AppVersionCheckerState extends State<AppVersionChecker> {
     // 1. Écran de chargement tant que le statut n'est pas récupéré
     if (_appStatus == null) {
       return const Scaffold(
-        body: Center(child: CircularProgressIndicator(color: Color(0xFF0D71EE))),
+        body: Center(
+          child: CircularProgressIndicator(color: Color(0xFF0D71EE)),
+        ),
       );
     }
 
@@ -134,10 +136,15 @@ class _AppVersionCheckerState extends State<AppVersionChecker> {
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: const Text('Plus tard', style: TextStyle(color: Colors.white38)),
+            child: const Text(
+              'Plus tard',
+              style: TextStyle(color: Colors.white38),
+            ),
           ),
           ElevatedButton(
-            style: ElevatedButton.styleFrom(backgroundColor: const Color(0xFF0D71EE)),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: const Color(0xFF0D71EE),
+            ),
             onPressed: () async {
               Navigator.pop(context);
 
@@ -148,7 +155,10 @@ class _AppVersionCheckerState extends State<AppVersionChecker> {
                 }
               }
             },
-            child: const Text('Mettre à jour', style: TextStyle(color: Colors.white)),
+            child: const Text(
+              'Mettre à jour',
+              style: TextStyle(color: Colors.white),
+            ),
           ),
         ],
       ),

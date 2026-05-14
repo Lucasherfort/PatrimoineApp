@@ -15,7 +15,9 @@ class InvestmentPositionCard extends StatelessWidget {
   });
 
   // --- Palette "Slate Modern" (Équilibre entre visibilité et thème sombre) ---
-  static const Color colorCardBg = Color(0xFF2D3748); // Gris-bleu acier (plus clair)
+  static const Color colorCardBg = Color(
+    0xFF2D3748,
+  ); // Gris-bleu acier (plus clair)
   static const Color colorAccentBlue = Color(0xFF3182CE);
   static const Color colorGreen = Color(0xFF48BB78);
   static const Color colorRed = Color(0xFFF56565);
@@ -115,7 +117,11 @@ class InvestmentPositionCard extends StatelessWidget {
                     children: [
                       Text(
                         "${_format(position.pru)}€",
-                        style: const TextStyle(color: textMain, fontSize: 12, fontWeight: FontWeight.w500),
+                        style: const TextStyle(
+                          color: textMain,
+                          fontSize: 12,
+                          fontWeight: FontWeight.w500,
+                        ),
                       ),
                       Text(
                         "${position.quantity.toStringAsFixed(2)} qty",
@@ -162,8 +168,12 @@ class InvestmentPositionCard extends StatelessWidget {
 
   // --- MODAL DE MODIFICATION ---
   void _openEditPanel(BuildContext context) {
-    final pruController = TextEditingController(text: position.pru.toString().replaceAll('.', ','));
-    final qtyController = TextEditingController(text: position.quantity.toString().replaceAll('.', ','));
+    final pruController = TextEditingController(
+      text: position.pru.toString().replaceAll('.', ','),
+    );
+    final qtyController = TextEditingController(
+      text: position.quantity.toString().replaceAll('.', ','),
+    );
 
     showModalBottomSheet(
       context: context,
@@ -175,19 +185,43 @@ class InvestmentPositionCard extends StatelessWidget {
           borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
         ),
         padding: EdgeInsets.only(
-            left: 24, right: 24, top: 12,
-            bottom: MediaQuery.of(context).viewInsets.bottom + 24
+          left: 24,
+          right: 24,
+          top: 12,
+          bottom: MediaQuery.of(context).viewInsets.bottom + 24,
         ),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Container(width: 40, height: 4, decoration: BoxDecoration(color: Colors.white24, borderRadius: BorderRadius.circular(2))),
+            Container(
+              width: 40,
+              height: 4,
+              decoration: BoxDecoration(
+                color: Colors.white24,
+                borderRadius: BorderRadius.circular(2),
+              ),
+            ),
             const SizedBox(height: 24),
-            Text(position.name, style: const TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold)),
+            Text(
+              position.name,
+              style: const TextStyle(
+                color: Colors.white,
+                fontSize: 18,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
             const SizedBox(height: 24),
-            _buildField(qtyController, "Quantité détenue", Icons.layers_outlined),
+            _buildField(
+              qtyController,
+              "Quantité détenue",
+              Icons.layers_outlined,
+            ),
             const SizedBox(height: 16),
-            _buildField(pruController, "Prix de revient (PRU)", Icons.euro_symbol_rounded),
+            _buildField(
+              pruController,
+              "Prix de revient (PRU)",
+              Icons.euro_symbol_rounded,
+            ),
             const SizedBox(height: 24),
             SizedBox(
               width: double.infinity,
@@ -195,15 +229,27 @@ class InvestmentPositionCard extends StatelessWidget {
               child: ElevatedButton(
                 style: ElevatedButton.styleFrom(
                   backgroundColor: colorAccentBlue,
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(14),
+                  ),
                 ),
                 onPressed: () {
-                  final p = double.tryParse(pruController.text.replaceAll(',', '.'));
-                  final q = double.tryParse(qtyController.text.replaceAll(',', '.'));
+                  final p = double.tryParse(
+                    pruController.text.replaceAll(',', '.'),
+                  );
+                  final q = double.tryParse(
+                    qtyController.text.replaceAll(',', '.'),
+                  );
                   if (p != null && q != null) onValueUpdated?.call(p, q);
                   Navigator.pop(context);
                 },
-                child: const Text("METTRE À JOUR", style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+                child: const Text(
+                  "METTRE À JOUR",
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
               ),
             ),
           ],
@@ -223,7 +269,10 @@ class InvestmentPositionCard extends StatelessWidget {
         prefixIcon: Icon(icon, color: colorAccentBlue),
         filled: true,
         fillColor: Colors.white.withValues(alpha: 0.05),
-        border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none),
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(12),
+          borderSide: BorderSide.none,
+        ),
       ),
     );
   }
@@ -234,15 +283,24 @@ class InvestmentPositionCard extends StatelessWidget {
       builder: (context) => AlertDialog(
         backgroundColor: const Color(0xFF2D3748),
         title: const Text("Supprimer ?", style: TextStyle(color: Colors.white)),
-        content: Text("Retirer ${position.ticker} ?", style: const TextStyle(color: textDim)),
+        content: Text(
+          "Retirer ${position.ticker} ?",
+          style: const TextStyle(color: textDim),
+        ),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(context), child: const Text("Non", style: TextStyle(color: textDim))),
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text("Non", style: TextStyle(color: textDim)),
+          ),
           TextButton(
             onPressed: () {
               Navigator.pop(context);
               onDelete?.call();
             },
-            child: const Text("Oui, supprimer", style: TextStyle(color: colorRed, fontWeight: FontWeight.bold)),
+            child: const Text(
+              "Oui, supprimer",
+              style: TextStyle(color: colorRed, fontWeight: FontWeight.bold),
+            ),
           ),
         ],
       ),

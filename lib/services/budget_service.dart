@@ -34,12 +34,14 @@ class BudgetService {
   }
 
   /// Modifier une transaction existante
-  Future<void> updateTransaction(String id, BudgetTransaction transaction) async {
+  Future<void> updateTransaction(
+    String id,
+    BudgetTransaction transaction,
+  ) async {
     try {
-      await _supabase
-          .from('transaction')
-          .update(transaction.toMap())
-          .match({'id': id});
+      await _supabase.from('transaction').update(transaction.toMap()).match({
+        'id': id,
+      });
     } catch (e) {
       throw Exception('Erreur lors de la modification : $e');
     }
@@ -48,10 +50,7 @@ class BudgetService {
   /// Supprimer une transaction
   Future<void> deleteTransaction(String id) async {
     try {
-      await _supabase
-          .from('transaction')
-          .delete()
-          .match({'id': id});
+      await _supabase.from('transaction').delete().match({'id': id});
     } catch (e) {
       throw Exception('Erreur lors de la suppression : $e');
     }
@@ -63,7 +62,14 @@ class BudgetService {
     // Début du mois à 00:00:00
     final firstDay = DateTime(now.year, now.month, 1).toIso8601String();
     // Fin du mois à 23:59:59
-    final lastDay = DateTime(now.year, now.month + 1, 0, 23, 59, 59).toIso8601String();
+    final lastDay = DateTime(
+      now.year,
+      now.month + 1,
+      0,
+      23,
+      59,
+      59,
+    ).toIso8601String();
 
     try {
       final List<dynamic> response = await _supabase

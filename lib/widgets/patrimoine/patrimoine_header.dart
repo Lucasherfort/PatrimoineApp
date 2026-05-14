@@ -91,7 +91,8 @@ class _PatrimoineHeaderState extends State<PatrimoineHeader> {
                   child: AnimatedSwitcher(
                     duration: const Duration(milliseconds: 300),
                     child: FittedBox(
-                      fit: BoxFit.scaleDown, // Empêche le chevauchement si le chiffre est long
+                      fit: BoxFit
+                          .scaleDown, // Empêche le chevauchement si le chiffre est long
                       child: Text(
                         _isVisible
                             ? "${_formatAmount(widget.patrimoineTotal)} €"

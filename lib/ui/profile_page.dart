@@ -27,9 +27,9 @@ class _ProfilePageState extends State<ProfilePage> {
             Text(
               Supabase.instance.client.auth.currentUser?.email ?? "Utilisateur",
               style: const TextStyle(
-                  color: Colors.white,
-                  fontSize: 18,
-                  fontWeight: FontWeight.bold
+                color: Colors.white,
+                fontSize: 18,
+                fontWeight: FontWeight.bold,
               ),
             ),
             const SizedBox(height: 60),
@@ -42,18 +42,23 @@ class _ProfilePageState extends State<ProfilePage> {
                   backgroundColor: colorRed.withValues(alpha: 0.1),
                   foregroundColor: colorRed,
                   padding: const EdgeInsets.symmetric(vertical: 16),
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(16),
+                  ),
                   side: BorderSide(color: colorRed.withValues(alpha: 0.3)),
                 ),
                 onPressed: () => _handleLogout(context),
                 icon: const Icon(Icons.logout),
-                label: const Text("DÉCONNEXION", style: TextStyle(fontWeight: FontWeight.bold)),
+                label: const Text(
+                  "DÉCONNEXION",
+                  style: TextStyle(fontWeight: FontWeight.bold),
+                ),
               ),
             ),
             const SizedBox(height: 24),
             Text(
-                widget.appVersion,
-                style: const TextStyle(color: Colors.white24, fontSize: 12)
+              widget.appVersion,
+              style: const TextStyle(color: Colors.white24, fontSize: 12),
             ),
           ],
         ),
@@ -73,7 +78,7 @@ class _ProfilePageState extends State<ProfilePage> {
     // 3. On utilise l'instance du navigator capturée
     navigator.pushAndRemoveUntil(
       MaterialPageRoute(builder: (_) => const LoginPage()),
-          (route) => false,
+      (route) => false,
     );
   }
 }
