@@ -63,7 +63,14 @@ class BudgetService {
 
     final now = DateTime.now();
     final firstDay = DateTime(now.year, now.month, 1).toIso8601String();
-    final lastDay = DateTime(now.year, now.month + 1, 0, 23, 59, 59).toIso8601String();
+    final lastDay = DateTime(
+      now.year,
+      now.month + 1,
+      0,
+      23,
+      59,
+      59,
+    ).toIso8601String();
 
     try {
       final List<dynamic> response = await _supabase
