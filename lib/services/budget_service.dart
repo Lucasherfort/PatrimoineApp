@@ -58,23 +58,18 @@ class BudgetService {
 
   /// Récupérer les transactions du mois en cours avec les données de catégorie
   Future<List<Map<String, dynamic>>> getMonthlyTransactions() async {
+    final user = _supabase.auth.currentUser; // <--- Récupère l'utilisateur
+    if (user == null) return []; // Sécurité si non connecté
+
     final now = DateTime.now();
-    // Début du mois à 00:00:00
     final firstDay = DateTime(now.year, now.month, 1).toIso8601String();
-    // Fin du mois à 23:59:59
-    final lastDay = DateTime(
-      now.year,
-      now.month + 1,
-      0,
-      23,
-      59,
-      59,
-    ).toIso8601String();
+    final lastDay = DateTime(now.year, now.month + 1, 0, 23, 59, 59).toIso8601String();
 
     try {
       final List<dynamic> response = await _supabase
           .from('transaction')
           .select('*, budget_category(*)')
+          .eq('user_id', user.id) // <--- AJOUTE CE FILTRE ICI
           .gte('date', firstDay)
           .lte('date', lastDay)
           .order('date', ascending: false);
