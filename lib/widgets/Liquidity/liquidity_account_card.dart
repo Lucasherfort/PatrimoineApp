@@ -194,18 +194,22 @@ class LiquidityAccountCard extends StatelessWidget {
                       style: const TextStyle(
                         fontSize: 20,
                         fontWeight: FontWeight.bold,
+                        color: Colors.black,
                       ),
                     ),
                     const SizedBox(height: 16),
                     TextField(
                       controller: controller,
-                      focusNode: focusNode, // 🔹 Ajouter le FocusNode ici
+                      focusNode: focusNode,
                       keyboardType: const TextInputType.numberWithOptions(
                         decimal: true,
                       ),
+                      style: const TextStyle(color: Colors.black),
                       decoration: InputDecoration(
                         labelText: "Nouveau montant",
+                        labelStyle: const TextStyle(color: Colors.black),
                         suffixText: "€",
+                        suffixStyle: const TextStyle(color: Colors.black),
                         border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(12),
                         ),
@@ -243,6 +247,7 @@ class LiquidityAccountCard extends StatelessWidget {
                           style: TextStyle(
                             fontSize: 16,
                             fontWeight: FontWeight.bold,
+                            color: Colors.white,
                           ),
                         ),
                       ),

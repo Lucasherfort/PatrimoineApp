@@ -195,6 +195,7 @@ class AdvantageAccountCard extends StatelessWidget {
                       style: const TextStyle(
                         fontSize: 20,
                         fontWeight: FontWeight.bold,
+                        color: Colors.black,
                       ),
                     ),
                     const SizedBox(height: 16),
@@ -204,9 +205,12 @@ class AdvantageAccountCard extends StatelessWidget {
                       keyboardType: const TextInputType.numberWithOptions(
                         decimal: true,
                       ),
+                      style: const TextStyle(color: Colors.black),
                       decoration: InputDecoration(
                         labelText: "Nouvelle valeur",
+                        labelStyle: const TextStyle(color: Colors.black),
                         suffixText: "€",
+                        suffixStyle: const TextStyle(color: Colors.black),
                         border: OutlineInputBorder(
                           borderRadius: BorderRadius.circular(12),
                         ),
@@ -244,6 +248,7 @@ class AdvantageAccountCard extends StatelessWidget {
                           style: TextStyle(
                             fontSize: 16,
                             fontWeight: FontWeight.bold,
+                            color: Colors.white,
                           ),
                         ),
                       ),

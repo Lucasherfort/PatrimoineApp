@@ -117,7 +117,7 @@ class _PatrimoineHeaderState extends State<PatrimoineHeader> {
                     _isVisible
                         ? Icons.visibility_outlined
                         : Icons.visibility_off_outlined,
-                    color: Colors.white.withValues(alpha: 0.3),
+                    color: Colors.white,
                     size: 22,
                   ),
                 ),
