@@ -51,7 +51,7 @@ class InvestmentCard extends StatelessWidget {
         ),
         content: RichText(
           text: TextSpan(
-            style: const TextStyle(fontSize: 16, color: Colors.black87),
+            style: const TextStyle(fontSize: 16, color: Colors.white),
             children: [
               const TextSpan(
                 text: 'Êtes-vous sûr de vouloir supprimer le compte ',
