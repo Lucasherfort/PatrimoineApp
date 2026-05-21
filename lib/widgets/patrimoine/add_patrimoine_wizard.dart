@@ -405,7 +405,11 @@ class _AddPatrimoineWizardState extends State<AddPatrimoineWizard> {
       children: [
         const Text(
           'Ajouter un patrimoine',
-          style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+          style: TextStyle(
+              fontSize: 20,
+              fontWeight: FontWeight.bold,
+              color: Colors.black
+          ),
         ),
         IconButton(
           icon: const Icon(Icons.close),
@@ -474,7 +478,7 @@ class _AddPatrimoineWizardState extends State<AddPatrimoineWizard> {
         const SizedBox(height: 8),
         const Text(
           'Sélectionnez le type de patrimoine que vous souhaitez ajouter',
-          style: TextStyle(fontSize: 14, color: Colors.grey),
+          style: TextStyle(fontSize: 14, color: Colors.black),
         ),
         const SizedBox(height: 20),
         if (categories.isEmpty)
@@ -483,7 +487,7 @@ class _AddPatrimoineWizardState extends State<AddPatrimoineWizard> {
             child: Center(
               child: Text(
                 'Aucune catégorie disponible',
-                style: TextStyle(color: Colors.grey),
+                style: TextStyle(color: Colors.black),
               ),
             ),
           )
@@ -499,6 +503,7 @@ class _AddPatrimoineWizardState extends State<AddPatrimoineWizard> {
                 vertical: 12,
               ),
               labelText: 'Catégorie',
+              labelStyle: TextStyle(color: Colors.black),
               hintText: 'Sélectionnez une catégorie',
               prefixIcon: const Icon(Icons.category),
             ),
