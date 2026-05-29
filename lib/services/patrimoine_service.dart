@@ -253,4 +253,21 @@ class PatrimoineService {
 
     return totalOwnedCapital;
   }
+
+  /// Calcule le capital total investi par l'utilisateur
+  /// en additionnant les dépôts cumulés de tous ses comptes d'investissement.
+  Future<double> getTotalInvestedCapital() async {
+    final accounts = await _investmentService.getUserInvestmentAccounts();
+
+    return accounts.fold<double>(
+      0.0,
+      (sum, account) => sum + account.cumulativeDeposits,
+    );
+  }
+
+  /// Calcule la valeur totale du portefeuille en additionnant
+  /// la valorisation (amount) de tous les comptes d'investissement.
+  Future<double> getTotalPortfolioValue() {
+    return _investmentService.getTotalPortfolioValue();
+  }
 }

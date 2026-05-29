@@ -3,17 +3,15 @@ import 'package:intl/intl.dart';
 
 class PatrimoineHeader extends StatefulWidget {
   final double patrimoineTotal;
-  final double totalDepose;
-  final double capitalOwned;
-  final double patrimoineOwned;
+  final double investedCapital;
+  final double portfolioValue;
   final bool hasInvestments;
 
   const PatrimoineHeader({
     super.key,
     required this.patrimoineTotal,
-    required this.totalDepose,
-    required this.capitalOwned,
-    required this.patrimoineOwned,
+    required this.investedCapital,
+    required this.portfolioValue,
     this.hasInvestments = true,
   });
 
@@ -33,25 +31,31 @@ class _PatrimoineHeaderState extends State<PatrimoineHeader> {
       symbol: '',
       decimalDigits: 2,
     );
+
     return formatter.format(amount).trim();
   }
 
-  double get _gains => widget.patrimoineTotal - widget.totalDepose;
+  // =========================
+  // Calculs
+  // =========================
+  double get profitLoss => widget.portfolioValue - widget.investedCapital;
 
   double get _gainsPercentage {
-    if (widget.totalDepose == 0) return 0;
-    return (_gains / widget.totalDepose) * 100;
+    if (widget.investedCapital == 0) return 0;
+    return (widget.portfolioValue - widget.investedCapital) /
+        widget.investedCapital *
+        100;
   }
 
   Color get _gainsColor {
-    if (_gains > 0) return colorGreenFlash;
-    if (_gains < 0) return colorOrangeLogo;
+    if (_gainsPercentage > 0) return colorGreenFlash;
+    if (_gainsPercentage < 0) return colorOrangeLogo;
     return Colors.white70;
   }
 
   @override
   Widget build(BuildContext context) {
-    final bool showGains = widget.hasInvestments && widget.totalDepose > 0;
+    final bool showGains = widget.hasInvestments && widget.investedCapital > 0;
 
     return Container(
       width: double.infinity,
@@ -59,7 +63,9 @@ class _PatrimoineHeaderState extends State<PatrimoineHeader> {
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
-          // Libellé discret
+          // =========================
+          // Label
+          // =========================
           Text(
             "PATRIMOINE TOTAL",
             style: TextStyle(
@@ -69,15 +75,18 @@ class _PatrimoineHeaderState extends State<PatrimoineHeader> {
               letterSpacing: 2.0,
             ),
           ),
+
           const SizedBox(height: 10),
 
-          // --- Zone Montant (Correction du centrage et superposition) ---
+          // =========================
+          // Montant principal
+          // =========================
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 16),
             child: Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                // 1. Placeholder invisible pour équilibrer le centrage
+                // Placeholder invisible pour garder le centrage
                 const Opacity(
                   opacity: 0,
                   child: IconButton(
@@ -86,33 +95,38 @@ class _PatrimoineHeaderState extends State<PatrimoineHeader> {
                   ),
                 ),
 
-                // 2. Montant centré
+                // Montant centré et cliquable
                 Expanded(
-                  child: AnimatedSwitcher(
-                    duration: const Duration(milliseconds: 300),
-                    child: FittedBox(
-                      fit: BoxFit
-                          .scaleDown, // Empêche le chevauchement si le chiffre est long
-                      child: Text(
-                        _isVisible
-                            ? "${_formatAmount(widget.patrimoineTotal)} €"
-                            : "•••••••• €",
-                        key: ValueKey(_isVisible),
-                        textAlign: TextAlign.center,
-                        style: const TextStyle(
-                          fontSize: 38,
-                          fontWeight: FontWeight.w900,
-                          color: Colors.white,
-                          letterSpacing: -1.0,
+                  child: GestureDetector(
+                    child: AnimatedSwitcher(
+                      duration: const Duration(milliseconds: 300),
+                      child: FittedBox(
+                        fit: BoxFit.scaleDown,
+                        child: Text(
+                          _isVisible
+                              ? "${_formatAmount(widget.patrimoineTotal)} €"
+                              : "•••••••• €",
+                          key: ValueKey(_isVisible),
+                          textAlign: TextAlign.center,
+                          style: const TextStyle(
+                            fontSize: 38,
+                            fontWeight: FontWeight.w900,
+                            color: Colors.white,
+                            letterSpacing: -1.0,
+                          ),
                         ),
                       ),
                     ),
                   ),
                 ),
 
-                // 3. Bouton visibilité réel
+                // Bouton visibilité
                 IconButton(
-                  onPressed: () => setState(() => _isVisible = !_isVisible),
+                  onPressed: () {
+                    setState(() {
+                      _isVisible = !_isVisible;
+                    });
+                  },
                   icon: Icon(
                     _isVisible
                         ? Icons.visibility_outlined
@@ -125,21 +139,26 @@ class _PatrimoineHeaderState extends State<PatrimoineHeader> {
             ),
           ),
 
-          // --- Gains ---
+          // =========================
+          // Gains
+          // =========================
           if (showGains) ...[
             const SizedBox(height: 8),
+
             Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 Icon(
-                  _gains >= 0 ? Icons.trending_up : Icons.trending_down,
+                  profitLoss >= 0 ? Icons.trending_up : Icons.trending_down,
                   size: 14,
                   color: _gainsColor,
                 ),
+
                 const SizedBox(width: 6),
+
                 Text(
                   _isVisible
-                      ? "${_gains >= 0 ? '+' : ''}${_formatAmount(_gains)} € (${_gainsPercentage >= 0 ? '+' : ''}${_gainsPercentage.toStringAsFixed(2)}%)"
+                      ? "${profitLoss >= 0 ? '+' : ''}${_formatAmount(profitLoss)} € (${_gainsPercentage >= 0 ? '+' : ''}${_gainsPercentage.toStringAsFixed(2)}%)"
                       : "•••• €",
                   style: TextStyle(
                     fontSize: 14,

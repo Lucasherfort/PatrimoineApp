@@ -18,7 +18,7 @@ class HomePage extends StatefulWidget {
 }
 
 class HomePageState extends State<HomePage> {
-  final PatrimoineService _service = PatrimoineService();
+  final PatrimoineService _patrimoineService = PatrimoineService();
 
   // Couleurs cohérentes avec le reste de l'app
   static const Color colorDarkBg = Color(0xFF060B26);
@@ -28,6 +28,8 @@ class HomePageState extends State<HomePage> {
   double totalDepose = 0.0;
   double capitalOwned = 0.0;
   double patrimoineOwned = 0.0;
+  double investedCapital = 0.0;
+  double portfolioValue = 0.0;
   bool isLoading = true;
 
   bool hasLiquidityAccounts = false;
@@ -65,14 +67,20 @@ class HomePageState extends State<HomePage> {
     setState(() => isLoading = true);
 
     try {
-      final total = await _service.getPatrimoine();
-      final deposedAmount = await _service.getTotalDeposed();
-      final capitalOwnedAmount = await _service.getTotalOwnedCapital();
-      final patrimoineOwnedAmount = await _service.getPatrimoineOwned();
-      final liquidity = await _service.hasLiquidityAccounts();
-      final savings = await _service.hasSavingsAccounts();
-      final investments = await _service.hasInvestmentAccounts();
-      final advantages = await _service.hasAdvantageAccounts();
+      final total = await _patrimoineService.getPatrimoine();
+      final deposedAmount = await _patrimoineService.getTotalDeposed();
+      final capitalOwnedAmount = await _patrimoineService
+          .getTotalOwnedCapital();
+      final patrimoineOwnedAmount = await _patrimoineService
+          .getPatrimoineOwned();
+      final liquidity = await _patrimoineService.hasLiquidityAccounts();
+      final savings = await _patrimoineService.hasSavingsAccounts();
+      final investments = await _patrimoineService.hasInvestmentAccounts();
+      final advantages = await _patrimoineService.hasAdvantageAccounts();
+      final investedCapitalAmount = await _patrimoineService
+          .getTotalInvestedCapital();
+      final portfolioValueAmount = await _patrimoineService
+          .getTotalPortfolioValue();
 
       if (mounted) {
         setState(() {
@@ -84,6 +92,8 @@ class HomePageState extends State<HomePage> {
           hasSavingsAccounts = savings;
           hasInvestmentAccounts = investments;
           hasAdvantageAccounts = advantages;
+          investedCapital = investedCapitalAmount;
+          portfolioValue = portfolioValueAmount;
           isLoading = false;
         });
       }
@@ -148,9 +158,8 @@ class HomePageState extends State<HomePage> {
               children: [
                 PatrimoineHeader(
                   patrimoineTotal: patrimoineTotal,
-                  totalDepose: totalDepose,
-                  capitalOwned: capitalOwned,
-                  patrimoineOwned: patrimoineOwned,
+                  investedCapital: investedCapital,
+                  portfolioValue: portfolioValue,
                 ),
                 Expanded(
                   child: hasAnyAccount
