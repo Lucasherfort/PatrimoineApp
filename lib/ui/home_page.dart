@@ -94,10 +94,6 @@ class HomePageState extends State<HomePage> {
           hasAdvantageAccounts = advantages;
           investedCapital = investedCapitalAmount;
           portfolioValue = portfolioValueAmount;
-
-          print("investedCapital : $investedCapital");
-          print("portfolioValue : $portfolioValue");
-
           isLoading = false;
         });
       }
