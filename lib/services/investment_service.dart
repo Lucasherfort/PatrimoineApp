@@ -268,4 +268,16 @@ class InvestmentService {
         .from(StorageBucketsTable.banksIcons)
         .getPublicUrl(iconPath);
   }
+
+  Future<double> getTotalPortfolioValue() async {
+    final accounts = await getUserInvestmentAccounts();
+
+    double total = 0.0;
+
+    for (final account in accounts) {
+      total += await getTotalValueOfInvestmentAccount(account);
+    }
+
+    return total;
+  }
 }
