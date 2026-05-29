@@ -69,15 +69,18 @@ class HomePageState extends State<HomePage> {
     try {
       final total = await _patrimoineService.getPatrimoine();
       final deposedAmount = await _patrimoineService.getTotalDeposed();
-      final capitalOwnedAmount = await _patrimoineService.getTotalOwnedCapital();
-      final patrimoineOwnedAmount = await _patrimoineService.getPatrimoineOwned();
+      final capitalOwnedAmount = await _patrimoineService
+          .getTotalOwnedCapital();
+      final patrimoineOwnedAmount = await _patrimoineService
+          .getPatrimoineOwned();
       final liquidity = await _patrimoineService.hasLiquidityAccounts();
       final savings = await _patrimoineService.hasSavingsAccounts();
       final investments = await _patrimoineService.hasInvestmentAccounts();
       final advantages = await _patrimoineService.hasAdvantageAccounts();
-      final investedCapitalAmount = await _patrimoineService.getTotalInvestedCapital();
-      final portfolioValueAmount = await _patrimoineService.getTotalPortfolioValue();
-
+      final investedCapitalAmount = await _patrimoineService
+          .getTotalInvestedCapital();
+      final portfolioValueAmount = await _patrimoineService
+          .getTotalPortfolioValue();
 
       if (mounted) {
         setState(() {

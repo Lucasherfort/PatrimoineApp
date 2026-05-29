@@ -260,8 +260,8 @@ class PatrimoineService {
     final accounts = await _investmentService.getUserInvestmentAccounts();
 
     return accounts.fold<double>(
-        0.0,
-            (sum, account) => sum + account.cumulativeDeposits
+      0.0,
+      (sum, account) => sum + account.cumulativeDeposits,
     );
   }
 

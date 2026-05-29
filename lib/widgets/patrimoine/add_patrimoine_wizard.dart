@@ -406,9 +406,9 @@ class _AddPatrimoineWizardState extends State<AddPatrimoineWizard> {
         const Text(
           'Ajouter un patrimoine',
           style: TextStyle(
-              fontSize: 20,
-              fontWeight: FontWeight.bold,
-              color: Colors.black
+            fontSize: 20,
+            fontWeight: FontWeight.bold,
+            color: Colors.black,
           ),
         ),
         IconButton(

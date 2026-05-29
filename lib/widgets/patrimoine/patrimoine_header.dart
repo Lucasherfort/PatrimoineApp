@@ -42,7 +42,9 @@ class _PatrimoineHeaderState extends State<PatrimoineHeader> {
 
   double get _gainsPercentage {
     if (widget.investedCapital == 0) return 0;
-    return (widget.portfolioValue - widget.investedCapital) / widget.investedCapital * 100;
+    return (widget.portfolioValue - widget.investedCapital) /
+        widget.investedCapital *
+        100;
   }
 
   Color get _gainsColor {
@@ -51,11 +53,9 @@ class _PatrimoineHeaderState extends State<PatrimoineHeader> {
     return Colors.white70;
   }
 
-
   @override
   Widget build(BuildContext context) {
-    final bool showGains =
-        widget.hasInvestments && widget.investedCapital > 0;
+    final bool showGains = widget.hasInvestments && widget.investedCapital > 0;
 
     return Container(
       width: double.infinity,
@@ -66,7 +66,6 @@ class _PatrimoineHeaderState extends State<PatrimoineHeader> {
           // =========================
           // Label
           // =========================
-
           Text(
             "PATRIMOINE TOTAL",
             style: TextStyle(
@@ -82,7 +81,6 @@ class _PatrimoineHeaderState extends State<PatrimoineHeader> {
           // =========================
           // Montant principal
           // =========================
-
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 16),
             child: Row(
@@ -93,10 +91,7 @@ class _PatrimoineHeaderState extends State<PatrimoineHeader> {
                   opacity: 0,
                   child: IconButton(
                     onPressed: null,
-                    icon: Icon(
-                      Icons.visibility_outlined,
-                      size: 22,
-                    ),
+                    icon: Icon(Icons.visibility_outlined, size: 22),
                   ),
                 ),
 
@@ -147,7 +142,6 @@ class _PatrimoineHeaderState extends State<PatrimoineHeader> {
           // =========================
           // Gains
           // =========================
-
           if (showGains) ...[
             const SizedBox(height: 8),
 
@@ -155,9 +149,7 @@ class _PatrimoineHeaderState extends State<PatrimoineHeader> {
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 Icon(
-                  profitLoss >= 0
-                      ? Icons.trending_up
-                      : Icons.trending_down,
+                  profitLoss >= 0 ? Icons.trending_up : Icons.trending_down,
                   size: 14,
                   color: _gainsColor,
                 ),
