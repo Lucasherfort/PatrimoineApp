@@ -249,10 +249,7 @@ class _AddPositionDialogState extends State<AddPositionDialog> {
   Widget _buildTitle() {
     return Text(
       'Sélectionner une position',
-      style: TextStyle(
-        fontWeight: FontWeight.w600,
-        color: Colors.grey.shade700,
-      ),
+      style: TextStyle(fontWeight: FontWeight.w600, color: Colors.white),
     );
   }
 
@@ -309,7 +306,7 @@ class _AddPositionDialogState extends State<AddPositionDialog> {
                                       ? Colors.grey.shade400
                                       : (isSelected
                                             ? Colors.purple
-                                            : Colors.black87),
+                                            : Colors.white),
                                 ),
                               ),
                               if (isAlreadyInAccount) // ✅

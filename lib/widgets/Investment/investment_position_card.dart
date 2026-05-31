@@ -15,12 +15,16 @@ class InvestmentPositionCard extends StatelessWidget {
   });
 
   // --- Palette Ultra Moderne (Ardoise & Éclats néon) ---
-  static const Color colorCardBg = Color(0xFF1E2530);     // Plus sombre pour faire ressortir les éléments
-  static const Color colorAccentBlue = Color(0xFF38BDF8); // Bleu ciel moderne / électrique
-  static const Color colorGreen = Color(0xFF4ADE80);      // Vert émeraude adouci
-  static const Color colorRed = Color(0xFFF87171);        // Rouge corail adouci
-  static const Color textMain = Color(0xFFF8FAFC);        // Blanc cassé haut de gamme
-  static const Color textDim = Color(0xFF94A3B8);         // Gris ardoise clair
+  static const Color colorCardBg = Color(
+    0xFF1E2530,
+  ); // Plus sombre pour faire ressortir les éléments
+  static const Color colorAccentBlue = Color(
+    0xFF38BDF8,
+  ); // Bleu ciel moderne / électrique
+  static const Color colorGreen = Color(0xFF4ADE80); // Vert émeraude adouci
+  static const Color colorRed = Color(0xFFF87171); // Rouge corail adouci
+  static const Color textMain = Color(0xFFF8FAFC); // Blanc cassé haut de gamme
+  static const Color textDim = Color(0xFF94A3B8); // Gris ardoise clair
 
   String _format(double val) {
     return NumberFormat.currency(
@@ -41,7 +45,10 @@ class InvestmentPositionCard extends StatelessWidget {
         color: colorCardBg,
         borderRadius: BorderRadius.circular(20),
         border: Border(
-          left: BorderSide(color: trendColor, width: 4), // Indicateur de tendance
+          left: BorderSide(
+            color: trendColor,
+            width: 4,
+          ), // Indicateur de tendance
         ),
         boxShadow: [
           BoxShadow(
@@ -144,10 +151,7 @@ class InvestmentPositionCard extends StatelessWidget {
                         const SizedBox(height: 4),
                         Text(
                           "PRU: ${_format(position.pru)}€",
-                          style: const TextStyle(
-                            color: textDim,
-                            fontSize: 11,
-                          ),
+                          style: const TextStyle(color: textDim, fontSize: 11),
                         ),
                       ],
                     ),
@@ -176,7 +180,10 @@ class InvestmentPositionCard extends StatelessWidget {
                             ),
                             const SizedBox(width: 8),
                             Container(
-                              padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 6,
+                                vertical: 2,
+                              ),
                               decoration: BoxDecoration(
                                 color: trendColor.withValues(alpha: 0.15),
                                 borderRadius: BorderRadius.circular(6),
@@ -260,9 +267,17 @@ class InvestmentPositionCard extends StatelessWidget {
               ),
             ),
             const SizedBox(height: 24),
-            _buildField(qtyController, "Quantité détenue", Icons.copy_all_rounded),
+            _buildField(
+              qtyController,
+              "Quantité détenue",
+              Icons.copy_all_rounded,
+            ),
             const SizedBox(height: 16),
-            _buildField(pruController, "Prix de revient (PRU)", Icons.euro_symbol_rounded),
+            _buildField(
+              pruController,
+              "Prix de revient (PRU)",
+              Icons.euro_symbol_rounded,
+            ),
             const SizedBox(height: 28),
             SizedBox(
               width: double.infinity,
@@ -276,8 +291,12 @@ class InvestmentPositionCard extends StatelessWidget {
                   ),
                 ),
                 onPressed: () {
-                  final p = double.tryParse(pruController.text.replaceAll(',', '.'));
-                  final q = double.tryParse(qtyController.text.replaceAll(',', '.'));
+                  final p = double.tryParse(
+                    pruController.text.replaceAll(',', '.'),
+                  );
+                  final q = double.tryParse(
+                    qtyController.text.replaceAll(',', '.'),
+                  );
                   if (p != null && q != null) onValueUpdated?.call(p, q);
                   Navigator.pop(context);
                 },
@@ -309,7 +328,10 @@ class InvestmentPositionCard extends StatelessWidget {
         filled: true,
         fillColor: Colors.white.withValues(alpha: 0.03),
         floatingLabelBehavior: FloatingLabelBehavior.always,
-        contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+        contentPadding: const EdgeInsets.symmetric(
+          horizontal: 16,
+          vertical: 16,
+        ),
         enabledBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(14),
           borderSide: BorderSide(color: Colors.white.withValues(alpha: 0.08)),
@@ -328,7 +350,14 @@ class InvestmentPositionCard extends StatelessWidget {
       builder: (context) => AlertDialog(
         backgroundColor: const Color(0xFF1E2530),
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-        title: const Text("Supprimer la position ?", style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 18)),
+        title: const Text(
+          "Supprimer la position ?",
+          style: TextStyle(
+            color: Colors.white,
+            fontWeight: FontWeight.bold,
+            fontSize: 18,
+          ),
+        ),
         content: Text(
           "Êtes-vous sûr de vouloir retirer ${position.ticker.toUpperCase()} de votre suivi ?",
           style: const TextStyle(color: textDim, fontSize: 14),
@@ -336,7 +365,10 @@ class InvestmentPositionCard extends StatelessWidget {
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: const Text("Annuler", style: TextStyle(color: textDim, fontWeight: FontWeight.w600)),
+            child: const Text(
+              "Annuler",
+              style: TextStyle(color: textDim, fontWeight: FontWeight.w600),
+            ),
           ),
           TextButton(
             onPressed: () {
