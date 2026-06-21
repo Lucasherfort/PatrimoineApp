@@ -53,6 +53,85 @@ class _PatrimoineHeaderState extends State<PatrimoineHeader> {
     return Colors.white70;
   }
 
+  void _showInfoPanel(BuildContext context) {
+    final double liquidity = widget.patrimoineTotal - widget.portfolioValue;
+    final double investmentPercentage = widget.patrimoineTotal > 0
+        ? (widget.portfolioValue / widget.patrimoineTotal) * 100
+        : 0;
+
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: const Color(0xFF1C1C1E),
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (context) {
+        return SafeArea(
+          child: Padding(
+            padding: const EdgeInsets.fromLTRB(24, 12, 24, 24),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                // Barre de drag
+                Container(
+                  width: 40,
+                  height: 4,
+                  margin: const EdgeInsets.only(bottom: 24),
+                  decoration: BoxDecoration(
+                    color: Colors.white24,
+                    borderRadius: BorderRadius.circular(2),
+                  ),
+                ),
+                _buildInfoRow(
+                  "Liquidité nette",
+                  _isVisible ? "${_formatAmount(liquidity)} €" : "•••• €",
+                ),
+                const Divider(color: Colors.white10, height: 32),
+                _buildInfoRow(
+                  "Montant net investi",
+                  _isVisible
+                      ? "${_formatAmount(widget.portfolioValue)} €"
+                      : "•••• €",
+                ),
+                const Divider(color: Colors.white10, height: 32),
+                _buildInfoRow(
+                  "Pourcentage d'investissement",
+                  _isVisible
+                      ? "${investmentPercentage.toStringAsFixed(2)} %"
+                      : "•• %",
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _buildInfoRow(String label, String value) {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: [
+        Text(
+          label,
+          style: const TextStyle(
+            color: Colors.white70,
+            fontSize: 15,
+            fontWeight: FontWeight.w500,
+          ),
+        ),
+        Text(
+          value,
+          style: const TextStyle(
+            color: Colors.white,
+            fontSize: 15,
+            fontWeight: FontWeight.w700,
+          ),
+        ),
+      ],
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final bool showGains = widget.hasInvestments && widget.investedCapital > 0;
@@ -66,14 +145,28 @@ class _PatrimoineHeaderState extends State<PatrimoineHeader> {
           // =========================
           // Label
           // =========================
-          Text(
-            "PATRIMOINE TOTAL",
-            style: TextStyle(
-              color: Colors.white.withValues(alpha: 0.4),
-              fontSize: 11,
-              fontWeight: FontWeight.w700,
-              letterSpacing: 2.0,
-            ),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Text(
+                "PATRIMOINE TOTAL",
+                style: TextStyle(
+                  color: Colors.white.withValues(alpha: 0.4),
+                  fontSize: 11,
+                  fontWeight: FontWeight.w700,
+                  letterSpacing: 2.0,
+                ),
+              ),
+              const SizedBox(width: 8),
+              GestureDetector(
+                onTap: () => _showInfoPanel(context),
+                child: Icon(
+                  Icons.info_outline,
+                  size: 14,
+                  color: Colors.white.withValues(alpha: 0.4),
+                ),
+              ),
+            ],
           ),
 
           const SizedBox(height: 10),
