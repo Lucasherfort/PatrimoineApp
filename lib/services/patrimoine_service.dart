@@ -144,62 +144,15 @@ class PatrimoineService {
   }
 
   Future<double> getTotalOwnedCapital() async {
-    final userId = _requireUserId();
+    _requireUserId();
 
-    // ─────────────────────────────────────────────
-    // LIQUIDITÉS (compte courant / cash dispo)
-    // ─────────────────────────────────────────────
-    final liquidity = await _supabase
-        .from(UserLiquidityAccountTable.tableName)
-        .select(UserLiquidityAccountTable.amount)
-        .eq(UserLiquidityAccountTable.userId, userId);
+    final values = await Future.wait([
+      _liquidityService.getTotalLiquidityValue(),
+      _savingsService.getTotalSavingsPrincipal(),
+      getTotalInvestedCapital(),
+    ]);
 
-    final liquidityTotal = liquidity.fold<double>(
-      0.0,
-      (sum, row) =>
-          sum +
-          ((row[UserLiquidityAccountTable.amount] as num?)?.toDouble() ?? 0),
-    );
-
-    // ─────────────────────────────────────────────
-    // ÉPARGNE (uniquement capital, sans intérêts)
-    // ─────────────────────────────────────────────
-    final savings = await _supabase
-        .from(UserSavingsAccountTable.tableName)
-        .select(UserSavingsAccountTable.principal)
-        .eq(UserSavingsAccountTable.userId, userId);
-
-    final savingsTotal = savings.fold<double>(
-      0.0,
-      (sum, row) =>
-          sum +
-          ((row[UserSavingsAccountTable.principal] as num?)?.toDouble() ?? 0),
-    );
-
-    // ─────────────────────────────────────────────
-    // INVESTISSEMENTS (uniquement dépôts versés)
-    // ─────────────────────────────────────────────
-    final investments = await _supabase
-        .from(UserInvestmentAccountTable.tableName)
-        .select(UserInvestmentAccountTable.totalContribution)
-        .eq(UserInvestmentAccountTable.userId, userId);
-
-    final investmentTotal = investments.fold<double>(
-      0.0,
-      (sum, row) =>
-          sum +
-          ((row[UserInvestmentAccountTable.totalContribution] as num?)
-                  ?.toDouble() ??
-              0),
-    );
-
-    // ─────────────────────────────────────────────
-    // AVANTAGES SALARIÉS (exclus ici volontairement)
-    // ─────────────────────────────────────────────
-
-    final totalOwnedCapital = liquidityTotal + savingsTotal + investmentTotal;
-
-    return totalOwnedCapital;
+    return values[0] + values[1] + values[2];
   }
 
   /// Calcule le capital total investi par l'utilisateur
@@ -225,24 +178,10 @@ class PatrimoineService {
 
     final values = await Future.wait([
       _liquidityService.getTotalLiquidityValue(),
-      _savingsService.getTotalSavingsValue(), // On veut le principal ici ? Non, l'énoncé dit "Somme des liquidités + Principal épargne + Capital investi"
+      _savingsService.getTotalSavingsPrincipal(),
+      getTotalInvestedCapital(),
     ]);
 
-    // En fait, getNetPatrimoine a une définition spécifique : principal uniquement pour l'épargne.
-    // Je vais garder les calculs spécifiques mais utiliser les services si possible.
-    
-    // Pour l'épargne (principal uniquement), on n'a pas encore de méthode dédiée dans SavingsAccountService.
-    // Mais on peut la rajouter ou garder la requête ici.
-    
-    final liquidityTotal = await _liquidityService.getTotalLiquidityValue();
-    
-    // On va chercher le principal épargne via une nouvelle méthode ou directement.
-    final savingsAccounts = await _savingsService.getUserSavingsAccounts();
-    final savingsTotal = savingsAccounts.fold<double>(0.0, (sum, a) => sum + a.principal);
-
-    // 3. Investissement (Capital net investi)
-    final investedTotal = await getTotalInvestedCapital();
-
-    return liquidityTotal + savingsTotal + investedTotal;
+    return values[0] + values[1] + values[2];
   }
 }

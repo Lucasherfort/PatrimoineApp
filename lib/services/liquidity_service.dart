@@ -117,8 +117,8 @@ class LiquidityService {
     // Somme des montants
     return liquidity.fold<double>(
       0.0,
-          (sum, row) =>
-      sum +
+      (sum, row) =>
+          sum +
           ((row[UserLiquidityAccountTable.amount] as num?)?.toDouble() ?? 0),
     );
   }
