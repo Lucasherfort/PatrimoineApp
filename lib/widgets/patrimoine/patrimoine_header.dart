@@ -58,7 +58,6 @@ class _PatrimoineHeaderState extends State<PatrimoineHeader> {
   }
 
   void _showInfoPanel(BuildContext context) {
-
     final double investmentPercentage = widget.patrimoineTotal > 0
         ? (widget.netWorth / widget.netPatrimoine) * 100
         : 0;
@@ -88,14 +87,14 @@ class _PatrimoineHeaderState extends State<PatrimoineHeader> {
                 ),
                 _buildInfoRow(
                   "Patrimoine net",
-                  _isVisible ? "${_formatAmount(widget.netPatrimoine)} €" : "•••• €",
+                  _isVisible
+                      ? "${_formatAmount(widget.netPatrimoine)} €"
+                      : "•••• €",
                 ),
                 const Divider(color: Colors.white10, height: 32),
                 _buildInfoRow(
                   "Montant net investi",
-                  _isVisible
-                      ? "${_formatAmount(widget.netWorth)} €"
-                      : "•••• €",
+                  _isVisible ? "${_formatAmount(widget.netWorth)} €" : "•••• €",
                 ),
                 const Divider(color: Colors.white10, height: 32),
                 _buildInfoRow(

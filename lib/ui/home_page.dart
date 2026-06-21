@@ -164,8 +164,8 @@ class HomePageState extends State<HomePage> {
                   patrimoineTotal: patrimoineTotal,
                   investedCapital: investedCapital,
                   portfolioValue: portfolioValue,
-                    netWorth: investedCapital,
-                  netPatrimoine: netPatrimoine
+                  netWorth: investedCapital,
+                  netPatrimoine: netPatrimoine,
                 ),
                 Expanded(
                   child: hasAnyAccount
