@@ -21,7 +21,7 @@ void main() async {
   // 3. Initialisation Supabase
   await Supabase.initialize(
     url: 'https://hkwrmzubtmdoolleqnyt.supabase.co',
-    anonKey:
+    publishableKey:
         'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imhrd3JtenVidG1kb29sbGVxbnl0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjgwNTk3NTIsImV4cCI6MjA4MzYzNTc1Mn0.5h6Fcn5MmrEun3OutmI12M8_gk8LFr5WeZomK-fl9FA',
   );
 
