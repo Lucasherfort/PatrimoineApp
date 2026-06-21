@@ -190,4 +190,43 @@ class SavingsAccountService {
         .from(StorageBucketsTable.banksIcons)
         .getPublicUrl(iconPath);
   }
+
+  /// Récupère la valeur totale de l'épargne (Principal + Intérêts)
+  Future<double> getTotalSavingsValue() async {
+    final user = _supabase.auth.currentUser;
+    if (user == null) return 0.0;
+
+    final response = await _supabase
+        .from(UserSavingsAccountTable.tableName)
+        .select(
+          '${UserSavingsAccountTable.principal}, ${UserSavingsAccountTable.interest}',
+        )
+        .eq(UserSavingsAccountTable.userId, user.id);
+
+    return response.fold<double>(
+      0.0,
+      (sum, row) =>
+          sum +
+          ((row[UserSavingsAccountTable.principal] as num?)?.toDouble() ?? 0) +
+          ((row[UserSavingsAccountTable.interest] as num?)?.toDouble() ?? 0),
+    );
+  }
+
+  /// Récupère uniquement le capital déposé (Principal) de l'épargne.
+  Future<double> getTotalSavingsPrincipal() async {
+    final user = _supabase.auth.currentUser;
+    if (user == null) return 0.0;
+
+    final response = await _supabase
+        .from(UserSavingsAccountTable.tableName)
+        .select(UserSavingsAccountTable.principal)
+        .eq(UserSavingsAccountTable.userId, user.id);
+
+    return response.fold<double>(
+      0.0,
+      (sum, row) =>
+          sum +
+          ((row[UserSavingsAccountTable.principal] as num?)?.toDouble() ?? 0),
+    );
+  }
 }

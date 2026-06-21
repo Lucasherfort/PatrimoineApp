@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
-import '../../services/liquidity_account_service.dart';
+import '../../services/liquidity_service.dart';
 import '../../models/liquidity/user_liquidity_account_view.dart';
 
 class LiquidityAccountCard extends StatelessWidget {
@@ -290,7 +290,7 @@ class LiquidityAccountCard extends StatelessWidget {
                 final navigator = Navigator.of(context);
                 final scaffoldMessenger = ScaffoldMessenger.of(context);
                 navigator.pop();
-                final service = LiquidityAccountService();
+                final service = LiquidityService();
                 await service.deleteAccount(account.id);
                 onDeleted?.call();
                 scaffoldMessenger.showSnackBar(

@@ -5,8 +5,9 @@ import '../bdd/liquidity_source_table.dart';
 import '../bdd/storage_buckets.dart';
 import '../bdd/user_liquidity_account_table.dart';
 import '../models/liquidity/user_liquidity_account_view.dart';
+import 'auth_service.dart';
 
-class LiquidityAccountService {
+class LiquidityService {
   final SupabaseClient _supabase = Supabase.instance.client;
 
   static const _selectAccounts =
@@ -102,5 +103,23 @@ class LiquidityAccountService {
     return _supabase.storage
         .from(StorageBucketsTable.banksIcons)
         .getPublicUrl(iconPath);
+  }
+
+  /////////////////////////////////////////////////////////////////////
+  Future<double> getTotalLiquidityValue() async {
+    final userId = AuthService().requireUserId();
+
+    final liquidity = await _supabase
+        .from(UserLiquidityAccountTable.tableName)
+        .select(UserLiquidityAccountTable.amount)
+        .eq(UserLiquidityAccountTable.userId, userId);
+
+    // Somme des montants
+    return liquidity.fold<double>(
+      0.0,
+      (sum, row) =>
+          sum +
+          ((row[UserLiquidityAccountTable.amount] as num?)?.toDouble() ?? 0),
+    );
   }
 }

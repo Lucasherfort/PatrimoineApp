@@ -166,7 +166,8 @@ class InvestmentService {
 
   // ─── Calculs ─────────────────────────────────────────────────────────────────
 
-  Future<double> getUserInvestmentsTotalValue() async {
+  /// Calcule la valeur totale des investissements d'un utilisateur ✅
+  Future<double> getTotalPortfolioValue() async {
     final accounts = await getUserInvestmentAccounts();
     double total = 0.0;
     for (final account in accounts) {
@@ -174,6 +175,9 @@ class InvestmentService {
     }
     return total;
   }
+
+  /// Alias pour getTotalPortfolioValue
+  Future<double> getUserInvestmentsTotalValue() => getTotalPortfolioValue();
 
   Future<double> getTotalValueOfInvestmentAccount(
     UserInvestmentAccount account,
@@ -267,17 +271,5 @@ class InvestmentService {
     return _supabase.storage
         .from(StorageBucketsTable.banksIcons)
         .getPublicUrl(iconPath);
-  }
-
-  Future<double> getTotalPortfolioValue() async {
-    final accounts = await getUserInvestmentAccounts();
-
-    double total = 0.0;
-
-    for (final account in accounts) {
-      total += await getTotalValueOfInvestmentAccount(account);
-    }
-
-    return total;
   }
 }

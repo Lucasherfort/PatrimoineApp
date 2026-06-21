@@ -1,5 +1,5 @@
 import 'package:supabase_flutter/supabase_flutter.dart';
-import 'liquidity_account_service.dart';
+import 'liquidity_service.dart';
 import 'savings_account_service.dart';
 import 'investment_service.dart';
 import 'advantage_service.dart';
@@ -35,44 +35,19 @@ class GraphService {
     }
 
     try {
-      // Récupérer les totaux de chaque catégorie
-      final liquidityService = LiquidityAccountService();
-      final savingsService = SavingsAccountService();
-      final investmentService = InvestmentService();
-      final advantageService = AdvantageService();
-
-      // Liquidité
-      final liquidityAccounts = await liquidityService
-          .getUserLiquidityAccounts();
-      final totalLiquidity = liquidityAccounts.fold<double>(
-        0.0,
-        (sum, account) => sum + account.amount,
-      );
-
-      // Épargne
-      final savingsAccounts = await savingsService.getUserSavingsAccounts();
-      final totalSavings = savingsAccounts.fold<double>(
-        0.0,
-        (sum, account) => sum + account.principal + account.interest,
-      );
-
-      // Investissement
-      final totalInvestment = await investmentService
-          .getUserInvestmentsTotalValue();
-
-      // Avantages
-      final advantageAccounts = await advantageService
-          .getUserAdvantageAccounts();
-      final totalAdvantages = advantageAccounts.fold<double>(
-        0.0,
-        (sum, account) => sum + account.value,
-      );
+      // Utilisation des méthodes centralisées des services
+      final results = await Future.wait([
+        LiquidityService().getTotalLiquidityValue(),
+        SavingsAccountService().getTotalSavingsValue(),
+        InvestmentService().getTotalPortfolioValue(),
+        AdvantageService().getTotalAdvantageValue(),
+      ]);
 
       return PatrimoineDistribution(
-        liquidite: totalLiquidity,
-        epargne: totalSavings,
-        investissement: totalInvestment,
-        avantages: totalAdvantages,
+        liquidite: results[0],
+        epargne: results[1],
+        investissement: results[2],
+        avantages: results[3],
       );
     } catch (e) {
       rethrow;
