@@ -270,4 +270,41 @@ class PatrimoineService {
   Future<double> getTotalPortfolioValue() {
     return _investmentService.getTotalPortfolioValue();
   }
+
+  /// Calcule le patrimoine net :
+  /// Somme des liquidités + Principal épargne + Capital investi
+  Future<double> getNetPatrimoine() async {
+    final userId = _requireUserId();
+
+    // 1. Liquidités (Comptes espèces)
+    final liquidity = await _supabase
+        .from(UserLiquidityAccountTable.tableName)
+        .select(UserLiquidityAccountTable.amount)
+        .eq(UserLiquidityAccountTable.userId, userId);
+
+    final liquidityTotal = liquidity.fold<double>(
+      0.0,
+      (sum, row) =>
+          sum +
+          ((row[UserLiquidityAccountTable.amount] as num?)?.toDouble() ?? 0),
+    );
+
+    // 2. Épargne (Montant déposé / principal uniquement)
+    final savings = await _supabase
+        .from(UserSavingsAccountTable.tableName)
+        .select(UserSavingsAccountTable.principal)
+        .eq(UserSavingsAccountTable.userId, userId);
+
+    final savingsTotal = savings.fold<double>(
+      0.0,
+      (sum, row) =>
+          sum +
+          ((row[UserSavingsAccountTable.principal] as num?)?.toDouble() ?? 0),
+    );
+
+    // 3. Investissement (Capital net investi)
+    final investedTotal = await getTotalInvestedCapital();
+
+    return liquidityTotal + savingsTotal + investedTotal;
+  }
 }

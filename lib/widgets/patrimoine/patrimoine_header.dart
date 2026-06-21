@@ -5,6 +5,8 @@ class PatrimoineHeader extends StatefulWidget {
   final double patrimoineTotal;
   final double investedCapital;
   final double portfolioValue;
+  final double netWorth;
+  final double netPatrimoine;
   final bool hasInvestments;
 
   const PatrimoineHeader({
@@ -12,6 +14,8 @@ class PatrimoineHeader extends StatefulWidget {
     required this.patrimoineTotal,
     required this.investedCapital,
     required this.portfolioValue,
+    required this.netWorth,
+    required this.netPatrimoine,
     this.hasInvestments = true,
   });
 
@@ -54,9 +58,9 @@ class _PatrimoineHeaderState extends State<PatrimoineHeader> {
   }
 
   void _showInfoPanel(BuildContext context) {
-    final double liquidity = widget.patrimoineTotal - widget.portfolioValue;
+
     final double investmentPercentage = widget.patrimoineTotal > 0
-        ? (widget.portfolioValue / widget.patrimoineTotal) * 100
+        ? (widget.netWorth / widget.netPatrimoine) * 100
         : 0;
 
     showModalBottomSheet(
@@ -83,14 +87,14 @@ class _PatrimoineHeaderState extends State<PatrimoineHeader> {
                   ),
                 ),
                 _buildInfoRow(
-                  "Liquidité nette",
-                  _isVisible ? "${_formatAmount(liquidity)} €" : "•••• €",
+                  "Patrimoine net",
+                  _isVisible ? "${_formatAmount(widget.netPatrimoine)} €" : "•••• €",
                 ),
                 const Divider(color: Colors.white10, height: 32),
                 _buildInfoRow(
                   "Montant net investi",
                   _isVisible
-                      ? "${_formatAmount(widget.portfolioValue)} €"
+                      ? "${_formatAmount(widget.netWorth)} €"
                       : "•••• €",
                 ),
                 const Divider(color: Colors.white10, height: 32),

@@ -30,6 +30,8 @@ class HomePageState extends State<HomePage> {
   double patrimoineOwned = 0.0;
   double investedCapital = 0.0;
   double portfolioValue = 0.0;
+  double netWorth = 0.0;
+  double netPatrimoine = 0.0;
   bool isLoading = true;
 
   bool hasLiquidityAccounts = false;
@@ -81,6 +83,7 @@ class HomePageState extends State<HomePage> {
           .getTotalInvestedCapital();
       final portfolioValueAmount = await _patrimoineService
           .getTotalPortfolioValue();
+      final netPatrimoineAmount = await _patrimoineService.getNetPatrimoine();
 
       if (mounted) {
         setState(() {
@@ -93,6 +96,7 @@ class HomePageState extends State<HomePage> {
           hasInvestmentAccounts = investments;
           hasAdvantageAccounts = advantages;
           investedCapital = investedCapitalAmount;
+          netPatrimoine = netPatrimoineAmount;
           portfolioValue = portfolioValueAmount;
           isLoading = false;
         });
@@ -160,6 +164,8 @@ class HomePageState extends State<HomePage> {
                   patrimoineTotal: patrimoineTotal,
                   investedCapital: investedCapital,
                   portfolioValue: portfolioValue,
+                    netWorth: investedCapital,
+                  netPatrimoine: netPatrimoine
                 ),
                 Expanded(
                   child: hasAnyAccount
