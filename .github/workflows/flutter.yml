@@ -76,7 +76,7 @@ jobs:
   ios:
     name: iOS Build
     needs: validation
-    runs-on: macos-15   # 🔥 important : évite macos-latest instable
+    runs-on: macos-15
 
     steps:
       - name: Checkout Repository
@@ -89,27 +89,28 @@ jobs:
           channel: stable
           cache: true
 
-      - name: Show Versions (debug important)
+      - name: Show Versions (debug)
         run: |
           flutter --version
           dart --version
           xcodebuild -version
 
-      - name: Cache CocoaPods
-        uses: actions/cache@v4
-        with:
-          path: |
-            ios/Pods
-            ~/Library/Caches/CocoaPods
-          key: ${{ runner.os }}-pods-${{ hashFiles('ios/Podfile.lock') }}
-          restore-keys: |
-            ${{ runner.os }}-pods-
-
-      - name: Install Dependencies
+      # 🔥 FIX IMPORTANT : force dépendances propres
+      - name: Clean Flutter & dependencies
         run: |
-          flutter pub get
+          flutter clean
+          rm -f pubspec.lock
+          rm -rf ios/Pods ios/Podfile.lock
+          rm -rf ~/Library/Developer/Xcode/DerivedData
+
+      - name: Install Flutter dependencies
+        run: flutter pub get
+
+      - name: Install CocoaPods
+        run: |
           cd ios
-          pod install --repo-update
+          pod repo update
+          pod install
 
       - name: Build iOS
         run: flutter build ios --release --no-codesign --build-number=${{ github.run_number }}
