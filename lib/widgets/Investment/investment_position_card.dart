@@ -181,20 +181,34 @@ class InvestmentPositionCard extends StatelessWidget {
                             const SizedBox(width: 8),
                             Container(
                               padding: const EdgeInsets.symmetric(
-                                horizontal: 6,
-                                vertical: 2,
+                                horizontal: 8,
+                                vertical: 4,
                               ),
                               decoration: BoxDecoration(
                                 color: trendColor.withValues(alpha: 0.15),
-                                borderRadius: BorderRadius.circular(6),
+                                borderRadius: BorderRadius.circular(8),
                               ),
-                              child: Text(
-                                "${isProfit ? '▲' : '▼'} ${position.performance.toStringAsFixed(1)}%",
-                                style: TextStyle(
-                                  color: trendColor,
-                                  fontWeight: FontWeight.bold,
-                                  fontSize: 10,
-                                ),
+                              child: Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  Text(
+                                    "${isProfit ? '+' : ''}${_format(position.latentGain)} €",
+                                    style: TextStyle(
+                                      color: trendColor,
+                                      fontWeight: FontWeight.w900,
+                                      fontSize: 10,
+                                    ),
+                                  ),
+                                  const SizedBox(width: 6),
+                                  Text(
+                                    "${isProfit ? '▲' : '▼'} ${position.performance.toStringAsFixed(1)}%",
+                                    style: TextStyle(
+                                      color: trendColor,
+                                      fontWeight: FontWeight.bold,
+                                      fontSize: 10,
+                                    ),
+                                  ),
+                                ],
                               ),
                             ),
                           ],
