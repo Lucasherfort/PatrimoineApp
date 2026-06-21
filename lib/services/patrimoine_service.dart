@@ -8,7 +8,7 @@ import '../bdd/user_savings_account_table.dart';
 import '../models/patrimoine/patrimoine_category.dart';
 import 'advantage_service.dart';
 import 'investment_service.dart';
-import 'liquidity_account_service.dart';
+import 'liquidity_service.dart';
 
 class PatrimoineService {
   final SupabaseClient _supabase = Supabase.instance.client;
@@ -17,7 +17,10 @@ class PatrimoineService {
   factory PatrimoineService() => _instance;
   PatrimoineService._internal();
 
+  final LiquidityService _liquidityService = LiquidityService();
+  final SavingsAccountService _savingsService = SavingsAccountService();
   final InvestmentService _investmentService = InvestmentService();
+  final AdvantageService _advantageService = AdvantageService();
 
   // ─── Utils ────────────────────────────────────────────────────────────────
 
@@ -29,92 +32,34 @@ class PatrimoineService {
 
   // ─── Total patrimoine ─────────────────────────────────────────────────────
 
+  /// Récupère la valeur totale du patrimoine (Liquidités + Épargne + Investissements + Avantages)
   Future<double> getPatrimoine() async {
-    final userId = _requireUserId();
+    _requireUserId();
 
-    final liquidity = await _supabase
-        .from(UserLiquidityAccountTable.tableName)
-        .select(UserLiquidityAccountTable.amount)
-        .eq(UserLiquidityAccountTable.userId, userId);
+    final values = await Future.wait([
+      _liquidityService.getTotalLiquidityValue(),
+      _savingsService.getTotalSavingsValue(),
+      _investmentService.getUserInvestmentsTotalValue(),
+      _advantageService.getTotalAdvantageValue(),
+    ]);
 
-    final savings = await _supabase
-        .from(UserSavingsAccountTable.tableName)
-        .select(
-          '${UserSavingsAccountTable.principal}, ${UserSavingsAccountTable.interest}',
-        )
-        .eq(UserSavingsAccountTable.userId, userId);
-
-    final advantage = await _supabase
-        .from(UserAdvantageAccountTable.tableName)
-        .select(UserAdvantageAccountTable.value)
-        .eq(UserAdvantageAccountTable.userId, userId);
-
-    double total = 0.0;
-
-    total += liquidity.fold<double>(
-      0.0,
-      (sum, row) =>
-          sum +
-          ((row[UserLiquidityAccountTable.amount] as num?)?.toDouble() ?? 0),
-    );
-
-    total += savings.fold<double>(
-      0.0,
-      (sum, row) =>
-          sum +
-          ((row[UserSavingsAccountTable.principal] as num?)?.toDouble() ?? 0) +
-          ((row[UserSavingsAccountTable.interest] as num?)?.toDouble() ?? 0),
-    );
-
-    total += await _investmentService.getUserInvestmentsTotalValue();
-
-    total += advantage.fold<double>(
-      0.0,
-      (sum, row) =>
-          sum +
-          ((row[UserAdvantageAccountTable.value] as num?)?.toDouble() ?? 0),
-    );
-
-    return total;
+    return values.reduce((a, b) => a + b);
   }
 
   // ─── Total patrimoine ─────────────────────────────────────────────────────
 
+  /// Récupère la valeur du patrimoine "détenu" en propre (Liquidités + Épargne + Investissements)
+  /// Exclut les avantages salariés.
   Future<double> getPatrimoineOwned() async {
-    final userId = _requireUserId();
+    _requireUserId();
 
-    final liquidity = await _supabase
-        .from(UserLiquidityAccountTable.tableName)
-        .select(UserLiquidityAccountTable.amount)
-        .eq(UserLiquidityAccountTable.userId, userId);
+    final values = await Future.wait([
+      _liquidityService.getTotalLiquidityValue(),
+      _savingsService.getTotalSavingsValue(),
+      _investmentService.getUserInvestmentsTotalValue(),
+    ]);
 
-    final savings = await _supabase
-        .from(UserSavingsAccountTable.tableName)
-        .select(
-          '${UserSavingsAccountTable.principal}, ${UserSavingsAccountTable.interest}',
-        )
-        .eq(UserSavingsAccountTable.userId, userId);
-
-    double total = 0.0;
-
-    total += liquidity.fold<double>(
-      0.0,
-      (sum, row) =>
-          sum +
-          ((row[UserLiquidityAccountTable.amount] as num?)?.toDouble() ?? 0),
-    );
-
-    total += savings.fold<double>(
-      0.0,
-      (sum, row) =>
-          sum +
-          ((row[UserSavingsAccountTable.principal] as num?)?.toDouble() ?? 0) +
-          ((row[UserSavingsAccountTable.interest] as num?)?.toDouble() ?? 0),
-    );
-
-    total += await _investmentService.getUserInvestmentsTotalValue();
-
-    return total;
+    return values.reduce((a, b) => a + b);
   }
 
   // ─── Présence des comptes ─────────────────────────────────────────────────
@@ -175,14 +120,17 @@ class PatrimoineService {
   Future<double> getTotalDeposed() async {
     _requireUserId();
 
-    final liquidityAccounts = await LiquidityAccountService()
-        .getUserLiquidityAccounts();
-    final savingsAccounts = await SavingsAccountService()
-        .getUserSavingsAccounts();
-    final investmentAccounts = await InvestmentService()
-        .getUserInvestmentAccounts();
-    final advantageAccounts = await AdvantageService()
-        .getUserAdvantageAccounts();
+    final results = await Future.wait([
+      _liquidityService.getUserLiquidityAccounts(),
+      _savingsService.getUserSavingsAccounts(),
+      _investmentService.getUserInvestmentAccounts(),
+      _advantageService.getUserAdvantageAccounts(),
+    ]);
+
+    final liquidityAccounts = results[0] as List;
+    final savingsAccounts = results[1] as List;
+    final investmentAccounts = results[2] as List;
+    final advantageAccounts = results[3] as List;
 
     return [
       liquidityAccounts.fold<double>(0.0, (sum, a) => sum + a.amount),
@@ -265,8 +213,7 @@ class PatrimoineService {
     );
   }
 
-  /// Calcule la valeur totale du portefeuille en additionnant
-  /// la valorisation (amount) de tous les comptes d'investissement.
+  /// Récupère la valeur totale des investissements d'un utilisateur depuis le service
   Future<double> getTotalPortfolioValue() {
     return _investmentService.getTotalPortfolioValue();
   }
@@ -274,33 +221,24 @@ class PatrimoineService {
   /// Calcule le patrimoine net :
   /// Somme des liquidités + Principal épargne + Capital investi
   Future<double> getNetPatrimoine() async {
-    final userId = _requireUserId();
+    _requireUserId();
 
-    // 1. Liquidités (Comptes espèces)
-    final liquidity = await _supabase
-        .from(UserLiquidityAccountTable.tableName)
-        .select(UserLiquidityAccountTable.amount)
-        .eq(UserLiquidityAccountTable.userId, userId);
+    final values = await Future.wait([
+      _liquidityService.getTotalLiquidityValue(),
+      _savingsService.getTotalSavingsValue(), // On veut le principal ici ? Non, l'énoncé dit "Somme des liquidités + Principal épargne + Capital investi"
+    ]);
 
-    final liquidityTotal = liquidity.fold<double>(
-      0.0,
-      (sum, row) =>
-          sum +
-          ((row[UserLiquidityAccountTable.amount] as num?)?.toDouble() ?? 0),
-    );
-
-    // 2. Épargne (Montant déposé / principal uniquement)
-    final savings = await _supabase
-        .from(UserSavingsAccountTable.tableName)
-        .select(UserSavingsAccountTable.principal)
-        .eq(UserSavingsAccountTable.userId, userId);
-
-    final savingsTotal = savings.fold<double>(
-      0.0,
-      (sum, row) =>
-          sum +
-          ((row[UserSavingsAccountTable.principal] as num?)?.toDouble() ?? 0),
-    );
+    // En fait, getNetPatrimoine a une définition spécifique : principal uniquement pour l'épargne.
+    // Je vais garder les calculs spécifiques mais utiliser les services si possible.
+    
+    // Pour l'épargne (principal uniquement), on n'a pas encore de méthode dédiée dans SavingsAccountService.
+    // Mais on peut la rajouter ou garder la requête ici.
+    
+    final liquidityTotal = await _liquidityService.getTotalLiquidityValue();
+    
+    // On va chercher le principal épargne via une nouvelle méthode ou directement.
+    final savingsAccounts = await _savingsService.getUserSavingsAccounts();
+    final savingsTotal = savingsAccounts.fold<double>(0.0, (sum, a) => sum + a.principal);
 
     // 3. Investissement (Capital net investi)
     final investedTotal = await getTotalInvestedCapital();

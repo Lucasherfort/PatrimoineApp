@@ -32,6 +32,14 @@ class AuthService {
     await _supabase.auth.signOut();
   }
 
+  String requireUserId() {
+    final user = _supabase.auth.currentUser;
+    if (user == null) {
+      throw Exception('Utilisateur non connecté');
+    }
+    return user.id;
+  }
+
   /// 👤 Utilisateur connecté
   User? get currentUser => _supabase.auth.currentUser;
 

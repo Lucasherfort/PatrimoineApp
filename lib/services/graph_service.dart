@@ -1,5 +1,5 @@
 import 'package:supabase_flutter/supabase_flutter.dart';
-import 'liquidity_account_service.dart';
+import 'liquidity_service.dart';
 import 'savings_account_service.dart';
 import 'investment_service.dart';
 import 'advantage_service.dart';
@@ -36,7 +36,7 @@ class GraphService {
 
     try {
       // Récupérer les totaux de chaque catégorie
-      final liquidityService = LiquidityAccountService();
+      final liquidityService = LiquidityService();
       final savingsService = SavingsAccountService();
       final investmentService = InvestmentService();
       final advantageService = AdvantageService();

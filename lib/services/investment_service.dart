@@ -269,6 +269,7 @@ class InvestmentService {
         .getPublicUrl(iconPath);
   }
 
+  /// Calcule la valeur totale des investissements d'un utilisateur ✅
   Future<double> getTotalPortfolioValue() async {
     final accounts = await getUserInvestmentAccounts();
 

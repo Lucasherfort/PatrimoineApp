@@ -99,4 +99,22 @@ class AdvantageService {
         .delete()
         .eq(UserAdvantageAccountTable.id, accountId);
   }
+
+  /// Récupère la valeur totale des avantages salariés.
+  Future<double> getTotalAdvantageValue() async {
+    final user = _supabase.auth.currentUser;
+    if (user == null) return 0.0;
+
+    final response = await _supabase
+        .from(UserAdvantageAccountTable.tableName)
+        .select(UserAdvantageAccountTable.value)
+        .eq(UserAdvantageAccountTable.userId, user.id);
+
+    return response.fold<double>(
+      0.0,
+      (sum, row) =>
+          sum +
+          ((row[UserAdvantageAccountTable.value] as num?)?.toDouble() ?? 0),
+    );
+  }
 }

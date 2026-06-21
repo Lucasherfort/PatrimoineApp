@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import '../../services/liquidity_account_service.dart';
+import '../../services/liquidity_service.dart';
 import '../../models/liquidity/user_liquidity_account_view.dart';
 import 'liquidity_account_card.dart';
 
@@ -13,7 +13,7 @@ class LiquidityAccountList extends StatefulWidget {
 }
 
 class _LiquidityAccountListState extends State<LiquidityAccountList> {
-  final LiquidityAccountService _service = LiquidityAccountService();
+  final LiquidityService _service = LiquidityService();
   late Future<List<UserLiquidityAccountView>> _accountsFuture;
 
   @override
