@@ -28,6 +28,9 @@ dev_dependencies:
   flutter_lints: ^6.0.0
   flutter_launcher_icons: ^0.14.4
 
+dependency_overrides:
+  device_info_plus: 11.5.0
+
 # 🔹 Configuration des icônes de l'application
 flutter_icons:
   android: true

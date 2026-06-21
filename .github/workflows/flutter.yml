@@ -25,11 +25,6 @@ jobs:
           channel: stable
           cache: true
 
-      - name: Debug Versions
-        run: |
-          flutter --version
-          dart --version
-
       - name: Install Dependencies
         run: flutter pub get
 
@@ -41,6 +36,7 @@ jobs:
 
       - name: Run Unit Tests
         run: flutter test
+
 
   android:
     name: Android Build
@@ -76,10 +72,11 @@ jobs:
             build/app/outputs/bundle/release/app-release.aab
           retention-days: 7
 
+
   ios:
     name: iOS Build
     needs: validation
-    runs-on: macos-15
+    runs-on: macos-15   # 🔥 important : évite macos-latest instable
 
     steps:
       - name: Checkout Repository
@@ -92,7 +89,7 @@ jobs:
           channel: stable
           cache: true
 
-      - name: Debug Versions
+      - name: Show Versions (debug important)
         run: |
           flutter --version
           dart --version
@@ -112,8 +109,7 @@ jobs:
         run: |
           flutter pub get
           cd ios
-          pod repo update
-          pod install
+          pod install --repo-update
 
       - name: Build iOS
         run: flutter build ios --release --no-codesign --build-number=${{ github.run_number }}
@@ -124,6 +120,7 @@ jobs:
           name: ios-release
           path: build/ios/iphoneos
           retention-days: 7
+
 
   windows:
     name: Windows Build
@@ -143,11 +140,6 @@ jobs:
 
       - name: Enable Windows Desktop
         run: flutter config --enable-windows-desktop
-
-      - name: Debug Versions
-        run: |
-          flutter --version
-          dart --version
 
       - name: Install Dependencies
         run: flutter pub get
