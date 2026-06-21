@@ -64,7 +64,7 @@ class _PatrimoineHeaderState extends State<PatrimoineHeader> {
 
     showModalBottomSheet(
       context: context,
-      backgroundColor: const Color(0xFF1C1C1E),
+      backgroundColor: Colors.white,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
       ),
@@ -81,7 +81,7 @@ class _PatrimoineHeaderState extends State<PatrimoineHeader> {
                   height: 4,
                   margin: const EdgeInsets.only(bottom: 24),
                   decoration: BoxDecoration(
-                    color: Colors.white24,
+                    color: Colors.black12,
                     borderRadius: BorderRadius.circular(2),
                   ),
                 ),
@@ -91,12 +91,12 @@ class _PatrimoineHeaderState extends State<PatrimoineHeader> {
                       ? "${_formatAmount(widget.netPatrimoine)} €"
                       : "•••• €",
                 ),
-                const Divider(color: Colors.white10, height: 32),
+                const Divider(color: Colors.black12, height: 32),
                 _buildInfoRow(
                   "Montant net investi",
                   _isVisible ? "${_formatAmount(widget.netWorth)} €" : "•••• €",
                 ),
-                const Divider(color: Colors.white10, height: 32),
+                const Divider(color: Colors.black12, height: 32),
                 _buildInfoRow(
                   "Pourcentage d'investissement",
                   _isVisible
@@ -118,7 +118,7 @@ class _PatrimoineHeaderState extends State<PatrimoineHeader> {
         Text(
           label,
           style: const TextStyle(
-            color: Colors.white70,
+            color: Colors.black54,
             fontSize: 15,
             fontWeight: FontWeight.w500,
           ),
@@ -126,7 +126,7 @@ class _PatrimoineHeaderState extends State<PatrimoineHeader> {
         Text(
           value,
           style: const TextStyle(
-            color: Colors.white,
+            color: Colors.black,
             fontSize: 15,
             fontWeight: FontWeight.w700,
           ),
