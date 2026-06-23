@@ -148,28 +148,14 @@ class _PatrimoineHeaderState extends State<PatrimoineHeader> {
           // =========================
           // Label
           // =========================
-          Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Text(
-                "PATRIMOINE TOTAL",
-                style: TextStyle(
-                  color: Colors.white.withValues(alpha: 0.4),
-                  fontSize: 11,
-                  fontWeight: FontWeight.w700,
-                  letterSpacing: 2.0,
-                ),
-              ),
-              const SizedBox(width: 8),
-              GestureDetector(
-                onTap: () => _showInfoPanel(context),
-                child: Icon(
-                  Icons.info_outline,
-                  size: 14,
-                  color: Colors.white.withValues(alpha: 0.4),
-                ),
-              ),
-            ],
+          Text(
+            "PATRIMOINE TOTAL",
+            style: TextStyle(
+              color: Colors.white.withValues(alpha: 0.4),
+              fontSize: 11,
+              fontWeight: FontWeight.w700,
+              letterSpacing: 2.0,
+            ),
           ),
 
           const SizedBox(height: 10),
@@ -194,6 +180,7 @@ class _PatrimoineHeaderState extends State<PatrimoineHeader> {
                 // Montant centré et cliquable
                 Expanded(
                   child: GestureDetector(
+                    onTap: () => _showInfoPanel(context),
                     child: AnimatedSwitcher(
                       duration: const Duration(milliseconds: 300),
                       child: FittedBox(
