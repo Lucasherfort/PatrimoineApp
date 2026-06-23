@@ -1,53 +1,53 @@
-name: Build Flutter (Windows, Android, iOS)
+name: Flutter CI/CD (Android, Windows, iOS)
 
-# Déclenche le workflow sur un push de tag (ex: v1.0.0) ou manuellement
 on:
   push:
-    tags:
-      - 'v*'
+  pull_request:
   workflow_dispatch:
 
 env:
-  FLUTTER_VERSION: '3.41.5'   # Adaptez à la version utilisée dans votre projet (cf. flutter --version)
+  FLUTTER_VERSION: '3.41.5'
 
 jobs:
-  # ----------------------------------------------------------------
-  # BUILD ANDROID (.apk + .aab)
-  # ----------------------------------------------------------------
+
+  # ------------------------------------------------------------
+  # ANDROID
+  # ------------------------------------------------------------
   build-android:
     name: Build Android
     runs-on: ubuntu-latest
+
     steps:
-      - name: Checkout du code
+      - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Configuration Java
+      - name: Setup Java
         uses: actions/setup-java@v4
         with:
           distribution: 'zulu'
           java-version: '17'
 
-      - name: Configuration Flutter
+      - name: Setup Flutter
         uses: subosito/flutter-action@v2
         with:
           flutter-version: ${{ env.FLUTTER_VERSION }}
-          channel: 'stable'
+          channel: stable
           cache: true
 
-      - name: Récupération des dépendances
+      - name: Get dependencies
         run: flutter pub get
 
-      - name: Analyse du code (optionnel)
+      - name: Analyze code
         run: flutter analyze
         continue-on-error: true
 
       - name: Build APK (release)
         run: flutter build apk --release
 
-      - name: Build App Bundle (release, pour le Play Store)
+      - name: Build App Bundle (release)
         run: flutter build appbundle --release
 
-      - name: Upload artefacts Android
+      - name: Upload Android artifacts
         uses: actions/upload-artifact@v4
         with:
           name: android-build
@@ -55,78 +55,80 @@ jobs:
             build/app/outputs/flutter-apk/app-release.apk
             build/app/outputs/bundle/release/app-release.aab
 
-  # ----------------------------------------------------------------
-  # BUILD WINDOWS (.exe)
-  # ----------------------------------------------------------------
+  # ------------------------------------------------------------
+  # WINDOWS
+  # ------------------------------------------------------------
   build-windows:
     name: Build Windows
     runs-on: windows-latest
+
     steps:
-      - name: Checkout du code
+      - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Configuration Flutter
+      - name: Setup Flutter
         uses: subosito/flutter-action@v2
         with:
           flutter-version: ${{ env.FLUTTER_VERSION }}
-          channel: 'stable'
+          channel: stable
           cache: true
 
-      - name: Activer le support desktop Windows
+      - name: Enable Windows desktop
         run: flutter config --enable-windows-desktop
 
-      - name: Récupération des dépendances
+      - name: Get dependencies
         run: flutter pub get
 
-      - name: Build Windows (release)
+      - name: Build Windows
         run: flutter build windows --release
 
-      - name: Compression du build Windows
+      - name: Zip build
         run: Compress-Archive -Path build/windows/x64/runner/Release/* -DestinationPath windows-build.zip
         shell: pwsh
 
-      - name: Upload artefact Windows
+      - name: Upload Windows artifact
         uses: actions/upload-artifact@v4
         with:
           name: windows-build
           path: windows-build.zip
 
-  # ----------------------------------------------------------------
-  # BUILD iOS (.app non signé — pas de compte Apple Developer requis)
-  # ----------------------------------------------------------------
+  # ------------------------------------------------------------
+  # iOS
+  # ------------------------------------------------------------
   build-ios:
     name: Build iOS
     runs-on: macos-latest
+
     steps:
-      - name: Checkout du code
+      - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Configuration Flutter
+      - name: Setup Flutter
         uses: subosito/flutter-action@v2
         with:
           flutter-version: ${{ env.FLUTTER_VERSION }}
-          channel: 'stable'
+          channel: stable
           cache: true
 
-      - name: Récupération des dépendances
+      - name: Get dependencies
         run: flutter pub get
 
-      - name: Installation des pods
+      - name: Install CocoaPods
         run: |
           cd ios
           pod install
         continue-on-error: true
 
-      - name: Build iOS (release, sans signature)
+      - name: Build iOS (no codesign)
         run: flutter build ios --release --no-codesign
 
-      - name: Création de l'archive .ipa (non signée)
+      - name: Create IPA
         run: |
           mkdir Payload
           cp -r build/ios/iphoneos/Runner.app Payload/
           zip -r app-unsigned.ipa Payload
 
-      - name: Upload artefact iOS
+      - name: Upload iOS artifact
         uses: actions/upload-artifact@v4
         with:
           name: ios-build
