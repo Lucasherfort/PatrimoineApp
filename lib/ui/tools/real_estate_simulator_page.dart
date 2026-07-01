@@ -17,7 +17,7 @@ class _RealEstateSimulatorPageState extends State<RealEstateSimulatorPage> {
 
   double _loanDurationYears = 20;
   double _interestRate = 3.8;
-  double _insuranceRate = 0.34;
+  final double _insuranceRate = 0.34;
   double _netPatrimoine = 0;
   bool _isLoading = true;
 
@@ -225,7 +225,7 @@ class _RealEstateSimulatorPageState extends State<RealEstateSimulatorPage> {
       child: Text(
         title,
         style: TextStyle(
-          color: Colors.white.withOpacity(0.5),
+          color: Colors.white.withValues(alpha: 0.5),
           fontSize: 12,
           fontWeight: FontWeight.bold,
           letterSpacing: 1.2,
@@ -296,7 +296,7 @@ class _RealEstateSimulatorPageState extends State<RealEstateSimulatorPage> {
         boxShadow: isPrimary
             ? [
                 BoxShadow(
-                  color: const Color(0xFF0D71EE).withOpacity(0.3),
+                  color: const Color(0xFF0D71EE).withValues(alpha: 0.3),
                   blurRadius: 15,
                   offset: const Offset(0, 5),
                 ),

@@ -3,6 +3,7 @@ import 'package:intl/intl.dart';
 
 class PatrimoineHeader extends StatefulWidget {
   final double patrimoineTotal;
+  final double patrimoineBrut;
   final double investedCapital;
   final double portfolioValue;
   final double netWorth;
@@ -12,6 +13,7 @@ class PatrimoineHeader extends StatefulWidget {
   const PatrimoineHeader({
     super.key,
     required this.patrimoineTotal,
+    required this.patrimoineBrut,
     required this.investedCapital,
     required this.portfolioValue,
     required this.netWorth,
@@ -62,6 +64,12 @@ class _PatrimoineHeaderState extends State<PatrimoineHeader> {
         ? (widget.netWorth / widget.netPatrimoine) * 100
         : 0;
 
+    final double yieldValue = widget.netPatrimoine > 0
+        ? ((widget.patrimoineBrut - widget.netPatrimoine) /
+                widget.netPatrimoine) *
+            100
+        : 0;
+
     showModalBottomSheet(
       context: context,
       backgroundColor: Colors.white,
@@ -86,10 +94,25 @@ class _PatrimoineHeaderState extends State<PatrimoineHeader> {
                   ),
                 ),
                 _buildInfoRow(
-                  "Patrimoine net",
+                  "Patrimoine net (total versé)",
                   _isVisible
                       ? "${_formatAmount(widget.netPatrimoine)} €"
                       : "•••• €",
+                ),
+                const Divider(color: Colors.black12, height: 32),
+                _buildInfoRow(
+                  "Patrimoine brut (hors avantages)",
+                  _isVisible
+                      ? "${_formatAmount(widget.patrimoineBrut)} €"
+                      : "•••• €",
+                ),
+                const Divider(color: Colors.black12, height: 32),
+                _buildInfoRow(
+                  "Rendement global",
+                  _isVisible
+                      ? "${yieldValue >= 0 ? '+' : ''}${yieldValue.toStringAsFixed(2)} %"
+                      : "•• %",
+                  valueColor: yieldValue >= 0 ? colorGreenFlash : colorOrangeLogo,
                 ),
                 const Divider(color: Colors.black12, height: 32),
                 _buildInfoRow(
@@ -111,7 +134,7 @@ class _PatrimoineHeaderState extends State<PatrimoineHeader> {
     );
   }
 
-  Widget _buildInfoRow(String label, String value) {
+  Widget _buildInfoRow(String label, String value, {Color? valueColor}) {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
@@ -125,8 +148,8 @@ class _PatrimoineHeaderState extends State<PatrimoineHeader> {
         ),
         Text(
           value,
-          style: const TextStyle(
-            color: Colors.black,
+          style: TextStyle(
+            color: valueColor ?? Colors.black,
             fontSize: 15,
             fontWeight: FontWeight.w700,
           ),

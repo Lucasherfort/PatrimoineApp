@@ -162,6 +162,7 @@ class HomePageState extends State<HomePage> {
               children: [
                 PatrimoineHeader(
                   patrimoineTotal: patrimoineTotal,
+                  patrimoineBrut: patrimoineOwned,
                   investedCapital: investedCapital,
                   portfolioValue: portfolioValue,
                   netWorth: investedCapital,
