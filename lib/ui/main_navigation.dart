@@ -51,7 +51,7 @@ class _MainNavigationState extends State<MainNavigation> {
       "Patrimoine",
       "Analyses",
       "Mon Budget",
-      "Mon Profil",
+      "Plus",
     ];
 
     // Liste des icônes correspondantes pour l'AppBar
@@ -59,7 +59,7 @@ class _MainNavigationState extends State<MainNavigation> {
       Icons.account_balance,
       Icons.insights,
       Icons.receipt_long,
-      Icons.manage_accounts,
+      Icons.menu,
     ];
 
     final List<Widget> pages = [
@@ -127,10 +127,7 @@ class _MainNavigationState extends State<MainNavigation> {
             icon: Icon(Icons.receipt_long),
             label: 'Budget',
           ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.manage_accounts),
-            label: 'Profil',
-          ),
+          BottomNavigationBarItem(icon: Icon(Icons.menu), label: 'Plus'),
         ],
       ),
     );
