@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../services/patrimoine_service.dart';
+import '../services/settings_service.dart';
 import '../widgets/Investment/investment_list.dart';
 import '../widgets/Savings/savings_account_list.dart';
 import '../widgets/advantage/advantage_account_list.dart';
@@ -19,6 +20,7 @@ class HomePage extends StatefulWidget {
 
 class HomePageState extends State<HomePage> {
   final PatrimoineService _patrimoineService = PatrimoineService();
+  final SettingsService _settingsService = SettingsService();
 
   // Couleurs cohérentes avec le reste de l'app
   static const Color colorDarkBg = Color(0xFF060B26);
@@ -33,6 +35,7 @@ class HomePageState extends State<HomePage> {
   double netWorth = 0.0;
   double netPatrimoine = 0.0;
   bool isLoading = true;
+  bool showAdvantagesSetting = true;
 
   bool hasLiquidityAccounts = false;
   bool hasSavingsAccounts = false;
@@ -71,19 +74,19 @@ class HomePageState extends State<HomePage> {
     try {
       final total = await _patrimoineService.getPatrimoine();
       final deposedAmount = await _patrimoineService.getTotalDeposed();
-      final capitalOwnedAmount = await _patrimoineService
-          .getTotalOwnedCapital();
-      final patrimoineOwnedAmount = await _patrimoineService
-          .getPatrimoineOwned();
+      final capitalOwnedAmount =
+          await _patrimoineService.getTotalOwnedCapital();
+      final patrimoineOwnedAmount = await _patrimoineService.getPatrimoineOwned();
       final liquidity = await _patrimoineService.hasLiquidityAccounts();
       final savings = await _patrimoineService.hasSavingsAccounts();
       final investments = await _patrimoineService.hasInvestmentAccounts();
       final advantages = await _patrimoineService.hasAdvantageAccounts();
-      final investedCapitalAmount = await _patrimoineService
-          .getTotalInvestedCapital();
-      final portfolioValueAmount = await _patrimoineService
-          .getTotalPortfolioValue();
+      final investedCapitalAmount =
+          await _patrimoineService.getTotalInvestedCapital();
+      final portfolioValueAmount =
+          await _patrimoineService.getTotalPortfolioValue();
       final netPatrimoineAmount = await _patrimoineService.getNetPatrimoine();
+      final showAdv = await _settingsService.getShowAdvantages();
 
       if (mounted) {
         setState(() {
@@ -98,15 +101,15 @@ class HomePageState extends State<HomePage> {
           investedCapital = investedCapitalAmount;
           netPatrimoine = netPatrimoineAmount;
           portfolioValue = portfolioValueAmount;
+          showAdvantagesSetting = showAdv;
           isLoading = false;
         });
       }
     } catch (e) {
       if (mounted) {
         setState(() => isLoading = false);
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text('Erreur chargement: $e')));
+        ScaffoldMessenger.of(context)
+            .showSnackBar(SnackBar(content: Text('Erreur chargement: $e')));
       }
     }
   }
@@ -120,11 +123,10 @@ class HomePageState extends State<HomePage> {
       );
     }
 
-    final hasAnyAccount =
-        hasLiquidityAccounts ||
+    final hasAnyAccount = hasLiquidityAccounts ||
         hasSavingsAccounts ||
         hasInvestmentAccounts ||
-        hasAdvantageAccounts;
+        (hasAdvantageAccounts && showAdvantagesSetting);
 
     return Scaffold(
       backgroundColor: colorDarkBg, // Couleur de base
@@ -160,6 +162,7 @@ class HomePageState extends State<HomePage> {
           SafeArea(
             child: Column(
               children: [
+                const SizedBox(height: 20),
                 PatrimoineHeader(
                   patrimoineTotal: patrimoineTotal,
                   patrimoineBrut: patrimoineOwned,
@@ -191,7 +194,7 @@ class HomePageState extends State<HomePage> {
                                 InvestmentList(
                                   onAccountUpdated: _loadPatrimoine,
                                 ),
-                              if (hasAdvantageAccounts)
+                              if (hasAdvantageAccounts && showAdvantagesSetting)
                                 AdvantageAccountList(
                                   onAccountUpdated: _loadPatrimoine,
                                 ),

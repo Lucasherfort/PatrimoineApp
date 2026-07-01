@@ -210,7 +210,7 @@ class _PatrimoineHeaderState extends State<PatrimoineHeader> {
                         fit: BoxFit.scaleDown,
                         child: Text(
                           _isVisible
-                              ? "${_formatAmount(widget.patrimoineTotal)} €"
+                              ? "${_formatAmount(widget.patrimoineBrut)} €"
                               : "•••••••• €",
                           key: ValueKey(_isVisible),
                           textAlign: TextAlign.center,

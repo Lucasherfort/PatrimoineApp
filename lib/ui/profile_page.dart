@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import '../services/settings_service.dart';
 import 'login_page.dart';
 import 'tools/real_estate_simulator_page.dart';
 
@@ -12,6 +13,24 @@ class ProfilePage extends StatefulWidget {
 }
 
 class _ProfilePageState extends State<ProfilePage> {
+  bool _showAdvantages = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadSettings();
+  }
+
+  Future<void> _loadSettings() async {
+    final show = await SettingsService().getShowAdvantages();
+    setState(() => _showAdvantages = show);
+  }
+
+  Future<void> _toggleAdvantages(bool value) async {
+    await SettingsService().setShowAdvantages(value);
+    setState(() => _showAdvantages = value);
+  }
+
   @override
   Widget build(BuildContext context) {
     const Color colorRed = Color(0xFFFC5555);
@@ -73,6 +92,11 @@ class _ProfilePageState extends State<ProfilePage> {
 
             const SizedBox(height: 32),
 
+            // --- SECTION PARAMÈTRES ---
+            _buildSettingsSection(),
+
+            const SizedBox(height: 24),
+
             // --- SECTION OUTILS ---
             _buildToolSection(context, colorBlue),
 
@@ -115,6 +139,55 @@ class _ProfilePageState extends State<ProfilePage> {
           ],
         ),
       ),
+    );
+  }
+
+  Widget _buildSettingsSection() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          "PRÉFÉRENCES D'AFFICHAGE",
+          style: TextStyle(
+            color: Colors.white.withValues(alpha: 0.4),
+            fontSize: 11,
+            fontWeight: FontWeight.bold,
+            letterSpacing: 1.2,
+          ),
+        ),
+        const SizedBox(height: 16),
+        Container(
+          decoration: BoxDecoration(
+            color: const Color(0xFF1E293B),
+            borderRadius: BorderRadius.circular(20),
+          ),
+          child: SwitchListTile(
+            activeColor: const Color(0xFF0D71EE),
+            secondary: Container(
+              padding: const EdgeInsets.all(8),
+              decoration: BoxDecoration(
+                color: Colors.white.withValues(alpha: 0.05),
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: const Icon(Icons.card_giftcard,
+                  color: Colors.white70, size: 20),
+            ),
+            title: const Text(
+              "Avantages salariés",
+              style: TextStyle(
+                  color: Colors.white,
+                  fontWeight: FontWeight.bold,
+                  fontSize: 14),
+            ),
+            subtitle: const Text(
+              "Afficher dans la liste du patrimoine",
+              style: TextStyle(color: Colors.white38, fontSize: 12),
+            ),
+            value: _showAdvantages,
+            onChanged: _toggleAdvantages,
+          ),
+        ),
+      ],
     );
   }
 
