@@ -51,7 +51,7 @@ class _MainNavigationState extends State<MainNavigation> {
       "Patrimoine",
       "Analyses",
       "Mon Budget",
-      "Plus",
+      "Menu",
     ];
 
     // Liste des icônes correspondantes pour l'AppBar
@@ -71,39 +71,36 @@ class _MainNavigationState extends State<MainNavigation> {
 
     return Scaffold(
       backgroundColor: colorDarkBg,
-      appBar: AppBar(
-        backgroundColor: colorSurface,
-        elevation: 0,
-        titleSpacing: 20, // Un peu plus d'air à gauche
-        title: Row(
-          children: [
-            // Le logo dynamique à gauche
-            Icon(titleIcons[_currentIndex], color: colorBlueMain, size: 24),
-            const SizedBox(width: 12),
-            Text(
-              titles[_currentIndex],
-              style: const TextStyle(
-                color: Colors.white,
-                fontWeight: FontWeight.bold,
-                fontSize: 20,
+      appBar: _currentIndex == 0
+          ? null
+          : AppBar(
+              backgroundColor: colorSurface,
+              elevation: 0,
+              titleSpacing: 20,
+              title: Row(
+                children: [
+                  Icon(titleIcons[_currentIndex], color: colorBlueMain, size: 24),
+                  const SizedBox(width: 12),
+                  Text(
+                    titles[_currentIndex],
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontWeight: FontWeight.bold,
+                      fontSize: 20,
+                    ),
+                  ),
+                ],
               ),
+              actions: const [SizedBox(width: 8)],
             ),
-          ],
-        ),
-        actions: [
-          if (_currentIndex == 0)
-            IconButton(
-              icon: const Icon(
-                Icons.add_circle,
-                color: colorBlueMain,
-                size: 28,
-              ),
-              onPressed: () => _homeKey.currentState?.openAddPatrimoinePanel(),
-            ),
-          const SizedBox(width: 8),
-        ],
-      ),
       body: IndexedStack(index: _currentIndex, children: pages),
+      floatingActionButton: _currentIndex == 0
+          ? FloatingActionButton(
+              onPressed: () => _homeKey.currentState?.openAddPatrimoinePanel(),
+              backgroundColor: colorBlueMain,
+              child: const Icon(Icons.add, color: Colors.white, size: 30),
+            )
+          : null,
       bottomNavigationBar: BottomNavigationBar(
         currentIndex: _currentIndex,
         onTap: (index) => setState(() => _currentIndex = index),
@@ -127,7 +124,7 @@ class _MainNavigationState extends State<MainNavigation> {
             icon: Icon(Icons.receipt_long),
             label: 'Budget',
           ),
-          BottomNavigationBarItem(icon: Icon(Icons.menu), label: 'Plus'),
+          BottomNavigationBarItem(icon: Icon(Icons.menu), label: 'Menu'),
         ],
       ),
     );
