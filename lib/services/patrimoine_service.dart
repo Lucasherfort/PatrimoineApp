@@ -1,12 +1,10 @@
 import 'package:patrimoine360/services/savings_account_service.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../bdd/patrimoine_category_table.dart';
-import '../bdd/user_advantage_account_table.dart';
 import '../bdd/user_investment_account_table.dart';
 import '../bdd/user_liquidity_account_table.dart';
 import '../bdd/user_savings_account_table.dart';
 import '../models/patrimoine/patrimoine_category.dart';
-import 'advantage_service.dart';
 import 'investment_service.dart';
 import 'liquidity_service.dart';
 
@@ -20,7 +18,6 @@ class PatrimoineService {
   final LiquidityService _liquidityService = LiquidityService();
   final SavingsAccountService _savingsService = SavingsAccountService();
   final InvestmentService _investmentService = InvestmentService();
-  final AdvantageService _advantageService = AdvantageService();
 
   // ─── Utils ────────────────────────────────────────────────────────────────
 
@@ -32,7 +29,7 @@ class PatrimoineService {
 
   // ─── Total patrimoine ─────────────────────────────────────────────────────
 
-  /// Récupère la valeur totale du patrimoine (Liquidités + Épargne + Investissements + Avantages)
+  /// Récupère la valeur totale du patrimoine (Liquidités + Épargne + Investissements)
   Future<double> getPatrimoine() async {
     _requireUserId();
 
@@ -40,7 +37,6 @@ class PatrimoineService {
       _liquidityService.getTotalLiquidityValue(),
       _savingsService.getTotalSavingsValue(),
       _investmentService.getUserInvestmentsTotalValue(),
-      _advantageService.getTotalAdvantageValue(),
     ]);
 
     return values.reduce((a, b) => a + b);
@@ -48,19 +44,8 @@ class PatrimoineService {
 
   // ─── Total patrimoine ─────────────────────────────────────────────────────
 
-  /// Récupère la valeur du patrimoine "détenu" en propre (Liquidités + Épargne + Investissements)
-  /// Exclut les avantages salariés.
-  Future<double> getPatrimoineOwned() async {
-    _requireUserId();
-
-    final values = await Future.wait([
-      _liquidityService.getTotalLiquidityValue(),
-      _savingsService.getTotalSavingsValue(),
-      _investmentService.getUserInvestmentsTotalValue(),
-    ]);
-
-    return values.reduce((a, b) => a + b);
-  }
+  /// Récupère la valeur du patrimoine détenu (Liquidités + Épargne + Investissements)
+  Future<double> getPatrimoineOwned() => getPatrimoine();
 
   // ─── Présence des comptes ─────────────────────────────────────────────────
 
@@ -77,11 +62,6 @@ class PatrimoineService {
   Future<bool> hasInvestmentAccounts() => _hasAccounts(
     UserInvestmentAccountTable.tableName,
     UserInvestmentAccountTable.id,
-  );
-
-  Future<bool> hasAdvantageAccounts() => _hasAccounts(
-    UserAdvantageAccountTable.tableName,
-    UserAdvantageAccountTable.id,
   );
 
   Future<bool> _hasAccounts(String table, String idColumn) async {
@@ -124,13 +104,11 @@ class PatrimoineService {
       _liquidityService.getUserLiquidityAccounts(),
       _savingsService.getUserSavingsAccounts(),
       _investmentService.getUserInvestmentAccounts(),
-      _advantageService.getUserAdvantageAccounts(),
     ]);
 
     final liquidityAccounts = results[0] as List;
     final savingsAccounts = results[1] as List;
     final investmentAccounts = results[2] as List;
-    final advantageAccounts = results[3] as List;
 
     return [
       liquidityAccounts.fold<double>(0.0, (sum, a) => sum + a.amount),
@@ -139,7 +117,6 @@ class PatrimoineService {
         0.0,
         (sum, a) => sum + a.cumulativeDeposits,
       ),
-      advantageAccounts.fold<double>(0.0, (sum, a) => sum + a.value),
     ].fold<double>(0.0, (sum, subtotal) => sum + subtotal);
   }
 

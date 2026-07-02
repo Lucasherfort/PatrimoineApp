@@ -1,13 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
-import '../../bdd/advantage_source_table.dart';
 import '../../bdd/investment_source_table.dart';
 import '../../bdd/liquidity_source_table.dart';
 import '../../bdd/savings_source_table.dart';
-import '../../bdd/user_advantage_account_table.dart';
 import '../../bdd/user_investment_account_table.dart';
 import '../../bdd/user_liquidity_account_table.dart';
-import '../../models/advantage/provider.dart';
+import '../../bdd/user_savings_account_table.dart';
 import '../../models/patrimoine/patrimoine_category.dart';
 import '../../models/source_item.dart';
 import '../../models/bank.dart';
@@ -22,6 +20,7 @@ class AddPatrimoineWizard extends StatefulWidget {
 
 class _AddPatrimoineWizardState extends State<AddPatrimoineWizard> {
   final PatrimoineWizardService _wizardService = PatrimoineWizardService();
+  final TextEditingController _searchController = TextEditingController();
 
   // Étapes du wizard
   int currentStep = 0;
@@ -40,27 +39,38 @@ class _AddPatrimoineWizardState extends State<AddPatrimoineWizard> {
 
   // Étape 3 : Banques
   List<Bank> banks = [];
+  List<Bank> filteredBanks = [];
   Bank? selectedBank;
-
-  // Étape 3 : Fournisseurs
-  List<Provider> providers = [];
-  Provider? selectedProvider;
-
-  // Type de sélection du step 3
-  Step3SelectionType? step3SelectionType;
 
   @override
   void initState() {
     super.initState();
     _loadCategories();
+    _searchController.addListener(_onSearchChanged);
+  }
+
+  @override
+  void dispose() {
+    _searchController.dispose();
+    super.dispose();
+  }
+
+  void _onSearchChanged() {
+    setState(() {
+      filteredBanks = banks
+          .where(
+            (bank) => bank.name.toLowerCase().contains(
+              _searchController.text.toLowerCase(),
+            ),
+          )
+          .toList();
+    });
   }
 
   Future<void> _loadCategories() async {
     setState(() => isLoading = true);
-
     try {
       final loadedCategories = await _wizardService.getPatrimoineCategories();
-
       setState(() {
         categories = loadedCategories;
         isLoading = false;
@@ -72,12 +82,10 @@ class _AddPatrimoineWizardState extends State<AddPatrimoineWizard> {
 
   Future<void> _loadSourcesForCategory(PatrimoineCategory category) async {
     setState(() => isLoading = true);
-
     try {
       final loadedSources = await _wizardService.getSourcesForCategory(
         category,
       );
-
       setState(() {
         sources = loadedSources;
         selectedSource = null;
@@ -86,6 +94,23 @@ class _AddPatrimoineWizardState extends State<AddPatrimoineWizard> {
       });
     } catch (e) {
       setState(() => isLoading = false);
+    }
+  }
+
+  Future<void> _loadBanksForSource(SourceItem source) async {
+    setState(() => isLoading = true);
+    try {
+      final loadedBanks = await _loadBanksBySourceType(source);
+      setState(() {
+        banks = loadedBanks;
+        filteredBanks = loadedBanks;
+        selectedBank = null;
+        isLoading = false;
+        currentStep = 2;
+      });
+    } catch (e) {
+      setState(() => isLoading = false);
+      _showError('Erreur chargement des banques: $e');
     }
   }
 
@@ -105,158 +130,6 @@ class _AddPatrimoineWizardState extends State<AddPatrimoineWizard> {
     }
   }
 
-  void _onCategorySelected(PatrimoineCategory? category) {
-    setState(() {
-      selectedCategory = category;
-      selectedSource = null;
-      selectedBank = null;
-      sources = [];
-      banks = [];
-      providers = [];
-    });
-
-    if (category != null) {
-      _loadSourcesForCategory(category);
-    }
-  }
-
-  Future<void> _onSourceSelected(SourceItem? source) async {
-    debugPrint('========================================');
-    debugPrint('_onSourceSelected CALLED');
-    debugPrint('source: $source');
-
-    if (source == null) {
-      debugPrint('source IS NULL -> RETURN');
-      debugPrint('========================================');
-      return;
-    }
-
-    debugPrint('source.id: ${source.id}');
-    debugPrint('source.name: ${source.name}');
-    debugPrint('source.type: ${source.type}');
-
-    setState(() {
-      debugPrint('RESET STATE');
-
-      selectedSource = source;
-      isLoading = true;
-
-      banks = [];
-      providers = [];
-
-      selectedBank = null;
-      selectedProvider = null;
-
-      step3SelectionType = null;
-    });
-
-    try {
-      debugPrint('----------------------------------------');
-      debugPrint('LOADING BANKS...');
-
-      List<Bank> loadedBanks = await _loadBanksBySourceType(source);
-
-      debugPrint('loadedBanks count: ${loadedBanks.length}');
-      debugPrint('loadedBanks: $loadedBanks');
-
-      debugPrint('----------------------------------------');
-      debugPrint('LOADING PROVIDERS...');
-
-      List<Provider> loadedProviders = await _loadProvidersBySourceType(source);
-
-      debugPrint('loadedProviders count: ${loadedProviders.length}');
-      debugPrint('loadedProviders: $loadedProviders');
-
-      debugPrint('----------------------------------------');
-      debugPrint('source.type CHECK');
-
-      if (source.type == 'advantage') {
-        debugPrint('TYPE = advantage');
-        debugPrint('USING PROVIDERS');
-      } else {
-        debugPrint('TYPE != advantage');
-        debugPrint('USING BANKS');
-      }
-
-      setState(() {
-        debugPrint('SETSTATE FINAL');
-
-        if (source.type == 'advantage') {
-          providers = loadedProviders;
-          step3SelectionType = Step3SelectionType.provider;
-
-          debugPrint('step3SelectionType = provider');
-        } else {
-          banks = loadedBanks;
-          step3SelectionType = Step3SelectionType.bank;
-
-          debugPrint('step3SelectionType = bank');
-        }
-
-        currentStep = 2;
-        isLoading = false;
-
-        debugPrint('currentStep: $currentStep');
-        debugPrint('isLoading: $isLoading');
-
-        debugPrint('banks final count: ${banks.length}');
-        debugPrint('providers final count: ${providers.length}');
-      });
-
-      debugPrint('_onSourceSelected SUCCESS');
-    } catch (e, stackTrace) {
-      debugPrint('----------------------------------------');
-      debugPrint('ERROR IN _onSourceSelected');
-      debugPrint('error: $e');
-      debugPrint('stackTrace: $stackTrace');
-
-      setState(() {
-        isLoading = false;
-      });
-
-      _showError('Erreur chargement étape 3: $e');
-    }
-
-    debugPrint('========================================');
-  }
-
-  void _onBankSelected(Bank? bank) {
-    setState(() {
-      selectedBank = bank;
-    });
-  }
-
-  void _nextStep() {
-    if (currentStep < 2) {
-      setState(() => currentStep++);
-    }
-  }
-
-  void _previousStep() {
-    if (currentStep > 0) {
-      setState(() => currentStep--);
-    }
-  }
-
-  bool _canProceedFromStep(int step) {
-    switch (step) {
-      case 0:
-        return selectedCategory != null;
-      case 1:
-        return selectedSource != null;
-      case 2:
-        if (step3SelectionType == Step3SelectionType.bank) {
-          return selectedBank != null;
-        }
-        if (step3SelectionType == Step3SelectionType.provider) {
-          return selectedProvider != null;
-        }
-        return false;
-      default:
-        return false;
-    }
-  }
-
   Future<void> _savePatrimoine() async {
     final user = Supabase.instance.client.auth.currentUser;
     if (user == null) {
@@ -268,7 +141,6 @@ class _AddPatrimoineWizardState extends State<AddPatrimoineWizard> {
 
     try {
       if (selectedSource!.type == 'liquidity') {
-        // Charge si le compte existe
         final existing = await Supabase.instance.client
             .from(LiquiditySourceTable.tableName)
             .select('id')
@@ -277,21 +149,16 @@ class _AddPatrimoineWizardState extends State<AddPatrimoineWizard> {
             .eq('liquidity_category_id', selectedSource!.id)
             .maybeSingle();
 
-        int liquiditySourceId;
         if (existing != null) {
-          liquiditySourceId = existing['id'] as int;
-
-          // 3️⃣ Crée le user_savings_account
           await Supabase.instance.client
               .from(UserLiquidityAccountTable.tableName)
               .insert({
                 'user_id': user.id,
-                'liquidity_source_id': liquiditySourceId,
+                'liquidity_source_id': existing['id'],
                 'amount': 0,
               });
         }
       } else if (selectedSource!.type == 'savings') {
-        // 1️⃣ Cherche si savings_source existe
         final existing = await Supabase.instance.client
             .from(SavingsSourceTable.tableName)
             .select('id')
@@ -300,20 +167,17 @@ class _AddPatrimoineWizardState extends State<AddPatrimoineWizard> {
             .eq('savings_category_id', selectedSource!.id)
             .maybeSingle();
 
-        int savingsSourceId;
         if (existing != null) {
-          savingsSourceId = existing['id'] as int;
-
-          // 3️⃣ Crée le user_savings_account
-          await Supabase.instance.client.from('user_savings_account').insert({
-            'user_id': user.id,
-            'savings_source_id': savingsSourceId,
-            'principal': 0,
-            'interest': 0,
-          });
+          await Supabase.instance.client
+              .from(UserSavingsAccountTable.tableName)
+              .insert({
+                'user_id': user.id,
+                'savings_source_id': existing['id'],
+                'principal': 0,
+                'interest': 0,
+              });
         }
       } else if (selectedSource!.type == 'investment') {
-        // 1️⃣ Cherche si savings_source existe
         final existing = await Supabase.instance.client
             .from(InvestmentSourceTable.tableName)
             .select('id')
@@ -322,40 +186,15 @@ class _AddPatrimoineWizardState extends State<AddPatrimoineWizard> {
             .eq('investment_category_id', selectedSource!.id)
             .maybeSingle();
 
-        int savingsSourceId;
         if (existing != null) {
-          savingsSourceId = existing['id'] as int;
-
-          // 3️⃣ Crée le user_savings_account
           await Supabase.instance.client
               .from(UserInvestmentAccountTable.tableName)
               .insert({
                 'user_id': user.id,
-                'investment_source_id': savingsSourceId,
+                'investment_source_id': existing['id'],
                 'total_contribution': 0,
                 'cash_balance': 0,
                 'amount': 0,
-              });
-        }
-      } else if (selectedSource!.type == 'advantage') {
-        final existing = await Supabase.instance.client
-            .from(AdvantageSourceTable.tableName)
-            .select('id')
-            .eq('provider_id', selectedProvider!.id)
-            .eq('category_id', selectedCategory!.id)
-            .eq('advantage_category_id', selectedSource!.id)
-            .maybeSingle();
-
-        int advantageSourceId;
-        if (existing != null) {
-          advantageSourceId = existing['id'] as int;
-
-          await Supabase.instance.client
-              .from(UserAdvantageAccountTable.tableName)
-              .insert({
-                'user_id': user.id,
-                'advantage_source_id': advantageSourceId,
-                'value': 0,
               });
         }
       }
@@ -369,51 +208,99 @@ class _AddPatrimoineWizardState extends State<AddPatrimoineWizard> {
     }
   }
 
+  Future<List<Bank>> _loadBanksBySourceType(SourceItem source) {
+    switch (source.type) {
+      case 'liquidity':
+        return _wizardService.getBanksForLiquiditySource(
+          categoryId: selectedCategory!.id,
+          liquidityCategoryId: source.id,
+        );
+      case 'savings':
+        return _wizardService.getBanksForSavingsSource(
+          categoryId: selectedCategory!.id,
+          savingsCategoryId: source.id,
+        );
+      case 'investment':
+        return _wizardService.getBanksForInvestmentSource(
+          categoryId: selectedCategory!.id,
+          investmentCategoryId: source.id,
+        );
+      default:
+        return Future.value([]);
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
+    const Color colorBlue = Color(0xFF0D71EE);
+    const Color colorDark = Color(0xFF060B26);
+
     return Container(
-      height: MediaQuery.of(context).size.height * 0.85,
-      padding: EdgeInsets.only(
-        bottom: MediaQuery.of(context).viewInsets.bottom,
-        top: 20,
-        left: 20,
-        right: 20,
-      ),
-      decoration: const BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          _buildHeader(),
-          const SizedBox(height: 20),
-          _buildProgressIndicator(),
-          const SizedBox(height: 20),
-          Expanded(child: SingleChildScrollView(child: _buildStepContent())),
-          const SizedBox(height: 20),
-          _buildNavigationButtons(),
-          const SizedBox(height: 20),
-        ],
+      height: MediaQuery.of(context).size.height,
+      padding: const EdgeInsets.symmetric(horizontal: 20),
+      decoration: const BoxDecoration(color: colorDark),
+      child: SafeArea(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            const SizedBox(height: 20),
+            _buildHeader(),
+            const SizedBox(height: 24),
+            _buildProgressIndicator(),
+            const SizedBox(height: 24),
+            Expanded(
+              child: AnimatedSwitcher(
+                duration: const Duration(milliseconds: 300),
+                child: isLoading
+                    ? const Center(
+                        child: CircularProgressIndicator(color: colorBlue),
+                      )
+                    : _buildStepContent(),
+              ),
+            ),
+            const SizedBox(height: 20),
+            _buildNavigationButtons(),
+            const SizedBox(height: 20),
+          ],
+        ),
       ),
     );
   }
 
   Widget _buildHeader() {
+    String title = "Ajouter un compte";
+    if (currentStep == 0) title = "Catégorie de patrimoine";
+    if (currentStep == 1) title = "Type de compte";
+    if (currentStep == 2) title = "Établissement bancaire";
+
     return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
-        const Text(
-          'Ajouter un patrimoine',
-          style: TextStyle(
-            fontSize: 20,
-            fontWeight: FontWeight.bold,
-            color: Colors.black,
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                title,
+                style: const TextStyle(
+                  fontSize: 22,
+                  fontWeight: FontWeight.bold,
+                  color: Colors.white,
+                ),
+              ),
+              if (selectedCategory != null && currentStep > 0)
+                Text(
+                  selectedCategory!.label,
+                  style: TextStyle(
+                    color: Colors.white.withValues(alpha: 0.4),
+                    fontSize: 13,
+                  ),
+                ),
+            ],
           ),
         ),
         IconButton(
-          icon: const Icon(Icons.close),
           onPressed: () => Navigator.pop(context),
+          icon: const Icon(Icons.close, color: Colors.white54),
         ),
       ],
     );
@@ -422,17 +309,13 @@ class _AddPatrimoineWizardState extends State<AddPatrimoineWizard> {
   Widget _buildProgressIndicator() {
     return Row(
       children: List.generate(3, (index) {
-        final isActive = index <= currentStep;
-        final isCompleted = index < currentStep;
-
+        final bool isActive = index <= currentStep;
         return Expanded(
           child: Container(
             height: 4,
-            margin: EdgeInsets.only(right: index < 3 ? 8 : 0),
+            margin: EdgeInsets.only(right: index < 2 ? 8 : 0),
             decoration: BoxDecoration(
-              color: isCompleted
-                  ? Colors.green
-                  : (isActive ? Colors.blue : Colors.grey.shade300),
+              color: isActive ? const Color(0xFF0D71EE) : Colors.white12,
               borderRadius: BorderRadius.circular(2),
             ),
           ),
@@ -442,349 +325,269 @@ class _AddPatrimoineWizardState extends State<AddPatrimoineWizard> {
   }
 
   Widget _buildStepContent() {
-    if (isLoading) {
-      return const Center(
-        child: Padding(
-          padding: EdgeInsets.all(40),
-          child: CircularProgressIndicator(),
-        ),
-      );
-    }
-
     switch (currentStep) {
       case 0:
-        return _buildCategoryStep();
+        return _buildCategoryGrid();
       case 1:
-        return _buildSourceStep();
+        return _buildSourceList();
       case 2:
-        return _buildStep3(); // ✅ ICI
+        return _buildBankSearchableList();
       default:
         return const SizedBox();
     }
   }
 
-  Widget _buildCategoryStep() {
+  Widget _buildCategoryGrid() {
+    return GridView.builder(
+      shrinkWrap: true,
+      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+        crossAxisCount: 2,
+        crossAxisSpacing: 16,
+        mainAxisSpacing: 16,
+        childAspectRatio: 1.1,
+      ),
+      itemCount: categories.length,
+      itemBuilder: (context, index) {
+        final category = categories[index];
+        final bool isSelected = selectedCategory?.id == category.id;
+
+        IconData icon = Icons.help_outline;
+        if (category.name == 'Cash') icon = Icons.euro_rounded;
+        if (category.name.contains('Saving')) icon = Icons.savings_rounded;
+        if (category.name.contains('Investments')) {
+          icon = Icons.trending_up_rounded;
+        }
+
+        return _buildSelectionCard(
+          title: category.label,
+          icon: icon,
+          isSelected: isSelected,
+          onTap: () {
+            setState(() => selectedCategory = category);
+            _loadSourcesForCategory(category);
+          },
+        );
+      },
+    );
+  }
+
+  Widget _buildSourceList() {
+    return ListView.separated(
+      itemCount: sources.length,
+      separatorBuilder: (_, _) => const SizedBox(height: 12),
+      itemBuilder: (context, index) {
+        final source = sources[index];
+        final bool isSelected = selectedSource?.id == source.id;
+
+        return _buildSelectionTile(
+          title: source.name,
+          subtitle: source.type == 'savings' && source.interestRate != null
+              ? "Taux : ${source.interestRate}%"
+              : null,
+          isSelected: isSelected,
+          onTap: () {
+            setState(() => selectedSource = source);
+            _loadBanksForSource(source);
+          },
+        );
+      },
+    );
+  }
+
+  Widget _buildBankSearchableList() {
     return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Text(
-          'Étape 1 : Catégorie',
-          style: TextStyle(
-            fontSize: 18,
-            fontWeight: FontWeight.bold,
-            color: Colors.blue,
+        TextField(
+          controller: _searchController,
+          style: const TextStyle(color: Colors.white),
+          decoration: InputDecoration(
+            hintText: "Rechercher une banque...",
+            hintStyle: const TextStyle(color: Colors.white24),
+            prefixIcon: const Icon(Icons.search, color: Colors.white24),
+            filled: true,
+            fillColor: Colors.white.withValues(alpha: 0.05),
+            border: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(16),
+              borderSide: BorderSide.none,
+            ),
           ),
         ),
-        const SizedBox(height: 8),
-        const Text(
-          'Sélectionnez le type de patrimoine que vous souhaitez ajouter',
-          style: TextStyle(fontSize: 14, color: Colors.black),
-        ),
-        const SizedBox(height: 20),
-        if (categories.isEmpty)
-          const Padding(
-            padding: EdgeInsets.all(20),
-            child: Center(
-              child: Text(
-                'Aucune catégorie disponible',
-                style: TextStyle(color: Colors.black),
-              ),
-            ),
-          )
-        else
-          DropdownButtonFormField<PatrimoineCategory>(
-            initialValue: selectedCategory,
-            decoration: InputDecoration(
-              border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(8),
-              ),
-              contentPadding: const EdgeInsets.symmetric(
-                horizontal: 16,
-                vertical: 12,
-              ),
-              labelText: 'Catégorie',
-              labelStyle: TextStyle(color: Colors.black),
-              hintText: 'Sélectionnez une catégorie',
-              prefixIcon: const Icon(Icons.category),
-            ),
-            items: categories.map((category) {
-              return DropdownMenuItem(
-                value: category,
-                child: Text(
-                  category.label.isNotEmpty ? category.label : category.name,
+        const SizedBox(height: 16),
+        Expanded(
+          child: filteredBanks.isEmpty
+              ? const Center(
+                  child: Text(
+                    "Aucune banque trouvée",
+                    style: TextStyle(color: Colors.white54),
+                  ),
+                )
+              : ListView.separated(
+                  itemCount: filteredBanks.length,
+                  separatorBuilder: (_, _) => const SizedBox(height: 8),
+                  itemBuilder: (context, index) {
+                    final bank = filteredBanks[index];
+                    final bool isSelected = selectedBank?.id == bank.id;
+                    return _buildSelectionTile(
+                      title: bank.name,
+                      isSelected: isSelected,
+                      compact: true,
+                      onTap: () => setState(() => selectedBank = bank),
+                    );
+                  },
                 ),
-              );
-            }).toList(),
-            onChanged: _onCategorySelected,
-          ),
+        ),
       ],
     );
   }
 
-  Widget _buildSourceStep() {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        const Text(
-          'Étape 2 : Type de compte',
-          style: TextStyle(
-            fontSize: 18,
-            fontWeight: FontWeight.bold,
-            color: Colors.blue,
+  Widget _buildSelectionCard({
+    required String title,
+    required IconData icon,
+    required bool isSelected,
+    required VoidCallback onTap,
+  }) {
+    const Color colorBlue = Color(0xFF0D71EE);
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(20),
+      child: Container(
+        decoration: BoxDecoration(
+          color: isSelected
+              ? colorBlue.withValues(alpha: 0.1)
+              : Colors.white.withValues(alpha: 0.05),
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(
+            color: isSelected ? colorBlue : Colors.white12,
+            width: 2,
           ),
         ),
-        const SizedBox(height: 8),
-        Text(
-          selectedCategory?.label ?? 'Type de compte',
-          style: const TextStyle(fontSize: 14, color: Colors.grey),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(icon, color: isSelected ? colorBlue : Colors.white, size: 32),
+            const SizedBox(height: 12),
+            Text(
+              title,
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                color: isSelected ? Colors.white : Colors.white70,
+                fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+              ),
+            ),
+          ],
         ),
-        const SizedBox(height: 20),
-        if (sources.isEmpty)
-          const Padding(
-            padding: EdgeInsets.all(20),
-            child: Center(
-              child: Text(
-                'Aucune source disponible pour cette catégorie',
-                style: TextStyle(color: Colors.grey),
-              ),
-            ),
-          )
-        else
-          DropdownButtonFormField<SourceItem>(
-            initialValue: selectedSource,
-            decoration: InputDecoration(
-              border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(8),
-              ),
-              contentPadding: const EdgeInsets.symmetric(
-                horizontal: 16,
-                vertical: 12,
-              ),
-              labelText: 'Type',
-              hintText: 'Sélectionnez un type',
-              prefixIcon: const Icon(Icons.account_balance_wallet),
-            ),
-            items: sources.map((source) {
-              return DropdownMenuItem(value: source, child: Text(source.label));
-            }).toList(),
-            onChanged: _onSourceSelected,
-          ),
-      ],
+      ),
     );
   }
 
-  Widget _buildBankStep() {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        const Text(
-          'Étape 3 : Banque',
-          style: TextStyle(
-            fontSize: 18,
-            fontWeight: FontWeight.bold,
-            color: Colors.blue,
+  Widget _buildSelectionTile({
+    required String title,
+    String? subtitle,
+    required bool isSelected,
+    required VoidCallback onTap,
+    bool compact = false,
+  }) {
+    const Color colorBlue = Color(0xFF0D71EE);
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(16),
+      child: Container(
+        padding: EdgeInsets.symmetric(
+          horizontal: 16,
+          vertical: compact ? 12 : 16,
+        ),
+        decoration: BoxDecoration(
+          color: isSelected
+              ? colorBlue.withValues(alpha: 0.1)
+              : Colors.white.withValues(alpha: 0.05),
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(
+            color: isSelected ? colorBlue : Colors.white12,
+            width: 1.5,
           ),
         ),
-        const SizedBox(height: 8),
-        const Text(
-          'Sélectionnez la banque de votre compte',
-          style: TextStyle(fontSize: 14, color: Colors.grey),
+        child: Row(
+          children: [
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    title,
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontWeight: isSelected
+                          ? FontWeight.bold
+                          : FontWeight.normal,
+                      fontSize: compact ? 14 : 16,
+                    ),
+                  ),
+                  if (subtitle != null)
+                    Text(
+                      subtitle,
+                      style: const TextStyle(
+                        color: Colors.white38,
+                        fontSize: 12,
+                      ),
+                    ),
+                ],
+              ),
+            ),
+            if (isSelected)
+              const Icon(Icons.check_circle, color: colorBlue, size: 20),
+          ],
         ),
-        const SizedBox(height: 20),
-        if (banks.isEmpty)
-          const Padding(
-            padding: EdgeInsets.all(20),
-            child: Center(
-              child: Text(
-                'Aucune banque disponible',
-                style: TextStyle(color: Colors.grey),
-              ),
-            ),
-          )
-        else
-          DropdownButtonFormField<Bank>(
-            initialValue: selectedBank,
-            decoration: InputDecoration(
-              border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(8),
-              ),
-              contentPadding: const EdgeInsets.symmetric(
-                horizontal: 16,
-                vertical: 12,
-              ),
-              labelText: 'Banque',
-              hintText: 'Sélectionnez une banque',
-              prefixIcon: const Icon(Icons.account_balance),
-            ),
-            items: banks.map((bank) {
-              return DropdownMenuItem(value: bank, child: Text(bank.name));
-            }).toList(),
-            onChanged: _onBankSelected,
-          ),
-      ],
+      ),
     );
   }
 
   Widget _buildNavigationButtons() {
-    final canProceed = _canProceedFromStep(currentStep);
+    if (currentStep == 0) return const SizedBox.shrink();
 
     return Row(
       children: [
-        if (currentStep > 0)
+        Expanded(
+          child: TextButton(
+            onPressed: isSaving ? null : () => setState(() => currentStep--),
+            style: TextButton.styleFrom(
+              padding: const EdgeInsets.symmetric(vertical: 16),
+              foregroundColor: Colors.white54,
+            ),
+            child: const Text('Précédent'),
+          ),
+        ),
+        const SizedBox(width: 16),
+        if (currentStep == 2)
           Expanded(
-            child: OutlinedButton(
-              onPressed: isSaving ? null : _previousStep,
-              style: OutlinedButton.styleFrom(
+            child: ElevatedButton(
+              onPressed: (selectedBank != null && !isSaving)
+                  ? _savePatrimoine
+                  : null,
+              style: ElevatedButton.styleFrom(
+                backgroundColor: const Color(0xFF0D71EE),
+                foregroundColor: Colors.white,
                 padding: const EdgeInsets.symmetric(vertical: 16),
                 shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(8),
+                  borderRadius: BorderRadius.circular(16),
                 ),
+                elevation: 0,
               ),
-              child: const Text('Précédent'),
-            ),
-          ),
-        if (currentStep > 0) const SizedBox(width: 16),
-        Expanded(
-          child: ElevatedButton(
-            onPressed: (canProceed && !isSaving)
-                ? (currentStep < 2 ? _nextStep : _savePatrimoine)
-                : null,
-            style: ElevatedButton.styleFrom(
-              padding: const EdgeInsets.symmetric(vertical: 16),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(8),
-              ),
-            ),
-            child: isSaving
-                ? const SizedBox(
-                    height: 20,
-                    width: 20,
-                    child: CircularProgressIndicator(
-                      strokeWidth: 2,
-                      valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+              child: isSaving
+                  ? const SizedBox(
+                      height: 20,
+                      width: 20,
+                      child: CircularProgressIndicator(
+                        strokeWidth: 2,
+                        color: Colors.white,
+                      ),
+                    )
+                  : const Text(
+                      'Enregistrer',
+                      style: TextStyle(fontWeight: FontWeight.bold),
                     ),
-                  )
-                : Text(currentStep < 2 ? 'Suivant' : 'Enregistrer'),
-          ),
-        ),
-      ],
-    );
-  }
-
-  Future<List<Bank>> _loadBanksBySourceType(SourceItem source) {
-    switch (source.type) {
-      case 'liquidity':
-        return _wizardService.getBanksForLiquiditySource(
-          categoryId: selectedCategory!.id,
-          liquidityCategoryId: source.id,
-        );
-
-      case 'savings':
-        return _wizardService.getBanksForSavingsSource(
-          categoryId: selectedCategory!.id,
-          savingsCategoryId: source.id,
-        );
-
-      case 'investment':
-        return _wizardService.getBanksForInvestmentSource(
-          categoryId: selectedCategory!.id,
-          investmentCategoryId: source.id,
-        );
-
-      default:
-        return Future.value([]);
-    }
-  }
-
-  Widget _buildStep3() {
-    if (step3SelectionType == Step3SelectionType.bank) {
-      return _buildBankStep();
-    }
-
-    if (step3SelectionType == Step3SelectionType.provider) {
-      return _buildProviderStep();
-    }
-
-    return const SizedBox();
-  }
-
-  Widget _buildProviderStep() {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        const Text(
-          'Étape 3 : Fournisseur',
-          style: TextStyle(
-            fontSize: 18,
-            fontWeight: FontWeight.bold,
-            color: Colors.blue,
-          ),
-        ),
-        const SizedBox(height: 8),
-        const Text(
-          'Sélectionnez le fournisseur de votre avantage',
-          style: TextStyle(fontSize: 14, color: Colors.grey),
-        ),
-        const SizedBox(height: 20),
-        if (providers.isEmpty)
-          const Padding(
-            padding: EdgeInsets.all(20),
-            child: Center(
-              child: Text(
-                'Aucun fournisseur disponible',
-                style: TextStyle(color: Colors.grey),
-              ),
             ),
-          )
-        else
-          DropdownButtonFormField<Provider>(
-            initialValue: selectedProvider,
-            decoration: InputDecoration(
-              border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(8),
-              ),
-              contentPadding: const EdgeInsets.symmetric(
-                horizontal: 16,
-                vertical: 12,
-              ),
-              labelText: 'Fournisseur',
-              hintText: 'Sélectionnez un fournisseur',
-              prefixIcon: const Icon(Icons.store),
-            ),
-            items: providers.map((provider) {
-              return DropdownMenuItem(
-                value: provider,
-                child: Text(provider.name),
-              );
-            }).toList(),
-            onChanged: (p) => setState(() => selectedProvider = p),
           ),
       ],
     );
   }
-
-  Future<List<Provider>> _loadProvidersBySourceType(SourceItem source) {
-    switch (source.type) {
-      case 'advantage':
-        return _wizardService.getProvidersForAdvantageSource(
-          categoryId: selectedCategory!.id,
-          advantageCategoryId: source.id,
-        );
-
-      default:
-        return Future.value([]);
-    }
-  }
 }
-
-// Extension helper pour firstWhereOrNull
-extension IterableExtension<T> on Iterable<T> {
-  T? firstWhereOrNull(bool Function(T element) test) {
-    for (var element in this) {
-      if (test(element)) return element;
-    }
-    return null;
-  }
-}
-
-enum Step3SelectionType { bank, provider }

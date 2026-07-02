@@ -73,12 +73,12 @@ class _LiquidityAccountListState extends State<LiquidityAccountList> {
                   Container(
                     padding: const EdgeInsets.all(8),
                     decoration: BoxDecoration(
-                      color: Colors.green.shade400.withValues(alpha: 0.2),
+                      color: Colors.amber.shade400.withValues(alpha: 0.2),
                       borderRadius: BorderRadius.circular(10),
                     ),
                     child: Icon(
-                      Icons.water_drop_rounded,
-                      color: Colors.green.shade300,
+                      Icons.euro_rounded,
+                      color: Colors.amber.shade300,
                       size: 20,
                     ),
                   ),
@@ -99,10 +99,10 @@ class _LiquidityAccountListState extends State<LiquidityAccountList> {
                         vertical: 4,
                       ),
                       decoration: BoxDecoration(
-                        color: Colors.green.shade900.withValues(alpha: 0.3),
+                        color: Colors.amber.shade900.withValues(alpha: 0.3),
                         borderRadius: BorderRadius.circular(12),
                         border: Border.all(
-                          color: Colors.green.shade400.withValues(alpha: 0.4),
+                          color: Colors.amber.shade400.withValues(alpha: 0.4),
                           width: 1,
                         ),
                       ),
@@ -111,7 +111,7 @@ class _LiquidityAccountListState extends State<LiquidityAccountList> {
                         style: TextStyle(
                           fontSize: 13,
                           fontWeight: FontWeight.bold,
-                          color: Colors.green.shade300,
+                          color: Colors.amber.shade300,
                         ),
                       ),
                     ),
