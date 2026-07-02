@@ -33,13 +33,6 @@ class InvestmentCard extends StatelessWidget {
     return formatter.format(amount);
   }
 
-  Color _getValueColor() {
-    final performance = totalValue - totalContribution;
-    if (performance > 0) return Colors.purple.shade300;
-    if (performance < 0) return Colors.red.shade400;
-    return Colors.blueGrey.shade300;
-  }
-
   Future<void> _confirmDelete(BuildContext context) async {
     final confirmed = await showDialog<bool>(
       context: context,
@@ -156,43 +149,37 @@ class InvestmentCard extends StatelessWidget {
         onLongPress: () => _confirmDelete(context),
         child: Container(
           decoration: BoxDecoration(
-            gradient: LinearGradient(
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-              colors: [
-                Colors.purple.shade900.withValues(alpha: 0.25),
-                Colors.purple.shade800.withValues(alpha: 0.15),
-              ],
-            ),
+            color: const Color(0xFF1E293B),
             borderRadius: BorderRadius.circular(16),
             border: Border.all(
-              color: Colors.purple.shade400.withValues(alpha: 0.3),
+              color: Colors.white.withValues(alpha: 0.05),
               width: 1,
             ),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withValues(alpha: 0.2),
-                blurRadius: 12,
-                offset: const Offset(0, 4),
-              ),
-            ],
           ),
-          child: Padding(
-            padding: const EdgeInsets.all(14),
+          child: IntrinsicHeight(
             child: Row(
               children: [
+                // Barre d'accentuation à gauche
+                Container(
+                  width: 4,
+                  margin: const EdgeInsets.symmetric(vertical: 12),
+                  decoration: BoxDecoration(
+                    color: Colors.purple.shade400,
+                    borderRadius: const BorderRadius.horizontal(
+                      right: Radius.circular(4),
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 12),
+
                 /// Logo banque
                 Container(
                   width: 46,
                   height: 46,
                   padding: const EdgeInsets.all(6),
                   decoration: BoxDecoration(
-                    color: Colors.white.withValues(alpha: 0.15),
+                    color: Colors.white.withValues(alpha: 0.05),
                     borderRadius: BorderRadius.circular(12),
-                    border: Border.all(
-                      color: Colors.purple.shade300.withValues(alpha: 0.3),
-                      width: 1,
-                    ),
                   ),
                   child: ClipRRect(
                     borderRadius: BorderRadius.circular(8),
@@ -203,36 +190,42 @@ class InvestmentCard extends StatelessWidget {
 
                 /// Infos à gauche
                 Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        type,
-                        style: const TextStyle(
-                          fontWeight: FontWeight.bold,
-                          fontSize: 16,
-                          color: Colors.white,
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 14),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          type,
+                          style: const TextStyle(
+                            fontWeight: FontWeight.bold,
+                            fontSize: 16,
+                            color: Colors.white,
+                          ),
                         ),
-                      ),
-                      const SizedBox(height: 2),
-                      Text(
-                        bankName,
-                        style: TextStyle(
-                          fontSize: 13,
-                          color: Colors.white.withValues(alpha: 0.6),
+                        const SizedBox(height: 2),
+                        Text(
+                          bankName,
+                          style: TextStyle(
+                            fontSize: 13,
+                            color: Colors.white.withValues(alpha: 0.6),
+                          ),
                         ),
-                      ),
-                    ],
+                      ],
+                    ),
                   ),
                 ),
 
-                /// Valeur à droite avec couleur dynamique
-                Text(
-                  _formatAmount(totalValue),
-                  style: TextStyle(
-                    fontSize: 17,
-                    fontWeight: FontWeight.bold,
-                    color: _getValueColor(),
+                /// Valeur à droite
+                Padding(
+                  padding: const EdgeInsets.only(right: 16),
+                  child: Text(
+                    _formatAmount(totalValue),
+                    style: const TextStyle(
+                      fontSize: 17,
+                      fontWeight: FontWeight.w900,
+                      color: Colors.white,
+                    ),
                   ),
                 ),
               ],

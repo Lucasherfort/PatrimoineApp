@@ -3,7 +3,6 @@ import 'package:package_info_plus/package_info_plus.dart';
 import 'package:patrimoine360/ui/profile_page.dart';
 import 'budget_page.dart';
 import 'home_page.dart';
-import 'graphs_page.dart';
 
 class MainNavigation extends StatefulWidget {
   const MainNavigation({super.key});
@@ -47,24 +46,17 @@ class _MainNavigationState extends State<MainNavigation> {
   @override
   Widget build(BuildContext context) {
     // Liste des textes d'onglets
-    final List<String> titles = [
-      "Patrimoine",
-      "Analyses",
-      "Mon Budget",
-      "Menu",
-    ];
+    final List<String> titles = ["Patrimoine", "Mon Budget", "Menu"];
 
     // Liste des icônes correspondantes pour l'AppBar
     final List<IconData> titleIcons = [
       Icons.account_balance,
-      Icons.insights,
       Icons.receipt_long,
       Icons.menu,
     ];
 
     final List<Widget> pages = [
       HomePage(key: _homeKey, appName: appName, appVersion: appVersion),
-      const GraphsPage(appName: '', appVersion: ''),
       const BudgetPage(),
       ProfilePage(appVersion: appVersion),
     ];
@@ -79,7 +71,11 @@ class _MainNavigationState extends State<MainNavigation> {
               titleSpacing: 20,
               title: Row(
                 children: [
-                  Icon(titleIcons[_currentIndex], color: colorBlueMain, size: 24),
+                  Icon(
+                    titleIcons[_currentIndex],
+                    color: colorBlueMain,
+                    size: 24,
+                  ),
                   const SizedBox(width: 12),
                   Text(
                     titles[_currentIndex],
@@ -115,10 +111,6 @@ class _MainNavigationState extends State<MainNavigation> {
           BottomNavigationBarItem(
             icon: Icon(Icons.account_balance),
             label: 'Patrimoine',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.insights),
-            label: 'Graphiques',
           ),
           BottomNavigationBarItem(
             icon: Icon(Icons.receipt_long),

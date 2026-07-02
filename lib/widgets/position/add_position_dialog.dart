@@ -5,12 +5,12 @@ import '../../services/position_service.dart';
 
 class AddPositionDialog extends StatefulWidget {
   final Function(Position position, double quantity, double pru) onAdd;
-  final List<InvestmentPosition> existingPositions; // ✅ AJOUT
+  final List<InvestmentPosition> existingPositions;
 
   const AddPositionDialog({
     super.key,
     required this.onAdd,
-    required this.existingPositions, // ✅ AJOUT
+    required this.existingPositions,
   });
 
   @override
@@ -23,6 +23,7 @@ class _AddPositionDialogState extends State<AddPositionDialog> {
   Position? _selectedPosition;
 
   bool _isLoading = true;
+  bool _isSaving = false;
   String? _errorMessage;
 
   String _filterType = 'Toutes';
@@ -30,6 +31,10 @@ class _AddPositionDialogState extends State<AddPositionDialog> {
   final TextEditingController _searchController = TextEditingController();
   final TextEditingController _quantityController = TextEditingController();
   final TextEditingController _pruController = TextEditingController();
+
+  static const Color colorDark = Color(0xFF060B26);
+  static const Color colorSurface = Color(0xFF1E293B);
+  static const Color colorPurple = Color(0xFF9C27B0);
 
   @override
   void initState() {
@@ -79,27 +84,21 @@ class _AddPositionDialogState extends State<AddPositionDialog> {
       }
 
       _filteredPositions = filtered;
-
-      if (!_filteredPositions.contains(_selectedPosition)) {
-        _selectedPosition = null;
-      }
     });
   }
 
-  // ✅ NOUVELLE MÉTHODE
   bool _isPositionAlreadyInAccount(Position position) {
     return widget.existingPositions.any(
       (investPos) => investPos.positionId == position.id,
     );
   }
 
-  void _handleAdd() {
+  Future<void> _handleAdd() async {
     if (_selectedPosition == null) {
       _showSnack('Veuillez sélectionner une position');
       return;
     }
 
-    // ✅ VALIDATION DOUBLON
     if (_isPositionAlreadyInAccount(_selectedPosition!)) {
       _showSnack(
         'Cette position (${_selectedPosition!.ticker}) existe déjà dans ce compte',
@@ -122,8 +121,15 @@ class _AddPositionDialogState extends State<AddPositionDialog> {
       return;
     }
 
-    widget.onAdd(_selectedPosition!, quantity, pru);
-    Navigator.pop(context);
+    setState(() => _isSaving = true);
+    try {
+      await widget.onAdd(_selectedPosition!, quantity, pru);
+      if (mounted) Navigator.pop(context);
+    } catch (e) {
+      _showSnack('Erreur lors de l\'ajout');
+    } finally {
+      if (mounted) setState(() => _isSaving = false);
+    }
   }
 
   void _showSnack(String message) {
@@ -131,88 +137,125 @@ class _AddPositionDialogState extends State<AddPositionDialog> {
       SnackBar(
         content: Text(message),
         behavior: SnackBarBehavior.floating,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+        backgroundColor: colorSurface,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       ),
     );
   }
 
   @override
   Widget build(BuildContext context) {
-    return Dialog(
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-      child: Container(
-        constraints: const BoxConstraints(maxWidth: 500, maxHeight: 700),
-        child: Column(
-          children: [
-            _buildHeader(),
-
-            /// CONTENU
-            Expanded(
-              child: _isLoading
-                  ? const Center(
-                      child: CircularProgressIndicator(color: Colors.purple),
-                    )
-                  : _errorMessage != null
-                  ? Center(child: Text(_errorMessage!))
-                  : Padding(
-                      padding: const EdgeInsets.all(20),
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          _buildFilters(),
-                          const SizedBox(height: 16),
-                          _buildSearch(),
-                          const SizedBox(height: 16),
-                          _buildTitle(),
-                          const SizedBox(height: 8),
-
-                          /// ✅ LISTE SCROLLABLE UNIQUEMENT
-                          Expanded(child: _buildPositionList()),
-
-                          const SizedBox(height: 20),
-                          _buildInputs(),
-                        ],
-                      ),
-                    ),
-            ),
-
-            _buildFooter(),
-          ],
+    return Container(
+      height: MediaQuery.of(context).size.height,
+      decoration: const BoxDecoration(color: colorDark),
+      child: Scaffold(
+        backgroundColor: Colors.transparent,
+        body: SafeArea(
+          child: Column(
+            children: [
+              _buildHeader(),
+              Expanded(
+                child: _isLoading
+                    ? const Center(
+                        child: CircularProgressIndicator(color: colorPurple),
+                      )
+                    : _errorMessage != null
+                    ? Center(
+                        child: Text(
+                          _errorMessage!,
+                          style: const TextStyle(color: Colors.white54),
+                        ),
+                      )
+                    : _buildMainContent(),
+              ),
+              _buildFooter(),
+            ],
+          ),
         ),
       ),
     );
   }
 
-  /// ---------- UI PARTS ----------
-
   Widget _buildHeader() {
-    return Container(
-      padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        gradient: LinearGradient(
-          colors: [Colors.purple.shade700, Colors.purple.shade900],
-        ),
-        borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
-      ),
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(20, 20, 10, 10),
       child: Row(
         children: [
-          const Icon(Icons.add_chart_rounded, color: Colors.white),
-          const SizedBox(width: 12),
-          const Expanded(
-            child: Text(
-              'Ajouter une position',
-              style: TextStyle(
-                color: Colors.white,
-                fontSize: 20,
-                fontWeight: FontWeight.bold,
-              ),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Text(
+                  'Ajouter une position',
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontSize: 22,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                Text(
+                  "Recherchez et configurez votre investissement",
+                  style: TextStyle(
+                    color: Colors.white.withValues(alpha: 0.4),
+                    fontSize: 13,
+                  ),
+                ),
+              ],
             ),
           ),
           IconButton(
-            icon: const Icon(Icons.close, color: Colors.white),
+            icon: const Icon(Icons.close, color: Colors.white54),
             onPressed: () => Navigator.pop(context),
           ),
         ],
+      ),
+    );
+  }
+
+  Widget _buildMainContent() {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 20),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const SizedBox(height: 16),
+          _buildSearchField(),
+          const SizedBox(height: 16),
+          _buildFilters(),
+          const SizedBox(height: 24),
+          const Text(
+            "RÉSULTATS",
+            style: TextStyle(
+              color: Colors.white38,
+              fontSize: 11,
+              fontWeight: FontWeight.bold,
+              letterSpacing: 1.2,
+            ),
+          ),
+          const SizedBox(height: 12),
+          Expanded(child: _buildPositionList()),
+          const SizedBox(height: 20),
+          if (_selectedPosition != null) _buildInputs(),
+          const SizedBox(height: 12),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildSearchField() {
+    return TextField(
+      controller: _searchController,
+      style: const TextStyle(color: Colors.white),
+      decoration: InputDecoration(
+        hintText: 'Rechercher par nom ou ticker...',
+        hintStyle: const TextStyle(color: Colors.white24),
+        prefixIcon: const Icon(Icons.search, color: colorPurple),
+        filled: true,
+        fillColor: colorSurface,
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(16),
+          borderSide: BorderSide.none,
+        ),
       ),
     );
   }
@@ -220,217 +263,283 @@ class _AddPositionDialogState extends State<AddPositionDialog> {
   Widget _buildFilters() {
     return Row(
       children: [
-        Expanded(child: _buildFilterChip('Toutes', Icons.all_inclusive)),
+        _buildFilterChip('Toutes', Icons.all_inclusive),
         const SizedBox(width: 8),
-        Expanded(child: _buildFilterChip('Action', Icons.show_chart)),
+        _buildFilterChip('Action', Icons.show_chart),
         const SizedBox(width: 8),
-        Expanded(child: _buildFilterChip('ETF', Icons.pie_chart)),
+        _buildFilterChip('ETF', Icons.pie_chart),
       ],
-    );
-  }
-
-  Widget _buildSearch() {
-    return TextField(
-      controller: _searchController,
-      decoration: InputDecoration(
-        labelText: 'Rechercher',
-        prefixIcon: const Icon(Icons.search),
-        suffixIcon: _searchController.text.isNotEmpty
-            ? IconButton(
-                icon: const Icon(Icons.clear),
-                onPressed: _searchController.clear,
-              )
-            : null,
-        border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
-      ),
-    );
-  }
-
-  Widget _buildTitle() {
-    return Text(
-      'Sélectionner une position',
-      style: TextStyle(fontWeight: FontWeight.w600, color: Colors.white),
-    );
-  }
-
-  Widget _buildPositionList() {
-    return Container(
-      decoration: BoxDecoration(
-        border: Border.all(color: Colors.grey.shade300),
-        borderRadius: BorderRadius.circular(12),
-      ),
-      child: _filteredPositions.isEmpty
-          ? const Center(child: Text('Aucune position trouvée'))
-          : ListView.separated(
-              itemCount: _filteredPositions.length,
-              separatorBuilder: (_, _) =>
-                  Divider(height: 1, color: Colors.grey.shade200),
-              itemBuilder: (context, index) {
-                final position = _filteredPositions[index];
-                final isSelected = position == _selectedPosition;
-                final isAlreadyInAccount = _isPositionAlreadyInAccount(
-                  position,
-                ); // ✅
-
-                return InkWell(
-                  onTap:
-                      isAlreadyInAccount // ✅ Désactiver si déjà présent
-                      ? null
-                      : () {
-                          setState(() {
-                            _selectedPosition = position;
-                            _pruController.text = position.price
-                                .toStringAsFixed(2)
-                                .replaceAll('.', ',');
-                          });
-                        },
-                  child: Container(
-                    padding: const EdgeInsets.all(12),
-                    color: isSelected
-                        ? Colors.purple.shade50
-                        : (isAlreadyInAccount // ✅
-                              ? Colors.grey.shade100
-                              : Colors.transparent),
-                    child: Row(
-                      children: [
-                        Expanded(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                '${position.name} (${position.ticker})',
-                                style: TextStyle(
-                                  fontWeight: FontWeight.w600,
-                                  color:
-                                      isAlreadyInAccount // ✅
-                                      ? Colors.grey.shade400
-                                      : (isSelected
-                                            ? Colors.purple
-                                            : Colors.white),
-                                ),
-                              ),
-                              if (isAlreadyInAccount) // ✅
-                                Text(
-                                  'Déjà dans le compte',
-                                  style: TextStyle(
-                                    fontSize: 11,
-                                    color: Colors.orange.shade600,
-                                    fontStyle: FontStyle.italic,
-                                  ),
-                                ),
-                            ],
-                          ),
-                        ),
-                        if (isSelected)
-                          const Icon(Icons.check_circle, color: Colors.purple),
-                      ],
-                    ),
-                  ),
-                );
-              },
-            ),
-    );
-  }
-
-  Widget _buildInputs() {
-    return Row(
-      children: [
-        Expanded(
-          child: TextField(
-            controller: _quantityController,
-            keyboardType: const TextInputType.numberWithOptions(decimal: true),
-            decoration: InputDecoration(
-              labelText: 'Quantité',
-              border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(12),
-              ),
-            ),
-          ),
-        ),
-        const SizedBox(width: 12),
-        Expanded(
-          child: TextField(
-            controller: _pruController,
-            keyboardType: const TextInputType.numberWithOptions(decimal: true),
-            decoration: InputDecoration(
-              labelText: 'PRU',
-              suffixText: '€',
-              border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(12),
-              ),
-            ),
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildFooter() {
-    return Container(
-      padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        color: Colors.grey.shade50,
-        border: Border(top: BorderSide(color: Colors.grey.shade200)),
-        borderRadius: const BorderRadius.vertical(bottom: Radius.circular(20)),
-      ),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.end,
-        children: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('Annuler'),
-          ),
-          const SizedBox(width: 12),
-          ElevatedButton(
-            onPressed: _handleAdd,
-            style: ElevatedButton.styleFrom(
-              backgroundColor: Colors.purple.shade600,
-              foregroundColor: Colors.white,
-              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-            ),
-            child: const Text(
-              'Ajouter',
-              style: TextStyle(fontWeight: FontWeight.bold),
-            ),
-          ),
-        ],
-      ),
     );
   }
 
   Widget _buildFilterChip(String type, IconData icon) {
-    final isSelected = _filterType == type;
-    return InkWell(
+    final bool isSelected = _filterType == type;
+    return GestureDetector(
       onTap: () {
         setState(() {
           _filterType = type;
           _applyFilter();
         });
       },
-      child: Container(
-        padding: const EdgeInsets.symmetric(vertical: 10),
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 200),
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
         decoration: BoxDecoration(
-          color: isSelected ? Colors.purple : Colors.grey.shade100,
+          color: isSelected ? colorPurple : colorSurface,
           borderRadius: BorderRadius.circular(12),
+          border: Border.all(
+            color: isSelected ? colorPurple : Colors.white12,
+            width: 1,
+          ),
         ),
         child: Row(
-          mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Icon(
               icon,
               size: 16,
-              color: isSelected ? Colors.white : Colors.grey,
+              color: isSelected ? Colors.white : Colors.white54,
             ),
-            const SizedBox(width: 6),
+            const SizedBox(width: 8),
             Text(
               type,
               style: TextStyle(
-                color: isSelected ? Colors.white : Colors.grey.shade700,
-                fontWeight: FontWeight.w600,
+                color: isSelected ? Colors.white : Colors.white70,
+                fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+                fontSize: 13,
               ),
             ),
           ],
         ),
+      ),
+    );
+  }
+
+  Widget _buildPositionList() {
+    if (_filteredPositions.isEmpty) {
+      return const Center(
+        child: Text(
+          'Aucune position trouvée',
+          style: TextStyle(color: Colors.white24),
+        ),
+      );
+    }
+
+    return ListView.separated(
+      itemCount: _filteredPositions.length,
+      separatorBuilder: (_, _) => const SizedBox(height: 8),
+      itemBuilder: (context, index) {
+        final position = _filteredPositions[index];
+        final isSelected = position == _selectedPosition;
+        final isAlreadyInAccount = _isPositionAlreadyInAccount(position);
+
+        return InkWell(
+          onTap: isAlreadyInAccount
+              ? null
+              : () {
+                  setState(() {
+                    _selectedPosition = position;
+                    _pruController.text = position.price
+                        .toStringAsFixed(2)
+                        .replaceAll('.', ',');
+                  });
+                },
+          borderRadius: BorderRadius.circular(16),
+          child: Container(
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              color: isSelected
+                  ? colorPurple.withValues(alpha: 0.1)
+                  : colorSurface,
+              borderRadius: BorderRadius.circular(16),
+              border: Border.all(
+                color: isSelected
+                    ? colorPurple
+                    : Colors.white.withValues(alpha: 0.05),
+                width: 1.5,
+              ),
+            ),
+            child: Row(
+              children: [
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        children: [
+                          Text(
+                            position.ticker,
+                            style: const TextStyle(
+                              color: colorPurple,
+                              fontWeight: FontWeight.w900,
+                              fontSize: 12,
+                            ),
+                          ),
+                          const SizedBox(width: 8),
+                          Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 6,
+                              vertical: 2,
+                            ),
+                            decoration: BoxDecoration(
+                              color: Colors.white.withValues(alpha: 0.05),
+                              borderRadius: BorderRadius.circular(4),
+                            ),
+                            child: Text(
+                              position.type.toUpperCase(),
+                              style: const TextStyle(
+                                color: Colors.white38,
+                                fontSize: 9,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        position.name,
+                        style: TextStyle(
+                          fontWeight: FontWeight.bold,
+                          color: isAlreadyInAccount
+                              ? Colors.white24
+                              : Colors.white,
+                        ),
+                      ),
+                      if (isAlreadyInAccount)
+                        const Text(
+                          'Déjà possédé dans ce compte',
+                          style: TextStyle(
+                            color: Colors.orangeAccent,
+                            fontSize: 11,
+                            fontStyle: FontStyle.italic,
+                          ),
+                        ),
+                    ],
+                  ),
+                ),
+                if (isSelected)
+                  const Icon(Icons.check_circle, color: colorPurple)
+                else
+                  Text(
+                    "${position.price.toStringAsFixed(2)} €",
+                    style: const TextStyle(
+                      color: Colors.white54,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _buildInputs() {
+    return Container(
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: colorSurface,
+        borderRadius: BorderRadius.circular(24),
+        border: Border.all(color: colorPurple.withValues(alpha: 0.3)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            "CONFIGURATION : ${_selectedPosition!.ticker}",
+            style: const TextStyle(
+              color: colorPurple,
+              fontSize: 10,
+              fontWeight: FontWeight.bold,
+              letterSpacing: 1.1,
+            ),
+          ),
+          const SizedBox(height: 16),
+          Row(
+            children: [
+              Expanded(
+                child: _buildConfigField(
+                  label: "Quantité",
+                  controller: _quantityController,
+                  icon: Icons.pie_chart_outline,
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: _buildConfigField(
+                  label: "PRU (€)",
+                  controller: _pruController,
+                  icon: Icons.euro_rounded,
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildConfigField({
+    required String label,
+    required TextEditingController controller,
+    required IconData icon,
+  }) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+      decoration: BoxDecoration(
+        color: Colors.white.withValues(alpha: 0.05),
+        borderRadius: BorderRadius.circular(12),
+      ),
+      child: TextField(
+        controller: controller,
+        keyboardType: const TextInputType.numberWithOptions(decimal: true),
+        style: const TextStyle(
+          color: Colors.white,
+          fontWeight: FontWeight.bold,
+        ),
+        decoration: InputDecoration(
+          labelText: label,
+          labelStyle: const TextStyle(color: Colors.white38, fontSize: 12),
+          border: InputBorder.none,
+          icon: Icon(icon, color: colorPurple, size: 18),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildFooter() {
+    return Container(
+      padding: const EdgeInsets.all(20),
+      child: ElevatedButton(
+        onPressed: (_selectedPosition != null && !_isSaving)
+            ? _handleAdd
+            : null,
+        style: ElevatedButton.styleFrom(
+          backgroundColor: colorPurple,
+          foregroundColor: Colors.white,
+          minimumSize: const Size(double.infinity, 56),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16),
+          ),
+          elevation: 0,
+        ),
+        child: _isSaving
+            ? const SizedBox(
+                height: 20,
+                width: 20,
+                child: CircularProgressIndicator(
+                  color: Colors.white,
+                  strokeWidth: 2,
+                ),
+              )
+            : const Text(
+                'AJOUTER À MON PORTEFEUILLE',
+                style: TextStyle(
+                  fontWeight: FontWeight.w900,
+                  letterSpacing: 1.1,
+                ),
+              ),
       ),
     );
   }

@@ -3,7 +3,6 @@ import 'package:intl/intl.dart';
 
 class PatrimoineHeader extends StatefulWidget {
   final double patrimoineTotal;
-  final double patrimoineBrut;
   final double investedCapital;
   final double portfolioValue;
   final double netWorth;
@@ -13,7 +12,6 @@ class PatrimoineHeader extends StatefulWidget {
   const PatrimoineHeader({
     super.key,
     required this.patrimoineTotal,
-    required this.patrimoineBrut,
     required this.investedCapital,
     required this.portfolioValue,
     required this.netWorth,
@@ -65,9 +63,9 @@ class _PatrimoineHeaderState extends State<PatrimoineHeader> {
         : 0;
 
     final double yieldValue = widget.netPatrimoine > 0
-        ? ((widget.patrimoineBrut - widget.netPatrimoine) /
-                widget.netPatrimoine) *
-            100
+        ? ((widget.patrimoineTotal - widget.netPatrimoine) /
+                  widget.netPatrimoine) *
+              100
         : 0;
 
     showModalBottomSheet(
@@ -94,16 +92,16 @@ class _PatrimoineHeaderState extends State<PatrimoineHeader> {
                   ),
                 ),
                 _buildInfoRow(
-                  "Patrimoine net (total versé)",
+                  "Patrimoine total (valorisation)",
                   _isVisible
-                      ? "${_formatAmount(widget.netPatrimoine)} €"
+                      ? "${_formatAmount(widget.patrimoineTotal)} €"
                       : "•••• €",
                 ),
                 const Divider(color: Colors.black12, height: 32),
                 _buildInfoRow(
-                  "Patrimoine brut (hors avantages)",
+                  "Patrimoine net (total versé)",
                   _isVisible
-                      ? "${_formatAmount(widget.patrimoineBrut)} €"
+                      ? "${_formatAmount(widget.netPatrimoine)} €"
                       : "•••• €",
                 ),
                 const Divider(color: Colors.black12, height: 32),
@@ -112,7 +110,9 @@ class _PatrimoineHeaderState extends State<PatrimoineHeader> {
                   _isVisible
                       ? "${yieldValue >= 0 ? '+' : ''}${yieldValue.toStringAsFixed(2)} %"
                       : "•• %",
-                  valueColor: yieldValue >= 0 ? colorGreenFlash : colorOrangeLogo,
+                  valueColor: yieldValue >= 0
+                      ? colorGreenFlash
+                      : colorOrangeLogo,
                 ),
                 const Divider(color: Colors.black12, height: 32),
                 _buildInfoRow(
@@ -210,7 +210,7 @@ class _PatrimoineHeaderState extends State<PatrimoineHeader> {
                         fit: BoxFit.scaleDown,
                         child: Text(
                           _isVisible
-                              ? "${_formatAmount(widget.patrimoineBrut)} €"
+                              ? "${_formatAmount(widget.patrimoineTotal)} €"
                               : "•••••••• €",
                           key: ValueKey(_isVisible),
                           textAlign: TextAlign.center,

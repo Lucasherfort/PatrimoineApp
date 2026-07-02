@@ -80,8 +80,11 @@ class _InvestmentDetailPageState extends State<InvestmentDetailPage> {
   }
 
   void _openAddPositionDialog() {
-    showDialog(
+    showModalBottomSheet(
       context: context,
+      isScrollControlled: true,
+      useSafeArea: true,
+      backgroundColor: Colors.transparent,
       builder: (context) => AddPositionDialog(
         existingPositions: positions,
         onAdd: (Position position, double quantity, double pru) async {

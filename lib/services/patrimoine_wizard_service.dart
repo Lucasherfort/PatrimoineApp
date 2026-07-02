@@ -1,8 +1,5 @@
 import 'package:flutter/cupertino.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
-import '../bdd/advantage_category_table.dart';
-import '../bdd/advantage_provider_table.dart';
-import '../bdd/advantage_source_table.dart';
 import '../bdd/banks_table.dart';
 import '../bdd/investment_category_table.dart';
 import '../bdd/investment_source_table.dart';
@@ -15,7 +12,6 @@ import '../bdd/user_liquidity_account_table.dart';
 import '../models/patrimoine/patrimoine_category.dart';
 import '../models/source_item.dart';
 import '../models/bank.dart';
-import '../models/advantage/provider.dart';
 
 class PatrimoineWizardService {
   final SupabaseClient _supabase = Supabase.instance.client;
@@ -38,15 +34,6 @@ class PatrimoineWizardService {
     ${BanksTable.tableName} (
       ${BanksTable.id},
       ${BanksTable.name}
-    )
-  ''';
-
-  static const _selectProviderNested =
-      '''
-    ${AdvantageSourceTable.providerId},
-    ${AdvantageProviderTable.tableName} (
-      ${AdvantageProviderTable.id},
-      ${AdvantageProviderTable.name}
     )
   ''';
 
@@ -119,17 +106,6 @@ class PatrimoineWizardService {
           );
       return response
           .map((item) => SourceItem.fromInvestmentCategory(item))
-          .toList();
-    }
-
-    if (categoryName.contains('Benefits')) {
-      final response = await _supabase
-          .from(AdvantageCategoryTable.tableName)
-          .select(
-            '${AdvantageCategoryTable.id}, ${AdvantageCategoryTable.name}',
-          );
-      return response
-          .map((item) => SourceItem.fromAdvantageCategory(item))
           .toList();
     }
 
@@ -309,71 +285,6 @@ class PatrimoineWizardService {
     } catch (e, stackTrace) {
       debugPrint('----------------------------------------');
       debugPrint('ERROR getBanksForInvestmentSource');
-      debugPrint('error: $e');
-      debugPrint('stackTrace: $stackTrace');
-      debugPrint('========================================');
-
-      rethrow;
-    }
-  }
-
-  // ─── Fournisseurs ─────────────────────────────────────────────────────────
-
-  Future<List<Provider>> getProvidersForAdvantageSource({
-    required int categoryId,
-    required int advantageCategoryId,
-  }) async {
-    debugPrint('========================================');
-    debugPrint('getProvidersForAdvantageSource');
-    debugPrint('categoryId: $categoryId');
-    debugPrint('advantageCategoryId: $advantageCategoryId');
-
-    try {
-      debugPrint('----------------------------------------');
-      debugPrint('TABLE: ${AdvantageSourceTable.tableName}');
-      debugPrint('SELECT: $_selectProviderNested');
-
-      final response = await _supabase
-          .from(AdvantageSourceTable.tableName)
-          .select(_selectProviderNested)
-          // ⚠️ Vérifie bien cette ligne
-          .eq(AdvantageSourceTable.categoryId, categoryId)
-          // ⚠️ Et celle-ci
-          .eq(AdvantageSourceTable.advantageCategoryId, advantageCategoryId);
-
-      debugPrint('----------------------------------------');
-      debugPrint('RAW RESPONSE: $response');
-      debugPrint('RESPONSE LENGTH: ${response.length}');
-
-      final providers = response.map<Provider>((item) {
-        debugPrint('----------------------------------------');
-        debugPrint('ITEM: $item');
-
-        final provider =
-            item[AdvantageProviderTable.tableName] as Map<String, dynamic>;
-
-        debugPrint('PROVIDER MAP: $provider');
-
-        final providerId = provider[AdvantageProviderTable.id] as int;
-
-        final providerName = provider[AdvantageProviderTable.name] as String;
-
-        debugPrint('providerId: $providerId');
-        debugPrint('providerName: $providerName');
-
-        return Provider(id: providerId, name: providerName);
-      }).toList();
-
-      debugPrint('----------------------------------------');
-      debugPrint('FINAL PROVIDERS COUNT: ${providers.length}');
-      debugPrint('FINAL PROVIDERS: $providers');
-
-      debugPrint('========================================');
-
-      return providers;
-    } catch (e, stackTrace) {
-      debugPrint('----------------------------------------');
-      debugPrint('ERROR getProvidersForAdvantageSource');
       debugPrint('error: $e');
       debugPrint('stackTrace: $stackTrace');
       debugPrint('========================================');
