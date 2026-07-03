@@ -101,6 +101,9 @@ class _AddPatrimoineWizardState extends State<AddPatrimoineWizard> {
     setState(() => isLoading = true);
     try {
       final loadedBanks = await _loadBanksBySourceType(source);
+      // Tri par ordre alphabétique
+      loadedBanks.sort((a, b) => a.name.toLowerCase().compareTo(b.name.toLowerCase()));
+      
       setState(() {
         banks = loadedBanks;
         filteredBanks = loadedBanks;
@@ -428,6 +431,7 @@ class _AddPatrimoineWizardState extends State<AddPatrimoineWizard> {
                       title: bank.name,
                       isSelected: isSelected,
                       compact: true,
+                      logoUrl: bank.logoUrl,
                       onTap: () => setState(() => selectedBank = bank),
                     );
                   },
@@ -483,6 +487,7 @@ class _AddPatrimoineWizardState extends State<AddPatrimoineWizard> {
     required bool isSelected,
     required VoidCallback onTap,
     bool compact = false,
+    String? logoUrl,
   }) {
     const Color colorBlue = Color(0xFF0D71EE);
     return InkWell(
@@ -505,6 +510,31 @@ class _AddPatrimoineWizardState extends State<AddPatrimoineWizard> {
         ),
         child: Row(
           children: [
+            if (logoUrl != null) ...[
+              Container(
+                width: 32,
+                height: 32,
+                decoration: BoxDecoration(
+                  color: Colors.white.withValues(alpha: 0.05),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(8),
+                  child: logoUrl.isEmpty
+                      ? const Icon(Icons.account_balance,
+                          color: Colors.white24, size: 20)
+                      : Image.network(
+                          logoUrl,
+                          fit: BoxFit.contain,
+                          errorBuilder: (_, _, _) => const Icon(
+                              Icons.account_balance,
+                              color: Colors.white24,
+                              size: 20),
+                        ),
+                ),
+              ),
+              const SizedBox(width: 12),
+            ],
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -513,9 +543,7 @@ class _AddPatrimoineWizardState extends State<AddPatrimoineWizard> {
                     title,
                     style: TextStyle(
                       color: Colors.white,
-                      fontWeight: isSelected
-                          ? FontWeight.bold
-                          : FontWeight.normal,
+                      fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
                       fontSize: compact ? 14 : 16,
                     ),
                   ),
