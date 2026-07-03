@@ -102,8 +102,10 @@ class _AddPatrimoineWizardState extends State<AddPatrimoineWizard> {
     try {
       final loadedBanks = await _loadBanksBySourceType(source);
       // Tri par ordre alphabétique
-      loadedBanks.sort((a, b) => a.name.toLowerCase().compareTo(b.name.toLowerCase()));
-      
+      loadedBanks.sort(
+        (a, b) => a.name.toLowerCase().compareTo(b.name.toLowerCase()),
+      );
+
       setState(() {
         banks = loadedBanks;
         filteredBanks = loadedBanks;
@@ -521,15 +523,19 @@ class _AddPatrimoineWizardState extends State<AddPatrimoineWizard> {
                 child: ClipRRect(
                   borderRadius: BorderRadius.circular(8),
                   child: logoUrl.isEmpty
-                      ? const Icon(Icons.account_balance,
-                          color: Colors.white24, size: 20)
+                      ? const Icon(
+                          Icons.account_balance,
+                          color: Colors.white24,
+                          size: 20,
+                        )
                       : Image.network(
                           logoUrl,
                           fit: BoxFit.contain,
                           errorBuilder: (_, _, _) => const Icon(
-                              Icons.account_balance,
-                              color: Colors.white24,
-                              size: 20),
+                            Icons.account_balance,
+                            color: Colors.white24,
+                            size: 20,
+                          ),
                         ),
                 ),
               ),
@@ -543,7 +549,9 @@ class _AddPatrimoineWizardState extends State<AddPatrimoineWizard> {
                     title,
                     style: TextStyle(
                       color: Colors.white,
-                      fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+                      fontWeight: isSelected
+                          ? FontWeight.bold
+                          : FontWeight.normal,
                       fontSize: compact ? 14 : 16,
                     ),
                   ),

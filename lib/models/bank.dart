@@ -3,9 +3,5 @@ class Bank {
   final String name;
   final String? logoUrl;
 
-  Bank({
-    required this.id,
-    required this.name,
-    this.logoUrl,
-  });
+  Bank({required this.id, required this.name, this.logoUrl});
 }

@@ -157,16 +157,16 @@ class _AddPositionDialogState extends State<AddPositionDialog> {
                         child: CircularProgressIndicator(color: colorPurple),
                       )
                     : _errorMessage != null
-                        ? Center(
-                            child: Text(
-                              _errorMessage!,
-                              style: const TextStyle(color: Colors.white54),
-                            ),
-                          )
-                        : SingleChildScrollView(
-                            padding: const EdgeInsets.only(bottom: 20),
-                            child: _buildMainContent(),
-                          ),
+                    ? Center(
+                        child: Text(
+                          _errorMessage!,
+                          style: const TextStyle(color: Colors.white54),
+                        ),
+                      )
+                    : SingleChildScrollView(
+                        padding: const EdgeInsets.only(bottom: 20),
+                        child: _buildMainContent(),
+                      ),
               ),
               // Bloc de configuration + Bouton Valider
               if (_selectedPosition != null)
@@ -174,10 +174,7 @@ class _AddPositionDialogState extends State<AddPositionDialog> {
                   padding: const EdgeInsets.symmetric(horizontal: 20),
                   child: Column(
                     mainAxisSize: MainAxisSize.min,
-                    children: [
-                      _buildInputs(),
-                      _buildFooter(),
-                    ],
+                    children: [_buildInputs(), _buildFooter()],
                   ),
                 ),
             ],
@@ -463,10 +460,12 @@ class _AddPositionDialogState extends State<AddPositionDialog> {
   }
 
   Widget _buildFooter() {
-    final quantity =
-        double.tryParse(_quantityController.text.replaceAll(',', '.'));
+    final quantity = double.tryParse(
+      _quantityController.text.replaceAll(',', '.'),
+    );
     final pru = double.tryParse(_pruController.text.replaceAll(',', '.'));
-    final bool isFormValid = _selectedPosition != null &&
+    final bool isFormValid =
+        _selectedPosition != null &&
         quantity != null &&
         quantity > 0 &&
         pru != null &&
