@@ -1,14 +1,4 @@
-import 'package:flutter/cupertino.dart';
-import 'package:supabase_flutter/supabase_flutter.dart';
-import '../bdd/banks_table.dart';
-import '../bdd/investment_category_table.dart';
-import '../bdd/investment_source_table.dart';
-import '../bdd/liquidity_category_table.dart';
-import '../bdd/liquidity_source_table.dart';
-import '../bdd/patrimoine_category_table.dart';
-import '../bdd/savings_category_table.dart';
-import '../bdd/savings_source_table.dart';
-import '../bdd/user_liquidity_account_table.dart';
+import '../bdd/storage_buckets.dart';
 import '../models/patrimoine/patrimoine_category.dart';
 import '../models/source_item.dart';
 import '../models/bank.dart';
@@ -26,14 +16,16 @@ class PatrimoineWizardService {
   static const _selectBankWithId =
       '''
     ${BanksTable.id},
-    ${BanksTable.name}
+    ${BanksTable.name},
+    ${BanksTable.icon}
   ''';
 
   static const _selectBankNested =
       '''
     ${BanksTable.tableName} (
       ${BanksTable.id},
-      ${BanksTable.name}
+      ${BanksTable.name},
+      ${BanksTable.icon}
     )
   ''';
 
@@ -45,10 +37,21 @@ class PatrimoineWizardService {
     return user.id;
   }
 
-  Bank _bankFromNested(Map<String, dynamic> item) => Bank(
-    id: item[BanksTable.tableName][BanksTable.id] as int,
-    name: item[BanksTable.tableName][BanksTable.name] as String,
-  );
+  Bank _bankFromNested(Map<String, dynamic> item) {
+    final bankData = item[BanksTable.tableName] as Map<String, dynamic>;
+    return Bank(
+      id: bankData[BanksTable.id] as int,
+      name: bankData[BanksTable.name] as String,
+      logoUrl: _resolveLogoUrl(bankData[BanksTable.icon] as String?),
+    );
+  }
+
+  String _resolveLogoUrl(String? iconPath) {
+    if (iconPath == null || iconPath.isEmpty) return '';
+    return _supabase.storage
+        .from(StorageBucketsTable.banksIcons)
+        .getPublicUrl(iconPath);
+  }
 
   // ─── Catégories ───────────────────────────────────────────────────────────
 
@@ -125,6 +128,7 @@ class PatrimoineWizardService {
           (item) => Bank(
             id: item[BanksTable.id] as int,
             name: item[BanksTable.name] as String,
+            logoUrl: _resolveLogoUrl(item[BanksTable.icon] as String?),
           ),
         )
         .toList();
