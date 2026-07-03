@@ -384,9 +384,6 @@ class _AddPatrimoineWizardState extends State<AddPatrimoineWizard> {
 
         return _buildSelectionTile(
           title: source.name,
-          subtitle: source.type == 'savings' && source.interestRate != null
-              ? "Taux : ${source.interestRate}%"
-              : null,
           isSelected: isSelected,
           onTap: () {
             setState(() => selectedSource = source);
