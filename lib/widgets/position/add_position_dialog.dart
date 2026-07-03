@@ -26,8 +26,6 @@ class _AddPositionDialogState extends State<AddPositionDialog> {
   bool _isSaving = false;
   String? _errorMessage;
 
-  String _filterType = 'Toutes';
-
   final TextEditingController _searchController = TextEditingController();
   final TextEditingController _quantityController = TextEditingController();
   final TextEditingController _pruController = TextEditingController();
@@ -41,6 +39,8 @@ class _AddPositionDialogState extends State<AddPositionDialog> {
     super.initState();
     _loadAvailablePositions();
     _searchController.addListener(_applyFilter);
+    _quantityController.addListener(() => setState(() {}));
+    _pruController.addListener(() => setState(() {}));
   }
 
   @override
@@ -70,10 +70,6 @@ class _AddPositionDialogState extends State<AddPositionDialog> {
   void _applyFilter() {
     setState(() {
       var filtered = _availablePositions;
-
-      if (_filterType != 'Toutes') {
-        filtered = filtered.where((p) => p.type == _filterType).toList();
-      }
 
       final query = _searchController.text.toLowerCase();
       if (query.isNotEmpty) {
@@ -149,6 +145,7 @@ class _AddPositionDialogState extends State<AddPositionDialog> {
       height: MediaQuery.of(context).size.height,
       decoration: const BoxDecoration(color: colorDark),
       child: Scaffold(
+        resizeToAvoidBottomInset: true,
         backgroundColor: Colors.transparent,
         body: SafeArea(
           child: Column(
@@ -160,15 +157,29 @@ class _AddPositionDialogState extends State<AddPositionDialog> {
                         child: CircularProgressIndicator(color: colorPurple),
                       )
                     : _errorMessage != null
-                    ? Center(
-                        child: Text(
-                          _errorMessage!,
-                          style: const TextStyle(color: Colors.white54),
-                        ),
-                      )
-                    : _buildMainContent(),
+                        ? Center(
+                            child: Text(
+                              _errorMessage!,
+                              style: const TextStyle(color: Colors.white54),
+                            ),
+                          )
+                        : SingleChildScrollView(
+                            padding: const EdgeInsets.only(bottom: 20),
+                            child: _buildMainContent(),
+                          ),
               ),
-              _buildFooter(),
+              // Bloc de configuration + Bouton Valider
+              if (_selectedPosition != null)
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 20),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      _buildInputs(),
+                      _buildFooter(),
+                    ],
+                  ),
+                ),
             ],
           ),
         ),
@@ -220,8 +231,6 @@ class _AddPositionDialogState extends State<AddPositionDialog> {
         children: [
           const SizedBox(height: 16),
           _buildSearchField(),
-          const SizedBox(height: 16),
-          _buildFilters(),
           const SizedBox(height: 24),
           const Text(
             "RÉSULTATS",
@@ -233,10 +242,7 @@ class _AddPositionDialogState extends State<AddPositionDialog> {
             ),
           ),
           const SizedBox(height: 12),
-          Expanded(child: _buildPositionList()),
-          const SizedBox(height: 20),
-          if (_selectedPosition != null) _buildInputs(),
-          const SizedBox(height: 12),
+          _buildPositionList(),
         ],
       ),
     );
@@ -260,60 +266,6 @@ class _AddPositionDialogState extends State<AddPositionDialog> {
     );
   }
 
-  Widget _buildFilters() {
-    return Row(
-      children: [
-        _buildFilterChip('Toutes', Icons.all_inclusive),
-        const SizedBox(width: 8),
-        _buildFilterChip('Action', Icons.show_chart),
-        const SizedBox(width: 8),
-        _buildFilterChip('ETF', Icons.pie_chart),
-      ],
-    );
-  }
-
-  Widget _buildFilterChip(String type, IconData icon) {
-    final bool isSelected = _filterType == type;
-    return GestureDetector(
-      onTap: () {
-        setState(() {
-          _filterType = type;
-          _applyFilter();
-        });
-      },
-      child: AnimatedContainer(
-        duration: const Duration(milliseconds: 200),
-        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-        decoration: BoxDecoration(
-          color: isSelected ? colorPurple : colorSurface,
-          borderRadius: BorderRadius.circular(12),
-          border: Border.all(
-            color: isSelected ? colorPurple : Colors.white12,
-            width: 1,
-          ),
-        ),
-        child: Row(
-          children: [
-            Icon(
-              icon,
-              size: 16,
-              color: isSelected ? Colors.white : Colors.white54,
-            ),
-            const SizedBox(width: 8),
-            Text(
-              type,
-              style: TextStyle(
-                color: isSelected ? Colors.white : Colors.white70,
-                fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
-                fontSize: 13,
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
   Widget _buildPositionList() {
     if (_filteredPositions.isEmpty) {
       return const Center(
@@ -325,6 +277,8 @@ class _AddPositionDialogState extends State<AddPositionDialog> {
     }
 
     return ListView.separated(
+      shrinkWrap: true,
+      physics: const NeverScrollableScrollPhysics(),
       itemCount: _filteredPositions.length,
       separatorBuilder: (_, _) => const SizedBox(height: 8),
       itemBuilder: (context, index) {
@@ -509,15 +463,24 @@ class _AddPositionDialogState extends State<AddPositionDialog> {
   }
 
   Widget _buildFooter() {
-    return Container(
-      padding: const EdgeInsets.all(20),
+    final quantity =
+        double.tryParse(_quantityController.text.replaceAll(',', '.'));
+    final pru = double.tryParse(_pruController.text.replaceAll(',', '.'));
+    final bool isFormValid = _selectedPosition != null &&
+        quantity != null &&
+        quantity > 0 &&
+        pru != null &&
+        pru > 0;
+
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 20),
       child: ElevatedButton(
-        onPressed: (_selectedPosition != null && !_isSaving)
-            ? _handleAdd
-            : null,
+        onPressed: (isFormValid && !_isSaving) ? _handleAdd : null,
         style: ElevatedButton.styleFrom(
           backgroundColor: colorPurple,
+          disabledBackgroundColor: colorPurple.withValues(alpha: 0.2),
           foregroundColor: Colors.white,
+          disabledForegroundColor: Colors.white24,
           minimumSize: const Size(double.infinity, 56),
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(16),
@@ -534,7 +497,7 @@ class _AddPositionDialogState extends State<AddPositionDialog> {
                 ),
               )
             : const Text(
-                'AJOUTER À MON PORTEFEUILLE',
+                'VALIDER',
                 style: TextStyle(
                   fontWeight: FontWeight.w900,
                   letterSpacing: 1.1,
