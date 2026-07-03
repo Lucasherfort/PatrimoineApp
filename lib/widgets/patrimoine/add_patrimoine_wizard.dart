@@ -529,7 +529,7 @@ class _AddPatrimoineWizardState extends State<AddPatrimoineWizard> {
                       : Image.network(
                           logoUrl,
                           fit: BoxFit.contain,
-                          errorBuilder: (_, __, ___) => const Icon(
+                          errorBuilder: (_, _, _) => const Icon(
                               Icons.account_balance,
                               color: Colors.white24,
                               size: 20),
