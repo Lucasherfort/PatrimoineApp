@@ -32,6 +32,11 @@ class AuthService {
     await _supabase.auth.signOut();
   }
 
+  /// 🔑 Mot de passe oublié
+  Future<void> resetPassword({required String email}) async {
+    await _supabase.auth.resetPasswordForEmail(email);
+  }
+
   String requireUserId() {
     final user = _supabase.auth.currentUser;
     if (user == null) {

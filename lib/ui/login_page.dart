@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:supabase_flutter/supabase_flutter.dart';
 import '../services/auth_service.dart';
 
 class LoginPage extends StatefulWidget {
@@ -23,20 +24,84 @@ class _LoginPageState extends State<LoginPage> {
   static const Color colorSurface = Color(0xFF1E293B);
 
   Future<void> _login() async {
+    final email = _emailController.text.trim();
+    final password = _passwordController.text;
+
+    if (email.isEmpty && password.isEmpty) {
+      setState(() => errorMessage = "Veuillez saisir vos informations");
+      return;
+    }
+    if (email.isEmpty || password.isEmpty) {
+      setState(() => errorMessage = "Veuillez renseigner tous les champs");
+      return;
+    }
+
     setState(() {
       isLoading = true;
       errorMessage = null;
     });
+
     try {
-      await _authService.signIn(
-        email: _emailController.text.trim(),
-        password: _passwordController.text,
-      );
+      await _authService.signIn(email: email, password: password);
+    } on AuthException catch (e) {
+      if (mounted) {
+        if (e.message.contains('Invalid login credentials')) {
+          setState(
+            () => errorMessage = "Identifiant ou mot de passe incorrect",
+          );
+        } else {
+          setState(() => errorMessage = e.message);
+        }
+      }
     } catch (e) {
       if (mounted) {
-        setState(
-          () => errorMessage = e.toString().replaceFirst('Exception: ', ''),
+        final errorStr = e.toString().toLowerCase();
+        if (errorStr.contains('socketexception') ||
+            errorStr.contains('connection failed') ||
+            errorStr.contains('network_error')) {
+          setState(
+            () => errorMessage =
+                "Une erreur de connexion est survenue. Vérifiez votre connexion internet puis réessayez.",
+          );
+        } else {
+          setState(
+            () => errorMessage = e.toString().replaceFirst('Exception: ', ''),
+          );
+        }
+      }
+    } finally {
+      if (mounted) setState(() => isLoading = false);
+    }
+  }
+
+  Future<void> _forgotPassword() async {
+    final email = _emailController.text.trim();
+    if (email.isEmpty) {
+      setState(
+        () => errorMessage =
+            "Veuillez saisir votre email pour réinitialiser le mot de passe",
+      );
+      return;
+    }
+
+    setState(() {
+      isLoading = true;
+      errorMessage = null;
+    });
+
+    try {
+      await _authService.resetPassword(email: email);
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Email de réinitialisation envoyé'),
+            backgroundColor: colorBlueMain,
+          ),
         );
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() => errorMessage = "Erreur lors de l'envoi de l'email");
       }
     } finally {
       if (mounted) setState(() => isLoading = false);
@@ -138,6 +203,22 @@ class _LoginPageState extends State<LoginPage> {
                   label: 'Mot de passe',
                   icon: Icons.lock_outline,
                   isPassword: true,
+                ),
+
+                // --- MOT DE PASSE OUBLIÉ ---
+                Align(
+                  alignment: Alignment.centerRight,
+                  child: TextButton(
+                    onPressed: isLoading ? null : _forgotPassword,
+                    child: Text(
+                      "Mot de passe oublié ?",
+                      style: TextStyle(
+                        color: Colors.white.withValues(alpha: 0.5),
+                        fontSize: 12,
+                        decoration: TextDecoration.underline,
+                      ),
+                    ),
+                  ),
                 ),
 
                 // Message d'erreur
