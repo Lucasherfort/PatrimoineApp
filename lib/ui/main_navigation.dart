@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:patrimoine360/ui/profile_page.dart';
-import 'budget_page.dart';
 import 'home_page.dart';
 
 class MainNavigation extends StatefulWidget {
@@ -46,18 +45,16 @@ class _MainNavigationState extends State<MainNavigation> {
   @override
   Widget build(BuildContext context) {
     // Liste des textes d'onglets
-    final List<String> titles = ["Patrimoine", "Mon Budget", "Menu"];
+    final List<String> titles = ["Patrimoine", "Menu"];
 
     // Liste des icônes correspondantes pour l'AppBar
     final List<IconData> titleIcons = [
       Icons.account_balance,
-      Icons.receipt_long,
       Icons.menu,
     ];
 
     final List<Widget> pages = [
       HomePage(key: _homeKey, appName: appName, appVersion: appVersion),
-      const BudgetPage(),
       ProfilePage(appVersion: appVersion),
     ];
 
@@ -111,10 +108,6 @@ class _MainNavigationState extends State<MainNavigation> {
           BottomNavigationBarItem(
             icon: Icon(Icons.account_balance),
             label: 'Patrimoine',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.receipt_long),
-            label: 'Budget',
           ),
           BottomNavigationBarItem(icon: Icon(Icons.menu), label: 'Menu'),
         ],
