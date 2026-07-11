@@ -58,7 +58,7 @@ class _PatrimoineHeaderState extends State<PatrimoineHeader> {
   }
 
   void _showInfoPanel(BuildContext context) {
-    final double investmentPercentage = widget.patrimoineTotal > 0
+    final double investmentPercentage = widget.netPatrimoine > 0
         ? (widget.netWorth / widget.netPatrimoine) * 100
         : 0;
 
@@ -72,7 +72,7 @@ class _PatrimoineHeaderState extends State<PatrimoineHeader> {
       context: context,
       backgroundColor: Colors.white,
       shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
       ),
       builder: (context) {
         return SafeArea(
@@ -80,51 +80,95 @@ class _PatrimoineHeaderState extends State<PatrimoineHeader> {
             padding: const EdgeInsets.fromLTRB(24, 12, 24, 24),
             child: Column(
               mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 // Barre de drag
-                Container(
-                  width: 40,
-                  height: 4,
-                  margin: const EdgeInsets.only(bottom: 24),
-                  decoration: BoxDecoration(
-                    color: Colors.black12,
-                    borderRadius: BorderRadius.circular(2),
+                Center(
+                  child: Container(
+                    width: 36,
+                    height: 4,
+                    margin: const EdgeInsets.only(bottom: 24),
+                    decoration: BoxDecoration(
+                      color: Colors.black.withValues(alpha: 0.1),
+                      borderRadius: BorderRadius.circular(2),
+                    ),
                   ),
                 ),
-                _buildInfoRow(
-                  "Patrimoine total (valorisation)",
-                  _isVisible
-                      ? "${_formatAmount(widget.patrimoineTotal)} €"
-                      : "•••• €",
+
+                const Text(
+                  "Détails du patrimoine",
+                  style: TextStyle(
+                    color: Colors.black,
+                    fontSize: 20,
+                    fontWeight: FontWeight.w900,
+                    letterSpacing: -0.5,
+                  ),
                 ),
-                const Divider(color: Colors.black12, height: 32),
-                _buildInfoRow(
-                  "Patrimoine net (total versé)",
-                  _isVisible
+                const SizedBox(height: 24),
+
+                // Section Performance
+                _buildModernInfoCard(
+                  label: "Patrimoine net (versé)",
+                  value: _isVisible
                       ? "${_formatAmount(widget.netPatrimoine)} €"
                       : "•••• €",
+                  icon: Icons.account_balance_wallet_rounded,
+                  color: Colors.grey.shade100,
                 ),
-                const Divider(color: Colors.black12, height: 32),
-                _buildInfoRow(
-                  "Rendement global",
-                  _isVisible
-                      ? "${yieldValue >= 0 ? '+' : ''}${yieldValue.toStringAsFixed(2)} %"
-                      : "•• %",
-                  valueColor: yieldValue >= 0
-                      ? colorGreenFlash
-                      : colorOrangeLogo,
+                const SizedBox(height: 12),
+
+                Row(
+                  children: [
+                    Expanded(
+                      child: _buildModernInfoCard(
+                        label: "Rendement global",
+                        value: _isVisible
+                            ? "${yieldValue >= 0 ? '+' : ''}${yieldValue.toStringAsFixed(2)} %"
+                            : "•• %",
+                        icon: Icons.auto_graph_rounded,
+                        color: yieldValue >= 0
+                            ? colorGreenFlash.withValues(alpha: 0.1)
+                            : colorOrangeLogo.withValues(alpha: 0.1),
+                        textColor: yieldValue >= 0
+                            ? colorGreenFlash
+                            : colorOrangeLogo,
+                      ),
+                    ),
+                  ],
                 ),
-                const Divider(color: Colors.black12, height: 32),
-                _buildInfoRow(
-                  "Montant net investi",
-                  _isVisible ? "${_formatAmount(widget.netWorth)} €" : "•••• €",
+                const SizedBox(height: 24),
+
+                const Text(
+                  "INVESTISSEMENT",
+                  style: TextStyle(
+                    color: Colors.black38,
+                    fontSize: 11,
+                    fontWeight: FontWeight.bold,
+                    letterSpacing: 1.2,
+                  ),
                 ),
-                const Divider(color: Colors.black12, height: 32),
-                _buildInfoRow(
-                  "Pourcentage d'investissement",
-                  _isVisible
-                      ? "${investmentPercentage.toStringAsFixed(2)} %"
-                      : "•• %",
+                const SizedBox(height: 12),
+
+                Row(
+                  children: [
+                    Expanded(
+                      child: _buildModernSmallCard(
+                        label: "Montant investi",
+                        value: _isVisible
+                            ? "${_formatAmount(widget.netWorth)} €"
+                            : "•••• €",
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: _buildModernSmallCard(
+                        label: "Part investie",
+                        value: _isVisible
+                            ? "${investmentPercentage.toStringAsFixed(1)} %"
+                            : "•• %",
+                      ),
+                    ),
+                  ],
                 ),
               ],
             ),
@@ -134,27 +178,76 @@ class _PatrimoineHeaderState extends State<PatrimoineHeader> {
     );
   }
 
-  Widget _buildInfoRow(String label, String value, {Color? valueColor}) {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-      children: [
-        Text(
-          label,
-          style: const TextStyle(
-            color: Colors.black54,
-            fontSize: 15,
-            fontWeight: FontWeight.w500,
+  Widget _buildModernInfoCard({
+    required String label,
+    required String value,
+    required IconData icon,
+    required Color color,
+    Color? textColor,
+  }) {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: color,
+        borderRadius: BorderRadius.circular(16),
+      ),
+      child: Row(
+        children: [
+          Icon(icon, color: textColor ?? Colors.black87, size: 20),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Text(
+              label,
+              style: const TextStyle(
+                color: Colors.black54,
+                fontSize: 14,
+                fontWeight: FontWeight.w500,
+              ),
+            ),
           ),
-        ),
-        Text(
-          value,
-          style: TextStyle(
-            color: valueColor ?? Colors.black,
-            fontSize: 15,
-            fontWeight: FontWeight.w700,
+          Text(
+            value,
+            style: TextStyle(
+              color: textColor ?? Colors.black,
+              fontSize: 16,
+              fontWeight: FontWeight.w900,
+            ),
           ),
-        ),
-      ],
+        ],
+      ),
+    );
+  }
+
+  Widget _buildModernSmallCard({required String label, required String value}) {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: Colors.black.withValues(alpha: 0.05)),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            label,
+            style: const TextStyle(
+              color: Colors.black38,
+              fontSize: 12,
+              fontWeight: FontWeight.w500,
+            ),
+          ),
+          const SizedBox(height: 4),
+          Text(
+            value,
+            style: const TextStyle(
+              color: Colors.black,
+              fontSize: 15,
+              fontWeight: FontWeight.w800,
+            ),
+          ),
+        ],
+      ),
     );
   }
 

@@ -48,10 +48,7 @@ class _MainNavigationState extends State<MainNavigation> {
     final List<String> titles = ["Patrimoine", "Menu"];
 
     // Liste des icônes correspondantes pour l'AppBar
-    final List<IconData> titleIcons = [
-      Icons.account_balance,
-      Icons.menu,
-    ];
+    final List<IconData> titleIcons = [Icons.account_balance, Icons.menu];
 
     final List<Widget> pages = [
       HomePage(key: _homeKey, appName: appName, appVersion: appVersion),
