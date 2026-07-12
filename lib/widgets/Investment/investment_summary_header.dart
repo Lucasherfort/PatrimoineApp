@@ -18,7 +18,9 @@ class InvestmentSummaryHeader extends StatelessWidget {
 
   // --- Palette ---
   static const Color colorGreenFlash = Color(0xFF65E046);
+  static const Color colorGreenDark = Color(0xFF15803D);
   static const Color colorOrangeLogo = Color(0xFFD98006);
+  static const Color colorOrangeDark = Color(0xFFC2410C);
   static const Color colorBlueMain = Color(0xFF0D71EE);
 
   String _formatAmount(double amount) {
@@ -45,8 +47,12 @@ class InvestmentSummaryHeader extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     final isProfit = totalProfitLoss >= 0;
-    final statusColor = isProfit ? colorGreenFlash : colorOrangeLogo;
+    final statusColor = isProfit 
+        ? (isDark ? colorGreenFlash : colorGreenDark)
+        : (isDark ? colorOrangeLogo : colorOrangeDark);
+    final mainTextColor = isDark ? Colors.white : const Color(0xFF0F172A);
 
     return Container(
       width: double.infinity,
@@ -57,7 +63,7 @@ class InvestmentSummaryHeader extends StatelessWidget {
           Text(
             "VALEUR TOTALE ESTIMÉE",
             style: TextStyle(
-              color: Colors.white.withValues(alpha: 0.4),
+              color: isDark ? Colors.white.withValues(alpha: 0.4) : Colors.black45,
               fontSize: 11,
               fontWeight: FontWeight.w700,
               letterSpacing: 1.5,
@@ -68,10 +74,10 @@ class InvestmentSummaryHeader extends StatelessWidget {
           // Montant Principal
           Text(
             "${_formatAmount(totalValue)} €",
-            style: const TextStyle(
+            style: TextStyle(
               fontSize: 38,
               fontWeight: FontWeight.w900,
-              color: Colors.white,
+              color: mainTextColor,
               letterSpacing: -1.0,
             ),
           ),
@@ -117,12 +123,12 @@ class InvestmentSummaryHeader extends StatelessWidget {
                 child: Container(
                   padding: const EdgeInsets.all(8),
                   decoration: BoxDecoration(
-                    color: Colors.white.withValues(alpha: 0.05),
+                    color: isDark ? Colors.white.withValues(alpha: 0.05) : Colors.black.withValues(alpha: 0.03),
                     shape: BoxShape.circle,
                   ),
-                  child: const Icon(
+                  child: Icon(
                     Icons.edit_outlined,
-                    color: Colors.white54,
+                    color: isDark ? Colors.white54 : Colors.black38,
                     size: 16,
                   ),
                 ),
@@ -139,16 +145,18 @@ class InvestmentSummaryHeader extends StatelessWidget {
               children: [
                 if (!isAssuranceVie) ...[
                   _buildMetricItem(
+                    context,
                     "ESPÈCES",
                     "${_formatAmount(account.cashBalance)} €",
                   ),
                   VerticalDivider(
-                    color: Colors.white.withValues(alpha: 0.1),
+                    color: isDark ? Colors.white.withValues(alpha: 0.1) : Colors.black.withValues(alpha: 0.1),
                     indent: 8,
                     endIndent: 8,
                   ),
                 ],
                 _buildMetricItem(
+                  context,
                   "VERSEMENTS",
                   "${_formatAmount(account.totalContribution)} €",
                 ),
@@ -160,13 +168,14 @@ class InvestmentSummaryHeader extends StatelessWidget {
     );
   }
 
-  Widget _buildMetricItem(String label, String value) {
+  Widget _buildMetricItem(BuildContext context, String label, String value) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Column(
       children: [
         Text(
           label,
           style: TextStyle(
-            color: Colors.white.withValues(alpha: 0.3),
+            color: isDark ? Colors.white.withValues(alpha: 0.3) : Colors.black38,
             fontSize: 10,
             fontWeight: FontWeight.w600,
             letterSpacing: 1.0,
@@ -175,8 +184,8 @@ class InvestmentSummaryHeader extends StatelessWidget {
         const SizedBox(height: 4),
         Text(
           value,
-          style: const TextStyle(
-            color: Colors.white,
+          style: TextStyle(
+            color: isDark ? Colors.white : const Color(0xFF0F172A),
             fontSize: 15,
             fontWeight: FontWeight.bold,
           ),
@@ -185,8 +194,10 @@ class InvestmentSummaryHeader extends StatelessWidget {
     );
   }
 
-  // --- MODAL DE MODIFICATION (VERSION DARK PREMIUM) ---
+  // --- MODAL DE MODIFICATION ---
   void _openEditPanel(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final theme = Theme.of(context);
     final cashController = TextEditingController(
       text: account.cashBalance.toStringAsFixed(2).replaceAll('.', ','),
     );
@@ -199,9 +210,9 @@ class InvestmentSummaryHeader extends StatelessWidget {
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
       builder: (context) => Container(
-        decoration: const BoxDecoration(
-          color: Color(0xFF0F172A), // Dark Navy
-          borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
+        decoration: BoxDecoration(
+          color: theme.cardColor,
+          borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
         ),
         padding: EdgeInsets.only(
           left: 24,
@@ -216,15 +227,15 @@ class InvestmentSummaryHeader extends StatelessWidget {
               width: 40,
               height: 4,
               decoration: BoxDecoration(
-                color: Colors.white24,
+                color: isDark ? Colors.white24 : Colors.black12,
                 borderRadius: BorderRadius.circular(2),
               ),
             ),
             const SizedBox(height: 24),
-            const Text(
+            Text(
               "Ajuster le compte",
               style: TextStyle(
-                color: Colors.white,
+                color: theme.textTheme.titleLarge?.color,
                 fontSize: 20,
                 fontWeight: FontWeight.w900,
               ),
@@ -232,12 +243,14 @@ class InvestmentSummaryHeader extends StatelessWidget {
             const SizedBox(height: 24),
             if (!isAssuranceVie)
               _buildModernField(
+                context,
                 cashController,
                 "Espèces disponibles",
                 Icons.account_balance_wallet_outlined,
               ),
             const SizedBox(height: 16),
             _buildModernField(
+              context,
               depositsController,
               "Total des versements",
               Icons.savings_outlined,
@@ -252,6 +265,7 @@ class InvestmentSummaryHeader extends StatelessWidget {
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(16),
                   ),
+                  elevation: 0,
                 ),
                 onPressed: () {
                   final cash = double.tryParse(
@@ -284,21 +298,26 @@ class InvestmentSummaryHeader extends StatelessWidget {
   }
 
   Widget _buildModernField(
+    BuildContext context,
     TextEditingController controller,
     String label,
     IconData icon,
   ) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return TextField(
       controller: controller,
-      style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+      style: TextStyle(
+        color: Theme.of(context).textTheme.bodyLarge?.color,
+        fontWeight: FontWeight.bold,
+      ),
       keyboardType: const TextInputType.numberWithOptions(decimal: true),
       decoration: InputDecoration(
         labelText: label,
-        labelStyle: const TextStyle(color: Colors.white38),
+        labelStyle: TextStyle(color: isDark ? Colors.white38 : Colors.black45),
         prefixIcon: Icon(icon, color: colorBlueMain),
         suffixText: "€",
         filled: true,
-        fillColor: Colors.white.withValues(alpha: 0.05),
+        fillColor: isDark ? Colors.white.withValues(alpha: 0.05) : Colors.black.withValues(alpha: 0.03),
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(16),
           borderSide: BorderSide.none,

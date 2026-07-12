@@ -113,10 +113,13 @@ class _InvestmentDetailPageState extends State<InvestmentDetailPage> {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+
     return Scaffold(
-      backgroundColor: colorDarkBg, // Fond ultra sombre
+      backgroundColor: isDark ? colorDarkBg : const Color(0xFFF8FAFC),
       extendBodyBehindAppBar: true,
-      appBar: _buildAppBar(),
+      appBar: _buildAppBar(context),
       body: Stack(
         children: [
           // --- EFFET DE FOND (Halos lumineux) ---
@@ -128,7 +131,7 @@ class _InvestmentDetailPageState extends State<InvestmentDetailPage> {
               height: 300,
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
-                color: colorBlueMain.withValues(alpha: 0.15),
+                color: colorBlueMain.withValues(alpha: isDark ? 0.15 : 0.08),
               ),
             ),
           ),
@@ -141,7 +144,7 @@ class _InvestmentDetailPageState extends State<InvestmentDetailPage> {
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
                 color: Colors.purple.withValues(
-                  alpha: 0.08,
+                  alpha: isDark ? 0.08 : 0.05,
                 ), // Un rappel de la couleur investissement
               ),
             ),
@@ -150,8 +153,8 @@ class _InvestmentDetailPageState extends State<InvestmentDetailPage> {
           // --- CONTENU ---
           SafeArea(
             child: isLoading
-                ? const Center(
-                    child: CircularProgressIndicator(color: Colors.white),
+                ? Center(
+                    child: CircularProgressIndicator(color: isDark ? Colors.white : colorBlueMain),
                   )
                 : Column(
                     children: [
@@ -177,14 +180,17 @@ class _InvestmentDetailPageState extends State<InvestmentDetailPage> {
     );
   }
 
-  PreferredSizeWidget _buildAppBar() {
+  PreferredSizeWidget _buildAppBar(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final color = isDark ? Colors.white : const Color(0xFF0F172A);
+
     return AppBar(
       backgroundColor: Colors.transparent,
       elevation: 0,
       leading: IconButton(
-        icon: const Icon(
+        icon: Icon(
           Icons.arrow_back_ios_new,
-          color: Colors.white,
+          color: color,
           size: 20,
         ),
         onPressed: () => Navigator.pop(context, true),
@@ -194,24 +200,24 @@ class _InvestmentDetailPageState extends State<InvestmentDetailPage> {
         children: [
           Text(
             widget.accountName,
-            style: const TextStyle(
+            style: TextStyle(
               fontSize: 16,
               fontWeight: FontWeight.bold,
-              color: Colors.white,
+              color: color,
             ),
           ),
           Text(
             widget.bankName,
             style: TextStyle(
               fontSize: 12,
-              color: Colors.white.withValues(alpha: 0.5),
+              color: color.withValues(alpha: 0.5),
             ),
           ),
         ],
       ),
       actions: [
         IconButton(
-          icon: const Icon(Icons.add_circle_outline, color: Colors.white),
+          icon: Icon(Icons.add_circle_outline, color: color),
           onPressed: _openAddPositionDialog,
         ),
         const SizedBox(width: 8),

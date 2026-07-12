@@ -19,9 +19,15 @@ class InvestmentPositionList extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+
     if (isLoading) {
-      return const Center(
-        child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2),
+      return Center(
+        child: CircularProgressIndicator(
+          color: isDark ? Colors.white : const Color(0xFF0D71EE),
+          strokeWidth: 2,
+        ),
       );
     }
 
@@ -32,24 +38,27 @@ class InvestmentPositionList extends StatelessWidget {
           child: Column(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              const Icon(
+              Icon(
                 Icons.analytics_outlined,
                 size: 60,
-                color: Colors.white,
+                color: isDark ? Colors.white : Colors.black26,
               ),
               const SizedBox(height: 16),
-              const Text(
+              Text(
                 'Aucune position active',
                 style: TextStyle(
-                  color: Colors.white,
+                  color: isDark ? Colors.white : Colors.black,
                   fontSize: 16,
                   fontWeight: FontWeight.w600,
                 ),
               ),
               const SizedBox(height: 4),
-              const Text(
+              Text(
                 'Ajoutez votre premier actif',
-                style: TextStyle(color: Colors.white70, fontSize: 13),
+                style: TextStyle(
+                  color: isDark ? Colors.white70 : Colors.black54,
+                  fontSize: 13,
+                ),
               ),
             ],
           ),
@@ -78,7 +87,7 @@ class InvestmentPositionList extends StatelessWidget {
     );
   }
 
-  // --- Logique de mise à jour (simplifiée pour la lisibilité) ---
+  // --- Logique de mise à jour ---
   Future<void> _updatePosition(
     BuildContext context,
     InvestmentPosition position,

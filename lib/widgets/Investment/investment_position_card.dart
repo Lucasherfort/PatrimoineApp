@@ -14,17 +14,13 @@ class InvestmentPositionCard extends StatelessWidget {
     this.onDelete,
   });
 
-  // --- Palette Ultra Moderne (Ardoise & Éclats néon) ---
-  static const Color colorCardBg = Color(
-    0xFF1E2530,
-  ); // Plus sombre pour faire ressortir les éléments
-  static const Color colorAccentBlue = Color(
-    0xFF38BDF8,
-  ); // Bleu ciel moderne / électrique
-  static const Color colorGreen = Color(0xFF4ADE80); // Vert émeraude adouci
-  static const Color colorRed = Color(0xFFF87171); // Rouge corail adouci
-  static const Color textMain = Color(0xFFF8FAFC); // Blanc cassé haut de gamme
-  static const Color textDim = Color(0xFF94A3B8); // Gris ardoise clair
+  // --- Palette Ultra Moderne ---
+  static const Color colorAccentBlue = Color(0xFF38BDF8);
+  static const Color colorGreen = Color(0xFF4ADE80);
+  static const Color colorGreenDark = Color(0xFF15803D);
+  static const Color colorRed = Color(0xFFF87171);
+  static const Color colorRedDark = Color(0xFFB91C1C);
+  static const Color textDim = Color(0xFF94A3B8);
 
   String _format(double val) {
     return NumberFormat.currency(
@@ -36,8 +32,11 @@ class InvestmentPositionCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     final isProfit = position.latentGain >= 0;
-    final trendColor = isProfit ? colorGreen : colorRed;
+    final trendColor = isProfit 
+        ? (isDark ? colorGreen : colorGreenDark)
+        : (isDark ? colorRed : colorRedDark);
     final currencyFormat = NumberFormat.currency(locale: 'fr_FR', symbol: '€');
 
     return Container(
@@ -51,7 +50,7 @@ class InvestmentPositionCard extends StatelessWidget {
             color: Theme.of(context).cardColor,
             borderRadius: BorderRadius.circular(16),
             border: Border.all(
-              color: Theme.of(context).brightness == Brightness.dark
+              color: isDark
                   ? Colors.white.withValues(alpha: 0.05)
                   : Colors.black.withValues(alpha: 0.05),
               width: 1,
@@ -162,6 +161,7 @@ class InvestmentPositionCard extends StatelessWidget {
   // --- MODAL DE MODIFICATION ---
   void _openEditPanel(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
+    final theme = Theme.of(context);
     final pruController = TextEditingController(
       text: position.pru.toString().replaceAll('.', ','),
     );
@@ -175,7 +175,7 @@ class InvestmentPositionCard extends StatelessWidget {
       backgroundColor: Colors.transparent,
       builder: (context) => Container(
         decoration: BoxDecoration(
-          color: Theme.of(context).cardColor,
+          color: theme.cardColor,
           borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
         ),
         padding: EdgeInsets.only(
@@ -210,7 +210,7 @@ class InvestmentPositionCard extends StatelessWidget {
               position.name,
               textAlign: TextAlign.center,
               style: TextStyle(
-                color: isDark ? Colors.white : Colors.black,
+                color: theme.textTheme.titleLarge?.color,
                 fontSize: 20,
                 fontWeight: FontWeight.w800,
               ),
