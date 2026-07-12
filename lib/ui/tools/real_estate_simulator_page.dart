@@ -98,7 +98,6 @@ class _RealEstateSimulatorPageState extends State<RealEstateSimulatorPage> {
   Widget build(BuildContext context) {
     const Color colorBlue = Color(0xFF0D71EE);
     final theme = Theme.of(context);
-    final isDark = theme.brightness == Brightness.dark;
 
     if (_isLoading) {
       return Scaffold(

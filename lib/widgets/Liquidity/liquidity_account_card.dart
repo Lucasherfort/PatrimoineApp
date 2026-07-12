@@ -114,7 +114,6 @@ class LiquidityAccountCard extends StatelessWidget {
   }
 
   Widget _buildBankLogo(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
     if (account.logoUrl.isEmpty) {
       return Icon(Icons.euro_rounded, color: Colors.amber.shade300, size: 26);
     }

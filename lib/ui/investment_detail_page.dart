@@ -154,7 +154,9 @@ class _InvestmentDetailPageState extends State<InvestmentDetailPage> {
           SafeArea(
             child: isLoading
                 ? Center(
-                    child: CircularProgressIndicator(color: isDark ? Colors.white : colorBlueMain),
+                    child: CircularProgressIndicator(
+                      color: isDark ? Colors.white : colorBlueMain,
+                    ),
                   )
                 : Column(
                     children: [
@@ -188,11 +190,7 @@ class _InvestmentDetailPageState extends State<InvestmentDetailPage> {
       backgroundColor: Colors.transparent,
       elevation: 0,
       leading: IconButton(
-        icon: Icon(
-          Icons.arrow_back_ios_new,
-          color: color,
-          size: 20,
-        ),
+        icon: Icon(Icons.arrow_back_ios_new, color: color, size: 20),
         onPressed: () => Navigator.pop(context, true),
       ),
       centerTitle: true,
@@ -208,10 +206,7 @@ class _InvestmentDetailPageState extends State<InvestmentDetailPage> {
           ),
           Text(
             widget.bankName,
-            style: TextStyle(
-              fontSize: 12,
-              color: color.withValues(alpha: 0.5),
-            ),
+            style: TextStyle(fontSize: 12, color: color.withValues(alpha: 0.5)),
           ),
         ],
       ),

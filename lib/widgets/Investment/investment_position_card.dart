@@ -34,7 +34,7 @@ class InvestmentPositionCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final isProfit = position.latentGain >= 0;
-    final trendColor = isProfit 
+    final trendColor = isProfit
         ? (isDark ? colorGreen : colorGreenDark)
         : (isDark ? colorRed : colorRedDark);
     final currencyFormat = NumberFormat.currency(locale: 'fr_FR', symbol: '€');

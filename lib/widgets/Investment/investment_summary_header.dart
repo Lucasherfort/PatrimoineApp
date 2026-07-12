@@ -49,7 +49,7 @@ class InvestmentSummaryHeader extends StatelessWidget {
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final isProfit = totalProfitLoss >= 0;
-    final statusColor = isProfit 
+    final statusColor = isProfit
         ? (isDark ? colorGreenFlash : colorGreenDark)
         : (isDark ? colorOrangeLogo : colorOrangeDark);
     final mainTextColor = isDark ? Colors.white : const Color(0xFF0F172A);
@@ -63,7 +63,9 @@ class InvestmentSummaryHeader extends StatelessWidget {
           Text(
             "VALEUR TOTALE ESTIMÉE",
             style: TextStyle(
-              color: isDark ? Colors.white.withValues(alpha: 0.4) : Colors.black45,
+              color: isDark
+                  ? Colors.white.withValues(alpha: 0.4)
+                  : Colors.black45,
               fontSize: 11,
               fontWeight: FontWeight.w700,
               letterSpacing: 1.5,
@@ -123,7 +125,9 @@ class InvestmentSummaryHeader extends StatelessWidget {
                 child: Container(
                   padding: const EdgeInsets.all(8),
                   decoration: BoxDecoration(
-                    color: isDark ? Colors.white.withValues(alpha: 0.05) : Colors.black.withValues(alpha: 0.03),
+                    color: isDark
+                        ? Colors.white.withValues(alpha: 0.05)
+                        : Colors.black.withValues(alpha: 0.03),
                     shape: BoxShape.circle,
                   ),
                   child: Icon(
@@ -150,7 +154,9 @@ class InvestmentSummaryHeader extends StatelessWidget {
                     "${_formatAmount(account.cashBalance)} €",
                   ),
                   VerticalDivider(
-                    color: isDark ? Colors.white.withValues(alpha: 0.1) : Colors.black.withValues(alpha: 0.1),
+                    color: isDark
+                        ? Colors.white.withValues(alpha: 0.1)
+                        : Colors.black.withValues(alpha: 0.1),
                     indent: 8,
                     endIndent: 8,
                   ),
@@ -175,7 +181,9 @@ class InvestmentSummaryHeader extends StatelessWidget {
         Text(
           label,
           style: TextStyle(
-            color: isDark ? Colors.white.withValues(alpha: 0.3) : Colors.black38,
+            color: isDark
+                ? Colors.white.withValues(alpha: 0.3)
+                : Colors.black38,
             fontSize: 10,
             fontWeight: FontWeight.w600,
             letterSpacing: 1.0,
@@ -317,7 +325,9 @@ class InvestmentSummaryHeader extends StatelessWidget {
         prefixIcon: Icon(icon, color: colorBlueMain),
         suffixText: "€",
         filled: true,
-        fillColor: isDark ? Colors.white.withValues(alpha: 0.05) : Colors.black.withValues(alpha: 0.03),
+        fillColor: isDark
+            ? Colors.white.withValues(alpha: 0.05)
+            : Colors.black.withValues(alpha: 0.03),
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(16),
           borderSide: BorderSide.none,

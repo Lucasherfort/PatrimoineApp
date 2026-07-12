@@ -45,12 +45,6 @@ class _MainNavigationState extends State<MainNavigation> {
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
 
-    // Liste des textes d'onglets
-    final List<String> titles = ["Patrimoine", "Menu"];
-
-    // Liste des icônes correspondantes pour l'AppBar
-    final List<IconData> titleIcons = [Icons.account_balance, Icons.menu];
-
     final List<Widget> pages = [
       HomePage(key: _homeKey, appName: appName, appVersion: appVersion),
       ProfilePage(appVersion: appVersion),
