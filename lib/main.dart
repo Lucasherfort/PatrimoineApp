@@ -5,6 +5,7 @@ import 'package:intl/intl.dart';
 
 import 'ui/main_navigation.dart';
 import 'ui/login_page.dart';
+import 'services/theme_manager.dart';
 
 void main() async {
   // 1. Indispensable pour les appels asynchrones au démarrage
@@ -21,6 +22,9 @@ void main() async {
         'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Imhrd3JtenVidG1kb29sbGVxbnl0Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NjgwNTk3NTIsImV4cCI6MjA4MzYzNTc1Mn0.5h6Fcn5MmrEun3OutmI12M8_gk8LFr5WeZomK-fl9FA',
   );
 
+  // 4. Initialisation du Theme
+  await ThemeManager().init();
+
   runApp(const PatrimoineApp());
 }
 
@@ -29,15 +33,40 @@ class PatrimoineApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'Patrimoine App',
-      debugShowCheckedModeBanner: false,
-      theme: ThemeData(
-        brightness: Brightness.dark,
-        primarySwatch: Colors.blue,
-        scaffoldBackgroundColor: const Color(0xFF060B26),
-      ),
-      home: const AuthGate(),
+    return ListenableBuilder(
+      listenable: ThemeManager(),
+      builder: (context, child) {
+        return MaterialApp(
+          title: 'Patrimoine App',
+          debugShowCheckedModeBanner: false,
+          themeMode: ThemeManager().themeMode,
+          // Thème Clair
+          theme: ThemeData(
+            brightness: Brightness.light,
+            colorScheme: ColorScheme.fromSeed(
+              seedColor: const Color(0xFF0D71EE),
+              brightness: Brightness.light,
+              surface: Colors.white,
+            ),
+            scaffoldBackgroundColor: const Color(0xFFF8FAFC),
+            cardColor: Colors.white,
+            useMaterial3: true,
+          ),
+          // Thème Sombre
+          darkTheme: ThemeData(
+            brightness: Brightness.dark,
+            colorScheme: ColorScheme.fromSeed(
+              seedColor: const Color(0xFF0D71EE),
+              brightness: Brightness.dark,
+              surface: const Color(0xFF1E293B),
+            ),
+            scaffoldBackgroundColor: const Color(0xFF060B26),
+            cardColor: const Color(0xFF1E293B),
+            useMaterial3: true,
+          ),
+          home: const AuthGate(),
+        );
+      },
     );
   }
 }

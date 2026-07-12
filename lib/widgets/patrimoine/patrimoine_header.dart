@@ -27,7 +27,9 @@ class _PatrimoineHeaderState extends State<PatrimoineHeader> {
   bool _isVisible = true;
 
   static const Color colorGreenFlash = Color(0xFF65E046);
+  static const Color colorGreenDark = Color(0xFF15803D);
   static const Color colorOrangeLogo = Color(0xFFD98006);
+  static const Color colorOrangeDark = Color(0xFFC2410C);
 
   String _formatAmount(double amount) {
     final formatter = NumberFormat.currency(
@@ -52,12 +54,14 @@ class _PatrimoineHeaderState extends State<PatrimoineHeader> {
   }
 
   Color get _gainsColor {
-    if (_gainsPercentage > 0) return colorGreenFlash;
-    if (_gainsPercentage < 0) return colorOrangeLogo;
-    return Colors.white70;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    if (_gainsPercentage > 0) return isDark ? colorGreenFlash : colorGreenDark;
+    if (_gainsPercentage < 0) return isDark ? colorOrangeLogo : colorOrangeDark;
+    return isDark ? Colors.white70 : Colors.black45;
   }
 
   void _showInfoPanel(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     final double investmentPercentage = widget.netPatrimoine > 0
         ? (widget.netWorth / widget.netPatrimoine) * 100
         : 0;
@@ -68,13 +72,18 @@ class _PatrimoineHeaderState extends State<PatrimoineHeader> {
               100
         : 0;
 
+    final Color positiveColor = isDark ? colorGreenFlash : colorGreenDark;
+    final Color negativeColor = isDark ? colorOrangeLogo : colorOrangeDark;
+
     showModalBottomSheet(
       context: context,
-      backgroundColor: Colors.white,
+      backgroundColor: Theme.of(context).cardColor,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
       ),
       builder: (context) {
+        final textStyle = Theme.of(context).textTheme;
+
         return SafeArea(
           child: Padding(
             padding: const EdgeInsets.fromLTRB(24, 12, 24, 24),
@@ -89,17 +98,17 @@ class _PatrimoineHeaderState extends State<PatrimoineHeader> {
                     height: 4,
                     margin: const EdgeInsets.only(bottom: 24),
                     decoration: BoxDecoration(
-                      color: Colors.black.withValues(alpha: 0.1),
+                      color: isDark
+                          ? Colors.white12
+                          : Colors.black.withValues(alpha: 0.1),
                       borderRadius: BorderRadius.circular(2),
                     ),
                   ),
                 ),
 
-                const Text(
+                Text(
                   "Détails du patrimoine",
-                  style: TextStyle(
-                    color: Colors.black,
-                    fontSize: 20,
+                  style: textStyle.titleLarge?.copyWith(
                     fontWeight: FontWeight.w900,
                     letterSpacing: -0.5,
                   ),
@@ -108,12 +117,15 @@ class _PatrimoineHeaderState extends State<PatrimoineHeader> {
 
                 // Section Performance
                 _buildModernInfoCard(
+                  context,
                   label: "Patrimoine net (versé)",
                   value: _isVisible
                       ? "${_formatAmount(widget.netPatrimoine)} €"
                       : "•••• €",
                   icon: Icons.account_balance_wallet_rounded,
-                  color: Colors.grey.shade100,
+                  color: isDark
+                      ? Colors.white.withValues(alpha: 0.03)
+                      : Colors.grey.shade100,
                 ),
                 const SizedBox(height: 12),
 
@@ -121,28 +133,28 @@ class _PatrimoineHeaderState extends State<PatrimoineHeader> {
                   children: [
                     Expanded(
                       child: _buildModernInfoCard(
+                        context,
                         label: "Rendement global",
                         value: _isVisible
                             ? "${yieldValue >= 0 ? '+' : ''}${yieldValue.toStringAsFixed(2)} %"
                             : "•• %",
                         icon: Icons.auto_graph_rounded,
                         color: yieldValue >= 0
-                            ? colorGreenFlash.withValues(alpha: 0.1)
-                            : colorOrangeLogo.withValues(alpha: 0.1),
+                            ? positiveColor.withValues(alpha: 0.1)
+                            : negativeColor.withValues(alpha: 0.1),
                         textColor: yieldValue >= 0
-                            ? colorGreenFlash
-                            : colorOrangeLogo,
+                            ? positiveColor
+                            : negativeColor,
                       ),
                     ),
                   ],
                 ),
                 const SizedBox(height: 24),
 
-                const Text(
+                Text(
                   "INVESTISSEMENT",
-                  style: TextStyle(
-                    color: Colors.black38,
-                    fontSize: 11,
+                  style: textStyle.labelSmall?.copyWith(
+                    color: isDark ? Colors.white38 : Colors.black38,
                     fontWeight: FontWeight.bold,
                     letterSpacing: 1.2,
                   ),
@@ -153,6 +165,7 @@ class _PatrimoineHeaderState extends State<PatrimoineHeader> {
                   children: [
                     Expanded(
                       child: _buildModernSmallCard(
+                        context,
                         label: "Montant investi",
                         value: _isVisible
                             ? "${_formatAmount(widget.netWorth)} €"
@@ -162,6 +175,7 @@ class _PatrimoineHeaderState extends State<PatrimoineHeader> {
                     const SizedBox(width: 12),
                     Expanded(
                       child: _buildModernSmallCard(
+                        context,
                         label: "Part investie",
                         value: _isVisible
                             ? "${investmentPercentage.toStringAsFixed(1)} %"
@@ -178,13 +192,15 @@ class _PatrimoineHeaderState extends State<PatrimoineHeader> {
     );
   }
 
-  Widget _buildModernInfoCard({
+  Widget _buildModernInfoCard(
+    BuildContext context, {
     required String label,
     required String value,
     required IconData icon,
     required Color color,
     Color? textColor,
   }) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
@@ -193,13 +209,17 @@ class _PatrimoineHeaderState extends State<PatrimoineHeader> {
       ),
       child: Row(
         children: [
-          Icon(icon, color: textColor ?? Colors.black87, size: 20),
+          Icon(
+            icon,
+            color: textColor ?? (isDark ? Colors.white70 : Colors.black87),
+            size: 20,
+          ),
           const SizedBox(width: 12),
           Expanded(
             child: Text(
               label,
-              style: const TextStyle(
-                color: Colors.black54,
+              style: TextStyle(
+                color: isDark ? Colors.white54 : Colors.black54,
                 fontSize: 14,
                 fontWeight: FontWeight.w500,
               ),
@@ -208,7 +228,7 @@ class _PatrimoineHeaderState extends State<PatrimoineHeader> {
           Text(
             value,
             style: TextStyle(
-              color: textColor ?? Colors.black,
+              color: textColor ?? (isDark ? Colors.white : Colors.black),
               fontSize: 16,
               fontWeight: FontWeight.w900,
             ),
@@ -218,21 +238,30 @@ class _PatrimoineHeaderState extends State<PatrimoineHeader> {
     );
   }
 
-  Widget _buildModernSmallCard({required String label, required String value}) {
+  Widget _buildModernSmallCard(
+    BuildContext context, {
+    required String label,
+    required String value,
+  }) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: isDark ? Colors.white.withValues(alpha: 0.03) : Colors.white,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: Colors.black.withValues(alpha: 0.05)),
+        border: Border.all(
+          color: isDark
+              ? Colors.white.withValues(alpha: 0.05)
+              : Colors.black.withValues(alpha: 0.05),
+        ),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
             label,
-            style: const TextStyle(
-              color: Colors.black38,
+            style: TextStyle(
+              color: isDark ? Colors.white38 : Colors.black38,
               fontSize: 12,
               fontWeight: FontWeight.w500,
             ),
@@ -240,8 +269,8 @@ class _PatrimoineHeaderState extends State<PatrimoineHeader> {
           const SizedBox(height: 4),
           Text(
             value,
-            style: const TextStyle(
-              color: Colors.black,
+            style: TextStyle(
+              color: isDark ? Colors.white : Colors.black,
               fontSize: 15,
               fontWeight: FontWeight.w800,
             ),
@@ -254,6 +283,8 @@ class _PatrimoineHeaderState extends State<PatrimoineHeader> {
   @override
   Widget build(BuildContext context) {
     final bool showGains = widget.hasInvestments && widget.investedCapital > 0;
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
 
     return Container(
       width: double.infinity,
@@ -267,7 +298,9 @@ class _PatrimoineHeaderState extends State<PatrimoineHeader> {
           Text(
             "PATRIMOINE TOTAL",
             style: TextStyle(
-              color: Colors.white.withValues(alpha: 0.4),
+              color: isDark
+                  ? Colors.white.withValues(alpha: 0.4)
+                  : Colors.black54,
               fontSize: 11,
               fontWeight: FontWeight.w700,
               letterSpacing: 2.0,
@@ -307,10 +340,12 @@ class _PatrimoineHeaderState extends State<PatrimoineHeader> {
                               : "•••••••• €",
                           key: ValueKey(_isVisible),
                           textAlign: TextAlign.center,
-                          style: const TextStyle(
+                          style: TextStyle(
                             fontSize: 38,
                             fontWeight: FontWeight.w900,
-                            color: Colors.white,
+                            color: isDark
+                                ? Colors.white
+                                : const Color(0xFF0F172A),
                             letterSpacing: -1.0,
                           ),
                         ),
@@ -330,7 +365,7 @@ class _PatrimoineHeaderState extends State<PatrimoineHeader> {
                     _isVisible
                         ? Icons.visibility_outlined
                         : Icons.visibility_off_outlined,
-                    color: Colors.white,
+                    color: isDark ? Colors.white70 : Colors.black45,
                     size: 22,
                   ),
                 ),

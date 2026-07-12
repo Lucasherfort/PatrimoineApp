@@ -17,8 +17,6 @@ class _MainNavigationState extends State<MainNavigation> {
 
   // Tes couleurs officielles
   static const Color colorBlueMain = Color(0xFF0D71EE);
-  static const Color colorDarkBg = Color(0xFF060B26);
-  static const Color colorSurface = Color(0xFF1E293B);
 
   final GlobalKey<HomePageState> _homeKey = GlobalKey<HomePageState>();
 
@@ -44,6 +42,9 @@ class _MainNavigationState extends State<MainNavigation> {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+
     // Liste des textes d'onglets
     final List<String> titles = ["Patrimoine", "Menu"];
 
@@ -56,33 +57,8 @@ class _MainNavigationState extends State<MainNavigation> {
     ];
 
     return Scaffold(
-      backgroundColor: colorDarkBg,
-      appBar: _currentIndex == 0
-          ? null
-          : AppBar(
-              backgroundColor: colorSurface,
-              elevation: 0,
-              titleSpacing: 20,
-              title: Row(
-                children: [
-                  Icon(
-                    titleIcons[_currentIndex],
-                    color: colorBlueMain,
-                    size: 24,
-                  ),
-                  const SizedBox(width: 12),
-                  Text(
-                    titles[_currentIndex],
-                    style: const TextStyle(
-                      color: Colors.white,
-                      fontWeight: FontWeight.bold,
-                      fontSize: 20,
-                    ),
-                  ),
-                ],
-              ),
-              actions: const [SizedBox(width: 8)],
-            ),
+      backgroundColor: theme.scaffoldBackgroundColor,
+      appBar: null,
       body: IndexedStack(index: _currentIndex, children: pages),
       floatingActionButton: _currentIndex == 0
           ? FloatingActionButton(
@@ -94,9 +70,11 @@ class _MainNavigationState extends State<MainNavigation> {
       bottomNavigationBar: BottomNavigationBar(
         currentIndex: _currentIndex,
         onTap: (index) => setState(() => _currentIndex = index),
-        backgroundColor: colorDarkBg,
+        backgroundColor: theme.cardColor,
         selectedItemColor: colorBlueMain,
-        unselectedItemColor: Colors.white.withValues(alpha: 0.4),
+        unselectedItemColor: isDark
+            ? Colors.white.withValues(alpha: 0.4)
+            : Colors.black26,
         type: BottomNavigationBarType.fixed,
         showUnselectedLabels: true,
         selectedFontSize: 12,

@@ -69,6 +69,7 @@ class _InvestmentListState extends State<InvestmentList> {
           return const SizedBox.shrink();
         }
 
+        final isDark = Theme.of(context).brightness == Brightness.dark;
         return Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -84,17 +85,19 @@ class _InvestmentListState extends State<InvestmentList> {
                     ),
                     child: Icon(
                       Icons.trending_up,
-                      color: Colors.purple.shade300,
+                      color: isDark
+                          ? Colors.purple.shade300
+                          : Colors.purple.shade700,
                       size: 20,
                     ),
                   ),
                   const SizedBox(width: 12),
-                  const Text(
+                  Text(
                     "Investissements",
                     style: TextStyle(
                       fontSize: 20,
                       fontWeight: FontWeight.bold,
-                      color: Colors.white,
+                      color: isDark ? Colors.white : const Color(0xFF0F172A),
                     ),
                   ),
                   const Spacer(),
@@ -105,7 +108,9 @@ class _InvestmentListState extends State<InvestmentList> {
                         vertical: 4,
                       ),
                       decoration: BoxDecoration(
-                        color: Colors.purple.shade400.withValues(alpha: 0.15),
+                        color: isDark
+                            ? Colors.purple.shade400.withValues(alpha: 0.15)
+                            : Colors.purple.shade50,
                         borderRadius: BorderRadius.circular(12),
                         border: Border.all(
                           color: Colors.purple.shade400.withValues(alpha: 0.3),
@@ -117,7 +122,9 @@ class _InvestmentListState extends State<InvestmentList> {
                         style: TextStyle(
                           fontSize: 13,
                           fontWeight: FontWeight.bold,
-                          color: Colors.purple.shade300,
+                          color: isDark
+                              ? Colors.purple.shade300
+                              : Colors.purple.shade800,
                         ),
                       ),
                     ),

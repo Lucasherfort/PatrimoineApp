@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:patrimoine360/services/settings_service.dart';
+import 'package:patrimoine360/services/theme_manager.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'login_page.dart';
 import 'tools/real_estate_simulator_page.dart';
@@ -16,10 +18,13 @@ class _ProfilePageState extends State<ProfilePage> {
   Widget build(BuildContext context) {
     const Color colorRed = Color(0xFFFC5555);
     const Color colorBlue = Color(0xFF0D71EE);
-    const Color colorSurface = Color(0xFF1E293B);
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
 
     return Scaffold(
-      backgroundColor: const Color(0xFF060B26),
+      backgroundColor: isDark
+          ? theme.scaffoldBackgroundColor
+          : const Color(0xFFF8FAFC),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(24),
         child: Column(
@@ -30,8 +35,11 @@ class _ProfilePageState extends State<ProfilePage> {
             Container(
               padding: const EdgeInsets.all(20),
               decoration: BoxDecoration(
-                color: colorSurface,
+                color: theme.cardColor,
                 borderRadius: BorderRadius.circular(24),
+                border: isDark
+                    ? null
+                    : Border.all(color: Colors.black.withValues(alpha: 0.05)),
               ),
               child: Row(
                 children: [
@@ -45,10 +53,10 @@ class _ProfilePageState extends State<ProfilePage> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        const Text(
+                        Text(
                           "MON COMPTE",
                           style: TextStyle(
-                            color: Colors.white38,
+                            color: isDark ? Colors.white38 : Colors.black38,
                             fontSize: 10,
                             fontWeight: FontWeight.bold,
                             letterSpacing: 1.1,
@@ -57,8 +65,8 @@ class _ProfilePageState extends State<ProfilePage> {
                         Text(
                           Supabase.instance.client.auth.currentUser?.email ??
                               "Utilisateur",
-                          style: const TextStyle(
-                            color: Colors.white,
+                          style: TextStyle(
+                            color: theme.textTheme.bodyLarge?.color,
                             fontSize: 15,
                             fontWeight: FontWeight.bold,
                           ),
@@ -73,6 +81,11 @@ class _ProfilePageState extends State<ProfilePage> {
 
             const SizedBox(height: 32),
 
+            // --- SECTION APPARENCE ---
+            _buildAppearanceSection(context),
+
+            const SizedBox(height: 24),
+
             // --- SECTION OUTILS ---
             _buildToolSection(context, colorBlue),
 
@@ -80,12 +93,16 @@ class _ProfilePageState extends State<ProfilePage> {
 
             // --- AUTRES OPTIONS ---
             _buildMenuOption(
+              context,
               icon: Icons.info_outline,
               title: "À propos",
               subtitle: "Version de l'application",
               trailing: Text(
                 widget.appVersion,
-                style: const TextStyle(color: Colors.white24, fontSize: 12),
+                style: TextStyle(
+                  color: isDark ? Colors.white24 : Colors.black26,
+                  fontSize: 12,
+                ),
               ),
             ),
 
@@ -103,6 +120,7 @@ class _ProfilePageState extends State<ProfilePage> {
                     borderRadius: BorderRadius.circular(16),
                   ),
                   side: BorderSide(color: colorRed.withValues(alpha: 0.3)),
+                  elevation: 0,
                 ),
                 onPressed: () => _handleLogout(context),
                 icon: const Icon(Icons.logout),
@@ -118,55 +136,175 @@ class _ProfilePageState extends State<ProfilePage> {
     );
   }
 
-  Widget _buildMenuOption({
+  Widget _buildMenuOption(
+    BuildContext context, {
     required IconData icon,
     required String title,
     required String subtitle,
     Widget? trailing,
     VoidCallback? onTap,
   }) {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+
     return Container(
       margin: const EdgeInsets.only(bottom: 12),
       decoration: BoxDecoration(
-        color: const Color(0xFF1E293B),
+        color: theme.cardColor,
         borderRadius: BorderRadius.circular(20),
+        border: isDark
+            ? null
+            : Border.all(color: Colors.black.withValues(alpha: 0.05)),
       ),
       child: ListTile(
         leading: Container(
           padding: const EdgeInsets.all(8),
           decoration: BoxDecoration(
-            color: Colors.white.withValues(alpha: 0.05),
+            color: isDark
+                ? Colors.white.withValues(alpha: 0.05)
+                : Colors.black.withValues(alpha: 0.03),
             borderRadius: BorderRadius.circular(12),
           ),
-          child: Icon(icon, color: Colors.white70, size: 20),
+          child: Icon(
+            icon,
+            color: isDark ? Colors.white70 : Colors.black54,
+            size: 20,
+          ),
         ),
         title: Text(
           title,
-          style: const TextStyle(
-            color: Colors.white,
+          style: TextStyle(
+            color: theme.textTheme.bodyLarge?.color,
             fontWeight: FontWeight.bold,
             fontSize: 14,
           ),
         ),
         subtitle: Text(
           subtitle,
-          style: const TextStyle(color: Colors.white38, fontSize: 12),
+          style: TextStyle(
+            color: isDark ? Colors.white38 : Colors.black38,
+            fontSize: 12,
+          ),
         ),
         trailing:
-            trailing ?? const Icon(Icons.chevron_right, color: Colors.white24),
+            trailing ??
+            Icon(
+              Icons.chevron_right,
+              color: isDark ? Colors.white24 : Colors.black26,
+            ),
         onTap: onTap,
       ),
     );
   }
 
+  Widget _buildAppearanceSection(BuildContext context) {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          "APPARENCE",
+          style: TextStyle(
+            color: isDark
+                ? Colors.white.withValues(alpha: 0.4)
+                : Colors.black.withValues(alpha: 0.4),
+            fontSize: 11,
+            fontWeight: FontWeight.bold,
+            letterSpacing: 1.2,
+          ),
+        ),
+        const SizedBox(height: 16),
+        Container(
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+          decoration: BoxDecoration(
+            color: theme.cardColor,
+            borderRadius: BorderRadius.circular(20),
+            border: isDark
+                ? null
+                : Border.all(color: Colors.black.withValues(alpha: 0.05)),
+          ),
+          child: ListenableBuilder(
+            listenable: ThemeManager(),
+            builder: (context, child) {
+              return ListTile(
+                contentPadding: EdgeInsets.zero,
+                leading: Container(
+                  padding: const EdgeInsets.all(8),
+                  decoration: BoxDecoration(
+                    color: isDark
+                        ? Colors.white.withValues(alpha: 0.05)
+                        : Colors.black.withValues(alpha: 0.03),
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: Icon(
+                    Icons.palette_outlined,
+                    color: isDark ? Colors.white70 : Colors.black54,
+                    size: 20,
+                  ),
+                ),
+                title: Text(
+                  "Thème de l'application",
+                  style: TextStyle(
+                    color: theme.textTheme.bodyLarge?.color,
+                    fontWeight: FontWeight.bold,
+                    fontSize: 14,
+                  ),
+                ),
+                trailing: DropdownButton<AppThemeMode>(
+                  value: ThemeManager().appThemeMode,
+                  dropdownColor: theme.cardColor,
+                  underline: const SizedBox(),
+                  icon: Icon(
+                    Icons.keyboard_arrow_down,
+                    color: isDark ? Colors.white24 : Colors.black26,
+                  ),
+                  style: TextStyle(
+                    color: theme.textTheme.bodyLarge?.color,
+                    fontSize: 14,
+                    fontWeight: FontWeight.w600,
+                  ),
+                  onChanged: (AppThemeMode? newMode) {
+                    if (newMode != null) {
+                      ThemeManager().setThemeMode(newMode);
+                    }
+                  },
+                  items: const [
+                    DropdownMenuItem(
+                      value: AppThemeMode.light,
+                      child: Text("Clair"),
+                    ),
+                    DropdownMenuItem(
+                      value: AppThemeMode.dark,
+                      child: Text("Sombre"),
+                    ),
+                    DropdownMenuItem(
+                      value: AppThemeMode.adaptive,
+                      child: Text("Adaptatif"),
+                    ),
+                  ],
+                ),
+              );
+            },
+          ),
+        ),
+      ],
+    );
+  }
+
   Widget _buildToolSection(BuildContext context, Color colorBlue) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
           "OUTILS & SIMULATEURS",
           style: TextStyle(
-            color: Colors.white.withValues(alpha: 0.4),
+            color: isDark
+                ? Colors.white.withValues(alpha: 0.4)
+                : Colors.black.withValues(alpha: 0.4),
             fontSize: 11,
             fontWeight: FontWeight.bold,
             letterSpacing: 1.2,
@@ -174,6 +312,7 @@ class _ProfilePageState extends State<ProfilePage> {
         ),
         const SizedBox(height: 16),
         _buildMenuOption(
+          context,
           icon: Icons.home_work,
           title: "Simulateur Immobilier",
           subtitle: "Calculez votre capacité d'achat",
@@ -191,15 +330,9 @@ class _ProfilePageState extends State<ProfilePage> {
   }
 
   Future<void> _handleLogout(BuildContext context) async {
-    // 1. On capture le Navigator avant le await
     final navigator = Navigator.of(context);
-
     await Supabase.instance.client.auth.signOut();
-
-    // 2. On vérifie le mounted du BuildContext (disponible depuis Flutter 3.7+)
     if (!context.mounted) return;
-
-    // 3. On utilise l'instance du navigator capturée
     navigator.pushAndRemoveUntil(
       MaterialPageRoute(builder: (_) => const LoginPage()),
       (route) => false,
