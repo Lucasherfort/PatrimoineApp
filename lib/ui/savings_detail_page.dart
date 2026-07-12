@@ -16,8 +16,8 @@ class _SavingsDetailPageState extends State<SavingsDetailPage> {
   // --- Palette de couleurs ---
   static const Color colorDarkBg = Color(0xFF060B26);
   static const Color colorBlueMain = Color(0xFF0D71EE);
-  static const Color colorBlueSky = Color(0xFF67C6F2);
   static const Color colorGreenFlash = Color(0xFF65E046);
+  static const Color colorGreenDark = Color(0xFF15803D);
 
   late TextEditingController _principalController;
   late TextEditingController _interestController;
@@ -113,11 +113,13 @@ class _SavingsDetailPageState extends State<SavingsDetailPage> {
   @override
   Widget build(BuildContext context) {
     final currency = NumberFormat.currency(locale: 'fr_FR', symbol: '€');
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
 
     return Scaffold(
-      backgroundColor: colorDarkBg,
+      backgroundColor: isDark ? colorDarkBg : const Color(0xFFF8FAFC),
       extendBodyBehindAppBar: true,
-      appBar: _buildAppBar(),
+      appBar: _buildAppBar(context),
       body: Stack(
         children: [
           // Effet de halo lumineux en arrière-plan
@@ -129,7 +131,7 @@ class _SavingsDetailPageState extends State<SavingsDetailPage> {
               height: 400,
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
-                color: colorBlueMain.withValues(alpha: 0.1),
+                color: colorBlueMain.withValues(alpha: isDark ? 0.1 : 0.05),
               ),
             ),
           ),
@@ -139,13 +141,13 @@ class _SavingsDetailPageState extends State<SavingsDetailPage> {
               child: Column(
                 children: [
                   const SizedBox(height: 20),
-                  _buildMainBalance(currency),
+                  _buildMainBalance(context, currency),
                   const SizedBox(height: 40),
-                  _buildProgressSection(currency),
+                  _buildProgressSection(context, currency),
                   const SizedBox(height: 24),
-                  _buildEditableCard(),
+                  _buildEditableCard(context),
                   const SizedBox(height: 24),
-                  _buildAutoCalcToggle(),
+                  _buildAutoCalcToggle(context),
                   const SizedBox(height: 120), // Espace pour le bouton flottant
                 ],
               ),
@@ -159,7 +161,8 @@ class _SavingsDetailPageState extends State<SavingsDetailPage> {
   }
 
   // --- Header : Épargne Totale & Badges ---
-  Widget _buildMainBalance(NumberFormat currency) {
+  Widget _buildMainBalance(BuildContext context, NumberFormat currency) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     final percentFormat = NumberFormat.decimalPattern('fr_FR');
 
     return Column(
@@ -167,7 +170,7 @@ class _SavingsDetailPageState extends State<SavingsDetailPage> {
         Text(
           "ÉPARGNE TOTALE",
           style: TextStyle(
-            color: Colors.white.withValues(alpha: 0.5),
+            color: isDark ? Colors.white.withValues(alpha: 0.5) : Colors.black54,
             fontSize: 13,
             fontWeight: FontWeight.w600,
             letterSpacing: 1.5,
@@ -176,8 +179,8 @@ class _SavingsDetailPageState extends State<SavingsDetailPage> {
         const SizedBox(height: 8),
         Text(
           currency.format(_currentPrincipal + _currentInterest),
-          style: const TextStyle(
-            color: Colors.white,
+          style: TextStyle(
+            color: isDark ? Colors.white : const Color(0xFF0F172A),
             fontSize: 42,
             fontWeight: FontWeight.w900,
             letterSpacing: -1.5,
@@ -190,8 +193,8 @@ class _SavingsDetailPageState extends State<SavingsDetailPage> {
             _buildBadge(
               icon: Icons.account_balance,
               label: widget.account.bankName,
-              color: Colors.white,
-              opacity: 0.1,
+              color: isDark ? Colors.white : Colors.black87,
+              opacity: isDark ? 0.1 : 0.05,
             ),
             const SizedBox(width: 10),
             if (widget.account.interestRate != null)
@@ -199,7 +202,7 @@ class _SavingsDetailPageState extends State<SavingsDetailPage> {
                 icon: Icons.show_chart,
                 label:
                     "${percentFormat.format(widget.account.interestRate! * 100)} %",
-                color: colorGreenFlash,
+                color: isDark ? colorGreenFlash : colorGreenDark,
                 opacity: 0.15,
                 hasBorder: true,
               ),
@@ -210,26 +213,27 @@ class _SavingsDetailPageState extends State<SavingsDetailPage> {
   }
 
   // --- Section Plafond ---
-  Widget _buildProgressSection(NumberFormat currency) {
+  Widget _buildProgressSection(BuildContext context, NumberFormat currency) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Container(
       padding: const EdgeInsets.all(20),
-      decoration: _glassDecoration(),
+      decoration: _glassDecoration(context),
       child: Column(
         children: [
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              const Text(
+              Text(
                 "Utilisation du plafond",
                 style: TextStyle(
-                  color: Colors.white70,
+                  color: isDark ? Colors.white70 : Colors.black87,
                   fontWeight: FontWeight.w500,
                 ),
               ),
               Text(
                 "${(_fillPercentage * 100).toStringAsFixed(1)}%",
                 style: const TextStyle(
-                  color: colorBlueSky,
+                  color: colorBlueMain,
                   fontWeight: FontWeight.bold,
                 ),
               ),
@@ -241,9 +245,9 @@ class _SavingsDetailPageState extends State<SavingsDetailPage> {
             child: LinearProgressIndicator(
               value: _fillPercentage,
               minHeight: 8,
-              backgroundColor: Colors.white.withValues(alpha: 0.05),
+              backgroundColor: isDark ? Colors.white.withValues(alpha: 0.05) : Colors.black.withValues(alpha: 0.05),
               valueColor: AlwaysStoppedAnimation(
-                _fillPercentage > 0.9 ? Colors.redAccent : colorBlueSky,
+                _fillPercentage > 0.9 ? Colors.redAccent : colorBlueMain,
               ),
             ),
           ),
@@ -253,8 +257,8 @@ class _SavingsDetailPageState extends State<SavingsDetailPage> {
             children: [
               Text(
                 currency.format(_currentPrincipal),
-                style: const TextStyle(
-                  color: Colors.white,
+                style: TextStyle(
+                  color: isDark ? Colors.white : Colors.black87,
                   fontSize: 12,
                   fontWeight: FontWeight.w600,
                 ),
@@ -264,7 +268,7 @@ class _SavingsDetailPageState extends State<SavingsDetailPage> {
                     ? currency.format(widget.account.ceiling)
                     : "Sans plafond",
                 style: TextStyle(
-                  color: Colors.white.withValues(alpha: 0.4),
+                  color: isDark ? Colors.white.withValues(alpha: 0.4) : Colors.black45,
                   fontSize: 12,
                 ),
               ),
@@ -276,23 +280,26 @@ class _SavingsDetailPageState extends State<SavingsDetailPage> {
   }
 
   // --- Card Edition ---
-  Widget _buildEditableCard() {
+  Widget _buildEditableCard(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Container(
-      decoration: _glassDecoration(),
+      decoration: _glassDecoration(context),
       child: Column(
         children: [
           _buildElegantField(
+            context,
             _principalController,
             "Capital déposé",
             Icons.account_balance_wallet_outlined,
           ),
           Divider(
-            color: Colors.white.withValues(alpha: 0.05),
+            color: isDark ? Colors.white.withValues(alpha: 0.05) : Colors.black.withValues(alpha: 0.05),
             height: 1,
             indent: 20,
             endIndent: 20,
           ),
           _buildElegantField(
+            context,
             _interestController,
             "Intérêts cumulés",
             Icons.add_chart_rounded,
@@ -303,34 +310,36 @@ class _SavingsDetailPageState extends State<SavingsDetailPage> {
   }
 
   Widget _buildElegantField(
+    BuildContext context,
     TextEditingController controller,
     String label,
     IconData icon,
   ) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
       child: TextField(
         controller: controller,
         keyboardType: const TextInputType.numberWithOptions(decimal: true),
-        style: const TextStyle(
-          color: Colors.white,
+        style: TextStyle(
+          color: isDark ? Colors.white : Colors.black,
           fontWeight: FontWeight.bold,
           fontSize: 18,
         ),
         decoration: InputDecoration(
           icon: Icon(
             icon,
-            color: colorBlueSky.withValues(alpha: 0.4),
+            color: colorBlueMain.withValues(alpha: 0.4),
             size: 22,
           ),
           labelText: label,
           labelStyle: TextStyle(
-            color: Colors.white.withValues(alpha: 0.3),
+            color: isDark ? Colors.white.withValues(alpha: 0.3) : Colors.black45,
             fontSize: 14,
           ),
           suffixText: "€",
-          suffixStyle: const TextStyle(
-            color: Colors.white24,
+          suffixStyle: TextStyle(
+            color: isDark ? Colors.white24 : Colors.black26,
             fontWeight: FontWeight.bold,
           ),
           border: InputBorder.none,
@@ -340,20 +349,22 @@ class _SavingsDetailPageState extends State<SavingsDetailPage> {
   }
 
   // --- Toggle Switch ---
-  Widget _buildAutoCalcToggle() {
+  Widget _buildAutoCalcToggle(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Container(
-      decoration: _glassDecoration(),
+      decoration: _glassDecoration(context),
       child: SwitchListTile(
         value: _automaticCalculation,
-        activeThumbColor: colorGreenFlash,
+        activeThumbColor: isDark ? colorGreenFlash : colorGreenDark,
+        activeTrackColor: (isDark ? colorGreenFlash : colorGreenDark).withValues(alpha: 0.3),
         contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 4),
-        title: const Text(
+        title: Text(
           "Calculateur intelligent",
-          style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+          style: TextStyle(color: isDark ? Colors.white : Colors.black, fontWeight: FontWeight.bold),
         ),
-        subtitle: const Text(
+        subtitle: Text(
           "Précision basée sur les quinzaines",
-          style: TextStyle(color: Colors.white54, fontSize: 12),
+          style: TextStyle(color: isDark ? Colors.white54 : Colors.black54, fontSize: 12),
         ),
         onChanged: (v) => setState(() {
           _automaticCalculation = v;
@@ -364,18 +375,19 @@ class _SavingsDetailPageState extends State<SavingsDetailPage> {
   }
 
   // --- Widgets Utilitaires ---
-  PreferredSizeWidget _buildAppBar() {
+  PreferredSizeWidget _buildAppBar(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return AppBar(
       backgroundColor: Colors.transparent,
       elevation: 0,
-      leading: const BackButton(color: Colors.white),
+      leading: BackButton(color: isDark ? Colors.white : Colors.black87),
       centerTitle: true,
       title: Text(
         widget.account.sourceName,
-        style: const TextStyle(
+        style: TextStyle(
           fontSize: 16,
           fontWeight: FontWeight.bold,
-          color: Colors.white,
+          color: isDark ? Colors.white : Colors.black87,
         ),
       ),
     );
@@ -444,11 +456,19 @@ class _SavingsDetailPageState extends State<SavingsDetailPage> {
     );
   }
 
-  BoxDecoration _glassDecoration() {
+  BoxDecoration _glassDecoration(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return BoxDecoration(
-      color: Colors.white.withValues(alpha: 0.05),
+      color: isDark ? Colors.white.withValues(alpha: 0.05) : Colors.white,
       borderRadius: BorderRadius.circular(28),
-      border: Border.all(color: Colors.white.withValues(alpha: 0.08)),
+      border: Border.all(color: isDark ? Colors.white.withValues(alpha: 0.08) : Colors.black.withValues(alpha: 0.05)),
+      boxShadow: isDark ? null : [
+        BoxShadow(
+          color: Colors.black.withValues(alpha: 0.03),
+          blurRadius: 10,
+          offset: const Offset(0, 4),
+        ),
+      ],
     );
   }
 }
