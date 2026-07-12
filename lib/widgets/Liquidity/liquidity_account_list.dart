@@ -63,6 +63,7 @@ class _LiquidityAccountListState extends State<LiquidityAccountList> {
           return const SizedBox();
         }
 
+        final isDark = Theme.of(context).brightness == Brightness.dark;
         return Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -78,17 +79,19 @@ class _LiquidityAccountListState extends State<LiquidityAccountList> {
                     ),
                     child: Icon(
                       Icons.euro_rounded,
-                      color: Colors.amber.shade300,
+                      color: isDark
+                          ? Colors.amber.shade300
+                          : Colors.amber.shade800,
                       size: 20,
                     ),
                   ),
                   const SizedBox(width: 12),
-                  const Text(
+                  Text(
                     "Liquidités",
                     style: TextStyle(
                       fontSize: 20,
                       fontWeight: FontWeight.bold,
-                      color: Colors.white,
+                      color: isDark ? Colors.white : const Color(0xFF0F172A),
                     ),
                   ),
                   const Spacer(),
@@ -99,7 +102,9 @@ class _LiquidityAccountListState extends State<LiquidityAccountList> {
                         vertical: 4,
                       ),
                       decoration: BoxDecoration(
-                        color: Colors.amber.shade900.withValues(alpha: 0.3),
+                        color: isDark
+                            ? Colors.amber.shade900.withValues(alpha: 0.3)
+                            : Colors.amber.shade100,
                         borderRadius: BorderRadius.circular(12),
                         border: Border.all(
                           color: Colors.amber.shade400.withValues(alpha: 0.4),
@@ -111,7 +116,9 @@ class _LiquidityAccountListState extends State<LiquidityAccountList> {
                         style: TextStyle(
                           fontSize: 13,
                           fontWeight: FontWeight.bold,
-                          color: Colors.amber.shade300,
+                          color: isDark
+                              ? Colors.amber.shade300
+                              : Colors.amber.shade900,
                         ),
                       ),
                     ),

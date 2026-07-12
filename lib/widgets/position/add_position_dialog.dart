@@ -30,8 +30,6 @@ class _AddPositionDialogState extends State<AddPositionDialog> {
   final TextEditingController _quantityController = TextEditingController();
   final TextEditingController _pruController = TextEditingController();
 
-  static const Color colorDark = Color(0xFF060B26);
-  static const Color colorSurface = Color(0xFF1E293B);
   static const Color colorPurple = Color(0xFF9C27B0);
 
   @override
@@ -129,11 +127,12 @@ class _AddPositionDialogState extends State<AddPositionDialog> {
   }
 
   void _showSnack(String message) {
+    final theme = Theme.of(context);
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text(message),
         behavior: SnackBarBehavior.floating,
-        backgroundColor: colorSurface,
+        backgroundColor: theme.cardColor,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       ),
     );
@@ -141,16 +140,17 @@ class _AddPositionDialogState extends State<AddPositionDialog> {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
     return Container(
       height: MediaQuery.of(context).size.height,
-      decoration: const BoxDecoration(color: colorDark),
+      decoration: BoxDecoration(color: theme.scaffoldBackgroundColor),
       child: Scaffold(
         resizeToAvoidBottomInset: true,
         backgroundColor: Colors.transparent,
         body: SafeArea(
           child: Column(
             children: [
-              _buildHeader(),
+              _buildHeader(context),
               Expanded(
                 child: _isLoading
                     ? const Center(
@@ -165,7 +165,7 @@ class _AddPositionDialogState extends State<AddPositionDialog> {
                       )
                     : SingleChildScrollView(
                         padding: const EdgeInsets.only(bottom: 20),
-                        child: _buildMainContent(),
+                        child: _buildMainContent(context),
                       ),
               ),
               // Bloc de configuration + Bouton Valider
@@ -174,7 +174,7 @@ class _AddPositionDialogState extends State<AddPositionDialog> {
                   padding: const EdgeInsets.symmetric(horizontal: 20),
                   child: Column(
                     mainAxisSize: MainAxisSize.min,
-                    children: [_buildInputs(), _buildFooter()],
+                    children: [_buildInputs(context), _buildFooter(context)],
                   ),
                 ),
             ],
@@ -184,7 +184,8 @@ class _AddPositionDialogState extends State<AddPositionDialog> {
     );
   }
 
-  Widget _buildHeader() {
+  Widget _buildHeader(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Padding(
       padding: const EdgeInsets.fromLTRB(20, 20, 10, 10),
       child: Row(
@@ -193,10 +194,10 @@ class _AddPositionDialogState extends State<AddPositionDialog> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Text(
+                Text(
                   'Ajouter une position',
                   style: TextStyle(
-                    color: Colors.white,
+                    color: Theme.of(context).textTheme.titleLarge?.color,
                     fontSize: 22,
                     fontWeight: FontWeight.bold,
                   ),
@@ -204,7 +205,9 @@ class _AddPositionDialogState extends State<AddPositionDialog> {
                 Text(
                   "Recherchez et configurez votre investissement",
                   style: TextStyle(
-                    color: Colors.white.withValues(alpha: 0.4),
+                    color: isDark
+                        ? Colors.white.withValues(alpha: 0.4)
+                        : Colors.black45,
                     fontSize: 13,
                   ),
                 ),
@@ -212,7 +215,10 @@ class _AddPositionDialogState extends State<AddPositionDialog> {
             ),
           ),
           IconButton(
-            icon: const Icon(Icons.close, color: Colors.white54),
+            icon: Icon(
+              Icons.close,
+              color: isDark ? Colors.white54 : Colors.black45,
+            ),
             onPressed: () => Navigator.pop(context),
           ),
         ],
@@ -220,55 +226,66 @@ class _AddPositionDialogState extends State<AddPositionDialog> {
     );
   }
 
-  Widget _buildMainContent() {
+  Widget _buildMainContent(BuildContext context) {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 20),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           const SizedBox(height: 16),
-          _buildSearchField(),
+          _buildSearchField(context),
           const SizedBox(height: 24),
-          const Text(
+          Text(
             "RÉSULTATS",
             style: TextStyle(
-              color: Colors.white38,
+              color: isDark ? Colors.white38 : Colors.black38,
               fontSize: 11,
               fontWeight: FontWeight.bold,
               letterSpacing: 1.2,
             ),
           ),
           const SizedBox(height: 12),
-          _buildPositionList(),
+          _buildPositionList(context),
         ],
       ),
     );
   }
 
-  Widget _buildSearchField() {
+  Widget _buildSearchField(BuildContext context) {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
     return TextField(
       controller: _searchController,
-      style: const TextStyle(color: Colors.white),
+      style: TextStyle(color: theme.textTheme.bodyLarge?.color),
       decoration: InputDecoration(
         hintText: 'Rechercher par nom ou ticker...',
-        hintStyle: const TextStyle(color: Colors.white24),
+        hintStyle: TextStyle(color: isDark ? Colors.white24 : Colors.black26),
         prefixIcon: const Icon(Icons.search, color: colorPurple),
         filled: true,
-        fillColor: colorSurface,
+        fillColor: theme.cardColor,
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(16),
-          borderSide: BorderSide.none,
+          borderSide: isDark
+              ? BorderSide.none
+              : BorderSide(color: Colors.black.withValues(alpha: 0.05)),
         ),
       ),
     );
   }
 
-  Widget _buildPositionList() {
+  Widget _buildPositionList(BuildContext context) {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
     if (_filteredPositions.isEmpty) {
-      return const Center(
-        child: Text(
-          'Aucune position trouvée',
-          style: TextStyle(color: Colors.white24),
+      return Center(
+        child: Padding(
+          padding: const EdgeInsets.symmetric(vertical: 40),
+          child: Text(
+            'Aucune position trouvée',
+            style: TextStyle(color: isDark ? Colors.white24 : Colors.black26),
+          ),
         ),
       );
     }
@@ -300,12 +317,14 @@ class _AddPositionDialogState extends State<AddPositionDialog> {
             decoration: BoxDecoration(
               color: isSelected
                   ? colorPurple.withValues(alpha: 0.1)
-                  : colorSurface,
+                  : theme.cardColor,
               borderRadius: BorderRadius.circular(16),
               border: Border.all(
                 color: isSelected
                     ? colorPurple
-                    : Colors.white.withValues(alpha: 0.05),
+                    : (isDark
+                          ? Colors.white.withValues(alpha: 0.05)
+                          : Colors.black.withValues(alpha: 0.05)),
                 width: 1.5,
               ),
             ),
@@ -332,13 +351,15 @@ class _AddPositionDialogState extends State<AddPositionDialog> {
                               vertical: 2,
                             ),
                             decoration: BoxDecoration(
-                              color: Colors.white.withValues(alpha: 0.05),
+                              color: isDark
+                                  ? Colors.white.withValues(alpha: 0.05)
+                                  : Colors.black.withValues(alpha: 0.05),
                               borderRadius: BorderRadius.circular(4),
                             ),
                             child: Text(
                               position.type.toUpperCase(),
-                              style: const TextStyle(
-                                color: Colors.white38,
+                              style: TextStyle(
+                                color: isDark ? Colors.white38 : Colors.black38,
                                 fontSize: 9,
                                 fontWeight: FontWeight.bold,
                               ),
@@ -352,8 +373,8 @@ class _AddPositionDialogState extends State<AddPositionDialog> {
                         style: TextStyle(
                           fontWeight: FontWeight.bold,
                           color: isAlreadyInAccount
-                              ? Colors.white24
-                              : Colors.white,
+                              ? (isDark ? Colors.white24 : Colors.black26)
+                              : theme.textTheme.bodyLarge?.color,
                         ),
                       ),
                       if (isAlreadyInAccount)
@@ -373,8 +394,8 @@ class _AddPositionDialogState extends State<AddPositionDialog> {
                 else
                   Text(
                     "${position.price.toStringAsFixed(2)} €",
-                    style: const TextStyle(
-                      color: Colors.white54,
+                    style: TextStyle(
+                      color: isDark ? Colors.white54 : Colors.black54,
                       fontWeight: FontWeight.bold,
                     ),
                   ),
@@ -386,11 +407,12 @@ class _AddPositionDialogState extends State<AddPositionDialog> {
     );
   }
 
-  Widget _buildInputs() {
+  Widget _buildInputs(BuildContext context) {
+    final theme = Theme.of(context);
     return Container(
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: colorSurface,
+        color: theme.cardColor,
         borderRadius: BorderRadius.circular(24),
         border: Border.all(color: colorPurple.withValues(alpha: 0.3)),
       ),
@@ -411,6 +433,7 @@ class _AddPositionDialogState extends State<AddPositionDialog> {
             children: [
               Expanded(
                 child: _buildConfigField(
+                  context: context,
                   label: "Quantité",
                   controller: _quantityController,
                   icon: Icons.pie_chart_outline,
@@ -419,6 +442,7 @@ class _AddPositionDialogState extends State<AddPositionDialog> {
               const SizedBox(width: 12),
               Expanded(
                 child: _buildConfigField(
+                  context: context,
                   label: "PRU (€)",
                   controller: _pruController,
                   icon: Icons.euro_rounded,
@@ -432,26 +456,34 @@ class _AddPositionDialogState extends State<AddPositionDialog> {
   }
 
   Widget _buildConfigField({
+    required BuildContext context,
     required String label,
     required TextEditingController controller,
     required IconData icon,
   }) {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
       decoration: BoxDecoration(
-        color: Colors.white.withValues(alpha: 0.05),
+        color: isDark
+            ? Colors.white.withValues(alpha: 0.05)
+            : Colors.black.withValues(alpha: 0.05),
         borderRadius: BorderRadius.circular(12),
       ),
       child: TextField(
         controller: controller,
         keyboardType: const TextInputType.numberWithOptions(decimal: true),
-        style: const TextStyle(
-          color: Colors.white,
+        style: TextStyle(
+          color: theme.textTheme.bodyLarge?.color,
           fontWeight: FontWeight.bold,
         ),
         decoration: InputDecoration(
           labelText: label,
-          labelStyle: const TextStyle(color: Colors.white38, fontSize: 12),
+          labelStyle: TextStyle(
+            color: isDark ? Colors.white38 : Colors.black38,
+            fontSize: 12,
+          ),
           border: InputBorder.none,
           icon: Icon(icon, color: colorPurple, size: 18),
         ),
@@ -459,7 +491,9 @@ class _AddPositionDialogState extends State<AddPositionDialog> {
     );
   }
 
-  Widget _buildFooter() {
+  Widget _buildFooter(BuildContext context) {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
     final quantity = double.tryParse(
       _quantityController.text.replaceAll(',', '.'),
     );
@@ -477,9 +511,11 @@ class _AddPositionDialogState extends State<AddPositionDialog> {
         onPressed: (isFormValid && !_isSaving) ? _handleAdd : null,
         style: ElevatedButton.styleFrom(
           backgroundColor: colorPurple,
-          disabledBackgroundColor: colorPurple.withValues(alpha: 0.2),
+          disabledBackgroundColor: isDark
+              ? colorPurple.withValues(alpha: 0.1)
+              : Colors.grey.withValues(alpha: 0.1),
           foregroundColor: Colors.white,
-          disabledForegroundColor: Colors.white24,
+          disabledForegroundColor: isDark ? Colors.white24 : Colors.black26,
           minimumSize: const Size(double.infinity, 56),
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(16),

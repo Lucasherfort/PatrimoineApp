@@ -76,6 +76,7 @@ class _SavingsAccountListState extends State<SavingsAccountList> {
           return const SizedBox.shrink();
         }
 
+        final isDark = Theme.of(context).brightness == Brightness.dark;
         return Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -91,17 +92,19 @@ class _SavingsAccountListState extends State<SavingsAccountList> {
                     ),
                     child: Icon(
                       Icons.savings_rounded,
-                      color: Colors.blue.shade300,
+                      color: isDark
+                          ? Colors.blue.shade300
+                          : Colors.blue.shade700,
                       size: 20,
                     ),
                   ),
                   const SizedBox(width: 12),
-                  const Text(
+                  Text(
                     "Épargne",
                     style: TextStyle(
                       fontSize: 20,
                       fontWeight: FontWeight.bold,
-                      color: Colors.white,
+                      color: isDark ? Colors.white : const Color(0xFF0F172A),
                     ),
                   ),
                   const Spacer(),
@@ -112,7 +115,9 @@ class _SavingsAccountListState extends State<SavingsAccountList> {
                         vertical: 4,
                       ),
                       decoration: BoxDecoration(
-                        color: Colors.blue.shade400.withValues(alpha: 0.15),
+                        color: isDark
+                            ? Colors.blue.shade400.withValues(alpha: 0.15)
+                            : Colors.blue.shade50,
                         borderRadius: BorderRadius.circular(12),
                         border: Border.all(
                           color: Colors.blue.shade400.withValues(alpha: 0.3),
@@ -124,7 +129,9 @@ class _SavingsAccountListState extends State<SavingsAccountList> {
                         style: TextStyle(
                           fontSize: 13,
                           fontWeight: FontWeight.bold,
-                          color: Colors.blue.shade300,
+                          color: isDark
+                              ? Colors.blue.shade300
+                              : Colors.blue.shade800,
                         ),
                       ),
                     ),

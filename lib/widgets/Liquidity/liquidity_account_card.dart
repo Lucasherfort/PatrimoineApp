@@ -27,10 +27,12 @@ class LiquidityAccountCard extends StatelessWidget {
         onLongPress: () => _confirmDelete(context),
         child: Container(
           decoration: BoxDecoration(
-            color: const Color(0xFF1E293B),
+            color: Theme.of(context).cardColor,
             borderRadius: BorderRadius.circular(16),
             border: Border.all(
-              color: Colors.white.withValues(alpha: 0.05),
+              color: Theme.of(context).brightness == Brightness.dark
+                  ? Colors.white.withValues(alpha: 0.05)
+                  : Colors.black.withValues(alpha: 0.05),
               width: 1,
             ),
           ),
@@ -55,12 +57,14 @@ class LiquidityAccountCard extends StatelessWidget {
                   height: 46,
                   padding: const EdgeInsets.all(6),
                   decoration: BoxDecoration(
-                    color: Colors.white.withValues(alpha: 0.05),
+                    color: Theme.of(context).brightness == Brightness.dark
+                        ? Colors.white.withValues(alpha: 0.05)
+                        : Colors.black.withValues(alpha: 0.03),
                     borderRadius: BorderRadius.circular(12),
                   ),
                   child: ClipRRect(
                     borderRadius: BorderRadius.circular(8),
-                    child: _buildBankLogo(),
+                    child: _buildBankLogo(context),
                   ),
                 ),
                 const SizedBox(width: 14),
@@ -72,10 +76,10 @@ class LiquidityAccountCard extends StatelessWidget {
                       children: [
                         Text(
                           account.sourceName,
-                          style: const TextStyle(
+                          style: TextStyle(
                             fontWeight: FontWeight.bold,
                             fontSize: 16,
-                            color: Colors.white,
+                            color: Theme.of(context).textTheme.bodyLarge?.color,
                           ),
                         ),
                         const SizedBox(height: 2),
@@ -83,7 +87,7 @@ class LiquidityAccountCard extends StatelessWidget {
                           account.bankName,
                           style: TextStyle(
                             fontSize: 13,
-                            color: Colors.white.withValues(alpha: 0.6),
+                            color: Theme.of(context).textTheme.bodySmall?.color,
                           ),
                         ),
                       ],
@@ -94,10 +98,10 @@ class LiquidityAccountCard extends StatelessWidget {
                   padding: const EdgeInsets.only(right: 16),
                   child: Text(
                     currencyFormat.format(account.amount),
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontSize: 17,
                       fontWeight: FontWeight.w900,
-                      color: Colors.white,
+                      color: Theme.of(context).textTheme.bodyLarge?.color,
                     ),
                   ),
                 ),
@@ -109,7 +113,8 @@ class LiquidityAccountCard extends StatelessWidget {
     );
   }
 
-  Widget _buildBankLogo() {
+  Widget _buildBankLogo(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     if (account.logoUrl.isEmpty) {
       return Icon(Icons.euro_rounded, color: Colors.amber.shade300, size: 26);
     }

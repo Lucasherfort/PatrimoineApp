@@ -238,18 +238,18 @@ class _AddPatrimoineWizardState extends State<AddPatrimoineWizard> {
   @override
   Widget build(BuildContext context) {
     const Color colorBlue = Color(0xFF0D71EE);
-    const Color colorDark = Color(0xFF060B26);
+    final theme = Theme.of(context);
 
     return Container(
       height: MediaQuery.of(context).size.height,
       padding: const EdgeInsets.symmetric(horizontal: 20),
-      decoration: const BoxDecoration(color: colorDark),
+      decoration: BoxDecoration(color: theme.scaffoldBackgroundColor),
       child: SafeArea(
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             const SizedBox(height: 20),
-            _buildHeader(),
+            _buildHeader(context),
             const SizedBox(height: 24),
             _buildProgressIndicator(),
             const SizedBox(height: 24),
@@ -260,7 +260,7 @@ class _AddPatrimoineWizardState extends State<AddPatrimoineWizard> {
                     ? const Center(
                         child: CircularProgressIndicator(color: colorBlue),
                       )
-                    : _buildStepContent(),
+                    : _buildStepContent(context),
               ),
             ),
             const SizedBox(height: 20),
@@ -272,7 +272,9 @@ class _AddPatrimoineWizardState extends State<AddPatrimoineWizard> {
     );
   }
 
-  Widget _buildHeader() {
+  Widget _buildHeader(BuildContext context) {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
     String title = "Ajouter un compte";
     if (currentStep == 0) title = "Catégorie de patrimoine";
     if (currentStep == 1) title = "Type de compte";
@@ -286,17 +288,19 @@ class _AddPatrimoineWizardState extends State<AddPatrimoineWizard> {
             children: [
               Text(
                 title,
-                style: const TextStyle(
+                style: TextStyle(
                   fontSize: 22,
                   fontWeight: FontWeight.bold,
-                  color: Colors.white,
+                  color: theme.textTheme.titleLarge?.color,
                 ),
               ),
               if (selectedCategory != null && currentStep > 0)
                 Text(
                   selectedCategory!.label,
                   style: TextStyle(
-                    color: Colors.white.withValues(alpha: 0.4),
+                    color: isDark
+                        ? Colors.white.withValues(alpha: 0.4)
+                        : Colors.black45,
                     fontSize: 13,
                   ),
                 ),
@@ -305,7 +309,10 @@ class _AddPatrimoineWizardState extends State<AddPatrimoineWizard> {
         ),
         IconButton(
           onPressed: () => Navigator.pop(context),
-          icon: const Icon(Icons.close, color: Colors.white54),
+          icon: Icon(
+            Icons.close,
+            color: isDark ? Colors.white54 : Colors.black45,
+          ),
         ),
       ],
     );
@@ -320,7 +327,11 @@ class _AddPatrimoineWizardState extends State<AddPatrimoineWizard> {
             height: 4,
             margin: EdgeInsets.only(right: index < 2 ? 8 : 0),
             decoration: BoxDecoration(
-              color: isActive ? const Color(0xFF0D71EE) : Colors.white12,
+              color: isActive
+                  ? const Color(0xFF0D71EE)
+                  : (Theme.of(context).brightness == Brightness.dark
+                        ? Colors.white12
+                        : Colors.black.withValues(alpha: 0.05)),
               borderRadius: BorderRadius.circular(2),
             ),
           ),
@@ -329,20 +340,20 @@ class _AddPatrimoineWizardState extends State<AddPatrimoineWizard> {
     );
   }
 
-  Widget _buildStepContent() {
+  Widget _buildStepContent(BuildContext context) {
     switch (currentStep) {
       case 0:
-        return _buildCategoryGrid();
+        return _buildCategoryGrid(context);
       case 1:
-        return _buildSourceList();
+        return _buildSourceList(context);
       case 2:
-        return _buildBankSearchableList();
+        return _buildBankSearchableList(context);
       default:
         return const SizedBox();
     }
   }
 
-  Widget _buildCategoryGrid() {
+  Widget _buildCategoryGrid(BuildContext context) {
     return GridView.builder(
       shrinkWrap: true,
       gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
@@ -364,6 +375,7 @@ class _AddPatrimoineWizardState extends State<AddPatrimoineWizard> {
         }
 
         return _buildSelectionCard(
+          context,
           title: category.label,
           icon: icon,
           isSelected: isSelected,
@@ -376,7 +388,7 @@ class _AddPatrimoineWizardState extends State<AddPatrimoineWizard> {
     );
   }
 
-  Widget _buildSourceList() {
+  Widget _buildSourceList(BuildContext context) {
     return ListView.separated(
       itemCount: sources.length,
       separatorBuilder: (_, _) => const SizedBox(height: 12),
@@ -385,6 +397,7 @@ class _AddPatrimoineWizardState extends State<AddPatrimoineWizard> {
         final bool isSelected = selectedSource?.id == source.id;
 
         return _buildSelectionTile(
+          context,
           title: source.name,
           isSelected: isSelected,
           onTap: () {
@@ -396,18 +409,26 @@ class _AddPatrimoineWizardState extends State<AddPatrimoineWizard> {
     );
   }
 
-  Widget _buildBankSearchableList() {
+  Widget _buildBankSearchableList(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Column(
       children: [
         TextField(
           controller: _searchController,
-          style: const TextStyle(color: Colors.white),
+          style: TextStyle(color: Theme.of(context).textTheme.bodyLarge?.color),
           decoration: InputDecoration(
             hintText: "Rechercher une banque...",
-            hintStyle: const TextStyle(color: Colors.white24),
-            prefixIcon: const Icon(Icons.search, color: Colors.white24),
+            hintStyle: TextStyle(
+              color: isDark ? Colors.white24 : Colors.black26,
+            ),
+            prefixIcon: Icon(
+              Icons.search,
+              color: isDark ? Colors.white24 : Colors.black26,
+            ),
             filled: true,
-            fillColor: Colors.white.withValues(alpha: 0.05),
+            fillColor: isDark
+                ? Colors.white.withValues(alpha: 0.05)
+                : Colors.black.withValues(alpha: 0.03),
             border: OutlineInputBorder(
               borderRadius: BorderRadius.circular(16),
               borderSide: BorderSide.none,
@@ -417,10 +438,12 @@ class _AddPatrimoineWizardState extends State<AddPatrimoineWizard> {
         const SizedBox(height: 16),
         Expanded(
           child: filteredBanks.isEmpty
-              ? const Center(
+              ? Center(
                   child: Text(
                     "Aucune banque trouvée",
-                    style: TextStyle(color: Colors.white54),
+                    style: TextStyle(
+                      color: isDark ? Colors.white54 : Colors.black26,
+                    ),
                   ),
                 )
               : ListView.separated(
@@ -430,6 +453,7 @@ class _AddPatrimoineWizardState extends State<AddPatrimoineWizard> {
                     final bank = filteredBanks[index];
                     final bool isSelected = selectedBank?.id == bank.id;
                     return _buildSelectionTile(
+                      context,
                       title: bank.name,
                       isSelected: isSelected,
                       compact: true,
@@ -443,13 +467,15 @@ class _AddPatrimoineWizardState extends State<AddPatrimoineWizard> {
     );
   }
 
-  Widget _buildSelectionCard({
+  Widget _buildSelectionCard(
+    BuildContext context, {
     required String title,
     required IconData icon,
     required bool isSelected,
     required VoidCallback onTap,
   }) {
     const Color colorBlue = Color(0xFF0D71EE);
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return InkWell(
       onTap: onTap,
       borderRadius: BorderRadius.circular(20),
@@ -457,23 +483,37 @@ class _AddPatrimoineWizardState extends State<AddPatrimoineWizard> {
         decoration: BoxDecoration(
           color: isSelected
               ? colorBlue.withValues(alpha: 0.1)
-              : Colors.white.withValues(alpha: 0.05),
+              : (isDark
+                    ? Colors.white.withValues(alpha: 0.05)
+                    : Colors.black.withValues(alpha: 0.02)),
           borderRadius: BorderRadius.circular(20),
           border: Border.all(
-            color: isSelected ? colorBlue : Colors.white12,
+            color: isSelected
+                ? colorBlue
+                : (isDark
+                      ? Colors.white12
+                      : Colors.black.withValues(alpha: 0.05)),
             width: 2,
           ),
         ),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(icon, color: isSelected ? colorBlue : Colors.white, size: 32),
+            Icon(
+              icon,
+              color: isSelected
+                  ? colorBlue
+                  : (isDark ? Colors.white : Colors.black54),
+              size: 32,
+            ),
             const SizedBox(height: 12),
             Text(
               title,
               textAlign: TextAlign.center,
               style: TextStyle(
-                color: isSelected ? Colors.white : Colors.white70,
+                color: isSelected
+                    ? (isDark ? Colors.white : colorBlue)
+                    : (isDark ? Colors.white70 : Colors.black54),
                 fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
               ),
             ),
@@ -483,7 +523,8 @@ class _AddPatrimoineWizardState extends State<AddPatrimoineWizard> {
     );
   }
 
-  Widget _buildSelectionTile({
+  Widget _buildSelectionTile(
+    BuildContext context, {
     required String title,
     String? subtitle,
     required bool isSelected,
@@ -492,6 +533,7 @@ class _AddPatrimoineWizardState extends State<AddPatrimoineWizard> {
     String? logoUrl,
   }) {
     const Color colorBlue = Color(0xFF0D71EE);
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return InkWell(
       onTap: onTap,
       borderRadius: BorderRadius.circular(16),
@@ -503,10 +545,16 @@ class _AddPatrimoineWizardState extends State<AddPatrimoineWizard> {
         decoration: BoxDecoration(
           color: isSelected
               ? colorBlue.withValues(alpha: 0.1)
-              : Colors.white.withValues(alpha: 0.05),
+              : (isDark
+                    ? Colors.white.withValues(alpha: 0.05)
+                    : Colors.black.withValues(alpha: 0.02)),
           borderRadius: BorderRadius.circular(16),
           border: Border.all(
-            color: isSelected ? colorBlue : Colors.white12,
+            color: isSelected
+                ? colorBlue
+                : (isDark
+                      ? Colors.white12
+                      : Colors.black.withValues(alpha: 0.05)),
             width: 1.5,
           ),
         ),
@@ -517,23 +565,25 @@ class _AddPatrimoineWizardState extends State<AddPatrimoineWizard> {
                 width: 32,
                 height: 32,
                 decoration: BoxDecoration(
-                  color: Colors.white.withValues(alpha: 0.05),
+                  color: isDark
+                      ? Colors.white.withValues(alpha: 0.05)
+                      : Colors.black.withValues(alpha: 0.03),
                   borderRadius: BorderRadius.circular(8),
                 ),
                 child: ClipRRect(
                   borderRadius: BorderRadius.circular(8),
                   child: logoUrl.isEmpty
-                      ? const Icon(
+                      ? Icon(
                           Icons.account_balance,
-                          color: Colors.white24,
+                          color: isDark ? Colors.white24 : Colors.black12,
                           size: 20,
                         )
                       : Image.network(
                           logoUrl,
                           fit: BoxFit.contain,
-                          errorBuilder: (_, _, _) => const Icon(
+                          errorBuilder: (_, _, _) => Icon(
                             Icons.account_balance,
-                            color: Colors.white24,
+                            color: isDark ? Colors.white24 : Colors.black12,
                             size: 20,
                           ),
                         ),
@@ -548,7 +598,7 @@ class _AddPatrimoineWizardState extends State<AddPatrimoineWizard> {
                   Text(
                     title,
                     style: TextStyle(
-                      color: Colors.white,
+                      color: isDark ? Colors.white : Colors.black,
                       fontWeight: isSelected
                           ? FontWeight.bold
                           : FontWeight.normal,
@@ -558,8 +608,8 @@ class _AddPatrimoineWizardState extends State<AddPatrimoineWizard> {
                   if (subtitle != null)
                     Text(
                       subtitle,
-                      style: const TextStyle(
-                        color: Colors.white38,
+                      style: TextStyle(
+                        color: isDark ? Colors.white38 : Colors.black38,
                         fontSize: 12,
                       ),
                     ),
@@ -576,6 +626,7 @@ class _AddPatrimoineWizardState extends State<AddPatrimoineWizard> {
 
   Widget _buildNavigationButtons() {
     if (currentStep == 0) return const SizedBox.shrink();
+    final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return Row(
       children: [
@@ -584,7 +635,7 @@ class _AddPatrimoineWizardState extends State<AddPatrimoineWizard> {
             onPressed: isSaving ? null : () => setState(() => currentStep--),
             style: TextButton.styleFrom(
               padding: const EdgeInsets.symmetric(vertical: 16),
-              foregroundColor: Colors.white54,
+              foregroundColor: isDark ? Colors.white54 : Colors.black45,
             ),
             child: const Text('Précédent'),
           ),

@@ -48,10 +48,12 @@ class InvestmentPositionCard extends StatelessWidget {
         onLongPress: () => _confirmDelete(context),
         child: Container(
           decoration: BoxDecoration(
-            color: const Color(0xFF1E293B),
+            color: Theme.of(context).cardColor,
             borderRadius: BorderRadius.circular(16),
             border: Border.all(
-              color: Colors.white.withValues(alpha: 0.05),
+              color: Theme.of(context).brightness == Brightness.dark
+                  ? Colors.white.withValues(alpha: 0.05)
+                  : Colors.black.withValues(alpha: 0.05),
               width: 1,
             ),
           ),
@@ -79,10 +81,10 @@ class InvestmentPositionCard extends StatelessWidget {
                       children: [
                         Text(
                           position.name,
-                          style: const TextStyle(
+                          style: TextStyle(
                             fontWeight: FontWeight.bold,
                             fontSize: 16,
-                            color: Colors.white,
+                            color: Theme.of(context).textTheme.bodyLarge?.color,
                           ),
                           maxLines: 2,
                           overflow: TextOverflow.ellipsis,
@@ -92,7 +94,7 @@ class InvestmentPositionCard extends StatelessWidget {
                           "${_format(position.pru)}€ / ${position.quantity.toStringAsFixed(0)}",
                           style: TextStyle(
                             fontSize: 13,
-                            color: Colors.white.withValues(alpha: 0.5),
+                            color: Theme.of(context).textTheme.bodySmall?.color,
                           ),
                         ),
                         const SizedBox(height: 2),
@@ -100,7 +102,8 @@ class InvestmentPositionCard extends StatelessWidget {
                           "Cours : ${_format(position.currentPrice)}€",
                           style: TextStyle(
                             fontSize: 11,
-                            color: Colors.white.withValues(alpha: 0.3),
+                            color: Theme.of(context).textTheme.bodySmall?.color
+                                ?.withValues(alpha: 0.5),
                           ),
                         ),
                       ],
@@ -109,17 +112,21 @@ class InvestmentPositionCard extends StatelessWidget {
                 ),
                 // Valeurs et Performance
                 Padding(
-                  padding: const EdgeInsets.only(right: 16, top: 12, bottom: 12),
+                  padding: const EdgeInsets.only(
+                    right: 16,
+                    top: 12,
+                    bottom: 12,
+                  ),
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.center,
                     crossAxisAlignment: CrossAxisAlignment.end,
                     children: [
                       Text(
                         currencyFormat.format(position.totalValue),
-                        style: const TextStyle(
+                        style: TextStyle(
                           fontSize: 16,
                           fontWeight: FontWeight.w900,
-                          color: Colors.white,
+                          color: Theme.of(context).textTheme.bodyLarge?.color,
                         ),
                       ),
                       const SizedBox(height: 4),
@@ -152,8 +159,9 @@ class InvestmentPositionCard extends StatelessWidget {
     );
   }
 
-  // --- MODAL DE MODIFICATION STYLE GLASSMORPHISM ---
+  // --- MODAL DE MODIFICATION ---
   void _openEditPanel(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     final pruController = TextEditingController(
       text: position.pru.toString().replaceAll('.', ','),
     );
@@ -166,9 +174,9 @@ class InvestmentPositionCard extends StatelessWidget {
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
       builder: (context) => Container(
-        decoration: const BoxDecoration(
-          color: Color(0xFF0F172A), // Fond Slate 900 ultra premium
-          borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
+        decoration: BoxDecoration(
+          color: Theme.of(context).cardColor,
+          borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
         ),
         padding: EdgeInsets.only(
           left: 24,
@@ -183,7 +191,7 @@ class InvestmentPositionCard extends StatelessWidget {
               width: 36,
               height: 4,
               decoration: BoxDecoration(
-                color: Colors.white.withValues(alpha: 0.2),
+                color: isDark ? Colors.white24 : Colors.black12,
                 borderRadius: BorderRadius.circular(2),
               ),
             ),
@@ -191,7 +199,7 @@ class InvestmentPositionCard extends StatelessWidget {
             Text(
               "Ajuster la position",
               style: TextStyle(
-                color: textDim,
+                color: isDark ? textDim : Colors.black45,
                 fontSize: 13,
                 fontWeight: FontWeight.w600,
                 letterSpacing: 0.5,
@@ -201,20 +209,22 @@ class InvestmentPositionCard extends StatelessWidget {
             Text(
               position.name,
               textAlign: TextAlign.center,
-              style: const TextStyle(
-                color: Colors.white,
+              style: TextStyle(
+                color: isDark ? Colors.white : Colors.black,
                 fontSize: 20,
                 fontWeight: FontWeight.w800,
               ),
             ),
             const SizedBox(height: 24),
             _buildField(
+              context,
               qtyController,
               "Quantité détenue",
               Icons.copy_all_rounded,
             ),
             const SizedBox(height: 16),
             _buildField(
+              context,
               pruController,
               "Prix de revient (PRU)",
               Icons.euro_symbol_rounded,
@@ -241,10 +251,10 @@ class InvestmentPositionCard extends StatelessWidget {
                   if (p != null && q != null) onValueUpdated?.call(p, q);
                   Navigator.pop(context);
                 },
-                child: const Text(
+                child: Text(
                   "Enregistrer les modifications",
                   style: TextStyle(
-                    color: Color(0xFF0F172A),
+                    color: isDark ? const Color(0xFF0F172A) : Colors.white,
                     fontWeight: FontWeight.w800,
                     fontSize: 15,
                   ),
@@ -257,17 +267,31 @@ class InvestmentPositionCard extends StatelessWidget {
     );
   }
 
-  Widget _buildField(TextEditingController ctrl, String label, IconData icon) {
+  Widget _buildField(
+    BuildContext context,
+    TextEditingController ctrl,
+    String label,
+    IconData icon,
+  ) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return TextField(
       controller: ctrl,
-      style: const TextStyle(color: Colors.white, fontWeight: FontWeight.w600),
+      style: TextStyle(
+        color: isDark ? Colors.white : Colors.black,
+        fontWeight: FontWeight.w600,
+      ),
       keyboardType: const TextInputType.numberWithOptions(decimal: true),
       decoration: InputDecoration(
         labelText: label,
-        labelStyle: const TextStyle(color: textDim, fontSize: 13),
+        labelStyle: TextStyle(
+          color: isDark ? textDim : Colors.black45,
+          fontSize: 13,
+        ),
         prefixIcon: Icon(icon, color: colorAccentBlue, size: 20),
         filled: true,
-        fillColor: Colors.white.withValues(alpha: 0.03),
+        fillColor: isDark
+            ? Colors.white.withValues(alpha: 0.03)
+            : Colors.black.withValues(alpha: 0.03),
         floatingLabelBehavior: FloatingLabelBehavior.always,
         contentPadding: const EdgeInsets.symmetric(
           horizontal: 16,
@@ -275,7 +299,11 @@ class InvestmentPositionCard extends StatelessWidget {
         ),
         enabledBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(14),
-          borderSide: BorderSide(color: Colors.white.withValues(alpha: 0.08)),
+          borderSide: BorderSide(
+            color: isDark
+                ? Colors.white.withValues(alpha: 0.08)
+                : Colors.black.withValues(alpha: 0.08),
+          ),
         ),
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(14),
@@ -286,29 +314,36 @@ class InvestmentPositionCard extends StatelessWidget {
   }
 
   void _confirmDelete(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        backgroundColor: const Color(0xFF1E2530),
+        backgroundColor: Theme.of(context).cardColor,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-        title: const Text(
+        title: Text(
           "Supprimer la position ?",
           style: TextStyle(
-            color: Colors.white,
+            color: isDark ? Colors.white : Colors.black,
             fontWeight: FontWeight.bold,
             fontSize: 18,
           ),
         ),
         content: Text(
           "Êtes-vous sûr de vouloir retirer ${position.ticker.toUpperCase()} de votre suivi ?",
-          style: const TextStyle(color: textDim, fontSize: 14),
+          style: TextStyle(
+            color: isDark ? textDim : Colors.black54,
+            fontSize: 14,
+          ),
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
-            child: const Text(
+            child: Text(
               "Annuler",
-              style: TextStyle(color: textDim, fontWeight: FontWeight.w600),
+              style: TextStyle(
+                color: isDark ? textDim : Colors.black54,
+                fontWeight: FontWeight.w600,
+              ),
             ),
           ),
           TextButton(

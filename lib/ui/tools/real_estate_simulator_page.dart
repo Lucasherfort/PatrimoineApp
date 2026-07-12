@@ -97,25 +97,29 @@ class _RealEstateSimulatorPageState extends State<RealEstateSimulatorPage> {
   @override
   Widget build(BuildContext context) {
     const Color colorBlue = Color(0xFF0D71EE);
-    const Color colorDarkBg = Color(0xFF060B26);
-    const Color colorSurface = Color(0xFF1E293B);
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
 
     if (_isLoading) {
-      return const Scaffold(
-        backgroundColor: colorDarkBg,
+      return Scaffold(
+        backgroundColor: theme.scaffoldBackgroundColor,
         body: Center(child: CircularProgressIndicator(color: colorBlue)),
       );
     }
 
     return Scaffold(
-      backgroundColor: colorDarkBg,
+      backgroundColor: theme.scaffoldBackgroundColor,
       appBar: AppBar(
-        backgroundColor: colorSurface,
-        title: const Text(
+        backgroundColor: theme.cardColor,
+        elevation: 0,
+        title: Text(
           "Simulateur Immobilier",
-          style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+          style: TextStyle(
+            color: theme.textTheme.titleLarge?.color,
+            fontWeight: FontWeight.bold,
+          ),
         ),
-        iconTheme: const IconThemeData(color: Colors.white),
+        iconTheme: IconThemeData(color: theme.iconTheme.color),
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(20),
@@ -123,8 +127,9 @@ class _RealEstateSimulatorPageState extends State<RealEstateSimulatorPage> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             // --- ENTRÉES ---
-            _buildSectionTitle("VOS DONNÉES"),
+            _buildSectionTitle(context, "VOS DONNÉES"),
             _buildInputField(
+              context,
               label: "Salaire net mensuel (€)",
               controller: _salaryController,
               icon: Icons.payments,
@@ -136,6 +141,7 @@ class _RealEstateSimulatorPageState extends State<RealEstateSimulatorPage> {
                 Expanded(
                   flex: 3,
                   child: _buildInputField(
+                    context,
                     label: "Apport personnel (€)",
                     controller: _downPaymentController,
                     icon: Icons.savings,
@@ -145,6 +151,7 @@ class _RealEstateSimulatorPageState extends State<RealEstateSimulatorPage> {
                 Expanded(
                   flex: 2,
                   child: _buildSmallResultCard(
+                    context,
                     title: "Conseillé (80%)",
                     value: _formatter.format(_recommendedMaxDownPayment),
                     color: Colors.orangeAccent,
@@ -154,8 +161,9 @@ class _RealEstateSimulatorPageState extends State<RealEstateSimulatorPage> {
             ),
             const SizedBox(height: 24),
 
-            _buildSectionTitle("PARAMÈTRES DU CRÉDIT"),
+            _buildSectionTitle(context, "PARAMÈTRES DU CRÉDIT"),
             _buildSliderLabel(
+              context,
               "Durée du prêt",
               "${_loanDurationYears.toInt()} ans",
             ),
@@ -169,6 +177,7 @@ class _RealEstateSimulatorPageState extends State<RealEstateSimulatorPage> {
             ),
 
             _buildSliderLabel(
+              context,
               "Taux d'intérêt",
               "${_interestRate.toStringAsFixed(2)}%",
             ),
@@ -184,9 +193,10 @@ class _RealEstateSimulatorPageState extends State<RealEstateSimulatorPage> {
             const SizedBox(height: 32),
 
             // --- RÉSULTATS ---
-            _buildSectionTitle("RÉSULTATS DE LA SIMULATION"),
+            _buildSectionTitle(context, "RÉSULTATS DE LA SIMULATION"),
 
             _buildResultCard(
+              context,
               title: "Capacité d'achat maximale",
               value: _formatter.format(_maxPropertyPrice),
               subtitle: "Frais de notaire (7.5%) inclus",
@@ -199,6 +209,7 @@ class _RealEstateSimulatorPageState extends State<RealEstateSimulatorPage> {
               children: [
                 Expanded(
                   child: _buildSmallResultCard(
+                    context,
                     title: "Mensualité max (35%)",
                     value: "${_maxMonthlyPayment.toInt()} €",
                   ),
@@ -206,6 +217,7 @@ class _RealEstateSimulatorPageState extends State<RealEstateSimulatorPage> {
                 const SizedBox(width: 12),
                 Expanded(
                   child: _buildSmallResultCard(
+                    context,
                     title: "Capacité d'emprunt",
                     value: _formatter.format(_borrowingCapacity),
                   ),
@@ -219,13 +231,14 @@ class _RealEstateSimulatorPageState extends State<RealEstateSimulatorPage> {
     );
   }
 
-  Widget _buildSectionTitle(String title) {
+  Widget _buildSectionTitle(BuildContext context, String title) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Padding(
       padding: const EdgeInsets.only(bottom: 16, top: 8),
       child: Text(
         title,
         style: TextStyle(
-          color: Colors.white.withValues(alpha: 0.5),
+          color: isDark ? Colors.white.withValues(alpha: 0.5) : Colors.black45,
           fontSize: 12,
           fontWeight: FontWeight.bold,
           letterSpacing: 1.2,
@@ -234,27 +247,35 @@ class _RealEstateSimulatorPageState extends State<RealEstateSimulatorPage> {
     );
   }
 
-  Widget _buildInputField({
+  Widget _buildInputField(
+    BuildContext context, {
     required String label,
     required TextEditingController controller,
     required IconData icon,
   }) {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
     return Container(
       decoration: BoxDecoration(
-        color: const Color(0xFF1E293B),
+        color: theme.cardColor,
         borderRadius: BorderRadius.circular(16),
+        border: isDark
+            ? null
+            : Border.all(color: Colors.black.withValues(alpha: 0.05)),
       ),
       child: TextField(
         controller: controller,
         keyboardType: TextInputType.number,
         onChanged: (_) => setState(() {}),
-        style: const TextStyle(
-          color: Colors.white,
+        style: TextStyle(
+          color: theme.textTheme.bodyLarge?.color,
           fontWeight: FontWeight.bold,
         ),
         decoration: InputDecoration(
           labelText: label,
-          labelStyle: const TextStyle(color: Colors.white60),
+          labelStyle: TextStyle(
+            color: isDark ? Colors.white60 : Colors.black45,
+          ),
           prefixIcon: Icon(icon, color: const Color(0xFF0D71EE)),
           border: InputBorder.none,
           contentPadding: const EdgeInsets.all(16),
@@ -263,11 +284,17 @@ class _RealEstateSimulatorPageState extends State<RealEstateSimulatorPage> {
     );
   }
 
-  Widget _buildSliderLabel(String label, String value) {
+  Widget _buildSliderLabel(BuildContext context, String label, String value) {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
-        Text(label, style: const TextStyle(color: Colors.white, fontSize: 14)),
+        Text(
+          label,
+          style: TextStyle(
+            color: Theme.of(context).textTheme.bodyLarge?.color,
+            fontSize: 14,
+          ),
+        ),
         Text(
           value,
           style: const TextStyle(
@@ -280,19 +307,25 @@ class _RealEstateSimulatorPageState extends State<RealEstateSimulatorPage> {
     );
   }
 
-  Widget _buildResultCard({
+  Widget _buildResultCard(
+    BuildContext context, {
     required String title,
     required String value,
     required String subtitle,
     bool isPrimary = false,
     Color? color,
   }) {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: isPrimary ? const Color(0xFF0D71EE) : const Color(0xFF1E293B),
+        color: isPrimary ? const Color(0xFF0D71EE) : theme.cardColor,
         borderRadius: BorderRadius.circular(20),
+        border: !isPrimary && !isDark
+            ? Border.all(color: Colors.black.withValues(alpha: 0.05))
+            : null,
         boxShadow: isPrimary
             ? [
                 BoxShadow(
@@ -309,7 +342,9 @@ class _RealEstateSimulatorPageState extends State<RealEstateSimulatorPage> {
           Text(
             title,
             style: TextStyle(
-              color: isPrimary ? Colors.white70 : Colors.white60,
+              color: isPrimary
+                  ? Colors.white70
+                  : (isDark ? Colors.white60 : Colors.black54),
               fontSize: 14,
             ),
           ),
@@ -317,7 +352,11 @@ class _RealEstateSimulatorPageState extends State<RealEstateSimulatorPage> {
           Text(
             value,
             style: TextStyle(
-              color: color ?? Colors.white,
+              color:
+                  color ??
+                  (isPrimary
+                      ? Colors.white
+                      : theme.textTheme.titleLarge?.color),
               fontSize: 28,
               fontWeight: FontWeight.w900,
             ),
@@ -326,7 +365,9 @@ class _RealEstateSimulatorPageState extends State<RealEstateSimulatorPage> {
           Text(
             subtitle,
             style: TextStyle(
-              color: isPrimary ? Colors.white60 : Colors.white38,
+              color: isPrimary
+                  ? Colors.white60
+                  : (isDark ? Colors.white38 : Colors.black38),
               fontSize: 11,
             ),
           ),
@@ -335,29 +376,38 @@ class _RealEstateSimulatorPageState extends State<RealEstateSimulatorPage> {
     );
   }
 
-  Widget _buildSmallResultCard({
+  Widget _buildSmallResultCard(
+    BuildContext context, {
     required String title,
     required String value,
     Color? color,
   }) {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: const Color(0xFF1E293B),
+        color: theme.cardColor,
         borderRadius: BorderRadius.circular(16),
+        border: isDark
+            ? null
+            : Border.all(color: Colors.black.withValues(alpha: 0.05)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
             title,
-            style: const TextStyle(color: Colors.white60, fontSize: 11),
+            style: TextStyle(
+              color: isDark ? Colors.white60 : Colors.black45,
+              fontSize: 11,
+            ),
           ),
           const SizedBox(height: 4),
           Text(
             value,
             style: TextStyle(
-              color: color ?? Colors.white,
+              color: color ?? theme.textTheme.bodyLarge?.color,
               fontSize: 16,
               fontWeight: FontWeight.bold,
             ),

@@ -20,7 +20,6 @@ class HomePageState extends State<HomePage> {
   final PatrimoineService _patrimoineService = PatrimoineService();
 
   // Couleurs cohérentes avec le reste de l'app
-  static const Color colorDarkBg = Color(0xFF060B26);
   static const Color colorBlueMain = Color(0xFF0D71EE);
 
   double patrimoineTotal = 0.0;
@@ -92,10 +91,17 @@ class HomePageState extends State<HomePage> {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+
     if (isLoading) {
-      return const Scaffold(
-        backgroundColor: colorDarkBg,
-        body: Center(child: CircularProgressIndicator(color: Colors.white)),
+      return Scaffold(
+        backgroundColor: theme.scaffoldBackgroundColor,
+        body: Center(
+          child: CircularProgressIndicator(
+            color: isDark ? Colors.white : colorBlueMain,
+          ),
+        ),
       );
     }
 
@@ -103,7 +109,9 @@ class HomePageState extends State<HomePage> {
         hasLiquidityAccounts || hasSavingsAccounts || hasInvestmentAccounts;
 
     return Scaffold(
-      backgroundColor: colorDarkBg, // Couleur de base
+      backgroundColor: isDark
+          ? theme.scaffoldBackgroundColor
+          : const Color(0xFFF8FAFC),
       body: Stack(
         children: [
           // --- EFFET DE FOND (Halos) ---
@@ -115,7 +123,7 @@ class HomePageState extends State<HomePage> {
               height: 350,
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
-                color: colorBlueMain.withValues(alpha: 0.12),
+                color: colorBlueMain.withValues(alpha: isDark ? 0.12 : 0.08),
               ),
             ),
           ),
@@ -127,7 +135,7 @@ class HomePageState extends State<HomePage> {
               height: 400,
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
-                color: colorBlueMain.withValues(alpha: 0.08),
+                color: colorBlueMain.withValues(alpha: isDark ? 0.08 : 0.05),
               ),
             ),
           ),
@@ -170,7 +178,7 @@ class HomePageState extends State<HomePage> {
                             ],
                           ),
                         )
-                      : _buildEmptyState(),
+                      : _buildEmptyState(context),
                 ),
               ],
             ),
@@ -180,7 +188,8 @@ class HomePageState extends State<HomePage> {
     );
   }
 
-  Widget _buildEmptyState() {
+  Widget _buildEmptyState(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Center(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
@@ -188,22 +197,29 @@ class HomePageState extends State<HomePage> {
           Icon(
             Icons.account_balance_wallet_outlined,
             size: 60,
-            color: Colors.white.withValues(alpha: 0.1),
+            color: isDark
+                ? Colors.white.withValues(alpha: 0.1)
+                : Colors.black.withValues(alpha: 0.1),
           ),
           const SizedBox(height: 16),
           Text(
             "Aucun compte disponible",
             style: TextStyle(
-              color: Colors.white.withValues(alpha: 0.6),
+              color: isDark
+                  ? Colors.white.withValues(alpha: 0.6)
+                  : const Color(0xFF0F172A).withValues(alpha: 0.6),
               fontWeight: FontWeight.bold,
+              fontSize: 16,
             ),
           ),
           const SizedBox(height: 8),
           Text(
             "Utilisez le bouton + pour commencer",
             style: TextStyle(
-              color: Colors.white.withValues(alpha: 0.3),
-              fontSize: 12,
+              color: isDark
+                  ? Colors.white.withValues(alpha: 0.3)
+                  : Colors.black.withValues(alpha: 0.3),
+              fontSize: 13,
             ),
           ),
         ],
