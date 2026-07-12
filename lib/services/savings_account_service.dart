@@ -66,7 +66,8 @@ class SavingsAccountService {
           .update({
             UserSavingsAccountTable.principal: principal,
             UserSavingsAccountTable.interest: interest,
-            UserSavingsAccountTable.automaticInterestCalculation: automaticInterestCalculation,
+            UserSavingsAccountTable.automaticInterestCalculation:
+                automaticInterestCalculation,
             UserSavingsAccountTable.updatedAt: DateTime.now().toIso8601String(),
           })
           .eq(UserSavingsAccountTable.id, savingsAccountId);
@@ -179,7 +180,9 @@ class SavingsAccountService {
       logoUrl: _resolveLogoUrl(bank[BanksTable.icon] as String?),
       principal: (item[UserSavingsAccountTable.principal] as num).toDouble(),
       interest: (item[UserSavingsAccountTable.interest] as num).toDouble(),
-      automaticInterestCalculation: item[UserSavingsAccountTable.automaticInterestCalculation] as bool? ?? false,
+      automaticInterestCalculation:
+          item[UserSavingsAccountTable.automaticInterestCalculation] as bool? ??
+          false,
       interestRate: (category[SavingsCategoryTable.interestRate] as num?)
           ?.toDouble(),
       ceiling: (category[SavingsCategoryTable.ceiling] as num?)?.toDouble(),

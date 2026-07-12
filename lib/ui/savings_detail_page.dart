@@ -170,7 +170,9 @@ class _SavingsDetailPageState extends State<SavingsDetailPage> {
         Text(
           "ÉPARGNE TOTALE",
           style: TextStyle(
-            color: isDark ? Colors.white.withValues(alpha: 0.5) : Colors.black54,
+            color: isDark
+                ? Colors.white.withValues(alpha: 0.5)
+                : Colors.black54,
             fontSize: 13,
             fontWeight: FontWeight.w600,
             letterSpacing: 1.5,
@@ -245,7 +247,9 @@ class _SavingsDetailPageState extends State<SavingsDetailPage> {
             child: LinearProgressIndicator(
               value: _fillPercentage,
               minHeight: 8,
-              backgroundColor: isDark ? Colors.white.withValues(alpha: 0.05) : Colors.black.withValues(alpha: 0.05),
+              backgroundColor: isDark
+                  ? Colors.white.withValues(alpha: 0.05)
+                  : Colors.black.withValues(alpha: 0.05),
               valueColor: AlwaysStoppedAnimation(
                 _fillPercentage > 0.9 ? Colors.redAccent : colorBlueMain,
               ),
@@ -268,7 +272,9 @@ class _SavingsDetailPageState extends State<SavingsDetailPage> {
                     ? currency.format(widget.account.ceiling)
                     : "Sans plafond",
                 style: TextStyle(
-                  color: isDark ? Colors.white.withValues(alpha: 0.4) : Colors.black45,
+                  color: isDark
+                      ? Colors.white.withValues(alpha: 0.4)
+                      : Colors.black45,
                   fontSize: 12,
                 ),
               ),
@@ -293,7 +299,9 @@ class _SavingsDetailPageState extends State<SavingsDetailPage> {
             Icons.account_balance_wallet_outlined,
           ),
           Divider(
-            color: isDark ? Colors.white.withValues(alpha: 0.05) : Colors.black.withValues(alpha: 0.05),
+            color: isDark
+                ? Colors.white.withValues(alpha: 0.05)
+                : Colors.black.withValues(alpha: 0.05),
             height: 1,
             indent: 20,
             endIndent: 20,
@@ -334,7 +342,9 @@ class _SavingsDetailPageState extends State<SavingsDetailPage> {
           ),
           labelText: label,
           labelStyle: TextStyle(
-            color: isDark ? Colors.white.withValues(alpha: 0.3) : Colors.black45,
+            color: isDark
+                ? Colors.white.withValues(alpha: 0.3)
+                : Colors.black45,
             fontSize: 14,
           ),
           suffixText: "€",
@@ -356,15 +366,22 @@ class _SavingsDetailPageState extends State<SavingsDetailPage> {
       child: SwitchListTile(
         value: _automaticCalculation,
         activeThumbColor: isDark ? colorGreenFlash : colorGreenDark,
-        activeTrackColor: (isDark ? colorGreenFlash : colorGreenDark).withValues(alpha: 0.3),
+        activeTrackColor: (isDark ? colorGreenFlash : colorGreenDark)
+            .withValues(alpha: 0.3),
         contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 4),
         title: Text(
           "Calculateur intelligent",
-          style: TextStyle(color: isDark ? Colors.white : Colors.black, fontWeight: FontWeight.bold),
+          style: TextStyle(
+            color: isDark ? Colors.white : Colors.black,
+            fontWeight: FontWeight.bold,
+          ),
         ),
         subtitle: Text(
           "Précision basée sur les quinzaines",
-          style: TextStyle(color: isDark ? Colors.white54 : Colors.black54, fontSize: 12),
+          style: TextStyle(
+            color: isDark ? Colors.white54 : Colors.black54,
+            fontSize: 12,
+          ),
         ),
         onChanged: (v) => setState(() {
           _automaticCalculation = v;
@@ -461,14 +478,20 @@ class _SavingsDetailPageState extends State<SavingsDetailPage> {
     return BoxDecoration(
       color: isDark ? Colors.white.withValues(alpha: 0.05) : Colors.white,
       borderRadius: BorderRadius.circular(28),
-      border: Border.all(color: isDark ? Colors.white.withValues(alpha: 0.08) : Colors.black.withValues(alpha: 0.05)),
-      boxShadow: isDark ? null : [
-        BoxShadow(
-          color: Colors.black.withValues(alpha: 0.03),
-          blurRadius: 10,
-          offset: const Offset(0, 4),
-        ),
-      ],
+      border: Border.all(
+        color: isDark
+            ? Colors.white.withValues(alpha: 0.08)
+            : Colors.black.withValues(alpha: 0.05),
+      ),
+      boxShadow: isDark
+          ? null
+          : [
+              BoxShadow(
+                color: Colors.black.withValues(alpha: 0.03),
+                blurRadius: 10,
+                offset: const Offset(0, 4),
+              ),
+            ],
     );
   }
 }
