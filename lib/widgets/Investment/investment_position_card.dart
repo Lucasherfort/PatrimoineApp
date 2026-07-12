@@ -38,184 +38,111 @@ class InvestmentPositionCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final isProfit = position.latentGain >= 0;
     final trendColor = isProfit ? colorGreen : colorRed;
+    final currencyFormat = NumberFormat.currency(locale: 'fr_FR', symbol: '€');
 
     return Container(
-      margin: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
-      decoration: BoxDecoration(
-        color: colorCardBg,
-        borderRadius: BorderRadius.circular(20),
-        border: Border(
-          left: BorderSide(
-            color: trendColor,
-            width: 4,
-          ), // Indicateur de tendance
-        ),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.2),
-            blurRadius: 12,
-            offset: const Offset(0, 4),
+      margin: const EdgeInsets.symmetric(vertical: 6),
+      child: InkWell(
+        borderRadius: BorderRadius.circular(16),
+        onTap: () => _openEditPanel(context),
+        onLongPress: () => _confirmDelete(context),
+        child: Container(
+          decoration: BoxDecoration(
+            color: const Color(0xFF1E293B),
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(
+              color: Colors.white.withValues(alpha: 0.05),
+              width: 1,
+            ),
           ),
-        ],
-      ),
-      child: Material(
-        color: Colors.transparent,
-        child: InkWell(
-          borderRadius: BorderRadius.circular(20),
-          onTap: () => _openEditPanel(context),
-          onLongPress: () => _confirmDelete(context),
-          child: Padding(
-            padding: const EdgeInsets.all(16),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
+          child: IntrinsicHeight(
+            child: Row(
               children: [
-                // ==========================================
-                // LIGNE 1 : EN-TÊTE PRINCIPAL (Identité de la position)
-                // ==========================================
-                Row(
-                  crossAxisAlignment: CrossAxisAlignment.center,
-                  children: [
-                    Container(
-                      width: 36,
-                      height: 36,
-                      decoration: BoxDecoration(
-                        color: colorAccentBlue.withValues(alpha: 0.1),
-                        borderRadius: BorderRadius.circular(10),
-                      ),
-                      child: Center(
-                        child: Text(
-                          position.ticker.substring(0, 1).toUpperCase(),
-                          style: const TextStyle(
-                            color: colorAccentBlue,
-                            fontWeight: FontWeight.w800,
-                            fontSize: 16,
-                          ),
-                        ),
-                      ),
+                // Barre d'accentuation à gauche (Tendance)
+                Container(
+                  width: 4,
+                  margin: const EdgeInsets.symmetric(vertical: 12),
+                  decoration: BoxDecoration(
+                    color: trendColor,
+                    borderRadius: const BorderRadius.horizontal(
+                      right: Radius.circular(4),
                     ),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            position.name,
-                            style: const TextStyle(
-                              color: textMain,
-                              fontWeight: FontWeight.w800,
-                              fontSize: 16, // Plus grand et plus visible
-                              letterSpacing: 0.2,
-                            ),
-                            // Supprimé : maxLines et TextOverflow pour laisser le texte s'afficher entièrement
-                          ),
-                          const SizedBox(height: 2),
-                          Text(
-                            position.ticker.toUpperCase(),
-                            style: const TextStyle(
-                              color: colorAccentBlue,
-                              fontSize: 11,
-                              fontWeight: FontWeight.w700,
-                              letterSpacing: 0.5,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ],
+                  ),
                 ),
-
-                const Padding(
-                  padding: EdgeInsets.symmetric(vertical: 12),
-                  child: Divider(color: Colors.white10, height: 1),
-                ),
-
-                // ==========================================
-                // LIGNE 2 : LES MÉTRIQUES FINANCIÈRES
-                // ==========================================
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  crossAxisAlignment: CrossAxisAlignment.end,
-                  children: [
-                    // BLOC COMPTE / ACHAT (Quantité & PRU)
-                    Column(
+                const SizedBox(width: 12),
+                // Infos
+                Expanded(
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 14),
+                    child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
-                          "${position.quantity.toStringAsFixed(2)} qty",
+                          position.name,
                           style: const TextStyle(
-                            color: textMain,
-                            fontSize: 13,
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
-                        const SizedBox(height: 4),
-                        Text(
-                          "PRU: ${_format(position.pru)}€",
-                          style: const TextStyle(color: textDim, fontSize: 11),
-                        ),
-                      ],
-                    ),
-
-                    // BLOC ESTIMATION LIVE (Valeur Totale, Cours Actuel, Performance)
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.end,
-                      children: [
-                        Text(
-                          "${_format(position.totalValue)} €",
-                          style: const TextStyle(
-                            color: textMain,
-                            fontWeight: FontWeight.w900,
+                            fontWeight: FontWeight.bold,
                             fontSize: 16,
+                            color: Colors.white,
                           ),
+                          maxLines: 2,
+                          overflow: TextOverflow.ellipsis,
                         ),
                         const SizedBox(height: 4),
-                        Row(
-                          children: [
-                            Text(
-                              "Cours: ${_format(position.currentPrice)}€",
-                              style: const TextStyle(
-                                color: textDim,
-                                fontSize: 11,
-                              ),
-                            ),
-                            const SizedBox(width: 8),
-                            Container(
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 8,
-                                vertical: 4,
-                              ),
-                              decoration: BoxDecoration(
-                                color: trendColor.withValues(alpha: 0.15),
-                                borderRadius: BorderRadius.circular(8),
-                              ),
-                              child: Row(
-                                mainAxisSize: MainAxisSize.min,
-                                children: [
-                                  Text(
-                                    "${isProfit ? '+' : ''}${_format(position.latentGain)} €",
-                                    style: TextStyle(
-                                      color: trendColor,
-                                      fontWeight: FontWeight.w900,
-                                      fontSize: 10,
-                                    ),
-                                  ),
-                                  const SizedBox(width: 6),
-                                  Text(
-                                    "${isProfit ? '▲' : '▼'} ${position.performance.toStringAsFixed(1)}%",
-                                    style: TextStyle(
-                                      color: trendColor,
-                                      fontWeight: FontWeight.bold,
-                                      fontSize: 10,
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ),
-                          ],
+                        Text(
+                          "${_format(position.pru)}€ / ${position.quantity.toStringAsFixed(0)}",
+                          style: TextStyle(
+                            fontSize: 13,
+                            color: Colors.white.withValues(alpha: 0.5),
+                          ),
+                        ),
+                        const SizedBox(height: 2),
+                        Text(
+                          "Cours : ${_format(position.currentPrice)}€",
+                          style: TextStyle(
+                            fontSize: 11,
+                            color: Colors.white.withValues(alpha: 0.3),
+                          ),
                         ),
                       ],
                     ),
-                  ],
+                  ),
+                ),
+                // Valeurs et Performance
+                Padding(
+                  padding: const EdgeInsets.only(right: 16, top: 12, bottom: 12),
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    crossAxisAlignment: CrossAxisAlignment.end,
+                    children: [
+                      Text(
+                        currencyFormat.format(position.totalValue),
+                        style: const TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w900,
+                          color: Colors.white,
+                        ),
+                      ),
+                      const SizedBox(height: 4),
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 6,
+                          vertical: 2,
+                        ),
+                        decoration: BoxDecoration(
+                          color: trendColor.withValues(alpha: 0.1),
+                          borderRadius: BorderRadius.circular(6),
+                        ),
+                        child: Text(
+                          "${isProfit ? '+' : ''}${_format(position.latentGain)}€",
+                          style: TextStyle(
+                            color: trendColor,
+                            fontWeight: FontWeight.bold,
+                            fontSize: 10,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
               ],
             ),
