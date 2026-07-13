@@ -94,21 +94,22 @@ class InvestmentService {
 
     // 1. Récupérer la catégorie et l'ancienneté
     if (account.openedAt == null) return account.amount;
-    
-    final ageInYears = DateTime.now().difference(account.openedAt!).inDays / 365.25;
+
+    final ageInYears =
+        DateTime.now().difference(account.openedAt!).inDays / 365.25;
 
     // 2. Rechercher la règle fiscale
     final rule = _fiscalRules.where((r) {
       if (r.investmentCategoryId != account.investmentCategoryId) return false;
-      
+
       // holding_years >= min_holding_years (si renseigné)
       if (ageInYears < r.minHoldingYears) return false;
-      
+
       // holding_years <= max_holding_years (si renseigné)
       if (r.maxHoldingYears != null && ageInYears > r.maxHoldingYears!) {
         return false;
       }
-      
+
       return true;
     }).firstOrNull;
 
@@ -177,14 +178,12 @@ class InvestmentService {
           .eq(InvestmentSourceTable.id, uia.investmentSourceId!)
           .single();
 
-      final categoryId = (source[InvestmentSourceTable.investmentCategoryId] as num).toInt();
+      final categoryId =
+          (source[InvestmentSourceTable.investmentCategoryId] as num).toInt();
       final category = await _supabase
           .from(InvestmentCategoryTable.tableName)
           .select(InvestmentCategoryTable.name)
-          .eq(
-            InvestmentCategoryTable.id,
-            categoryId,
-          )
+          .eq(InvestmentCategoryTable.id, categoryId)
           .single();
 
       final bank = source[BanksTable.tableName] as Map<String, dynamic>;
@@ -285,12 +284,13 @@ class InvestmentService {
         (current[UserInvestmentAccountTable.totalContribution] as num?)
             ?.toDouble() ??
         0.0;
-    final currentOpenedAtStr = current[UserInvestmentAccountTable.openedAt] as String?;
+    final currentOpenedAtStr =
+        current[UserInvestmentAccountTable.openedAt] as String?;
     final currentOpenedAt = currentOpenedAtStr != null
         ? DateTime.tryParse(currentOpenedAtStr)
         : null;
 
-    if (currentCash == cashBalance && 
+    if (currentCash == cashBalance &&
         currentDeposits == cumulativeDeposits &&
         currentOpenedAt == openedAt) {
       return false;
@@ -324,12 +324,17 @@ class InvestmentService {
         item[InvestmentSourceTable.tableName] as Map<String, dynamic>? ?? {};
     final bank = source[BanksTable.tableName] as Map<String, dynamic>? ?? {};
     final category =
-        source[InvestmentCategoryTable.tableName] as Map<String, dynamic>? ?? {};
+        source[InvestmentCategoryTable.tableName] as Map<String, dynamic>? ??
+        {};
 
     return UserInvestmentAccountView(
       id: item[UserInvestmentAccountTable.id] as int,
-      investmentCategoryId: (source[InvestmentSourceTable.investmentCategoryId] as num?)?.toInt() ?? 0,
-      sourceName: (category[InvestmentCategoryTable.name] as String?) ?? 'Compte',
+      investmentCategoryId:
+          (source[InvestmentSourceTable.investmentCategoryId] as num?)
+              ?.toInt() ??
+          0,
+      sourceName:
+          (category[InvestmentCategoryTable.name] as String?) ?? 'Compte',
       bankName: (bank[BanksTable.name] as String?) ?? 'Banque',
       logoUrl: _resolveLogoUrl(bank[BanksTable.icon] as String?),
       totalContribution:
@@ -342,7 +347,9 @@ class InvestmentService {
       amount:
           (item[UserInvestmentAccountTable.amount] as num?)?.toDouble() ?? 0.0,
       openedAt: item[UserInvestmentAccountTable.openedAt] != null
-          ? DateTime.tryParse(item[UserInvestmentAccountTable.openedAt] as String)
+          ? DateTime.tryParse(
+              item[UserInvestmentAccountTable.openedAt] as String,
+            )
           : null,
     );
   }

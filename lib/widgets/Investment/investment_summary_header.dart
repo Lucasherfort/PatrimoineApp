@@ -12,7 +12,8 @@ class InvestmentSummaryHeader extends StatelessWidget {
     double newCashBalance,
     double newCumulativeDeposits,
     DateTime? newOpenedAt,
-  )? onValueUpdated;
+  )?
+  onValueUpdated;
 
   const InvestmentSummaryHeader({
     super.key,
@@ -72,10 +73,9 @@ class InvestmentSummaryHeader extends StatelessWidget {
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final isProfit = totalProfitLoss >= 0;
-    final statusColor =
-        isProfit
-            ? (isDark ? colorGreenFlash : colorGreenDark)
-            : (isDark ? colorOrangeLogo : colorOrangeDark);
+    final statusColor = isProfit
+        ? (isDark ? colorGreenFlash : colorGreenDark)
+        : (isDark ? colorOrangeLogo : colorOrangeDark);
     final mainTextColor = isDark ? Colors.white : const Color(0xFF0F172A);
 
     return Container(
@@ -89,7 +89,9 @@ class InvestmentSummaryHeader extends StatelessWidget {
                 ? "VALEUR NETTE ESTIMÉE"
                 : "VALEUR TOTALE ESTIMÉE",
             style: TextStyle(
-              color: isDark ? Colors.white.withValues(alpha: 0.4) : Colors.black45,
+              color: isDark
+                  ? Colors.white.withValues(alpha: 0.4)
+                  : Colors.black45,
               fontSize: 11,
               fontWeight: FontWeight.w700,
               letterSpacing: 1.5,
@@ -208,11 +210,7 @@ class InvestmentSummaryHeader extends StatelessWidget {
     );
   }
 
-  Widget _buildMetricItem(
-    BuildContext context,
-    String label,
-    String value,
-  ) {
+  Widget _buildMetricItem(BuildContext context, String label, String value) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     return Column(
       mainAxisSize: MainAxisSize.min,
@@ -220,7 +218,9 @@ class InvestmentSummaryHeader extends StatelessWidget {
         Text(
           label,
           style: TextStyle(
-            color: isDark ? Colors.white.withValues(alpha: 0.3) : Colors.black38,
+            color: isDark
+                ? Colors.white.withValues(alpha: 0.3)
+                : Colors.black38,
             fontSize: 10,
             fontWeight: FontWeight.w600,
             letterSpacing: 1.0,
@@ -261,7 +261,9 @@ class InvestmentSummaryHeader extends StatelessWidget {
           return Container(
             decoration: BoxDecoration(
               color: theme.cardColor,
-              borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
+              borderRadius: const BorderRadius.vertical(
+                top: Radius.circular(28),
+              ),
             ),
             padding: EdgeInsets.only(
               left: 24,
@@ -356,14 +358,18 @@ class InvestmentSummaryHeader extends StatelessWidget {
                               Text(
                                 "Date d'ouverture",
                                 style: TextStyle(
-                                  color: isDark ? Colors.white38 : Colors.black45,
+                                  color: isDark
+                                      ? Colors.white38
+                                      : Colors.black45,
                                   fontSize: 12,
                                 ),
                               ),
                               Text(
                                 selectedDate != null
-                                    ? DateFormat('dd MMMM yyyy', 'fr_FR')
-                                        .format(selectedDate!)
+                                    ? DateFormat(
+                                        'dd MMMM yyyy',
+                                        'fr_FR',
+                                      ).format(selectedDate!)
                                     : "Non renseignée",
                                 style: TextStyle(
                                   color: theme.textTheme.bodyLarge?.color,

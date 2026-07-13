@@ -22,7 +22,8 @@ class ApplicationFiscality {
       minHoldingYears: map['min_holding_years'] as int,
       maxHoldingYears: map['max_holding_years'] as int?,
       incomeTaxRate: (map['income_tax_rate'] as num).toDouble(),
-      socialContributionRate: (map['social_contribution_rate'] as num).toDouble(),
+      socialContributionRate: (map['social_contribution_rate'] as num)
+          .toDouble(),
     );
   }
 

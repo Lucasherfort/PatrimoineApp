@@ -192,8 +192,9 @@ class _PatrimoineHeaderState extends State<PatrimoineHeader> {
                             color: yieldValue >= 0
                                 ? positiveColor.withValues(alpha: 0.1)
                                 : negativeColor.withValues(alpha: 0.1),
-                            textColor:
-                                yieldValue >= 0 ? positiveColor : negativeColor,
+                            textColor: yieldValue >= 0
+                                ? positiveColor
+                                : negativeColor,
                           ),
                         ),
                       ],

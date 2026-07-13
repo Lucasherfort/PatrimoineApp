@@ -131,11 +131,11 @@ class InvestmentCard extends StatelessWidget {
       bankName: bankName,
       logoUrl: logoUrl,
       totalContribution: totalContribution,
-      cashBalance: 0, 
+      cashBalance: 0,
       amount: totalValue,
       openedAt: openedAt,
     );
-    
+
     final displayValue = InvestmentService().calculateNetValue(tempView);
 
     return Padding(
