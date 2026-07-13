@@ -26,6 +26,7 @@ class InvestmentService {
     ${UserInvestmentAccountTable.totalContribution},
     ${UserInvestmentAccountTable.cashBalance},
     ${UserInvestmentAccountTable.amount},
+    ${UserInvestmentAccountTable.openedAt},
     ${InvestmentSourceTable.tableName} (
       ${InvestmentSourceTable.id},
       ${InvestmentSourceTable.bankId},
@@ -132,6 +133,7 @@ class InvestmentService {
           totalContribution: uia.cumulativeDeposits,
           cashBalance: uia.cashBalance,
           amount: totalAmount,
+          openedAt: uia.openedAt,
         ),
       );
     }
@@ -199,11 +201,12 @@ class InvestmentService {
     required int userInvestmentAccountId,
     required double cashBalance,
     required double cumulativeDeposits,
+    DateTime? openedAt,
   }) async {
     final current = await _supabase
         .from(UserInvestmentAccountTable.tableName)
         .select(
-          '${UserInvestmentAccountTable.cashBalance}, ${UserInvestmentAccountTable.totalContribution}',
+          '${UserInvestmentAccountTable.cashBalance}, ${UserInvestmentAccountTable.totalContribution}, ${UserInvestmentAccountTable.openedAt}',
         )
         .eq(UserInvestmentAccountTable.id, userInvestmentAccountId)
         .single();
@@ -215,8 +218,13 @@ class InvestmentService {
         (current[UserInvestmentAccountTable.totalContribution] as num?)
             ?.toDouble() ??
         0.0;
+    final currentOpenedAt = current[UserInvestmentAccountTable.openedAt] != null
+        ? DateTime.tryParse(current[UserInvestmentAccountTable.openedAt] as String)
+        : null;
 
-    if (currentCash == cashBalance && currentDeposits == cumulativeDeposits) {
+    if (currentCash == cashBalance && 
+        currentDeposits == cumulativeDeposits &&
+        currentOpenedAt == openedAt) {
       return false;
     }
 
@@ -225,6 +233,7 @@ class InvestmentService {
         .update({
           UserInvestmentAccountTable.cashBalance: cashBalance,
           UserInvestmentAccountTable.totalContribution: cumulativeDeposits,
+          UserInvestmentAccountTable.openedAt: openedAt?.toIso8601String(),
           UserInvestmentAccountTable.updatedAt: DateTime.now()
               .toIso8601String(),
         })
@@ -263,6 +272,9 @@ class InvestmentService {
           0.0,
       amount:
           (item[UserInvestmentAccountTable.amount] as num?)?.toDouble() ?? 0.0,
+      openedAt: item[UserInvestmentAccountTable.openedAt] != null
+          ? DateTime.tryParse(item[UserInvestmentAccountTable.openedAt] as String)
+          : null,
     );
   }
 

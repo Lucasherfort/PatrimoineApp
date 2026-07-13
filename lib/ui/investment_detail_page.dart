@@ -220,12 +220,17 @@ class _InvestmentDetailPageState extends State<InvestmentDetailPage> {
     );
   }
 
-  Future<void> _handleValueUpdated(double newCash, double newDeposits) async {
+  Future<void> _handleValueUpdated(
+    double newCash,
+    double newDeposits,
+    DateTime? newOpenedAt,
+  ) async {
     try {
       await _investmentService.updateInvestmentAccount(
         userInvestmentAccountId: widget.userInvestmentAccountId,
         cashBalance: newCash,
         cumulativeDeposits: newDeposits,
+        openedAt: newOpenedAt,
       );
       await _loadPositionsAndAccount();
     } catch (e) {

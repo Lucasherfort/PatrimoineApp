@@ -6,8 +6,11 @@ import '../../models/investments/user_investment_account_view.dart';
 class InvestmentSummaryHeader extends StatelessWidget {
   final UserInvestmentAccountView account;
   final List<InvestmentPosition> positions;
-  final void Function(double newCashBalance, double newCumulativeDeposits)?
-  onValueUpdated;
+  final void Function(
+    double newCashBalance,
+    double newCumulativeDeposits,
+    DateTime? newOpenedAt,
+  )? onValueUpdated;
 
   const InvestmentSummaryHeader({
     super.key,
@@ -166,6 +169,20 @@ class InvestmentSummaryHeader extends StatelessWidget {
                   "VERSEMENTS",
                   "${_formatAmount(account.totalContribution)} €",
                 ),
+                if (account.openedAt != null) ...[
+                  VerticalDivider(
+                    color: isDark
+                        ? Colors.white.withValues(alpha: 0.1)
+                        : Colors.black.withValues(alpha: 0.1),
+                    indent: 8,
+                    endIndent: 8,
+                  ),
+                  _buildMetricItem(
+                    context,
+                    "OUVERTURE",
+                    DateFormat('dd/MM/yy').format(account.openedAt!),
+                  ),
+                ],
               ],
             ),
           ),
@@ -213,94 +230,172 @@ class InvestmentSummaryHeader extends StatelessWidget {
       text: account.totalContribution.toStringAsFixed(2).replaceAll('.', ','),
     );
 
+    DateTime? selectedDate = account.openedAt;
+
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
-      builder: (context) => Container(
-        decoration: BoxDecoration(
-          color: theme.cardColor,
-          borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
-        ),
-        padding: EdgeInsets.only(
-          left: 24,
-          right: 24,
-          top: 12,
-          bottom: MediaQuery.of(context).viewInsets.bottom + 24,
-        ),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Container(
-              width: 40,
-              height: 4,
-              decoration: BoxDecoration(
-                color: isDark ? Colors.white24 : Colors.black12,
-                borderRadius: BorderRadius.circular(2),
-              ),
+      builder: (context) => StatefulBuilder(
+        builder: (context, setModalState) {
+          return Container(
+            decoration: BoxDecoration(
+              color: theme.cardColor,
+              borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
             ),
-            const SizedBox(height: 24),
-            Text(
-              "Ajuster le compte",
-              style: TextStyle(
-                color: theme.textTheme.titleLarge?.color,
-                fontSize: 20,
-                fontWeight: FontWeight.w900,
-              ),
+            padding: EdgeInsets.only(
+              left: 24,
+              right: 24,
+              top: 12,
+              bottom: MediaQuery.of(context).viewInsets.bottom + 24,
             ),
-            const SizedBox(height: 24),
-            if (!isAssuranceVie)
-              _buildModernField(
-                context,
-                cashController,
-                "Espèces disponibles",
-                Icons.account_balance_wallet_outlined,
-              ),
-            const SizedBox(height: 16),
-            _buildModernField(
-              context,
-              depositsController,
-              "Total des versements",
-              Icons.savings_outlined,
-            ),
-            const SizedBox(height: 24),
-            SizedBox(
-              width: double.infinity,
-              height: 54,
-              child: ElevatedButton(
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: colorBlueMain,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(16),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Container(
+                  width: 40,
+                  height: 4,
+                  decoration: BoxDecoration(
+                    color: isDark ? Colors.white24 : Colors.black12,
+                    borderRadius: BorderRadius.circular(2),
                   ),
-                  elevation: 0,
                 ),
-                onPressed: () {
-                  final cash = double.tryParse(
-                    cashController.text.replaceAll(',', '.'),
-                  );
-                  final deposits = double.tryParse(
-                    depositsController.text.replaceAll(',', '.'),
-                  );
-                  if (deposits != null && onValueUpdated != null) {
-                    onValueUpdated!(
-                      isAssuranceVie ? 0.0 : (cash ?? 0.0),
-                      deposits,
-                    );
-                  }
-                  Navigator.pop(context);
-                },
-                child: const Text(
-                  "SAUVEGARDER",
+                const SizedBox(height: 24),
+                Text(
+                  "Ajuster le compte",
                   style: TextStyle(
-                    color: Colors.white,
+                    color: theme.textTheme.titleLarge?.color,
+                    fontSize: 20,
                     fontWeight: FontWeight.w900,
                   ),
                 ),
-              ),
+                const SizedBox(height: 24),
+                if (!isAssuranceVie)
+                  _buildModernField(
+                    context,
+                    cashController,
+                    "Espèces disponibles",
+                    Icons.account_balance_wallet_outlined,
+                  ),
+                const SizedBox(height: 16),
+                _buildModernField(
+                  context,
+                  depositsController,
+                  "Total des versements",
+                  Icons.savings_outlined,
+                ),
+                const SizedBox(height: 16),
+                
+                // Champ Date d'ouverture
+                InkWell(
+                  onTap: () async {
+                    final picked = await showDatePicker(
+                      context: context,
+                      initialDate: selectedDate ?? DateTime.now(),
+                      firstDate: DateTime(1900),
+                      lastDate: DateTime.now(),
+                      builder: (context, child) {
+                        return Theme(
+                          data: theme.copyWith(
+                            colorScheme: theme.colorScheme.copyWith(
+                              primary: colorBlueMain,
+                            ),
+                          ),
+                          child: child!,
+                        );
+                      },
+                    );
+                    if (picked != null) {
+                      setModalState(() => selectedDate = picked);
+                    }
+                  },
+                  borderRadius: BorderRadius.circular(16),
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+                    decoration: BoxDecoration(
+                      color: isDark
+                          ? Colors.white.withValues(alpha: 0.05)
+                          : Colors.black.withValues(alpha: 0.03),
+                      borderRadius: BorderRadius.circular(16),
+                    ),
+                    child: Row(
+                      children: [
+                        const Icon(Icons.calendar_today_rounded, color: colorBlueMain, size: 20),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                "Date d'ouverture",
+                                style: TextStyle(
+                                  color: isDark ? Colors.white38 : Colors.black45,
+                                  fontSize: 12,
+                                ),
+                              ),
+                              Text(
+                                selectedDate != null
+                                    ? DateFormat('dd MMMM yyyy', 'fr_FR').format(selectedDate!)
+                                    : "Non renseignée",
+                                style: TextStyle(
+                                  color: theme.textTheme.bodyLarge?.color,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                        if (selectedDate != null)
+                          IconButton(
+                            icon: const Icon(Icons.close, size: 18),
+                            onPressed: () => setModalState(() => selectedDate = null),
+                          ),
+                      ],
+                    ),
+                  ),
+                ),
+                
+                const SizedBox(height: 32),
+                SizedBox(
+                  width: double.infinity,
+                  height: 54,
+                  child: ElevatedButton(
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: colorBlueMain,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(16),
+                      ),
+                      elevation: 0,
+                    ),
+                    onPressed: () {
+                      final cash = double.tryParse(
+                        cashController.text.replaceAll(',', '.'),
+                      );
+                      final deposits = double.tryParse(
+                        depositsController.text.replaceAll(',', '.'),
+                      );
+                      if (deposits != null && onValueUpdated != null) {
+                        onValueUpdated!(
+                          isAssuranceVie ? 0.0 : (cash ?? 0.0),
+                          deposits,
+                          selectedDate,
+                        );
+                      }
+                      Navigator.pop(context);
+                    },
+                    child: const Text(
+                      "SAUVEGARDER",
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontWeight: FontWeight.w900,
+                      ),
+                    ),
+                  ),
+                ),
+              ],
             ),
-          ],
-        ),
+          );
+        }
       ),
     );
   }

@@ -6,6 +6,7 @@ class UserInvestmentAccountView {
   final double totalContribution; // cumul des versements
   final double cashBalance; // solde espèce
   final double amount; // valeur totale
+  final DateTime? openedAt;
 
   UserInvestmentAccountView({
     required this.id,
@@ -15,6 +16,7 @@ class UserInvestmentAccountView {
     required this.totalContribution,
     required this.cashBalance,
     required this.amount,
+    this.openedAt,
   });
 
   // Vérifie si c'est une Assurance Vie (pas d'espèces)
