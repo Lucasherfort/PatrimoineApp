@@ -316,11 +316,13 @@ class InvestmentSummaryHeader extends StatelessWidget {
                       initialDate: selectedDate ?? DateTime.now(),
                       firstDate: DateTime(1900),
                       lastDate: DateTime.now(),
+                      locale: const Locale('fr', 'FR'),
                       builder: (context, child) {
                         return Theme(
                           data: theme.copyWith(
                             colorScheme: theme.colorScheme.copyWith(
                               primary: colorBlueMain,
+                              onPrimary: Colors.white,
                             ),
                           ),
                           child: child!,

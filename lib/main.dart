@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:intl/date_symbol_data_local.dart';
 import 'package:intl/intl.dart';
@@ -40,6 +41,15 @@ class PatrimoineApp extends StatelessWidget {
           title: 'Patrimoine App',
           debugShowCheckedModeBanner: false,
           themeMode: ThemeManager().themeMode,
+          localizationsDelegates: const [
+            GlobalMaterialLocalizations.delegate,
+            GlobalWidgetsLocalizations.delegate,
+            GlobalCupertinoLocalizations.delegate,
+          ],
+          supportedLocales: const [
+            Locale('fr', 'FR'),
+          ],
+          locale: const Locale('fr', 'FR'),
           // Thème Clair
           theme: ThemeData(
             brightness: Brightness.light,
