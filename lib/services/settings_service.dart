@@ -9,6 +9,7 @@ class SettingsService {
   SettingsService._internal();
 
   static const _keyThemeMode = 'theme_mode';
+  static const _keyDisplayNetWealth = 'display_net_wealth';
 
   Future<AppThemeMode> getThemeMode() async {
     final prefs = await SharedPreferences.getInstance();
@@ -22,6 +23,16 @@ class SettingsService {
   Future<void> setThemeMode(AppThemeMode mode) async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setString(_keyThemeMode, mode.name);
+  }
+
+  Future<bool> getDisplayNetWealth() async {
+    final prefs = await SharedPreferences.getInstance();
+    return prefs.getBool(_keyDisplayNetWealth) ?? false;
+  }
+
+  Future<void> setDisplayNetWealth(bool value) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setBool(_keyDisplayNetWealth, value);
   }
 
   ThemeMode mapToThemeMode(AppThemeMode mode) {
