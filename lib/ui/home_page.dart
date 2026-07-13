@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../services/patrimoine_service.dart';
+import '../services/theme_manager.dart';
 import '../widgets/Investment/investment_list.dart';
 import '../widgets/Savings/savings_account_list.dart';
 import '../widgets/patrimoine/add_patrimoine_wizard.dart';
@@ -36,6 +37,13 @@ class HomePageState extends State<HomePage> {
   void initState() {
     super.initState();
     _loadPatrimoine();
+    ThemeManager().addListener(_loadPatrimoine);
+  }
+
+  @override
+  void dispose() {
+    ThemeManager().removeListener(_loadPatrimoine);
+    super.dispose();
   }
 
   Future<void> openAddPatrimoinePanel() async {

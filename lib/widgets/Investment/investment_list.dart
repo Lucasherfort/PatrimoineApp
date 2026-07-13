@@ -134,11 +134,13 @@ class _InvestmentListState extends State<InvestmentList> {
             ...accounts.map(
               (account) => InvestmentCard(
                 userInvestmentAccountId: account.id,
+                investmentCategoryId: account.investmentCategoryId,
                 type: account.sourceName,
                 bankName: account.bankName,
                 logoUrl: account.logoUrl,
                 totalValue: account.amount,
                 totalContribution: account.totalContribution,
+                openedAt: account.openedAt,
                 onTap: widget.onAccountUpdated,
                 onDelete: () => _deleteAccount(account.id),
               ),

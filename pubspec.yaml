@@ -2,13 +2,15 @@ name: patrimoine360
 description: "A new Flutter project."
 publish_to: 'none'
 
-version: 2.1.0+1
+version: 2.1.1+1
 
 environment:
   sdk: ^3.10.4
 
 dependencies:
   flutter:
+    sdk: flutter
+  flutter_localizations:
     sdk: flutter
 
   http: ^1.1.0
