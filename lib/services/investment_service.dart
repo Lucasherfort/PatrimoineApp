@@ -92,41 +92,48 @@ class InvestmentService {
   double calculateNetValue(UserInvestmentAccountView account) {
     if (!ThemeManager().displayNetWealth) return account.amount;
 
-    // 1. Récupérer la catégorie et l'ancienneté
-    if (account.openedAt == null) return account.amount;
+    final gains = account.amount - account.totalContribution;
+    if (gains <= 0) return account.amount;
+
+    final taxRate = getCurrentTaxRate(account);
+    return account.amount - (gains * taxRate);
+  }
+
+  double getCurrentTaxRate(UserInvestmentAccountView account) {
+    if (account.openedAt == null) return 0.30;
 
     final ageInYears =
         DateTime.now().difference(account.openedAt!).inDays / 365.25;
 
-    // 2. Rechercher la règle fiscale
     final rule = _fiscalRules.where((r) {
       if (r.investmentCategoryId != account.investmentCategoryId) return false;
-
-      // holding_years >= min_holding_years (si renseigné)
       if (ageInYears < r.minHoldingYears) return false;
-
-      // holding_years <= max_holding_years (si renseigné)
       if (r.maxHoldingYears != null && ageInYears > r.maxHoldingYears!) {
         return false;
       }
-
       return true;
     }).firstOrNull;
 
-    if (rule == null) return account.amount;
+    if (rule == null) return 0.30; // Défaut Flat Tax (30%)
+    return rule.incomeTaxRate + rule.socialContributionRate;
+  }
 
-    // 3. Calcul de la plus-value
-    final plusValue = account.amount - account.totalContribution;
+  bool isTaxAdvantageAcquired(UserInvestmentAccountView account) {
+    if (account.openedAt == null) return false;
 
-    if (plusValue <= 0) {
-      return account.amount;
-    }
+    final ageInYears =
+        DateTime.now().difference(account.openedAt!).inDays / 365.25;
 
-    // 4. Calcul de la fiscalité
-    final fiscalityRate = rule.incomeTaxRate + rule.socialContributionRate;
-    final taxAmount = plusValue * fiscalityRate;
+    final rules = _fiscalRules
+        .where((r) => r.investmentCategoryId == account.investmentCategoryId)
+        .toList();
+    if (rules.isEmpty) return false;
 
-    return account.amount - taxAmount;
+    // Trier par ancienneté requise décroissante pour trouver le "meilleur" avantage
+    rules.sort((a, b) => b.minHoldingYears.compareTo(a.minHoldingYears));
+    final bestRule = rules.first;
+
+    return ageInYears >= bestRule.minHoldingYears;
   }
 
   // ─── Lecture ────────────────────────────────────────────────────────────────

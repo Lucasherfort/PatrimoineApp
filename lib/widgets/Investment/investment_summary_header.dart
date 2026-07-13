@@ -78,6 +78,10 @@ class InvestmentSummaryHeader extends StatelessWidget {
         : (isDark ? colorOrangeLogo : colorOrangeDark);
     final mainTextColor = isDark ? Colors.white : const Color(0xFF0F172A);
 
+    final service = InvestmentService();
+    final double taxRate = service.getCurrentTaxRate(account);
+    final bool isAdvantageAcquired = service.isTaxAdvantageAcquired(account);
+
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.symmetric(vertical: 24, horizontal: 20),
@@ -198,8 +202,14 @@ class InvestmentSummaryHeader extends StatelessWidget {
                   Expanded(
                     child: _buildMetricItem(
                       context,
-                      "OUVERTURE",
-                      DateFormat('dd/MM/yy').format(account.openedAt!),
+                      "FISCALITÉ",
+                      "${(taxRate * 100).toStringAsFixed(1)}%",
+                      subtitle: isAdvantageAcquired
+                          ? "AVANTAGE ACQUIS"
+                          : "PLEIN TAUX",
+                      statusColor: isAdvantageAcquired
+                          ? (isDark ? colorGreenFlash : colorGreenDark)
+                          : Colors.orange,
                     ),
                   ),
               ],
@@ -210,7 +220,13 @@ class InvestmentSummaryHeader extends StatelessWidget {
     );
   }
 
-  Widget _buildMetricItem(BuildContext context, String label, String value) {
+  Widget _buildMetricItem(
+    BuildContext context,
+    String label,
+    String value, {
+    String? subtitle,
+    Color? statusColor,
+  }) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     return Column(
       mainAxisSize: MainAxisSize.min,
@@ -235,6 +251,23 @@ class InvestmentSummaryHeader extends StatelessWidget {
             fontWeight: FontWeight.bold,
           ),
         ),
+        if (subtitle != null)
+          Padding(
+            padding: const EdgeInsets.only(top: 2),
+            child: Text(
+              subtitle,
+              style: TextStyle(
+                color:
+                    statusColor ??
+                    (isDark
+                        ? Colors.white.withValues(alpha: 0.2)
+                        : Colors.black26),
+                fontSize: 8,
+                fontWeight: FontWeight.w800,
+                letterSpacing: 0.5,
+              ),
+            ),
+          ),
       ],
     );
   }

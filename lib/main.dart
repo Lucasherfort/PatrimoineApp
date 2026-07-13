@@ -46,9 +46,7 @@ class PatrimoineApp extends StatelessWidget {
             GlobalWidgetsLocalizations.delegate,
             GlobalCupertinoLocalizations.delegate,
           ],
-          supportedLocales: const [
-            Locale('fr', 'FR'),
-          ],
+          supportedLocales: const [Locale('fr', 'FR')],
           locale: const Locale('fr', 'FR'),
           // Thème Clair
           theme: ThemeData(
