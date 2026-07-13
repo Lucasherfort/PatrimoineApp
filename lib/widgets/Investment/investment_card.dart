@@ -1,25 +1,31 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import '../../models/investments/user_investment_account_view.dart';
+import '../../services/investment_service.dart';
 import '../../ui/investment_detail_page.dart';
 
 class InvestmentCard extends StatelessWidget {
   final int userInvestmentAccountId;
+  final int investmentCategoryId; // 👈 Ajouté
   final String type; // PEA / AV / CTO
   final String bankName;
   final String logoUrl;
   final double totalValue;
   final double totalContribution;
+  final DateTime? openedAt;
   final VoidCallback? onTap;
   final VoidCallback? onDelete;
 
   const InvestmentCard({
     super.key,
     required this.userInvestmentAccountId,
+    required this.investmentCategoryId, // 👈 Ajouté
     required this.type,
     required this.bankName,
     required this.logoUrl,
     required this.totalValue,
     required this.totalContribution,
+    this.openedAt,
     this.onTap,
     this.onDelete,
   });
@@ -117,6 +123,21 @@ class InvestmentCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // On recrée une vue temporaire pour le calcul du Net
+    final tempView = UserInvestmentAccountView(
+      id: userInvestmentAccountId,
+      investmentCategoryId: investmentCategoryId,
+      sourceName: type,
+      bankName: bankName,
+      logoUrl: logoUrl,
+      totalContribution: totalContribution,
+      cashBalance: 0, 
+      amount: totalValue,
+      openedAt: openedAt,
+    );
+    
+    final displayValue = InvestmentService().calculateNetValue(tempView);
+
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
       child: InkWell(
@@ -129,6 +150,7 @@ class InvestmentCard extends StatelessWidget {
               transitionDuration: const Duration(milliseconds: 280),
               pageBuilder: (_, _, _) => InvestmentDetailPage(
                 userInvestmentAccountId: userInvestmentAccountId,
+                investmentCategoryId: investmentCategoryId,
                 accountName: type,
                 bankName: bankName,
               ),
@@ -226,7 +248,7 @@ class InvestmentCard extends StatelessWidget {
                 Padding(
                   padding: const EdgeInsets.only(right: 16),
                   child: Text(
-                    _formatAmount(totalValue),
+                    _formatAmount(displayValue),
                     style: TextStyle(
                       fontSize: 17,
                       fontWeight: FontWeight.w900,

@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
 import '../bdd/banks_table.dart';
@@ -7,9 +8,12 @@ import '../bdd/positions_table.dart';
 import '../bdd/storage_buckets.dart';
 import '../bdd/user_investment_account_table.dart';
 import '../bdd/user_investment_position_table.dart';
+import '../bdd/application_fiscality_table.dart';
 import '../models/investment_position.dart';
+import '../models/investments/application_fiscality.dart';
 import '../models/investments/user_investment_account_view.dart';
 import '../models/user_investment_account.dart';
+import 'theme_manager.dart';
 
 class InvestmentService {
   final SupabaseClient _supabase = Supabase.instance.client;
@@ -30,6 +34,7 @@ class InvestmentService {
     ${InvestmentSourceTable.tableName} (
       ${InvestmentSourceTable.id},
       ${InvestmentSourceTable.bankId},
+      ${InvestmentSourceTable.investmentCategoryId},
       ${BanksTable.tableName} (
         ${BanksTable.id},
         ${BanksTable.name},
@@ -65,11 +70,70 @@ class InvestmentService {
     )
   ''';
 
+  // ─── Fiscalité ──────────────────────────────────────────────────────────────
+
+  List<ApplicationFiscality> _fiscalRules = [];
+
+  Future<void> _loadFiscalRules() async {
+    if (_fiscalRules.isNotEmpty) return;
+    try {
+      final response = await _supabase
+          .from(ApplicationFiscalityTable.tableName)
+          .select();
+      _fiscalRules = response
+          .map<ApplicationFiscality>((e) => ApplicationFiscality.fromMap(e))
+          .toList();
+    } catch (e) {
+      debugPrint("Erreur chargement fiscalité: $e");
+    }
+  }
+
+  /// Applique les règles de fiscalité selon le ticket #29
+  double calculateNetValue(UserInvestmentAccountView account) {
+    if (!ThemeManager().displayNetWealth) return account.amount;
+
+    // 1. Récupérer la catégorie et l'ancienneté
+    if (account.openedAt == null) return account.amount;
+    
+    final ageInYears = DateTime.now().difference(account.openedAt!).inDays / 365.25;
+
+    // 2. Rechercher la règle fiscale
+    final rule = _fiscalRules.where((r) {
+      if (r.investmentCategoryId != account.investmentCategoryId) return false;
+      
+      // holding_years >= min_holding_years (si renseigné)
+      if (ageInYears < r.minHoldingYears) return false;
+      
+      // holding_years <= max_holding_years (si renseigné)
+      if (r.maxHoldingYears != null && ageInYears > r.maxHoldingYears!) {
+        return false;
+      }
+      
+      return true;
+    }).firstOrNull;
+
+    if (rule == null) return account.amount;
+
+    // 3. Calcul de la plus-value
+    final plusValue = account.amount - account.totalContribution;
+
+    if (plusValue <= 0) {
+      return account.amount;
+    }
+
+    // 4. Calcul de la fiscalité
+    final fiscalityRate = rule.incomeTaxRate + rule.socialContributionRate;
+    final taxAmount = plusValue * fiscalityRate;
+
+    return account.amount - taxAmount;
+  }
+
   // ─── Lecture ────────────────────────────────────────────────────────────────
 
   Future<List<UserInvestmentAccountView>>
   getInvestmentAccountsForUserWithPrices() async {
     try {
+      await _loadFiscalRules();
       final user = _supabase.auth.currentUser;
       if (user == null) throw Exception('Utilisateur non connecté');
 
@@ -102,6 +166,7 @@ class InvestmentService {
 
   Future<List<UserInvestmentAccountView>>
   getUserInvestmentAccountsView() async {
+    await _loadFiscalRules();
     final uiaList = await getUserInvestmentAccounts();
     final List<UserInvestmentAccountView> views = [];
 
@@ -112,12 +177,13 @@ class InvestmentService {
           .eq(InvestmentSourceTable.id, uia.investmentSourceId!)
           .single();
 
+      final categoryId = (source[InvestmentSourceTable.investmentCategoryId] as num).toInt();
       final category = await _supabase
           .from(InvestmentCategoryTable.tableName)
           .select(InvestmentCategoryTable.name)
           .eq(
             InvestmentCategoryTable.id,
-            source[InvestmentSourceTable.investmentCategoryId],
+            categoryId,
           )
           .single();
 
@@ -127,6 +193,7 @@ class InvestmentService {
       views.add(
         UserInvestmentAccountView(
           id: uia.id,
+          investmentCategoryId: categoryId,
           sourceName: category[InvestmentCategoryTable.name] as String,
           bankName: bank[BanksTable.name] as String,
           logoUrl: _resolveLogoUrl(bank[BanksTable.icon] as String?),
@@ -170,10 +237,10 @@ class InvestmentService {
 
   /// Calcule la valeur totale des investissements d'un utilisateur ✅
   Future<double> getTotalPortfolioValue() async {
-    final accounts = await getUserInvestmentAccounts();
+    final accounts = await getUserInvestmentAccountsView();
     double total = 0.0;
     for (final account in accounts) {
-      total += await getTotalValueOfInvestmentAccount(account);
+      total += calculateNetValue(account);
     }
     return total;
   }
@@ -218,8 +285,9 @@ class InvestmentService {
         (current[UserInvestmentAccountTable.totalContribution] as num?)
             ?.toDouble() ??
         0.0;
-    final currentOpenedAt = current[UserInvestmentAccountTable.openedAt] != null
-        ? DateTime.tryParse(current[UserInvestmentAccountTable.openedAt] as String)
+    final currentOpenedAtStr = current[UserInvestmentAccountTable.openedAt] as String?;
+    final currentOpenedAt = currentOpenedAtStr != null
+        ? DateTime.tryParse(currentOpenedAtStr)
         : null;
 
     if (currentCash == cashBalance && 
@@ -253,15 +321,16 @@ class InvestmentService {
 
   UserInvestmentAccountView _mapToAccountView(Map<String, dynamic> item) {
     final source =
-        item[InvestmentSourceTable.tableName] as Map<String, dynamic>;
-    final bank = source[BanksTable.tableName] as Map<String, dynamic>;
+        item[InvestmentSourceTable.tableName] as Map<String, dynamic>? ?? {};
+    final bank = source[BanksTable.tableName] as Map<String, dynamic>? ?? {};
     final category =
-        source[InvestmentCategoryTable.tableName] as Map<String, dynamic>;
+        source[InvestmentCategoryTable.tableName] as Map<String, dynamic>? ?? {};
 
     return UserInvestmentAccountView(
       id: item[UserInvestmentAccountTable.id] as int,
-      sourceName: category[InvestmentCategoryTable.name] as String,
-      bankName: bank[BanksTable.name] as String,
+      investmentCategoryId: (source[InvestmentSourceTable.investmentCategoryId] as num?)?.toInt() ?? 0,
+      sourceName: (category[InvestmentCategoryTable.name] as String?) ?? 'Compte',
+      bankName: (bank[BanksTable.name] as String?) ?? 'Banque',
       logoUrl: _resolveLogoUrl(bank[BanksTable.icon] as String?),
       totalContribution:
           (item[UserInvestmentAccountTable.totalContribution] as num?)

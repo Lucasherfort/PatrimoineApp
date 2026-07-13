@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import '../../models/investment_position.dart';
 import '../../models/investments/user_investment_account_view.dart';
+import '../../services/investment_service.dart';
+import '../../services/theme_manager.dart';
 
 class InvestmentSummaryHeader extends StatelessWidget {
   final UserInvestmentAccountView account;
@@ -40,10 +42,28 @@ class InvestmentSummaryHeader extends StatelessWidget {
       positions.fold(0.0, (sum, pos) => sum + pos.totalValue);
   double get totalValue =>
       isAssuranceVie ? positionsValue : account.cashBalance + positionsValue;
-  double get totalProfitLoss => totalValue - account.totalContribution;
+
+  double get displayedValue {
+    final service = InvestmentService();
+    // On met à jour l'objet pour le calcul sans modifier l'original par sécurité
+    final tempView = UserInvestmentAccountView(
+      id: account.id,
+      investmentCategoryId: account.investmentCategoryId,
+      sourceName: account.sourceName,
+      bankName: account.bankName,
+      logoUrl: account.logoUrl,
+      totalContribution: account.totalContribution,
+      cashBalance: account.cashBalance,
+      amount: totalValue,
+      openedAt: account.openedAt,
+    );
+    return service.calculateNetValue(tempView);
+  }
+
+  double get totalProfitLoss => displayedValue - account.totalContribution;
   double get performancePercentage {
     if (account.totalContribution <= 0) return 0.0;
-    return ((totalValue - account.totalContribution) /
+    return ((displayedValue - account.totalContribution) /
             account.totalContribution) *
         100;
   }
@@ -52,9 +72,10 @@ class InvestmentSummaryHeader extends StatelessWidget {
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final isProfit = totalProfitLoss >= 0;
-    final statusColor = isProfit
-        ? (isDark ? colorGreenFlash : colorGreenDark)
-        : (isDark ? colorOrangeLogo : colorOrangeDark);
+    final statusColor =
+        isProfit
+            ? (isDark ? colorGreenFlash : colorGreenDark)
+            : (isDark ? colorOrangeLogo : colorOrangeDark);
     final mainTextColor = isDark ? Colors.white : const Color(0xFF0F172A);
 
     return Container(
@@ -64,11 +85,11 @@ class InvestmentSummaryHeader extends StatelessWidget {
         children: [
           // Titre discret
           Text(
-            "VALEUR TOTALE ESTIMÉE",
+            ThemeManager().displayNetWealth
+                ? "VALEUR NETTE ESTIMÉE"
+                : "VALEUR TOTALE ESTIMÉE",
             style: TextStyle(
-              color: isDark
-                  ? Colors.white.withValues(alpha: 0.4)
-                  : Colors.black45,
+              color: isDark ? Colors.white.withValues(alpha: 0.4) : Colors.black45,
               fontSize: 11,
               fontWeight: FontWeight.w700,
               letterSpacing: 1.5,
@@ -78,7 +99,7 @@ class InvestmentSummaryHeader extends StatelessWidget {
 
           // Montant Principal
           Text(
-            "${_formatAmount(totalValue)} €",
+            "${_formatAmount(displayedValue)} €",
             style: TextStyle(
               fontSize: 38,
               fontWeight: FontWeight.w900,
@@ -145,44 +166,40 @@ class InvestmentSummaryHeader extends StatelessWidget {
 
           const SizedBox(height: 32),
 
-          // Métriques secondaires en ligne épurée
-          IntrinsicHeight(
+          // Métriques secondaires
+          Container(
+            padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 8),
+            decoration: BoxDecoration(
+              color: isDark
+                  ? Colors.white.withValues(alpha: 0.02)
+                  : Colors.black.withValues(alpha: 0.02),
+              borderRadius: BorderRadius.circular(16),
+            ),
             child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
               children: [
-                if (!isAssuranceVie) ...[
-                  _buildMetricItem(
+                if (!isAssuranceVie)
+                  Expanded(
+                    child: _buildMetricItem(
+                      context,
+                      "ESPÈCES",
+                      "${_formatAmount(account.cashBalance)} €",
+                    ),
+                  ),
+                Expanded(
+                  child: _buildMetricItem(
                     context,
-                    "ESPÈCES",
-                    "${_formatAmount(account.cashBalance)} €",
+                    "VERSEMENTS",
+                    "${_formatAmount(account.totalContribution)} €",
                   ),
-                  VerticalDivider(
-                    color: isDark
-                        ? Colors.white.withValues(alpha: 0.1)
-                        : Colors.black.withValues(alpha: 0.1),
-                    indent: 8,
-                    endIndent: 8,
-                  ),
-                ],
-                _buildMetricItem(
-                  context,
-                  "VERSEMENTS",
-                  "${_formatAmount(account.totalContribution)} €",
                 ),
-                if (account.openedAt != null) ...[
-                  VerticalDivider(
-                    color: isDark
-                        ? Colors.white.withValues(alpha: 0.1)
-                        : Colors.black.withValues(alpha: 0.1),
-                    indent: 8,
-                    endIndent: 8,
+                if (account.openedAt != null)
+                  Expanded(
+                    child: _buildMetricItem(
+                      context,
+                      "OUVERTURE",
+                      DateFormat('dd/MM/yy').format(account.openedAt!),
+                    ),
                   ),
-                  _buildMetricItem(
-                    context,
-                    "OUVERTURE",
-                    DateFormat('dd/MM/yy').format(account.openedAt!),
-                  ),
-                ],
               ],
             ),
           ),
@@ -191,16 +208,19 @@ class InvestmentSummaryHeader extends StatelessWidget {
     );
   }
 
-  Widget _buildMetricItem(BuildContext context, String label, String value) {
+  Widget _buildMetricItem(
+    BuildContext context,
+    String label,
+    String value,
+  ) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     return Column(
+      mainAxisSize: MainAxisSize.min,
       children: [
         Text(
           label,
           style: TextStyle(
-            color: isDark
-                ? Colors.white.withValues(alpha: 0.3)
-                : Colors.black38,
+            color: isDark ? Colors.white.withValues(alpha: 0.3) : Colors.black38,
             fontSize: 10,
             fontWeight: FontWeight.w600,
             letterSpacing: 1.0,
@@ -211,7 +231,7 @@ class InvestmentSummaryHeader extends StatelessWidget {
           value,
           style: TextStyle(
             color: isDark ? Colors.white : const Color(0xFF0F172A),
-            fontSize: 15,
+            fontSize: 14,
             fontWeight: FontWeight.bold,
           ),
         ),
@@ -285,8 +305,8 @@ class InvestmentSummaryHeader extends StatelessWidget {
                   Icons.savings_outlined,
                 ),
                 const SizedBox(height: 16),
-                
-                // Champ Date d'ouverture
+
+                // Sélecteur de date d'ouverture
                 InkWell(
                   onTap: () async {
                     final picked = await showDatePicker(
@@ -311,7 +331,10 @@ class InvestmentSummaryHeader extends StatelessWidget {
                   },
                   borderRadius: BorderRadius.circular(16),
                   child: Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 16,
+                      vertical: 16,
+                    ),
                     decoration: BoxDecoration(
                       color: isDark
                           ? Colors.white.withValues(alpha: 0.05)
@@ -320,7 +343,11 @@ class InvestmentSummaryHeader extends StatelessWidget {
                     ),
                     child: Row(
                       children: [
-                        const Icon(Icons.calendar_today_rounded, color: colorBlueMain, size: 20),
+                        const Icon(
+                          Icons.calendar_today_rounded,
+                          color: colorBlueMain,
+                          size: 20,
+                        ),
                         const SizedBox(width: 12),
                         Expanded(
                           child: Column(
@@ -335,7 +362,8 @@ class InvestmentSummaryHeader extends StatelessWidget {
                               ),
                               Text(
                                 selectedDate != null
-                                    ? DateFormat('dd MMMM yyyy', 'fr_FR').format(selectedDate!)
+                                    ? DateFormat('dd MMMM yyyy', 'fr_FR')
+                                        .format(selectedDate!)
                                     : "Non renseignée",
                                 style: TextStyle(
                                   color: theme.textTheme.bodyLarge?.color,
@@ -348,13 +376,14 @@ class InvestmentSummaryHeader extends StatelessWidget {
                         if (selectedDate != null)
                           IconButton(
                             icon: const Icon(Icons.close, size: 18),
-                            onPressed: () => setModalState(() => selectedDate = null),
+                            onPressed: () =>
+                                setModalState(() => selectedDate = null),
                           ),
                       ],
                     ),
                   ),
                 ),
-                
+
                 const SizedBox(height: 32),
                 SizedBox(
                   width: double.infinity,
@@ -395,7 +424,7 @@ class InvestmentSummaryHeader extends StatelessWidget {
               ],
             ),
           );
-        }
+        },
       ),
     );
   }

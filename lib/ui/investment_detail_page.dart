@@ -10,12 +10,14 @@ import '../widgets/position/add_position_dialog.dart';
 
 class InvestmentDetailPage extends StatefulWidget {
   final int userInvestmentAccountId;
+  final int investmentCategoryId; // 👈 Ajouté
   final String accountName;
   final String bankName;
 
   const InvestmentDetailPage({
     super.key,
     required this.userInvestmentAccountId,
+    required this.investmentCategoryId, // 👈 Ajouté
     required this.accountName,
     required this.bankName,
   });
@@ -55,6 +57,7 @@ class _InvestmentDetailPageState extends State<InvestmentDetailPage> {
         (acc) => acc.id == widget.userInvestmentAccountId,
         orElse: () => UserInvestmentAccountView(
           id: widget.userInvestmentAccountId,
+          investmentCategoryId: widget.investmentCategoryId,
           sourceName: widget.accountName,
           bankName: widget.bankName,
           totalContribution: 0,

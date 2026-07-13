@@ -1,18 +1,20 @@
 class UserInvestmentAccountView {
   final int id;
+  final int investmentCategoryId; // 👈 Ajouté pour la fiscalité
   final String sourceName; // PEA ou AV ou CTO
   final String bankName;
-  final String logoUrl; // 👈 Nouveau champ
+  final String logoUrl;
   final double totalContribution; // cumul des versements
   final double cashBalance; // solde espèce
-  final double amount; // valeur totale
+  double amount; // valeur totale
   final DateTime? openedAt;
 
   UserInvestmentAccountView({
     required this.id,
+    required this.investmentCategoryId,
     required this.sourceName,
     required this.bankName,
-    required this.logoUrl, // 👈 Ajouté
+    required this.logoUrl,
     required this.totalContribution,
     required this.cashBalance,
     required this.amount,
