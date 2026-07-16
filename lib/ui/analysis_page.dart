@@ -9,7 +9,9 @@ class AnalysisPage extends StatelessWidget {
     final isDark = theme.brightness == Brightness.dark;
 
     return Scaffold(
-      backgroundColor: isDark ? theme.scaffoldBackgroundColor : const Color(0xFFF8FAFC),
+      backgroundColor: isDark
+          ? theme.scaffoldBackgroundColor
+          : const Color(0xFFF8FAFC),
       body: SafeArea(
         child: SingleChildScrollView(
           padding: const EdgeInsets.all(24),
@@ -20,7 +22,9 @@ class AnalysisPage extends StatelessWidget {
               Text(
                 "ANALYSE",
                 style: TextStyle(
-                  color: isDark ? Colors.white.withOpacity(0.4) : Colors.black45,
+                  color: isDark
+                      ? Colors.white.withOpacity(0.4)
+                      : Colors.black45,
                   fontSize: 11,
                   fontWeight: FontWeight.bold,
                   letterSpacing: 1.2,
@@ -69,7 +73,11 @@ class AnalysisPage extends StatelessWidget {
     );
   }
 
-  Widget _buildPlaceholderCard(BuildContext context, {required String title, required IconData icon}) {
+  Widget _buildPlaceholderCard(
+    BuildContext context, {
+    required String title,
+    required IconData icon,
+  }) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     return Container(
       margin: const EdgeInsets.only(bottom: 16),
@@ -77,7 +85,9 @@ class AnalysisPage extends StatelessWidget {
       decoration: BoxDecoration(
         color: Theme.of(context).cardColor,
         borderRadius: BorderRadius.circular(20),
-        border: isDark ? null : Border.all(color: Colors.black.withOpacity(0.05)),
+        border: isDark
+            ? null
+            : Border.all(color: Colors.black.withOpacity(0.05)),
       ),
       child: Row(
         children: [
@@ -96,7 +106,10 @@ class AnalysisPage extends StatelessWidget {
               children: [
                 Text(
                   title,
-                  style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+                  style: const TextStyle(
+                    fontWeight: FontWeight.bold,
+                    fontSize: 16,
+                  ),
                 ),
                 Text(
                   "Bientôt disponible",

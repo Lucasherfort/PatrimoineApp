@@ -51,40 +51,26 @@ class _MainNavigationState extends State<MainNavigation> {
     final isDark = theme.brightness == Brightness.dark;
 
     final List<Widget> pages = [
-      HomePage(
-        key: _homeKey,
-        appName: appName,
-        appVersion: appVersion,
-      ),
+      HomePage(key: _homeKey, appName: appName, appVersion: appVersion),
 
       const AnalysisPage(),
 
       const SimulatorsPage(),
 
-      ProfilePage(
-        appVersion: appVersion,
-      ),
+      ProfilePage(appVersion: appVersion),
     ];
 
     return Scaffold(
       backgroundColor: theme.scaffoldBackgroundColor,
 
-      body: IndexedStack(
-        index: _currentIndex,
-        children: pages,
-      ),
+      body: IndexedStack(index: _currentIndex, children: pages),
 
       floatingActionButton: _currentIndex == 0
           ? FloatingActionButton(
-        onPressed: () =>
-            _homeKey.currentState?.openAddPatrimoinePanel(),
-        backgroundColor: colorBlueMain,
-        child: const Icon(
-          Icons.add,
-          color: Colors.white,
-          size: 30,
-        ),
-      )
+              onPressed: () => _homeKey.currentState?.openAddPatrimoinePanel(),
+              backgroundColor: colorBlueMain,
+              child: const Icon(Icons.add, color: Colors.white, size: 30),
+            )
           : null,
 
       bottomNavigationBar: BottomNavigationBar(
@@ -113,7 +99,6 @@ class _MainNavigationState extends State<MainNavigation> {
         unselectedFontSize: 12,
 
         items: const [
-
           BottomNavigationBarItem(
             icon: Icon(Icons.business_center),
             label: 'Patrimoine',
@@ -133,7 +118,6 @@ class _MainNavigationState extends State<MainNavigation> {
             icon: Icon(Icons.settings),
             label: 'Paramètres',
           ),
-
         ],
       ),
     );

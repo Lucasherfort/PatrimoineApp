@@ -10,7 +10,9 @@ class SimulatorsPage extends StatelessWidget {
     final isDark = theme.brightness == Brightness.dark;
 
     return Scaffold(
-      backgroundColor: isDark ? theme.scaffoldBackgroundColor : const Color(0xFFF8FAFC),
+      backgroundColor: isDark
+          ? theme.scaffoldBackgroundColor
+          : const Color(0xFFF8FAFC),
       body: SafeArea(
         child: SingleChildScrollView(
           padding: const EdgeInsets.all(24),
@@ -21,7 +23,9 @@ class SimulatorsPage extends StatelessWidget {
               Text(
                 "SIMULATEURS",
                 style: TextStyle(
-                  color: isDark ? Colors.white.withOpacity(0.4) : Colors.black45,
+                  color: isDark
+                      ? Colors.white.withOpacity(0.4)
+                      : Colors.black45,
                   fontSize: 11,
                   fontWeight: FontWeight.bold,
                   letterSpacing: 1.2,
@@ -46,7 +50,9 @@ class SimulatorsPage extends StatelessWidget {
                 onTap: () {
                   Navigator.push(
                     context,
-                    MaterialPageRoute(builder: (_) => const RealEstateSimulatorPage()),
+                    MaterialPageRoute(
+                      builder: (_) => const RealEstateSimulatorPage(),
+                    ),
                   );
                 },
               ),
@@ -92,7 +98,9 @@ class SimulatorsPage extends StatelessWidget {
       decoration: BoxDecoration(
         color: Theme.of(context).cardColor,
         borderRadius: BorderRadius.circular(20),
-        border: isDark ? null : Border.all(color: Colors.black.withOpacity(0.05)),
+        border: isDark
+            ? null
+            : Border.all(color: Colors.black.withOpacity(0.05)),
       ),
       child: ListTile(
         contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
@@ -107,7 +115,9 @@ class SimulatorsPage extends StatelessWidget {
           ),
           child: Icon(
             icon,
-            color: isPlaceholder ? (isDark ? Colors.white24 : Colors.black26) : const Color(0xFF0D71EE),
+            color: isPlaceholder
+                ? (isDark ? Colors.white24 : Colors.black26)
+                : const Color(0xFF0D71EE),
             size: 24,
           ),
         ),
@@ -116,7 +126,9 @@ class SimulatorsPage extends StatelessWidget {
           style: TextStyle(
             fontWeight: FontWeight.bold,
             fontSize: 16,
-            color: isPlaceholder ? (isDark ? Colors.white38 : Colors.black38) : null,
+            color: isPlaceholder
+                ? (isDark ? Colors.white38 : Colors.black38)
+                : null,
           ),
         ),
         subtitle: Text(
