@@ -4,9 +4,13 @@ import '../bdd/patrimoine_category_table.dart';
 import '../bdd/user_investment_account_table.dart';
 import '../bdd/user_liquidity_account_table.dart';
 import '../bdd/user_savings_account_table.dart';
+import '../models/investments/user_investment_account_view.dart';
 import '../models/patrimoine/patrimoine_category.dart';
+import '../models/patrimoine/patrimonial_indicator.dart';
+import '../models/investments/estimated_gains_result.dart';
 import 'investment_service.dart';
 import 'liquidity_service.dart';
+import 'settings_service.dart';
 
 class PatrimoineService {
   final SupabaseClient _supabase = Supabase.instance.client;
@@ -18,6 +22,7 @@ class PatrimoineService {
   final LiquidityService _liquidityService = LiquidityService();
   final SavingsAccountService _savingsService = SavingsAccountService();
   final InvestmentService _investmentService = InvestmentService();
+  final SettingsService _settingsService = SettingsService();
 
   // ─── Utils ────────────────────────────────────────────────────────────────
 
@@ -146,6 +151,74 @@ class PatrimoineService {
   /// Récupère la valeur totale des investissements d'un utilisateur depuis le service
   Future<double> getTotalPortfolioValue() {
     return _investmentService.getTotalPortfolioValue();
+  }
+
+  /// Récupère le montant total des gains annuels estimés du patrimoine (investissements)
+  Future<double> getEstimatedAnnualInvestmentGains() {
+    return _investmentService.getTotalEstimatedAnnualGains();
+  }
+
+  /// Récupère les détails des gains annuels estimés
+  Future<EstimatedGainsResult> getDetailedEstimatedAnnualGains() {
+    return _investmentService.getDetailedEstimatedAnnualGains();
+  }
+
+  /// Récupère tous les comptes d'investissement avec leurs prix
+  Future<List<UserInvestmentAccountView>>
+  getInvestmentAccountsForUserWithPrices() {
+    return _investmentService.getInvestmentAccountsForUserWithPrices();
+  }
+
+  /// Proxy pour calculer le rendement d'un compte spécifique
+  double? calculateAnnualizedReturnForAccount(UserInvestmentAccountView acc) {
+    return _investmentService.calculateAnnualizedReturn(
+      totalContribution: acc.totalContribution,
+      currentValuation: acc.amount,
+      openedAt: acc.openedAt,
+    );
+  }
+
+  /// Calcule l'indicateur "Point de croisement"
+  /// Gains annuels >= Investissement annuel
+  Future<PatrimonialIndicator> getCrossingPointIndicator() async {
+    final double gains = await getEstimatedAnnualInvestmentGains();
+    final double? monthlyInvestment = await _settingsService
+        .getMonthlyInvestment();
+    final double annualInvestment = (monthlyInvestment ?? 0) * 12;
+
+    final bool isCalculable = annualInvestment > 0;
+    final double progression = isCalculable
+        ? (gains / annualInvestment) * 100
+        : 0;
+
+    return PatrimonialIndicator(
+      name: "Point de croisement",
+      currentValue: gains,
+      targetValue: annualInvestment,
+      progression: progression,
+      isReached: isCalculable && gains >= annualInvestment,
+      isCalculable: isCalculable,
+    );
+  }
+
+  /// Calcule l'indicateur "Chiffre de croisière"
+  /// Gains annuels >= Salaire annuel
+  Future<PatrimonialIndicator> getCruisingSpeedIndicator() async {
+    final double gains = await getEstimatedAnnualInvestmentGains();
+    final double? monthlySalary = await _settingsService.getMonthlyNetSalary();
+    final double annualSalary = (monthlySalary ?? 0) * 12;
+
+    final bool isCalculable = annualSalary > 0;
+    final double progression = isCalculable ? (gains / annualSalary) * 100 : 0;
+
+    return PatrimonialIndicator(
+      name: "Chiffre de croisière",
+      currentValue: gains,
+      targetValue: annualSalary,
+      progression: progression,
+      isReached: isCalculable && gains >= annualSalary,
+      isCalculable: isCalculable,
+    );
   }
 
   /// Calcule le patrimoine net :

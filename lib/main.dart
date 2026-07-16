@@ -8,6 +8,7 @@ import 'package:intl/intl.dart';
 import 'ui/main_navigation.dart';
 import 'ui/login_page.dart';
 import 'services/theme_manager.dart';
+import 'services/financial_profile_manager.dart';
 
 void main() async {
   // 1. Indispensable pour les appels asynchrones au démarrage
@@ -26,6 +27,7 @@ void main() async {
 
   // 4. Initialisation du Theme
   await ThemeManager().init();
+  await FinancialProfileManager().init();
 
   // 5. Blocage de l'orientation en mode portrait
   await SystemChrome.setPreferredOrientations([

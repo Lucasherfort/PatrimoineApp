@@ -1,3 +1,4 @@
+import 'dart:math';
 import 'package:flutter/foundation.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
@@ -12,6 +13,7 @@ import '../bdd/application_fiscality_table.dart';
 import '../models/investment_position.dart';
 import '../models/investments/application_fiscality.dart';
 import '../models/investments/user_investment_account_view.dart';
+import '../models/investments/estimated_gains_result.dart';
 import '../models/user_investment_account.dart';
 import 'theme_manager.dart';
 
@@ -150,10 +152,22 @@ class InvestmentService {
           .select(_selectAccountsWithPrices)
           .eq(UserInvestmentAccountTable.userId, user.id);
 
-      return response
-          .map<UserInvestmentAccountView>(_mapToAccountView)
-          .toList();
+      final List<UserInvestmentAccountView> accounts = [];
+
+      for (var item in response) {
+        final view = _mapToAccountView(item);
+
+        // La colonne 'amount' en base est souvent vide ou pas à jour.
+        // On recalcule la valorisation réelle (Positions + Espèces).
+        final positionsValue = await getPositionsValueForAccount(view.id);
+        view.amount = view.cashBalance + positionsValue;
+
+        accounts.add(view);
+      }
+
+      return accounts;
     } catch (e) {
+      debugPrint('Erreur getInvestmentAccountsForUserWithPrices: $e');
       return [];
     }
   }
@@ -241,6 +255,32 @@ class InvestmentService {
 
   // ─── Calculs ─────────────────────────────────────────────────────────────────
 
+  /// Calcule le rendement annualisé estimé d'un compte d'investissement.
+  /// Formule : (Valorisation actuelle / Montant total versé) ^ (1 / nombre d'années) - 1
+  double? calculateAnnualizedReturn({
+    required double totalContribution,
+    required double currentValuation,
+    required DateTime? openedAt,
+  }) {
+    if (openedAt == null || totalContribution <= 0) return null;
+
+    final now = DateTime.now();
+    final difference = now.difference(openedAt);
+
+    // Si le compte a moins de 1 jour, on ne calcule pas de rendement annualisé significatif
+    if (difference.inDays < 1) return null;
+
+    final years = difference.inDays / 365.25;
+
+    if (currentValuation <= 0) return -1.0; // Perte totale
+
+    try {
+      return pow(currentValuation / totalContribution, 1 / years) - 1;
+    } catch (e) {
+      return null;
+    }
+  }
+
   /// Calcule la valeur totale des investissements d'un utilisateur ✅
   Future<double> getTotalPortfolioValue() async {
     final accounts = await getUserInvestmentAccountsView();
@@ -249,6 +289,51 @@ class InvestmentService {
       total += calculateNetValue(account);
     }
     return total;
+  }
+
+  /// Calcule le montant total des gains annuels estimés du patrimoine.
+  /// Somme(valorisation actuelle * rendement annualisé)
+  Future<EstimatedGainsResult> getDetailedEstimatedAnnualGains() async {
+    final accounts = await getInvestmentAccountsForUserWithPrices();
+    double totalGains = 0.0;
+    int calculableAccounts = 0;
+    bool hasRecentAccounts = false;
+    bool hasMissingDates = false;
+
+    for (final account in accounts) {
+      if (account.openedAt == null) {
+        hasMissingDates = true;
+      } else {
+        final now = DateTime.now();
+        if (now.difference(account.openedAt!).inDays < 1) {
+          hasRecentAccounts = true;
+        }
+      }
+
+      final annualizedReturn = calculateAnnualizedReturn(
+        totalContribution: account.totalContribution,
+        currentValuation: account.amount,
+        openedAt: account.openedAt,
+      );
+
+      if (annualizedReturn != null) {
+        totalGains += account.amount * annualizedReturn;
+        calculableAccounts++;
+      }
+    }
+
+    return EstimatedGainsResult(
+      totalGains: totalGains,
+      totalAccounts: accounts.length,
+      calculableAccounts: calculableAccounts,
+      hasRecentAccounts: hasRecentAccounts,
+      hasMissingDates: hasMissingDates,
+    );
+  }
+
+  Future<double> getTotalEstimatedAnnualGains() async {
+    final result = await getDetailedEstimatedAnnualGains();
+    return result.totalGains;
   }
 
   /// Alias pour getTotalPortfolioValue

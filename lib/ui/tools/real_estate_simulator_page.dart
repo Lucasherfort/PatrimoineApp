@@ -2,6 +2,7 @@ import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import '../../services/patrimoine_service.dart';
+import '../../services/financial_profile_manager.dart';
 
 class RealEstateSimulatorPage extends StatefulWidget {
   const RealEstateSimulatorPage({super.key});
@@ -36,6 +37,8 @@ class _RealEstateSimulatorPageState extends State<RealEstateSimulatorPage> {
   Future<void> _loadPatrimoine() async {
     try {
       final value = await PatrimoineService().getNetPatrimoine();
+      final financialProfile = FinancialProfileManager();
+
       if (mounted) {
         setState(() {
           _netPatrimoine = value;
@@ -43,6 +46,13 @@ class _RealEstateSimulatorPageState extends State<RealEstateSimulatorPage> {
           _downPaymentController.text = (_netPatrimoine * 0.8).toStringAsFixed(
             0,
           );
+
+          // Report du salaire depuis le profil financier si renseigné
+          if (financialProfile.monthlyNetSalary > 0) {
+            _salaryController.text = financialProfile.monthlyNetSalary
+                .toStringAsFixed(0);
+          }
+
           _isLoading = false;
         });
       }

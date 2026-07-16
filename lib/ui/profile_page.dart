@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:patrimoine360/services/settings_service.dart';
 import 'package:patrimoine360/services/theme_manager.dart';
+import 'package:patrimoine360/services/financial_profile_manager.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'login_page.dart';
 
@@ -13,6 +15,32 @@ class ProfilePage extends StatefulWidget {
 }
 
 class _ProfilePageState extends State<ProfilePage> {
+  late TextEditingController _salaryController;
+  late TextEditingController _investmentController;
+
+  @override
+  void initState() {
+    super.initState();
+    final manager = FinancialProfileManager();
+    _salaryController = TextEditingController(
+      text: manager.monthlyNetSalary > 0
+          ? manager.monthlyNetSalary.toString()
+          : '',
+    );
+    _investmentController = TextEditingController(
+      text: manager.monthlyInvestment > 0
+          ? manager.monthlyInvestment.toString()
+          : '',
+    );
+  }
+
+  @override
+  void dispose() {
+    _salaryController.dispose();
+    _investmentController.dispose();
+    super.dispose();
+  }
+
   @override
   Widget build(BuildContext context) {
     const Color colorRed = Color(0xFFFC5555);
@@ -82,6 +110,11 @@ class _ProfilePageState extends State<ProfilePage> {
 
             // --- SECTION APPARENCE ---
             _buildAppearanceSection(context),
+
+            const SizedBox(height: 24),
+
+            // --- SECTION PROFIL FINANCIER ---
+            _buildFinancialProfileSection(context),
 
             const SizedBox(height: 24),
 
@@ -281,6 +314,113 @@ class _ProfilePageState extends State<ProfilePage> {
                 ),
               );
             },
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildFinancialProfileSection(BuildContext context) {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+    final manager = FinancialProfileManager();
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          "PROFIL FINANCIER",
+          style: TextStyle(
+            color: isDark
+                ? Colors.white.withValues(alpha: 0.4)
+                : Colors.black.withValues(alpha: 0.4),
+            fontSize: 11,
+            fontWeight: FontWeight.bold,
+            letterSpacing: 1.2,
+          ),
+        ),
+        const SizedBox(height: 16),
+        Container(
+          padding: const EdgeInsets.all(20),
+          decoration: BoxDecoration(
+            color: theme.cardColor,
+            borderRadius: BorderRadius.circular(20),
+            border: isDark
+                ? null
+                : Border.all(color: Colors.black.withValues(alpha: 0.05)),
+          ),
+          child: Column(
+            children: [
+              _buildNumericField(
+                context,
+                label: "Salaire net mensuel",
+                controller: _salaryController,
+                onChanged: (val) {
+                  final d = double.tryParse(val) ?? 0.0;
+                  manager.setMonthlyNetSalary(d);
+                },
+              ),
+              const SizedBox(height: 20),
+              _buildNumericField(
+                context,
+                label: "Investissement mensuel",
+                controller: _investmentController,
+                onChanged: (val) {
+                  final d = double.tryParse(val) ?? 0.0;
+                  manager.setMonthlyInvestment(d);
+                },
+              ),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildNumericField(
+    BuildContext context, {
+    required String label,
+    required TextEditingController controller,
+    required ValueChanged<String> onChanged,
+  }) {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          label,
+          style: TextStyle(
+            color: isDark ? Colors.white38 : Colors.black38,
+            fontSize: 12,
+            fontWeight: FontWeight.w500,
+          ),
+        ),
+        const SizedBox(height: 8),
+        TextField(
+          controller: controller,
+          keyboardType: const TextInputType.numberWithOptions(decimal: true),
+          inputFormatters: [
+            FilteringTextInputFormatter.allow(RegExp(r'^\d+\.?\d*')),
+          ],
+          onChanged: onChanged,
+          style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+          decoration: InputDecoration(
+            isDense: true,
+            suffixText: "€",
+            suffixStyle: const TextStyle(fontWeight: FontWeight.bold),
+            contentPadding: const EdgeInsets.symmetric(vertical: 8),
+            enabledBorder: UnderlineInputBorder(
+              borderSide: BorderSide(
+                color: isDark
+                    ? Colors.white10
+                    : Colors.black.withValues(alpha: 0.05),
+              ),
+            ),
+            focusedBorder: const UnderlineInputBorder(
+              borderSide: BorderSide(color: Color(0xFF0D71EE)),
+            ),
           ),
         ),
       ],
