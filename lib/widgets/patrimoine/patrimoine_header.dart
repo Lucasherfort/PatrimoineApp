@@ -107,7 +107,7 @@ class _PatrimoineHeaderState extends State<PatrimoineHeader> {
                         decoration: BoxDecoration(
                           color: isDark
                               ? Colors.white12
-                              : Colors.black.withOpacity(0.1),
+                              : Colors.black.withValues(alpha: 0.1),
                           borderRadius: BorderRadius.circular(2),
                         ),
                       ),
@@ -128,8 +128,8 @@ class _PatrimoineHeaderState extends State<PatrimoineHeader> {
                       padding: const EdgeInsets.all(4),
                       decoration: BoxDecoration(
                         color: isDark
-                            ? Colors.white.withOpacity(0.05)
-                            : Colors.black.withOpacity(0.03),
+                            ? Colors.white.withValues(alpha: 0.05)
+                            : Colors.black.withValues(alpha: 0.03),
                         borderRadius: BorderRadius.circular(14),
                       ),
                       child: Row(
@@ -174,7 +174,7 @@ class _PatrimoineHeaderState extends State<PatrimoineHeader> {
                           : "•••• €",
                       icon: Icons.account_balance_wallet_rounded,
                       color: isDark
-                          ? Colors.white.withOpacity(0.03)
+                          ? Colors.white.withValues(alpha: 0.03)
                           : Colors.grey.shade100,
                     ),
                     const SizedBox(height: 12),
@@ -190,8 +190,8 @@ class _PatrimoineHeaderState extends State<PatrimoineHeader> {
                                 : "•• %",
                             icon: Icons.auto_graph_rounded,
                             color: yieldValue >= 0
-                                ? positiveColor.withOpacity(0.1)
-                                : negativeColor.withOpacity(0.1),
+                                ? positiveColor.withValues(alpha: 0.1)
+                                : negativeColor.withValues(alpha: 0.1),
                             textColor: yieldValue >= 0
                                 ? positiveColor
                                 : negativeColor,
@@ -299,12 +299,12 @@ class _PatrimoineHeaderState extends State<PatrimoineHeader> {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: isDark ? Colors.white.withOpacity(0.03) : Colors.white,
+        color: isDark ? Colors.white.withValues(alpha: 0.03) : Colors.white,
         borderRadius: BorderRadius.circular(16),
         border: Border.all(
           color: isDark
-              ? Colors.white.withOpacity(0.05)
-              : Colors.black.withOpacity(0.05),
+              ? Colors.white.withValues(alpha: 0.05)
+              : Colors.black.withValues(alpha: 0.05),
         ),
       ),
       child: Column(
@@ -346,13 +346,13 @@ class _PatrimoineHeaderState extends State<PatrimoineHeader> {
         padding: const EdgeInsets.symmetric(vertical: 10),
         decoration: BoxDecoration(
           color: isSelected
-              ? (isDark ? Colors.white.withOpacity(0.1) : Colors.white)
+              ? (isDark ? Colors.white.withValues(alpha: 0.1) : Colors.white)
               : Colors.transparent,
           borderRadius: BorderRadius.circular(10),
           boxShadow: isSelected && !isDark
               ? [
                   BoxShadow(
-                    color: Colors.black.withOpacity(0.05),
+                    color: Colors.black.withValues(alpha: 0.05),
                     blurRadius: 4,
                     offset: const Offset(0, 2),
                   ),
@@ -397,7 +397,7 @@ class _PatrimoineHeaderState extends State<PatrimoineHeader> {
                 isNet ? "PATRIMOINE NET ESTIMÉ" : "PATRIMOINE BRUT TOTAL",
                 style: TextStyle(
                   color: isDark
-                      ? Colors.white.withOpacity(0.4)
+                      ? Colors.white.withValues(alpha: 0.4)
                       : Colors.black54,
                   fontSize: 11,
                   fontWeight: FontWeight.w700,

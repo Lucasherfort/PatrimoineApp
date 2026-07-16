@@ -24,7 +24,7 @@ class SimulatorsPage extends StatelessWidget {
                 "SIMULATEURS",
                 style: TextStyle(
                   color: isDark
-                      ? Colors.white.withOpacity(0.4)
+                      ? Colors.white.withValues(alpha: 0.4)
                       : Colors.black45,
                   fontSize: 11,
                   fontWeight: FontWeight.bold,
@@ -100,7 +100,7 @@ class SimulatorsPage extends StatelessWidget {
         borderRadius: BorderRadius.circular(20),
         border: isDark
             ? null
-            : Border.all(color: Colors.black.withOpacity(0.05)),
+            : Border.all(color: Colors.black.withValues(alpha: 0.05)),
       ),
       child: ListTile(
         contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
@@ -109,8 +109,10 @@ class SimulatorsPage extends StatelessWidget {
           padding: const EdgeInsets.all(12),
           decoration: BoxDecoration(
             color: isPlaceholder
-                ? (isDark ? Colors.white10 : Colors.black.withOpacity(0.03))
-                : const Color(0xFF0D71EE).withOpacity(0.1),
+                ? (isDark
+                      ? Colors.white10
+                      : Colors.black.withValues(alpha: 0.03))
+                : const Color(0xFF0D71EE).withValues(alpha: 0.1),
             borderRadius: BorderRadius.circular(14),
           ),
           child: Icon(

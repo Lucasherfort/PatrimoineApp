@@ -87,7 +87,7 @@ class _MainNavigationState extends State<MainNavigation> {
         selectedItemColor: colorBlueMain,
 
         unselectedItemColor: isDark
-            ? Colors.white.withOpacity(0.4)
+            ? Colors.white.withValues(alpha: 0.4)
             : Colors.black26,
 
         type: BottomNavigationBarType.fixed,

@@ -3,7 +3,6 @@ import 'package:patrimoine360/services/settings_service.dart';
 import 'package:patrimoine360/services/theme_manager.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'login_page.dart';
-import 'tools/real_estate_simulator_page.dart';
 
 class ProfilePage extends StatefulWidget {
   final String appVersion;
@@ -39,13 +38,13 @@ class _ProfilePageState extends State<ProfilePage> {
                 borderRadius: BorderRadius.circular(24),
                 border: isDark
                     ? null
-                    : Border.all(color: Colors.black.withOpacity(0.05)),
+                    : Border.all(color: Colors.black.withValues(alpha: 0.05)),
               ),
               child: Row(
                 children: [
                   CircleAvatar(
                     radius: 30,
-                    backgroundColor: colorBlue.withOpacity(0.1),
+                    backgroundColor: colorBlue.withValues(alpha: 0.1),
                     child: const Icon(Icons.person, size: 32, color: colorBlue),
                   ),
                   const SizedBox(width: 16),
@@ -108,13 +107,13 @@ class _ProfilePageState extends State<ProfilePage> {
               width: double.infinity,
               child: ElevatedButton.icon(
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: colorRed.withOpacity(0.1),
+                  backgroundColor: colorRed.withValues(alpha: 0.1),
                   foregroundColor: colorRed,
                   padding: const EdgeInsets.symmetric(vertical: 16),
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(16),
                   ),
-                  side: BorderSide(color: colorRed.withOpacity(0.3)),
+                  side: BorderSide(color: colorRed.withValues(alpha: 0.3)),
                   elevation: 0,
                 ),
                 onPressed: () => _handleLogout(context),
@@ -149,15 +148,15 @@ class _ProfilePageState extends State<ProfilePage> {
         borderRadius: BorderRadius.circular(20),
         border: isDark
             ? null
-            : Border.all(color: Colors.black.withOpacity(0.05)),
+            : Border.all(color: Colors.black.withValues(alpha: 0.05)),
       ),
       child: ListTile(
         leading: Container(
           padding: const EdgeInsets.all(8),
           decoration: BoxDecoration(
             color: isDark
-                ? Colors.white.withOpacity(0.05)
-                : Colors.black.withOpacity(0.03),
+                ? Colors.white.withValues(alpha: 0.05)
+                : Colors.black.withValues(alpha: 0.03),
             borderRadius: BorderRadius.circular(12),
           ),
           child: Icon(
@@ -203,8 +202,8 @@ class _ProfilePageState extends State<ProfilePage> {
           "APPARENCE",
           style: TextStyle(
             color: isDark
-                ? Colors.white.withOpacity(0.4)
-                : Colors.black.withOpacity(0.4),
+                ? Colors.white.withValues(alpha: 0.4)
+                : Colors.black.withValues(alpha: 0.4),
             fontSize: 11,
             fontWeight: FontWeight.bold,
             letterSpacing: 1.2,
@@ -218,7 +217,7 @@ class _ProfilePageState extends State<ProfilePage> {
             borderRadius: BorderRadius.circular(20),
             border: isDark
                 ? null
-                : Border.all(color: Colors.black.withOpacity(0.05)),
+                : Border.all(color: Colors.black.withValues(alpha: 0.05)),
           ),
           child: ListenableBuilder(
             listenable: ThemeManager(),
@@ -229,8 +228,8 @@ class _ProfilePageState extends State<ProfilePage> {
                   padding: const EdgeInsets.all(8),
                   decoration: BoxDecoration(
                     color: isDark
-                        ? Colors.white.withOpacity(0.05)
-                        : Colors.black.withOpacity(0.03),
+                        ? Colors.white.withValues(alpha: 0.05)
+                        : Colors.black.withValues(alpha: 0.03),
                     borderRadius: BorderRadius.circular(12),
                   ),
                   child: Icon(
