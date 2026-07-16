@@ -39,13 +39,13 @@ class _ProfilePageState extends State<ProfilePage> {
                 borderRadius: BorderRadius.circular(24),
                 border: isDark
                     ? null
-                    : Border.all(color: Colors.black.withValues(alpha: 0.05)),
+                    : Border.all(color: Colors.black.withOpacity(0.05)),
               ),
               child: Row(
                 children: [
                   CircleAvatar(
                     radius: 30,
-                    backgroundColor: colorBlue.withValues(alpha: 0.1),
+                    backgroundColor: colorBlue.withOpacity(0.1),
                     child: const Icon(Icons.person, size: 32, color: colorBlue),
                   ),
                   const SizedBox(width: 16),
@@ -86,11 +86,6 @@ class _ProfilePageState extends State<ProfilePage> {
 
             const SizedBox(height: 24),
 
-            // --- SECTION OUTILS ---
-            _buildToolSection(context, colorBlue),
-
-            const SizedBox(height: 24),
-
             // --- AUTRES OPTIONS ---
             _buildMenuOption(
               context,
@@ -113,13 +108,13 @@ class _ProfilePageState extends State<ProfilePage> {
               width: double.infinity,
               child: ElevatedButton.icon(
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: colorRed.withValues(alpha: 0.1),
+                  backgroundColor: colorRed.withOpacity(0.1),
                   foregroundColor: colorRed,
                   padding: const EdgeInsets.symmetric(vertical: 16),
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(16),
                   ),
-                  side: BorderSide(color: colorRed.withValues(alpha: 0.3)),
+                  side: BorderSide(color: colorRed.withOpacity(0.3)),
                   elevation: 0,
                 ),
                 onPressed: () => _handleLogout(context),
@@ -154,15 +149,15 @@ class _ProfilePageState extends State<ProfilePage> {
         borderRadius: BorderRadius.circular(20),
         border: isDark
             ? null
-            : Border.all(color: Colors.black.withValues(alpha: 0.05)),
+            : Border.all(color: Colors.black.withOpacity(0.05)),
       ),
       child: ListTile(
         leading: Container(
           padding: const EdgeInsets.all(8),
           decoration: BoxDecoration(
             color: isDark
-                ? Colors.white.withValues(alpha: 0.05)
-                : Colors.black.withValues(alpha: 0.03),
+                ? Colors.white.withOpacity(0.05)
+                : Colors.black.withOpacity(0.03),
             borderRadius: BorderRadius.circular(12),
           ),
           child: Icon(
@@ -208,8 +203,8 @@ class _ProfilePageState extends State<ProfilePage> {
           "APPARENCE",
           style: TextStyle(
             color: isDark
-                ? Colors.white.withValues(alpha: 0.4)
-                : Colors.black.withValues(alpha: 0.4),
+                ? Colors.white.withOpacity(0.4)
+                : Colors.black.withOpacity(0.4),
             fontSize: 11,
             fontWeight: FontWeight.bold,
             letterSpacing: 1.2,
@@ -223,7 +218,7 @@ class _ProfilePageState extends State<ProfilePage> {
             borderRadius: BorderRadius.circular(20),
             border: isDark
                 ? null
-                : Border.all(color: Colors.black.withValues(alpha: 0.05)),
+                : Border.all(color: Colors.black.withOpacity(0.05)),
           ),
           child: ListenableBuilder(
             listenable: ThemeManager(),
@@ -234,8 +229,8 @@ class _ProfilePageState extends State<ProfilePage> {
                   padding: const EdgeInsets.all(8),
                   decoration: BoxDecoration(
                     color: isDark
-                        ? Colors.white.withValues(alpha: 0.05)
-                        : Colors.black.withValues(alpha: 0.03),
+                        ? Colors.white.withOpacity(0.05)
+                        : Colors.black.withOpacity(0.03),
                     borderRadius: BorderRadius.circular(12),
                   ),
                   child: Icon(
@@ -288,42 +283,6 @@ class _ProfilePageState extends State<ProfilePage> {
               );
             },
           ),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildToolSection(BuildContext context, Color colorBlue) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          "OUTILS & SIMULATEURS",
-          style: TextStyle(
-            color: isDark
-                ? Colors.white.withValues(alpha: 0.4)
-                : Colors.black.withValues(alpha: 0.4),
-            fontSize: 11,
-            fontWeight: FontWeight.bold,
-            letterSpacing: 1.2,
-          ),
-        ),
-        const SizedBox(height: 16),
-        _buildMenuOption(
-          context,
-          icon: Icons.home_work,
-          title: "Simulateur Immobilier",
-          subtitle: "Calculez votre capacité d'achat",
-          onTap: () {
-            Navigator.push(
-              context,
-              MaterialPageRoute(
-                builder: (_) => const RealEstateSimulatorPage(),
-              ),
-            );
-          },
         ),
       ],
     );

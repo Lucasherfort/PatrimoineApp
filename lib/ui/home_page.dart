@@ -131,7 +131,7 @@ class HomePageState extends State<HomePage> {
               height: 350,
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
-                color: colorBlueMain.withValues(alpha: isDark ? 0.12 : 0.08),
+                color: colorBlueMain.withOpacity(isDark ? 0.12 : 0.08),
               ),
             ),
           ),
@@ -143,7 +143,7 @@ class HomePageState extends State<HomePage> {
               height: 400,
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
-                color: colorBlueMain.withValues(alpha: isDark ? 0.08 : 0.05),
+                color: colorBlueMain.withOpacity(isDark ? 0.08 : 0.05),
               ),
             ),
           ),
@@ -159,6 +159,7 @@ class HomePageState extends State<HomePage> {
                   portfolioValue: portfolioValue,
                   netWorth: investedCapital,
                   netPatrimoine: netPatrimoine,
+                  hasInvestments: hasInvestmentAccounts,
                 ),
                 Expanded(
                   child: hasAnyAccount
@@ -206,16 +207,16 @@ class HomePageState extends State<HomePage> {
             Icons.account_balance_wallet_outlined,
             size: 60,
             color: isDark
-                ? Colors.white.withValues(alpha: 0.1)
-                : Colors.black.withValues(alpha: 0.1),
+                ? Colors.white.withOpacity(0.1)
+                : Colors.black.withOpacity(0.1),
           ),
           const SizedBox(height: 16),
           Text(
             "Aucun compte disponible",
             style: TextStyle(
               color: isDark
-                  ? Colors.white.withValues(alpha: 0.6)
-                  : const Color(0xFF0F172A).withValues(alpha: 0.6),
+                  ? Colors.white.withOpacity(0.6)
+                  : const Color(0xFF0F172A).withOpacity(0.6),
               fontWeight: FontWeight.bold,
               fontSize: 16,
             ),
@@ -225,8 +226,8 @@ class HomePageState extends State<HomePage> {
             "Utilisez le bouton + pour commencer",
             style: TextStyle(
               color: isDark
-                  ? Colors.white.withValues(alpha: 0.3)
-                  : Colors.black.withValues(alpha: 0.3),
+                  ? Colors.white.withOpacity(0.3)
+                  : Colors.black.withOpacity(0.3),
               fontSize: 13,
             ),
           ),

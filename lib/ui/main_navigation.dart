@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 
 import 'home_page.dart';
+import 'analysis_page.dart';
+import 'simulators_page.dart';
 import 'profile_page.dart';
 
 class MainNavigation extends StatefulWidget {
@@ -55,9 +57,9 @@ class _MainNavigationState extends State<MainNavigation> {
         appVersion: appVersion,
       ),
 
-      //const AnalysisPage(),
+      const AnalysisPage(),
 
-      //const SimulatorsPage(),
+      const SimulatorsPage(),
 
       ProfilePage(
         appVersion: appVersion,
@@ -99,7 +101,7 @@ class _MainNavigationState extends State<MainNavigation> {
         selectedItemColor: colorBlueMain,
 
         unselectedItemColor: isDark
-            ? Colors.white.withValues(alpha: 0.4)
+            ? Colors.white.withOpacity(0.4)
             : Colors.black26,
 
         type: BottomNavigationBarType.fixed,
@@ -113,12 +115,12 @@ class _MainNavigationState extends State<MainNavigation> {
         items: const [
 
           BottomNavigationBarItem(
-            icon: Icon(Icons.leaderboard),
+            icon: Icon(Icons.business_center),
             label: 'Patrimoine',
           ),
 
           BottomNavigationBarItem(
-            icon: Icon(Icons.explore),
+            icon: Icon(Icons.bar_chart),
             label: 'Analyse',
           ),
 
