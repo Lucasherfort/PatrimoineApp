@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 
 import 'home_page.dart';
+import 'analysis_page.dart';
+import 'simulators_page.dart';
 import 'profile_page.dart';
 
 class MainNavigation extends StatefulWidget {
@@ -49,40 +51,26 @@ class _MainNavigationState extends State<MainNavigation> {
     final isDark = theme.brightness == Brightness.dark;
 
     final List<Widget> pages = [
-      HomePage(
-        key: _homeKey,
-        appName: appName,
-        appVersion: appVersion,
-      ),
+      HomePage(key: _homeKey, appName: appName, appVersion: appVersion),
 
-      //const AnalysisPage(),
+      const AnalysisPage(),
 
-      //const SimulatorsPage(),
+      const SimulatorsPage(),
 
-      ProfilePage(
-        appVersion: appVersion,
-      ),
+      ProfilePage(appVersion: appVersion),
     ];
 
     return Scaffold(
       backgroundColor: theme.scaffoldBackgroundColor,
 
-      body: IndexedStack(
-        index: _currentIndex,
-        children: pages,
-      ),
+      body: IndexedStack(index: _currentIndex, children: pages),
 
       floatingActionButton: _currentIndex == 0
           ? FloatingActionButton(
-        onPressed: () =>
-            _homeKey.currentState?.openAddPatrimoinePanel(),
-        backgroundColor: colorBlueMain,
-        child: const Icon(
-          Icons.add,
-          color: Colors.white,
-          size: 30,
-        ),
-      )
+              onPressed: () => _homeKey.currentState?.openAddPatrimoinePanel(),
+              backgroundColor: colorBlueMain,
+              child: const Icon(Icons.add, color: Colors.white, size: 30),
+            )
           : null,
 
       bottomNavigationBar: BottomNavigationBar(
@@ -99,7 +87,7 @@ class _MainNavigationState extends State<MainNavigation> {
         selectedItemColor: colorBlueMain,
 
         unselectedItemColor: isDark
-            ? Colors.white.withValues(alpha: 0.4)
+            ? Colors.white.withOpacity(0.4)
             : Colors.black26,
 
         type: BottomNavigationBarType.fixed,
@@ -111,14 +99,13 @@ class _MainNavigationState extends State<MainNavigation> {
         unselectedFontSize: 12,
 
         items: const [
-
           BottomNavigationBarItem(
-            icon: Icon(Icons.leaderboard),
+            icon: Icon(Icons.business_center),
             label: 'Patrimoine',
           ),
 
           BottomNavigationBarItem(
-            icon: Icon(Icons.explore),
+            icon: Icon(Icons.bar_chart),
             label: 'Analyse',
           ),
 
@@ -131,7 +118,6 @@ class _MainNavigationState extends State<MainNavigation> {
             icon: Icon(Icons.settings),
             label: 'Paramètres',
           ),
-
         ],
       ),
     );
