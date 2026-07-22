@@ -4,6 +4,7 @@ import '../models/investments/user_investment_account_view.dart';
 import '../services/patrimoine_service.dart';
 import '../models/patrimoine/patrimonial_indicator.dart';
 import '../models/investments/estimated_gains_result.dart';
+import '../services/theme_manager.dart';
 
 class AnalysisPage extends StatefulWidget {
   const AnalysisPage({super.key});
@@ -81,138 +82,174 @@ class _AnalysisPageState extends State<AnalysisPage> {
       backgroundColor: isDark
           ? theme.scaffoldBackgroundColor
           : const Color(0xFFF8FAFC),
-      body: SafeArea(
-        child: RefreshIndicator(
-          onRefresh: _loadData,
-          color: Colors.white,
-          backgroundColor: const Color(0xFF0D71EE),
-          child: SingleChildScrollView(
-            physics: const AlwaysScrollableScrollPhysics(),
-            padding: const EdgeInsets.all(24),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const SizedBox(height: 20),
-                Text(
-                  "ANALYSE",
-                  style: TextStyle(
-                    color: isDark
-                        ? Colors.white.withValues(alpha: 0.4)
-                        : Colors.black45,
-                    fontSize: 11,
-                    fontWeight: FontWeight.bold,
-                    letterSpacing: 1.2,
-                  ),
-                ),
-                const SizedBox(height: 8),
-                Text(
-                  "Performances & Projections",
-                  style: TextStyle(
-                    color: isDark ? Colors.white : const Color(0xFF0F172A),
-                    fontSize: 24,
-                    fontWeight: FontWeight.w900,
-                    letterSpacing: -0.5,
-                  ),
-                ),
-                const SizedBox(height: 32),
-
-                // --- CARTE PERFORMANCE ---
-                _buildPerformanceCard(context),
-
-                const SizedBox(height: 32),
-
-                Text(
-                  "PROGRESSION DU PATRIMOINE",
-                  style: TextStyle(
-                    color: isDark
-                        ? Colors.white.withValues(alpha: 0.4)
-                        : Colors.black45,
-                    fontSize: 11,
-                    fontWeight: FontWeight.bold,
-                    letterSpacing: 1.2,
-                  ),
-                ),
-                const SizedBox(height: 16),
-
-                // --- POINT DE CROISEMENT ---
-                if (_crossingPoint != null)
-                  _buildIndicatorCard(
-                    context,
-                    indicator: _crossingPoint!,
-                    icon: Icons.sync_alt,
-                    color: const Color(0xFF0D71EE),
-                    reachedDescription:
-                        "Votre patrimoine génère désormais plus que ce que vous investissez chaque année.",
-                    notReachedDescription:
-                        "Votre patrimoine progresse vers le point où ses gains dépasseront vos investissements annuels.",
-                    targetLabel: "Investissements annuels",
-                    emptyStateMessage:
-                        "Complétez votre profil financier pour calculer votre point de croisement.",
-                  ),
-
-                const SizedBox(height: 16),
-
-                // --- CHIFFRE DE CROISIÈRE ---
-                if (_cruisingSpeed != null)
-                  _buildIndicatorCard(
-                    context,
-                    indicator: _cruisingSpeed!,
-                    icon: Icons.sailing,
-                    color: Colors.purple,
-                    reachedDescription:
-                        "Votre patrimoine génère désormais davantage que votre salaire annuel.",
-                    notReachedDescription:
-                        "Votre patrimoine progresse vers le niveau où ses gains dépasseront votre salaire annuel.",
-                    targetLabel: "Salaire annuel",
-                    emptyStateMessage:
-                        "Complétez votre profil financier pour calculer votre chif fre de croisière.",
-                  ),
-
-                const SizedBox(height: 32),
-
-                // --- PLACEHOLDERS POUR LE FUTUR ---
-                _buildPlaceholderCard(
-                  context,
-                  title: "Fiscalité estimée",
-                  icon: Icons.account_balance_wallet,
-                ),
-                _buildPlaceholderCard(
-                  context,
-                  title: "Projections FIRE",
-                  icon: Icons.local_fire_department,
-                ),
-
-                const SizedBox(height: 32),
-
-                // --- BOUTON DIAGNOSTIC (Si gains à 0) ---
-                if (_estimatedAnnualGains == 0 &&
-                    _investmentAccounts.isNotEmpty)
-                  Center(
-                    child: TextButton.icon(
-                      onPressed: () =>
-                          setState(() => _showDiagnostic = !_showDiagnostic),
-                      icon: Icon(
-                        _showDiagnostic
-                            ? Icons.expand_less
-                            : Icons.troubleshoot,
-                        color: Colors.orangeAccent,
-                      ),
-                      label: Text(
-                        _showDiagnostic
-                            ? "Masquer le diagnostic"
-                            : "Pourquoi mes gains sont à 0€ ?",
-                        style: const TextStyle(color: Colors.orangeAccent),
-                      ),
-                    ),
-                  ),
-
-                if (_showDiagnostic) _buildDiagnosticSection(context),
-
-                const SizedBox(height: 40),
-              ],
+      body: Stack(
+        children: [
+          // --- EFFET DE FOND (Halos) ---
+          Positioned(
+            top: -100,
+            right: -50,
+            child: Container(
+              width: 350,
+              height: 350,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                color: const Color(
+                  0xFF0D71EE,
+                ).withValues(alpha: isDark ? 0.12 : 0.08),
+              ),
             ),
           ),
-        ),
+          Positioned(
+            bottom: 100,
+            left: -100,
+            child: Container(
+              width: 400,
+              height: 400,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                color: const Color(
+                  0xFF0D71EE,
+                ).withValues(alpha: isDark ? 0.08 : 0.05),
+              ),
+            ),
+          ),
+
+          // --- CONTENU PRINCIPAL ---
+          SafeArea(
+            child: RefreshIndicator(
+              onRefresh: _loadData,
+              color: Colors.white,
+              backgroundColor: const Color(0xFF0D71EE),
+              child: SingleChildScrollView(
+                physics: const AlwaysScrollableScrollPhysics(),
+                padding: const EdgeInsets.all(24),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const SizedBox(height: 20),
+                    Text(
+                      "ANALYSE",
+                      style: TextStyle(
+                        color: isDark
+                            ? Colors.white.withValues(alpha: 0.4)
+                            : Colors.black45,
+                        fontSize: 11,
+                        fontWeight: FontWeight.bold,
+                        letterSpacing: 1.2,
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    Text(
+                      "Performances & Projections",
+                      style: TextStyle(
+                        color: isDark ? Colors.white : const Color(0xFF0F172A),
+                        fontSize: 24,
+                        fontWeight: FontWeight.w900,
+                        letterSpacing: -0.5,
+                      ),
+                    ),
+                    const SizedBox(height: 32),
+
+                    // --- CARTE PERFORMANCE ---
+                    _buildPerformanceCard(context),
+
+                    const SizedBox(height: 32),
+
+                    Text(
+                      "PROGRESSION DU PATRIMOINE",
+                      style: TextStyle(
+                        color: isDark
+                            ? Colors.white.withValues(alpha: 0.4)
+                            : Colors.black45,
+                        fontSize: 11,
+                        fontWeight: FontWeight.bold,
+                        letterSpacing: 1.2,
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+
+                    // --- POINT DE CROISEMENT ---
+                    if (_crossingPoint != null)
+                      _buildIndicatorCard(
+                        context,
+                        indicator: _crossingPoint!,
+                        icon: Icons.sync_alt,
+                        color: const Color(0xFF0D71EE),
+                        reachedDescription:
+                            "Votre patrimoine génère désormais plus que ce que vous investissez chaque année.",
+                        notReachedDescription:
+                            "Votre patrimoine progresse vers le point où ses gains dépasseront vos investissements annuels.",
+                        targetLabel: "Investissements annuels",
+                        emptyStateMessage:
+                            "Complétez votre profil financier pour calculer votre point de croisement.",
+                      ),
+
+                    const SizedBox(height: 16),
+
+                    // --- CHIFFRE DE CROISIÈRE ---
+                    if (_cruisingSpeed != null)
+                      _buildIndicatorCard(
+                        context,
+                        indicator: _cruisingSpeed!,
+                        icon: Icons.sailing,
+                        color: Colors.purple,
+                        reachedDescription:
+                            "Votre patrimoine génère désormais davantage que votre salaire annuel.",
+                        notReachedDescription:
+                            "Votre patrimoine progresse vers le niveau où ses gains dépasseront votre salaire annuel.",
+                        targetLabel: "Salaire annuel",
+                        emptyStateMessage:
+                            "Complétez votre profil financier pour calculer votre chiffre de croisière.",
+                      ),
+
+                    const SizedBox(height: 32),
+
+                    // --- PLACEHOLDERS POUR LE FUTUR ---
+                    _buildPlaceholderCard(
+                      context,
+                      title: "Fiscalité estimée",
+                      icon: Icons.account_balance_wallet,
+                    ),
+                    _buildPlaceholderCard(
+                      context,
+                      title: "Projections FIRE",
+                      icon: Icons.local_fire_department,
+                    ),
+
+                    const SizedBox(height: 32),
+
+                    // --- BOUTON DIAGNOSTIC (Si gains à 0) ---
+                    if (_estimatedAnnualGains == 0 &&
+                        _investmentAccounts.isNotEmpty)
+                      Center(
+                        child: TextButton.icon(
+                          onPressed: () => setState(
+                            () => _showDiagnostic = !_showDiagnostic,
+                          ),
+                          icon: Icon(
+                            _showDiagnostic
+                                ? Icons.expand_less
+                                : Icons.troubleshoot,
+                            color: Colors.orangeAccent,
+                          ),
+                          label: Text(
+                            _showDiagnostic
+                                ? "Masquer le diagnostic"
+                                : "Pourquoi mes gains sont à 0€ ?",
+                            style: const TextStyle(color: Colors.orangeAccent),
+                          ),
+                        ),
+                      ),
+
+                    if (_showDiagnostic) _buildDiagnosticSection(context),
+
+                    const SizedBox(height: 40),
+                  ],
+                ),
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -317,6 +354,9 @@ class _AnalysisPageState extends State<AnalysisPage> {
   }
 
   Widget _buildPerformanceCard(BuildContext context) {
+    final isNet = ThemeManager().displayNetWealth;
+    final monthlyGains = _estimatedAnnualGains / 12;
+
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.all(24),
@@ -346,26 +386,55 @@ class _AnalysisPageState extends State<AnalysisPage> {
                 size: 20,
               ),
               const SizedBox(width: 8),
-              Text(
-                "GAINS ANNUELS ESTIMÉS",
-                style: TextStyle(
-                  color: Colors.white.withValues(alpha: 0.7),
-                  fontSize: 11,
-                  fontWeight: FontWeight.bold,
-                  letterSpacing: 1.2,
+              Expanded(
+                child: Text(
+                  isNet
+                      ? "GAINS ANNUELS ESTIMÉS (NETS)"
+                      : "GAINS ANNUELS ESTIMÉS (BRUTS)",
+                  style: TextStyle(
+                    color: Colors.white.withValues(alpha: 0.7),
+                    fontSize: 11,
+                    fontWeight: FontWeight.bold,
+                    letterSpacing: 1.2,
+                  ),
+                  overflow: TextOverflow.ellipsis,
                 ),
               ),
             ],
           ),
           const SizedBox(height: 16),
-          Text(
-            _formatter.format(_estimatedAnnualGains),
-            style: const TextStyle(
-              color: Colors.white,
-              fontSize: 36,
-              fontWeight: FontWeight.w900,
-              letterSpacing: -1,
-            ),
+          Wrap(
+            crossAxisAlignment: WrapCrossAlignment.center,
+            children: [
+              Text(
+                _formatter.format(_estimatedAnnualGains),
+                style: const TextStyle(
+                  color: Colors.white,
+                  fontSize: 36,
+                  fontWeight: FontWeight.w900,
+                  letterSpacing: -1,
+                ),
+              ),
+              const SizedBox(width: 12),
+              Container(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 10,
+                  vertical: 4,
+                ),
+                decoration: BoxDecoration(
+                  color: Colors.white.withValues(alpha: 0.15),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Text(
+                  "${_formatter.format(monthlyGains)} / mois",
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontSize: 14,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ),
+            ],
           ),
           const SizedBox(height: 8),
           Text(
@@ -416,6 +485,7 @@ class _AnalysisPageState extends State<AnalysisPage> {
   }) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final theme = Theme.of(context);
+    final isNet = ThemeManager().displayNetWealth;
 
     return Container(
       padding: const EdgeInsets.all(20),
@@ -523,7 +593,9 @@ class _AnalysisPageState extends State<AnalysisPage> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        "Gains annuels estimés",
+                        isNet
+                            ? "Gains annuels (nets)"
+                            : "Gains annuels (bruts)",
                         style: TextStyle(
                           color: isDark ? Colors.white38 : Colors.black38,
                           fontSize: 11,

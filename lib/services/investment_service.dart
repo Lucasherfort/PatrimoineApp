@@ -300,6 +300,8 @@ class InvestmentService {
     bool hasRecentAccounts = false;
     bool hasMissingDates = false;
 
+    final bool isNet = ThemeManager().displayNetWealth;
+
     for (final account in accounts) {
       if (account.openedAt == null) {
         hasMissingDates = true;
@@ -317,7 +319,15 @@ class InvestmentService {
       );
 
       if (annualizedReturn != null) {
-        totalGains += account.amount * annualizedReturn;
+        double gain = account.amount * annualizedReturn;
+
+        // Si l'utilisateur a choisi l'affichage Net, on retire les taxes
+        if (isNet && gain > 0) {
+          final taxRate = getCurrentTaxRate(account);
+          gain = gain * (1 - taxRate);
+        }
+
+        totalGains += gain;
         calculableAccounts++;
       }
     }
