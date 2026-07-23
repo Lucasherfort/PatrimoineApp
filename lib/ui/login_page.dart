@@ -17,11 +17,13 @@ class _LoginPageState extends State<LoginPage> {
   bool isLoading = false;
   String? errorMessage;
 
-  // Ta palette de couleurs officielle
-  static const Color colorDarkBg = Color(0xFF060B26);
+  // Palette de couleurs pour le thème clair
+  static const Color colorBg = Color(0xFFF8FAFC);
+  static const Color colorTextPrimary = Color(0xFF0F172A);
+  static const Color colorTextSecondary = Color(0xFF64748B);
   static const Color colorBlueMain = Color(0xFF0D71EE);
   static const Color colorBlueSky = Color(0xFF67C6F2);
-  static const Color colorSurface = Color(0xFF1E293B);
+  static const Color colorSurface = Colors.white;
 
   Future<void> _login() async {
     final email = _emailController.text.trim();
@@ -139,179 +141,213 @@ class _LoginPageState extends State<LoginPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: colorDarkBg,
-      body: Container(
-        width: double.infinity,
-        height: double.infinity,
-        decoration: BoxDecoration(
-          // Léger rappel du dégradé en fond pour ne pas avoir un noir plat
-          gradient: RadialGradient(
-            center: const Alignment(-0.8, -0.7),
-            radius: 1.2,
-            colors: [colorBlueMain.withValues(alpha: 0.1), colorDarkBg],
+      backgroundColor: colorBg,
+      body: Stack(
+        children: [
+          // --- EFFET DE FOND (Halos) ---
+          Positioned(
+            top: -100,
+            right: -50,
+            child: Container(
+              width: 350,
+              height: 350,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                color: colorBlueMain.withValues(alpha: 0.08),
+              ),
+            ),
           ),
-        ),
-        child: Center(
-          child: SingleChildScrollView(
-            padding: const EdgeInsets.all(32),
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                // --- LOGO SECTION (ÉPURÉE) ---
-                Column(
-                  children: [
-                    Image.asset(
-                      'assets/icon/patrimoine360.png',
-                      width:
-                          120, // Taille augmentée puisqu'il n'y a plus de container
-                      height: 120,
-                      fit: BoxFit.contain,
-                    ),
-                    const SizedBox(
-                      height: 16,
-                    ), // Espace réduit pour coller au logo
-                    const Text(
-                      'Patrimoine 360',
-                      style: TextStyle(
-                        fontSize: 28,
-                        fontWeight: FontWeight.w900,
-                        color: Colors.white,
-                        letterSpacing: -0.5,
+          Positioned(
+            bottom: -50,
+            left: -100,
+            child: Container(
+              width: 400,
+              height: 400,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                color: colorBlueMain.withValues(alpha: 0.05),
+              ),
+            ),
+          ),
+
+          // --- CONTENU PRINCIPAL ---
+          Center(
+            child: SingleChildScrollView(
+              padding: const EdgeInsets.all(32),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  // --- LOGO SECTION ---
+                  Column(
+                    children: [
+                      Hero(
+                        tag: 'app_logo',
+                        child: Image.asset(
+                          'assets/icon/patrimoine360.png',
+                          width: 120,
+                          height: 120,
+                          fit: BoxFit.contain,
+                        ),
                       ),
-                    ),
-                    Text(
-                      'Gérez votre avenir sereinement',
-                      style: TextStyle(
-                        fontSize: 14,
-                        color: Colors.white.withValues(alpha: 0.5),
+                      const SizedBox(height: 16),
+                      const Text(
+                        'Patrimoine 360',
+                        style: TextStyle(
+                          fontSize: 32,
+                          fontWeight: FontWeight.w900,
+                          color: colorTextPrimary,
+                          letterSpacing: -1.0,
+                        ),
                       ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 48),
-
-                // --- INPUTS ---
-                _buildTextField(
-                  controller: _emailController,
-                  label: 'Email',
-                  icon: Icons.email_outlined,
-                  keyboardType: TextInputType.emailAddress,
-                ),
-                const SizedBox(height: 16),
-                _buildTextField(
-                  controller: _passwordController,
-                  label: 'Mot de passe',
-                  icon: Icons.lock_outline,
-                  isPassword: true,
-                ),
-
-                // --- MOT DE PASSE OUBLIÉ ---
-                Align(
-                  alignment: Alignment.centerRight,
-                  child: TextButton(
-                    onPressed: isLoading ? null : _forgotPassword,
-                    child: Text(
-                      "Mot de passe oublié ?",
-                      style: TextStyle(
-                        color: Colors.white.withValues(alpha: 0.5),
-                        fontSize: 12,
-                        decoration: TextDecoration.underline,
-                      ),
-                    ),
-                  ),
-                ),
-
-                // Message d'erreur
-                if (errorMessage != null)
-                  Padding(
-                    padding: const EdgeInsets.only(top: 16),
-                    child: Text(
-                      errorMessage!,
-                      textAlign: TextAlign.center,
-                      style: const TextStyle(
-                        color: Color(0xFFF87171),
-                        fontSize: 13,
-                      ),
-                    ),
-                  ),
-
-                const SizedBox(height: 32),
-
-                // --- BOUTON CONNEXION (DÉGRADÉ) ---
-                Container(
-                  width: double.infinity,
-                  height: 55,
-                  decoration: BoxDecoration(
-                    gradient: const LinearGradient(
-                      colors: [colorBlueSky, colorBlueMain],
-                      begin: Alignment.topLeft,
-                      end: Alignment.bottomRight,
-                    ),
-                    borderRadius: BorderRadius.circular(16),
-                    boxShadow: [
-                      BoxShadow(
-                        color: colorBlueMain.withValues(alpha: 0.3),
-                        blurRadius: 12,
-                        offset: const Offset(0, 6),
+                      Text(
+                        'Gérez votre avenir sereinement',
+                        style: TextStyle(
+                          fontSize: 15,
+                          color: colorTextSecondary.withValues(alpha: 0.8),
+                          fontWeight: FontWeight.w500,
+                        ),
                       ),
                     ],
                   ),
-                  child: ElevatedButton(
-                    onPressed: isLoading ? null : _login,
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: Colors.transparent,
-                      shadowColor: Colors.transparent,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(16),
+                  const SizedBox(height: 48),
+
+                  // --- INPUTS ---
+                  _buildTextField(
+                    controller: _emailController,
+                    label: 'Email',
+                    icon: Icons.email_outlined,
+                    keyboardType: TextInputType.emailAddress,
+                  ),
+                  const SizedBox(height: 16),
+                  _buildTextField(
+                    controller: _passwordController,
+                    label: 'Mot de passe',
+                    icon: Icons.lock_outline,
+                    isPassword: true,
+                  ),
+
+                  // --- MOT DE PASSE OUBLIÉ ---
+                  Align(
+                    alignment: Alignment.centerRight,
+                    child: TextButton(
+                      onPressed: isLoading ? null : _forgotPassword,
+                      child: const Text(
+                        "Mot de passe oublié ?",
+                        style: TextStyle(
+                          color: colorBlueMain,
+                          fontSize: 13,
+                          fontWeight: FontWeight.w600,
+                        ),
                       ),
                     ),
-                    child: isLoading
-                        ? const SizedBox(
-                            width: 24,
-                            height: 24,
-                            child: CircularProgressIndicator(
-                              color: Colors.white,
-                              strokeWidth: 2,
-                            ),
-                          )
-                        : const Text(
-                            'Se connecter',
-                            style: TextStyle(
-                              fontSize: 16,
-                              fontWeight: FontWeight.bold,
-                              color: Colors.white,
-                            ),
-                          ),
                   ),
-                ),
 
-                const SizedBox(height: 20),
-
-                // --- CRÉATION COMPTE ---
-                TextButton(
-                  onPressed: isLoading ? null : _signup,
-                  child: RichText(
-                    text: TextSpan(
-                      text: "Pas encore de compte ? ",
-                      style: TextStyle(
-                        color: Colors.white.withValues(alpha: 0.6),
-                      ),
-                      children: const [
-                        TextSpan(
-                          text: "S'inscrire",
-                          style: TextStyle(
-                            color: colorBlueSky,
-                            fontWeight: FontWeight.bold,
+                  // Message d'erreur
+                  if (errorMessage != null)
+                    Padding(
+                      padding: const EdgeInsets.only(top: 16),
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                        decoration: BoxDecoration(
+                          color: const Color(0xFFFEF2F2),
+                          borderRadius: BorderRadius.circular(12),
+                          border: Border.all(color: const Color(0xFFFCA5A5).withValues(alpha: 0.5)),
+                        ),
+                        child: Text(
+                          errorMessage!,
+                          textAlign: TextAlign.center,
+                          style: const TextStyle(
+                            color: Color(0xFFB91C1C),
+                            fontSize: 13,
+                            fontWeight: FontWeight.w500,
                           ),
+                        ),
+                      ),
+                    ),
+
+                  const SizedBox(height: 32),
+
+                  // --- BOUTON CONNEXION ---
+                  Container(
+                    width: double.infinity,
+                    height: 56,
+                    decoration: BoxDecoration(
+                      gradient: const LinearGradient(
+                        colors: [colorBlueSky, colorBlueMain],
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
+                      ),
+                      borderRadius: BorderRadius.circular(18),
+                      boxShadow: [
+                        BoxShadow(
+                          color: colorBlueMain.withValues(alpha: 0.25),
+                          blurRadius: 15,
+                          offset: const Offset(0, 8),
                         ),
                       ],
                     ),
+                    child: ElevatedButton(
+                      onPressed: isLoading ? null : _login,
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.transparent,
+                        shadowColor: Colors.transparent,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(18),
+                        ),
+                      ),
+                      child: isLoading
+                          ? const SizedBox(
+                              width: 24,
+                              height: 24,
+                              child: CircularProgressIndicator(
+                                color: Colors.white,
+                                strokeWidth: 2,
+                              ),
+                            )
+                          : const Text(
+                              'Se connecter',
+                              style: TextStyle(
+                                fontSize: 16,
+                                fontWeight: FontWeight.w800,
+                                color: Colors.white,
+                                letterSpacing: 0.5,
+                              ),
+                            ),
+                    ),
                   ),
-                ),
-              ],
+
+                  const SizedBox(height: 24),
+
+                  // --- CRÉATION COMPTE ---
+                  TextButton(
+                    onPressed: isLoading ? null : _signup,
+                    style: TextButton.styleFrom(
+                      padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
+                    ),
+                    child: RichText(
+                      text: TextSpan(
+                        text: "Pas encore de compte ? ",
+                        style: const TextStyle(
+                          color: colorTextSecondary,
+                          fontSize: 14,
+                        ),
+                        children: const [
+                          TextSpan(
+                            text: "S'inscrire",
+                            style: TextStyle(
+                              color: colorBlueMain,
+                              fontWeight: FontWeight.w800,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ],
+              ),
             ),
           ),
-        ),
+        ],
       ),
     );
   }
@@ -324,28 +360,52 @@ class _LoginPageState extends State<LoginPage> {
     bool isPassword = false,
     TextInputType keyboardType = TextInputType.text,
   }) {
-    return TextField(
-      controller: controller,
-      obscureText: isPassword,
-      keyboardType: keyboardType,
-      style: const TextStyle(color: Colors.white),
-      decoration: InputDecoration(
-        prefixIcon: Icon(
-          icon,
-          color: colorBlueSky.withValues(alpha: 0.7),
-          size: 22,
+    return Container(
+      decoration: BoxDecoration(
+        color: colorSurface,
+        borderRadius: BorderRadius.circular(16),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.03),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      child: TextField(
+        controller: controller,
+        obscureText: isPassword,
+        keyboardType: keyboardType,
+        style: const TextStyle(
+          color: colorTextPrimary,
+          fontWeight: FontWeight.w600,
         ),
-        labelText: label,
-        labelStyle: TextStyle(color: Colors.white.withValues(alpha: 0.5)),
-        filled: true,
-        fillColor: colorSurface.withValues(alpha: 0.5),
-        enabledBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(16),
-          borderSide: BorderSide(color: Colors.white.withValues(alpha: 0.1)),
-        ),
-        focusedBorder: OutlineInputBorder(
-          borderRadius: BorderRadius.circular(16),
-          borderSide: const BorderSide(color: colorBlueMain, width: 2),
+        decoration: InputDecoration(
+          prefixIcon: Icon(
+            icon,
+            color: colorBlueMain.withValues(alpha: 0.6),
+            size: 22,
+          ),
+          labelText: label,
+          labelStyle: TextStyle(
+            color: colorTextSecondary.withValues(alpha: 0.7),
+            fontSize: 14,
+          ),
+          floatingLabelStyle: const TextStyle(
+            color: colorBlueMain,
+            fontWeight: FontWeight.bold,
+          ),
+          filled: true,
+          fillColor: colorSurface,
+          enabledBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(16),
+            borderSide: BorderSide(color: Colors.black.withValues(alpha: 0.05)),
+          ),
+          focusedBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(16),
+            borderSide: const BorderSide(color: colorBlueMain, width: 2),
+          ),
+          contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 18),
         ),
       ),
     );
