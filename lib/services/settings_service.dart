@@ -12,7 +12,6 @@ class SettingsService {
   static const _keyDisplayNetWealth = 'display_net_wealth';
   static const _keyMonthlyNetSalary = 'monthly_net_salary';
   static const _keyMonthlyInvestment = 'monthly_investment';
-  static const _keyCurrentAge = 'current_age';
 
   Future<AppThemeMode> getThemeMode() async {
     final prefs = await SharedPreferences.getInstance();
@@ -56,16 +55,6 @@ class SettingsService {
   Future<void> setMonthlyInvestment(double value) async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setDouble(_keyMonthlyInvestment, value);
-  }
-
-  Future<int?> getCurrentAge() async {
-    final prefs = await SharedPreferences.getInstance();
-    return prefs.getInt(_keyCurrentAge);
-  }
-
-  Future<void> setCurrentAge(int value) async {
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setInt(_keyCurrentAge, value);
   }
 
   ThemeMode mapToThemeMode(AppThemeMode mode) {

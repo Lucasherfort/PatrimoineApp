@@ -45,10 +45,12 @@ class _AnalysisPageState extends State<AnalysisPage> {
     if (!mounted) return;
     setState(() => _isLoading = true);
     try {
-      final details = await _patrimoineService.getDetailedEstimatedAnnualGains();
+      final details = await _patrimoineService
+          .getDetailedEstimatedAnnualGains();
       final crossing = await _patrimoineService.getCrossingPointIndicator();
       final cruising = await _patrimoineService.getCruisingSpeedIndicator();
-      final accounts = await _patrimoineService.getInvestmentAccountsForUserWithPrices();
+      final accounts = await _patrimoineService
+          .getInvestmentAccountsForUserWithPrices();
 
       if (mounted) {
         setState(() {
@@ -75,7 +77,9 @@ class _AnalysisPageState extends State<AnalysisPage> {
 
     if (_isLoading) {
       return Scaffold(
-        backgroundColor: isDark ? theme.scaffoldBackgroundColor : const Color(0xFFF8FAFC),
+        backgroundColor: isDark
+            ? theme.scaffoldBackgroundColor
+            : const Color(0xFFF8FAFC),
         body: const Center(
           child: CircularProgressIndicator(color: Color(0xFF0D71EE)),
         ),
@@ -83,7 +87,9 @@ class _AnalysisPageState extends State<AnalysisPage> {
     }
 
     return Scaffold(
-      backgroundColor: isDark ? theme.scaffoldBackgroundColor : const Color(0xFFF8FAFC),
+      backgroundColor: isDark
+          ? theme.scaffoldBackgroundColor
+          : const Color(0xFFF8FAFC),
       body: Stack(
         children: [
           // --- BACKGROUND HALOS ---
@@ -95,7 +101,9 @@ class _AnalysisPageState extends State<AnalysisPage> {
               height: 350,
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
-                color: const Color(0xFF0D71EE).withValues(alpha: isDark ? 0.12 : 0.07),
+                color: const Color(
+                  0xFF0D71EE,
+                ).withValues(alpha: isDark ? 0.12 : 0.07),
               ),
             ),
           ),
@@ -107,7 +115,9 @@ class _AnalysisPageState extends State<AnalysisPage> {
               height: 400,
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
-                color: const Color(0xFF0D71EE).withValues(alpha: isDark ? 0.08 : 0.04),
+                color: const Color(
+                  0xFF0D71EE,
+                ).withValues(alpha: isDark ? 0.08 : 0.04),
               ),
             ),
           ),
@@ -120,7 +130,10 @@ class _AnalysisPageState extends State<AnalysisPage> {
               backgroundColor: const Color(0xFF0D71EE),
               child: SingleChildScrollView(
                 physics: const AlwaysScrollableScrollPhysics(),
-                padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 24,
+                  vertical: 16,
+                ),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
@@ -134,7 +147,9 @@ class _AnalysisPageState extends State<AnalysisPage> {
                             Text(
                               "ANALYSE",
                               style: TextStyle(
-                                color: isDark ? Colors.white.withValues(alpha: 0.4) : Colors.black38,
+                                color: isDark
+                                    ? Colors.white.withValues(alpha: 0.4)
+                                    : Colors.black38,
                                 fontSize: 10,
                                 fontWeight: FontWeight.w900,
                                 letterSpacing: 1.5,
@@ -143,7 +158,9 @@ class _AnalysisPageState extends State<AnalysisPage> {
                             Text(
                               "Performances",
                               style: TextStyle(
-                                color: isDark ? Colors.white : const Color(0xFF0F172A),
+                                color: isDark
+                                    ? Colors.white
+                                    : const Color(0xFF0F172A),
                                 fontSize: 26,
                                 fontWeight: FontWeight.w900,
                                 letterSpacing: -0.8,
@@ -167,14 +184,20 @@ class _AnalysisPageState extends State<AnalysisPage> {
                         Text(
                           "PROJECTION D'INDÉPENDANCE",
                           style: TextStyle(
-                            color: isDark ? Colors.white.withValues(alpha: 0.4) : Colors.black38,
+                            color: isDark
+                                ? Colors.white.withValues(alpha: 0.4)
+                                : Colors.black38,
                             fontSize: 10,
                             fontWeight: FontWeight.w900,
                             letterSpacing: 1.2,
                           ),
                         ),
                         const Spacer(),
-                        Icon(Icons.info_outline_rounded, size: 14, color: isDark ? Colors.white24 : Colors.black12),
+                        Icon(
+                          Icons.info_outline_rounded,
+                          size: 14,
+                          color: isDark ? Colors.white24 : Colors.black12,
+                        ),
                       ],
                     ),
                     const SizedBox(height: 16),
@@ -206,15 +229,27 @@ class _AnalysisPageState extends State<AnalysisPage> {
                     const SizedBox(height: 20),
 
                     // Diagnostic Link (Ultra discreet)
-                    if (_estimatedAnnualGains == 0 && _investmentAccounts.isNotEmpty)
+                    if (_estimatedAnnualGains == 0 &&
+                        _investmentAccounts.isNotEmpty)
                       Center(
                         child: TextButton(
-                          onPressed: () => setState(() => _showDiagnostic = !_showDiagnostic),
-                          style: TextButton.styleFrom(
-                            foregroundColor: Colors.orange.shade400.withValues(alpha: 0.8),
-                            textStyle: const TextStyle(fontSize: 12, fontWeight: FontWeight.bold),
+                          onPressed: () => setState(
+                            () => _showDiagnostic = !_showDiagnostic,
                           ),
-                          child: Text(_showDiagnostic ? "Masquer détails" : "Détails du calcul (0€)"),
+                          style: TextButton.styleFrom(
+                            foregroundColor: Colors.orange.shade400.withValues(
+                              alpha: 0.8,
+                            ),
+                            textStyle: const TextStyle(
+                              fontSize: 12,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                          child: Text(
+                            _showDiagnostic
+                                ? "Masquer détails"
+                                : "Détails du calcul (0€)",
+                          ),
                         ),
                       ),
 
@@ -236,9 +271,13 @@ class _AnalysisPageState extends State<AnalysisPage> {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
       decoration: BoxDecoration(
-        color: isDark ? Colors.white.withValues(alpha: 0.05) : Colors.black.withValues(alpha: 0.03),
+        color: isDark
+            ? Colors.white.withValues(alpha: 0.05)
+            : Colors.black.withValues(alpha: 0.03),
         borderRadius: BorderRadius.circular(100),
-        border: Border.all(color: isDark ? Colors.white12 : Colors.black.withValues(alpha: 0.05)),
+        border: Border.all(
+          color: isDark ? Colors.white12 : Colors.black.withValues(alpha: 0.05),
+        ),
       ),
       child: Row(
         children: [
@@ -273,9 +312,13 @@ class _AnalysisPageState extends State<AnalysisPage> {
       width: double.infinity,
       padding: const EdgeInsets.all(24),
       decoration: BoxDecoration(
-        color: isDark ? Colors.white.withValues(alpha: 0.02) : Colors.white.withValues(alpha: 0.5),
+        color: isDark
+            ? Colors.white.withValues(alpha: 0.02)
+            : Colors.white.withValues(alpha: 0.5),
         borderRadius: BorderRadius.circular(32),
-        border: Border.all(color: isDark ? Colors.white.withValues(alpha: 0.05) : Colors.white),
+        border: Border.all(
+          color: isDark ? Colors.white.withValues(alpha: 0.05) : Colors.white,
+        ),
         boxShadow: [
           BoxShadow(
             color: Colors.black.withValues(alpha: isDark ? 0.2 : 0.03),
@@ -320,7 +363,11 @@ class _AnalysisPageState extends State<AnalysisPage> {
             child: Row(
               mainAxisSize: MainAxisSize.min,
               children: [
-                const Icon(Icons.calendar_today_rounded, size: 12, color: Color(0xFF0D71EE)),
+                const Icon(
+                  Icons.calendar_today_rounded,
+                  size: 12,
+                  color: Color(0xFF0D71EE),
+                ),
                 const SizedBox(width: 8),
                 Text(
                   "Soit ${_formatter.format(_estimatedAnnualGains)} / an",
@@ -339,7 +386,11 @@ class _AnalysisPageState extends State<AnalysisPage> {
               child: Text(
                 _getGainsExplanation(),
                 textAlign: TextAlign.center,
-                style: TextStyle(color: Colors.orange.shade400, fontSize: 11, fontWeight: FontWeight.w600),
+                style: TextStyle(
+                  color: Colors.orange.shade400,
+                  fontSize: 11,
+                  fontWeight: FontWeight.w600,
+                ),
               ),
             ),
         ],
@@ -364,7 +415,9 @@ class _AnalysisPageState extends State<AnalysisPage> {
         color: theme.cardColor,
         borderRadius: BorderRadius.circular(24),
         border: Border.all(
-          color: isDark ? Colors.white.withValues(alpha: 0.05) : Colors.black.withValues(alpha: 0.02),
+          color: isDark
+              ? Colors.white.withValues(alpha: 0.05)
+              : Colors.black.withValues(alpha: 0.02),
         ),
       ),
       child: Column(
@@ -428,8 +481,16 @@ class _AnalysisPageState extends State<AnalysisPage> {
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                _buildValueInfo("Actuel", _formatter.format(indicator.currentValue), isDark),
-                _buildValueInfo("Cible", "${_formatter.format(indicator.targetValue)}/an", isDark),
+                _buildValueInfo(
+                  "Actuel",
+                  _formatter.format(indicator.currentValue),
+                  isDark,
+                ),
+                _buildValueInfo(
+                  "Cible",
+                  "${_formatter.format(indicator.targetValue)}/an",
+                  isDark,
+                ),
               ],
             ),
           ] else
@@ -437,7 +498,11 @@ class _AnalysisPageState extends State<AnalysisPage> {
               padding: const EdgeInsets.only(top: 16),
               child: Text(
                 "Profil financier incomplet dans les paramètres.",
-                style: TextStyle(color: Colors.orange.shade400, fontSize: 11, fontWeight: FontWeight.bold),
+                style: TextStyle(
+                  color: Colors.orange.shade400,
+                  fontSize: 11,
+                  fontWeight: FontWeight.bold,
+                ),
               ),
             ),
         ],
@@ -449,8 +514,22 @@ class _AnalysisPageState extends State<AnalysisPage> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(label, style: TextStyle(color: isDark ? Colors.white24 : Colors.black26, fontSize: 10, fontWeight: FontWeight.bold)),
-        Text(value, style: TextStyle(color: isDark ? Colors.white70 : Colors.black87, fontSize: 13, fontWeight: FontWeight.w800)),
+        Text(
+          label,
+          style: TextStyle(
+            color: isDark ? Colors.white24 : Colors.black26,
+            fontSize: 10,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+        Text(
+          value,
+          style: TextStyle(
+            color: isDark ? Colors.white70 : Colors.black87,
+            fontSize: 13,
+            fontWeight: FontWeight.w800,
+          ),
+        ),
       ],
     );
   }
@@ -458,9 +537,15 @@ class _AnalysisPageState extends State<AnalysisPage> {
   String _getGainsExplanation() {
     if (_gainsDetails == null) return "Calcul en cours...";
     if (_gainsDetails!.totalAccounts == 0) return "Aucun compte détecté.";
-    if (_gainsDetails!.hasMissingDates) return "Vérifiez les dates d'ouverture de vos comptes.";
-    if (_gainsDetails!.hasRecentAccounts) return "Comptes trop récents pour estimer un rendement.";
-    if (_gainsDetails!.calculableAccounts == 0) return "Données historiques insuffisantes.";
+    if (_gainsDetails!.hasMissingDates) {
+      return "Vérifiez les dates d'ouverture de vos comptes.";
+    }
+    if (_gainsDetails!.hasRecentAccounts) {
+      return "Comptes trop récents pour estimer un rendement.";
+    }
+    if (_gainsDetails!.calculableAccounts == 0) {
+      return "Données historiques insuffisantes.";
+    }
     return "Estimation nulle basée sur vos données.";
   }
 
@@ -470,26 +555,49 @@ class _AnalysisPageState extends State<AnalysisPage> {
       margin: const EdgeInsets.only(top: 16),
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: isDark ? Colors.orange.withValues(alpha: 0.05) : Colors.orange.withValues(alpha: 0.02),
+        color: isDark
+            ? Colors.orange.withValues(alpha: 0.05)
+            : Colors.orange.withValues(alpha: 0.02),
         borderRadius: BorderRadius.circular(24),
         border: Border.all(color: Colors.orange.withValues(alpha: 0.1)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text("DIAGNOSTIC TECHNIQUE", style: TextStyle(color: Colors.orange, fontWeight: FontWeight.w900, fontSize: 10, letterSpacing: 1.1)),
+          Text(
+            "DIAGNOSTIC TECHNIQUE",
+            style: TextStyle(
+              color: Colors.orange,
+              fontWeight: FontWeight.w900,
+              fontSize: 10,
+              letterSpacing: 1.1,
+            ),
+          ),
           const SizedBox(height: 16),
           ..._investmentAccounts.map((acc) {
-            final double? ret = _patrimoineService.calculateAnnualizedReturnForAccount(acc);
+            final double? ret = _patrimoineService
+                .calculateAnnualizedReturnForAccount(acc);
             return Padding(
               padding: const EdgeInsets.only(bottom: 8),
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  Text("${acc.bankName} (${acc.sourceName})", style: const TextStyle(fontSize: 11, fontWeight: FontWeight.bold)),
                   Text(
-                    ret != null ? "${(ret * 100).toStringAsFixed(1)}%" : "Bloqué",
-                    style: TextStyle(fontSize: 11, fontWeight: FontWeight.w900, color: ret != null ? Colors.green : Colors.red),
+                    "${acc.bankName} (${acc.sourceName})",
+                    style: const TextStyle(
+                      fontSize: 11,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  Text(
+                    ret != null
+                        ? "${(ret * 100).toStringAsFixed(1)}%"
+                        : "Bloqué",
+                    style: TextStyle(
+                      fontSize: 11,
+                      fontWeight: FontWeight.w900,
+                      color: ret != null ? Colors.green : Colors.red,
+                    ),
                   ),
                 ],
               ),
