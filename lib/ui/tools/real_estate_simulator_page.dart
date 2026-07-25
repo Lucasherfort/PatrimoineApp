@@ -119,6 +119,7 @@ class _RealEstateSimulatorPageState extends State<RealEstateSimulatorPage> {
     return Scaffold(
       backgroundColor: theme.scaffoldBackgroundColor,
       appBar: AppBar(
+        automaticallyImplyLeading: false,
         backgroundColor: theme.cardColor,
         elevation: 0,
         title: Text(
