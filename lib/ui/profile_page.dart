@@ -17,6 +17,7 @@ class ProfilePage extends StatefulWidget {
 class _ProfilePageState extends State<ProfilePage> {
   late TextEditingController _salaryController;
   late TextEditingController _investmentController;
+  late TextEditingController _ageController;
 
   @override
   void initState() {
@@ -32,12 +33,16 @@ class _ProfilePageState extends State<ProfilePage> {
           ? manager.monthlyInvestment.toString()
           : '',
     );
+    _ageController = TextEditingController(
+      text: manager.currentAge > 0 ? manager.currentAge.toString() : '',
+    );
   }
 
   @override
   void dispose() {
     _salaryController.dispose();
     _investmentController.dispose();
+    _ageController.dispose();
     super.dispose();
   }
 
@@ -353,6 +358,17 @@ class _ProfilePageState extends State<ProfilePage> {
             children: [
               _buildNumericField(
                 context,
+                label: "Âge actuel",
+                controller: _ageController,
+                suffix: "ans",
+                onChanged: (val) {
+                  final i = int.tryParse(val) ?? 0;
+                  manager.setCurrentAge(i);
+                },
+              ),
+              const SizedBox(height: 20),
+              _buildNumericField(
+                context,
                 label: "Salaire net mensuel",
                 controller: _salaryController,
                 onChanged: (val) {
@@ -382,6 +398,7 @@ class _ProfilePageState extends State<ProfilePage> {
     required String label,
     required TextEditingController controller,
     required ValueChanged<String> onChanged,
+    String suffix = "€",
   }) {
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
@@ -408,7 +425,7 @@ class _ProfilePageState extends State<ProfilePage> {
           style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
           decoration: InputDecoration(
             isDense: true,
-            suffixText: "€",
+            suffixText: suffix,
             suffixStyle: const TextStyle(fontWeight: FontWeight.bold),
             contentPadding: const EdgeInsets.symmetric(vertical: 8),
             enabledBorder: UnderlineInputBorder(

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'tools/real_estate_simulator_page.dart';
+import 'tools/fire_simulator_page.dart';
 
 class SimulatorsPage extends StatelessWidget {
   const SimulatorsPage({super.key});
@@ -61,7 +62,14 @@ class SimulatorsPage extends StatelessWidget {
                 title: "Retraite & FIRE",
                 subtitle: "Quand pourrez-vous arrêter de travailler ?",
                 icon: Icons.wb_sunny_rounded,
-                isPlaceholder: true,
+                onTap: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (_) => const FireSimulatorPage(),
+                    ),
+                  );
+                },
               ),
               _buildSimulatorCard(
                 context,
