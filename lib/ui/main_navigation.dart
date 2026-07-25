@@ -3,7 +3,7 @@ import 'package:package_info_plus/package_info_plus.dart';
 
 import 'home_page.dart';
 import 'analysis_page.dart';
-import 'simulators_page.dart';
+import 'tools/real_estate_simulator_page.dart';
 import 'profile_page.dart';
 
 class MainNavigation extends StatefulWidget {
@@ -55,7 +55,7 @@ class _MainNavigationState extends State<MainNavigation> {
 
       const AnalysisPage(),
 
-      const SimulatorsPage(),
+      const RealEstateSimulatorPage(),
 
       ProfilePage(appVersion: appVersion),
     ];
@@ -110,8 +110,8 @@ class _MainNavigationState extends State<MainNavigation> {
           ),
 
           BottomNavigationBarItem(
-            icon: Icon(Icons.calculate),
-            label: 'Simulateurs',
+            icon: Icon(Icons.home_work),
+            label: 'Immobilier',
           ),
 
           BottomNavigationBarItem(

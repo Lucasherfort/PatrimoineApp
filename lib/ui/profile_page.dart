@@ -382,6 +382,7 @@ class _ProfilePageState extends State<ProfilePage> {
     required String label,
     required TextEditingController controller,
     required ValueChanged<String> onChanged,
+    String suffix = "€",
   }) {
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
@@ -408,7 +409,7 @@ class _ProfilePageState extends State<ProfilePage> {
           style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
           decoration: InputDecoration(
             isDense: true,
-            suffixText: "€",
+            suffixText: suffix,
             suffixStyle: const TextStyle(fontWeight: FontWeight.bold),
             contentPadding: const EdgeInsets.symmetric(vertical: 8),
             enabledBorder: UnderlineInputBorder(

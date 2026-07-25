@@ -316,10 +316,10 @@ class _InvestmentProjectionTabState extends State<InvestmentProjectionTab> {
     return Container(
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
-        color: isDark ? Colors.white.withOpacity(0.03) : Colors.white,
+        color: isDark ? Colors.white.withValues(alpha: 0.03) : Colors.white,
         borderRadius: BorderRadius.circular(16),
         border: Border.all(
-          color: isDark ? Colors.white10 : Colors.black.withOpacity(0.05),
+          color: isDark ? Colors.white10 : Colors.black.withValues(alpha: 0.05),
         ),
       ),
       child: Column(
@@ -352,7 +352,6 @@ class _InvestmentProjectionTabState extends State<InvestmentProjectionTab> {
   Widget _buildChart(List<InvestmentProjectionPoint> data) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final accentColor = const Color(0xFF0D71EE);
-    final gainsColor = Colors.green.withOpacity(0.5);
 
     return LineChart(
       LineChartData(
@@ -360,7 +359,9 @@ class _InvestmentProjectionTabState extends State<InvestmentProjectionTab> {
           show: true,
           drawVerticalLine: false,
           getDrawingHorizontalLine: (val) => FlLine(
-            color: isDark ? Colors.white10 : Colors.black.withOpacity(0.05),
+            color: isDark
+                ? Colors.white10
+                : Colors.black.withValues(alpha: 0.05),
             strokeWidth: 1,
           ),
         ),
@@ -420,7 +421,7 @@ class _InvestmentProjectionTabState extends State<InvestmentProjectionTab> {
             dotData: const FlDotData(show: false),
             belowBarData: BarAreaData(
               show: true,
-              color: Colors.green.withOpacity(0.2),
+              color: Colors.green.withValues(alpha: 0.2),
             ),
           ),
           // Savings Effort - Bottom layer
@@ -434,7 +435,7 @@ class _InvestmentProjectionTabState extends State<InvestmentProjectionTab> {
             dotData: const FlDotData(show: false),
             belowBarData: BarAreaData(
               show: true,
-              color: accentColor.withOpacity(0.2),
+              color: accentColor.withValues(alpha: 0.2),
             ),
           ),
         ],
@@ -443,14 +444,14 @@ class _InvestmentProjectionTabState extends State<InvestmentProjectionTab> {
             if (_horizonYears >= 5)
               VerticalLine(
                 x: 5,
-                color: Colors.orange.withOpacity(0.5),
+                color: Colors.orange.withValues(alpha: 0.5),
                 strokeWidth: 1,
                 dashArray: [5, 5],
               ),
             if (_horizonYears >= 8)
               VerticalLine(
                 x: 8,
-                color: Colors.red.withOpacity(0.5),
+                color: Colors.red.withValues(alpha: 0.5),
                 strokeWidth: 1,
                 dashArray: [5, 5],
               ),
@@ -560,8 +561,8 @@ class _InvestmentProjectionTabState extends State<InvestmentProjectionTab> {
             isDense: true,
             filled: true,
             fillColor: isDark
-                ? Colors.white.withOpacity(0.05)
-                : Colors.black.withOpacity(0.02),
+                ? Colors.white.withValues(alpha: 0.05)
+                : Colors.black.withValues(alpha: 0.02),
             border: OutlineInputBorder(
               borderRadius: BorderRadius.circular(12),
               borderSide: BorderSide.none,
@@ -596,9 +597,11 @@ class _InvestmentProjectionTabState extends State<InvestmentProjectionTab> {
     return Container(
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
-        color: const Color(0xFF0D71EE).withOpacity(0.05),
+        color: const Color(0xFF0D71EE).withValues(alpha: 0.05),
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: const Color(0xFF0D71EE).withOpacity(0.1)),
+        border: Border.all(
+          color: const Color(0xFF0D71EE).withValues(alpha: 0.1),
+        ),
       ),
       child: Row(
         children: [
