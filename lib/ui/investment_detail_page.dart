@@ -6,6 +6,7 @@ import '../services/investment_service.dart';
 import '../services/position_service.dart';
 import '../widgets/Investment/investment_position_list.dart';
 import '../widgets/Investment/investment_summary_header.dart';
+import '../widgets/Investment/investment_projection_tab.dart';
 import '../widgets/position/add_position_dialog.dart';
 
 class InvestmentDetailPage extends StatefulWidget {
@@ -200,34 +201,18 @@ class _InvestmentDetailPageState extends State<InvestmentDetailPage> {
   }
 
   Widget _buildCompoundInterestTab() {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-    return Center(
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Icon(
-            Icons.auto_graph_rounded,
-            size: 64,
-            color: isDark ? Colors.white24 : Colors.black12,
-          ),
-          const SizedBox(height: 16),
-          Text(
-            "Intérêts composés",
-            style: TextStyle(
-              fontSize: 20,
-              fontWeight: FontWeight.bold,
-              color: isDark ? Colors.white70 : Colors.black54,
-            ),
-          ),
-          const SizedBox(height: 8),
-          Text(
-            "Simulateur à venir prochainement",
-            style: TextStyle(
-              color: isDark ? Colors.white38 : Colors.black38,
-            ),
-          ),
-        ],
-      ),
+    if (accountView == null) return const SizedBox();
+
+    final positionsValue = positions.fold(0.0, (sum, pos) => sum + pos.totalValue);
+    final totalValueGross = accountView!.cashBalance + positionsValue;
+    
+    // On calcule le PnL brut pour le simulateur (plus simple à projeter)
+    final pnl = totalValueGross - accountView!.totalContribution;
+
+    return InvestmentProjectionTab(
+      initialDeposits: accountView!.totalContribution,
+      initialPnL: pnl,
+      openedAt: accountView!.openedAt,
     );
   }
 
@@ -257,7 +242,7 @@ class _InvestmentDetailPageState extends State<InvestmentDetailPage> {
           ),
           BottomNavigationBarItem(
             icon: Icon(Icons.show_chart_rounded),
-            label: 'Intérêts composés',
+            label: 'Projections',
           ),
         ],
       ),
