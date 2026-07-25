@@ -242,12 +242,6 @@ class _AnalysisPageState extends State<AnalysisPage> {
                     const SizedBox(height: 16),
                     _buildPlaceholderCard(
                       context,
-                      title: "Fiscalité estimée",
-                      icon: Icons.account_balance_wallet_outlined,
-                      subtitle: "Impact des taxes sur vos retraits",
-                    ),
-                    _buildPlaceholderCard(
-                      context,
                       title: "Projections FIRE",
                       icon: Icons.local_fire_department_outlined,
                       subtitle: "Simulation de votre date de retraite",
