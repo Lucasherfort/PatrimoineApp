@@ -17,7 +17,6 @@ class ProfilePage extends StatefulWidget {
 class _ProfilePageState extends State<ProfilePage> {
   late TextEditingController _salaryController;
   late TextEditingController _investmentController;
-  late TextEditingController _ageController;
 
   @override
   void initState() {
@@ -33,16 +32,12 @@ class _ProfilePageState extends State<ProfilePage> {
           ? manager.monthlyInvestment.toString()
           : '',
     );
-    _ageController = TextEditingController(
-      text: manager.currentAge > 0 ? manager.currentAge.toString() : '',
-    );
   }
 
   @override
   void dispose() {
     _salaryController.dispose();
     _investmentController.dispose();
-    _ageController.dispose();
     super.dispose();
   }
 
@@ -356,17 +351,6 @@ class _ProfilePageState extends State<ProfilePage> {
           ),
           child: Column(
             children: [
-              _buildNumericField(
-                context,
-                label: "Âge actuel",
-                controller: _ageController,
-                suffix: "ans",
-                onChanged: (val) {
-                  final i = int.tryParse(val) ?? 0;
-                  manager.setCurrentAge(i);
-                },
-              ),
-              const SizedBox(height: 20),
               _buildNumericField(
                 context,
                 label: "Salaire net mensuel",

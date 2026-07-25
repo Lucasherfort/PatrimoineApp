@@ -22,7 +22,11 @@ class _FireSimulatorPageState extends State<FireSimulatorPage> {
   double _swr = 4.0;
   bool _isLoading = true;
 
-  final _formatter = NumberFormat.currency(locale: 'fr_FR', symbol: '€', decimalDigits: 0);
+  final _formatter = NumberFormat.currency(
+    locale: 'fr_FR',
+    symbol: '€',
+    decimalDigits: 0,
+  );
 
   @override
   void initState() {
@@ -39,7 +43,9 @@ class _FireSimulatorPageState extends State<FireSimulatorPage> {
         setState(() {
           _savingsController.text = netWealth.toStringAsFixed(0);
           _dcaController.text = profile.monthlyInvestment.toStringAsFixed(0);
-          _expensesController.text = profile.monthlyNetSalary.toStringAsFixed(0);
+          _expensesController.text = profile.monthlyNetSalary.toStringAsFixed(
+            0,
+          );
           _ageController.text = profile.currentAge.toString();
           _isLoading = false;
         });
@@ -112,7 +118,10 @@ class _FireSimulatorPageState extends State<FireSimulatorPage> {
         elevation: 0,
         title: Text(
           "Retraite & FIRE",
-          style: TextStyle(color: theme.textTheme.titleLarge?.color, fontWeight: FontWeight.bold),
+          style: TextStyle(
+            color: theme.textTheme.titleLarge?.color,
+            fontWeight: FontWeight.bold,
+          ),
         ),
         iconTheme: IconThemeData(color: theme.iconTheme.color),
       ),
@@ -123,16 +132,28 @@ class _FireSimulatorPageState extends State<FireSimulatorPage> {
           children: [
             // --- RESULT CARD ---
             _buildFireResultCard(context, fireAge, isFirePossible),
-            
+
             const SizedBox(height: 32),
 
             // --- KPIs ---
             _buildSectionTitle(context, "INDICATEURS CLÉS"),
             Row(
               children: [
-                Expanded(child: _buildSmallKPI(context, "Montant cible", _formatter.format(_fireNumber))),
+                Expanded(
+                  child: _buildSmallKPI(
+                    context,
+                    "Montant cible",
+                    _formatter.format(_fireNumber),
+                  ),
+                ),
                 const SizedBox(width: 12),
-                Expanded(child: _buildSmallKPI(context, "Gains / mois", _formatter.format(_fireNumber * (_swr / 100) / 12))),
+                Expanded(
+                  child: _buildSmallKPI(
+                    context,
+                    "Gains / mois",
+                    _formatter.format(_fireNumber * (_swr / 100) / 12),
+                  ),
+                ),
               ],
             ),
 
@@ -142,20 +163,48 @@ class _FireSimulatorPageState extends State<FireSimulatorPage> {
             _buildSectionTitle(context, "VOTRE SITUATION"),
             Row(
               children: [
-                Expanded(child: _buildInputField(context, label: "Âge actuel", controller: _ageController, icon: Icons.person)),
+                Expanded(
+                  child: _buildInputField(
+                    context,
+                    label: "Âge actuel",
+                    controller: _ageController,
+                    icon: Icons.person,
+                  ),
+                ),
                 const SizedBox(width: 12),
-                Expanded(child: _buildInputField(context, label: "Épargne (€)", controller: _savingsController, icon: Icons.account_balance_wallet)),
+                Expanded(
+                  child: _buildInputField(
+                    context,
+                    label: "Épargne (€)",
+                    controller: _savingsController,
+                    icon: Icons.account_balance_wallet,
+                  ),
+                ),
               ],
             ),
             const SizedBox(height: 16),
-            _buildInputField(context, label: "Versement mensuel (€)", controller: _dcaController, icon: Icons.add_chart),
+            _buildInputField(
+              context,
+              label: "Versement mensuel (€)",
+              controller: _dcaController,
+              icon: Icons.add_chart,
+            ),
             const SizedBox(height: 16),
-            _buildInputField(context, label: "Dépenses cibles / mois (€)", controller: _expensesController, icon: Icons.shopping_bag_outlined),
+            _buildInputField(
+              context,
+              label: "Dépenses cibles / mois (€)",
+              controller: _expensesController,
+              icon: Icons.shopping_bag_outlined,
+            ),
 
             const SizedBox(height: 32),
 
             _buildSectionTitle(context, "HYPOTHÈSES"),
-            _buildSliderLabel(context, "Rendement annuel", "${_annualReturn.toStringAsFixed(1)}%"),
+            _buildSliderLabel(
+              context,
+              "Rendement annuel",
+              "${_annualReturn.toStringAsFixed(1)}%",
+            ),
             Slider(
               value: _annualReturn,
               min: 1,
@@ -164,7 +213,11 @@ class _FireSimulatorPageState extends State<FireSimulatorPage> {
               activeColor: colorBlue,
               onChanged: (val) => setState(() => _annualReturn = val),
             ),
-            _buildSliderLabel(context, "Taux de retrait (SWR)", "${_swr.toStringAsFixed(1)}%"),
+            _buildSliderLabel(
+              context,
+              "Taux de retrait (SWR)",
+              "${_swr.toStringAsFixed(1)}%",
+            ),
             Slider(
               value: _swr,
               min: 2,
@@ -194,28 +247,52 @@ class _FireSimulatorPageState extends State<FireSimulatorPage> {
         ),
         borderRadius: BorderRadius.circular(24),
         boxShadow: [
-          BoxShadow(color: colorBlue.withOpacity(0.3), blurRadius: 15, offset: const Offset(0, 8)),
+          BoxShadow(
+            color: colorBlue.withOpacity(0.3),
+            blurRadius: 15,
+            offset: const Offset(0, 8),
+          ),
         ],
       ),
       child: Column(
         children: [
           const Text(
             "Indépendance financière",
-            style: TextStyle(color: Colors.white70, fontSize: 14, fontWeight: FontWeight.w500),
+            style: TextStyle(
+              color: Colors.white70,
+              fontSize: 14,
+              fontWeight: FontWeight.w500,
+            ),
           ),
           const SizedBox(height: 12),
           Text(
-            possible ? "Vous serez FIRE à ${age.toStringAsFixed(1)} ans" : "Objectif hors de portée",
+            possible
+                ? "Vous serez FIRE à ${age.toStringAsFixed(1)} ans"
+                : "Objectif hors de portée",
             textAlign: TextAlign.center,
-            style: const TextStyle(color: Colors.white, fontSize: 26, fontWeight: FontWeight.w900, letterSpacing: -0.5),
+            style: const TextStyle(
+              color: Colors.white,
+              fontSize: 26,
+              fontWeight: FontWeight.w900,
+              letterSpacing: -0.5,
+            ),
           ),
           const SizedBox(height: 16),
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-            decoration: BoxDecoration(color: Colors.white.withOpacity(0.15), borderRadius: BorderRadius.circular(100)),
+            decoration: BoxDecoration(
+              color: Colors.white.withOpacity(0.15),
+              borderRadius: BorderRadius.circular(100),
+            ),
             child: Text(
-              possible ? "Dans ${(age - _currentAge).toStringAsFixed(1)} ans" : "Ajustez vos paramètres",
-              style: const TextStyle(color: Colors.white, fontSize: 12, fontWeight: FontWeight.bold),
+              possible
+                  ? "Dans ${(age - _currentAge).toStringAsFixed(1)} ans"
+                  : "Ajustez vos paramètres",
+              style: const TextStyle(
+                color: Colors.white,
+                fontSize: 12,
+                fontWeight: FontWeight.bold,
+              ),
             ),
           ),
         ],
@@ -230,14 +307,26 @@ class _FireSimulatorPageState extends State<FireSimulatorPage> {
       decoration: BoxDecoration(
         color: Theme.of(context).cardColor,
         borderRadius: BorderRadius.circular(16),
-        border: isDark ? null : Border.all(color: Colors.black.withOpacity(0.05)),
+        border: isDark
+            ? null
+            : Border.all(color: Colors.black.withOpacity(0.05)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(label, style: TextStyle(color: isDark ? Colors.white38 : Colors.black45, fontSize: 11, fontWeight: FontWeight.bold)),
+          Text(
+            label,
+            style: TextStyle(
+              color: isDark ? Colors.white38 : Colors.black45,
+              fontSize: 11,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
           const SizedBox(height: 4),
-          Text(value, style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w900)),
+          Text(
+            value,
+            style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w900),
+          ),
         ],
       ),
     );
@@ -249,19 +338,31 @@ class _FireSimulatorPageState extends State<FireSimulatorPage> {
       padding: const EdgeInsets.only(bottom: 16),
       child: Text(
         title,
-        style: TextStyle(color: isDark ? Colors.white38 : Colors.black38, fontSize: 11, fontWeight: FontWeight.w900, letterSpacing: 1.2),
+        style: TextStyle(
+          color: isDark ? Colors.white38 : Colors.black38,
+          fontSize: 11,
+          fontWeight: FontWeight.w900,
+          letterSpacing: 1.2,
+        ),
       ),
     );
   }
 
-  Widget _buildInputField(BuildContext context, {required String label, required TextEditingController controller, required IconData icon}) {
+  Widget _buildInputField(
+    BuildContext context, {
+    required String label,
+    required TextEditingController controller,
+    required IconData icon,
+  }) {
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
     return Container(
       decoration: BoxDecoration(
         color: theme.cardColor,
         borderRadius: BorderRadius.circular(16),
-        border: isDark ? null : Border.all(color: Colors.black.withOpacity(0.05)),
+        border: isDark
+            ? null
+            : Border.all(color: Colors.black.withOpacity(0.05)),
       ),
       child: TextField(
         controller: controller,
@@ -270,10 +371,16 @@ class _FireSimulatorPageState extends State<FireSimulatorPage> {
         style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
         decoration: InputDecoration(
           labelText: label,
-          labelStyle: TextStyle(color: isDark ? Colors.white30 : Colors.black26, fontSize: 12),
+          labelStyle: TextStyle(
+            color: isDark ? Colors.white30 : Colors.black26,
+            fontSize: 12,
+          ),
           prefixIcon: Icon(icon, color: const Color(0xFF0D71EE), size: 20),
           border: InputBorder.none,
-          contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+          contentPadding: const EdgeInsets.symmetric(
+            horizontal: 16,
+            vertical: 12,
+          ),
         ),
       ),
     );
@@ -283,8 +390,18 @@ class _FireSimulatorPageState extends State<FireSimulatorPage> {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
-        Text(label, style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w500)),
-        Text(value, style: const TextStyle(color: Color(0xFF0D71EE), fontWeight: FontWeight.bold, fontSize: 15)),
+        Text(
+          label,
+          style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w500),
+        ),
+        Text(
+          value,
+          style: const TextStyle(
+            color: Color(0xFF0D71EE),
+            fontWeight: FontWeight.bold,
+            fontSize: 15,
+          ),
+        ),
       ],
     );
   }
