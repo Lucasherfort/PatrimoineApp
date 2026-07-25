@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import '../models/investments/user_investment_account_view.dart';
+import '../services/financial_profile_manager.dart';
 import '../services/patrimoine_service.dart';
 import '../models/patrimoine/patrimonial_indicator.dart';
 import '../models/investments/estimated_gains_result.dart';
@@ -33,11 +34,13 @@ class _AnalysisPageState extends State<AnalysisPage> {
     super.initState();
     _loadData();
     ThemeManager().addListener(_loadData);
+    FinancialProfileManager().addListener(_loadData);
   }
 
   @override
   void dispose() {
     ThemeManager().removeListener(_loadData);
+    FinancialProfileManager().removeListener(_loadData);
     super.dispose();
   }
 

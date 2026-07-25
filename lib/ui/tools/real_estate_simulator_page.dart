@@ -34,6 +34,18 @@ class _RealEstateSimulatorPageState extends State<RealEstateSimulatorPage> {
   void initState() {
     super.initState();
     _loadPatrimoine();
+    FinancialProfileManager().addListener(_onProfileChanged);
+  }
+
+  void _onProfileChanged() {
+    final manager = FinancialProfileManager();
+    if (mounted) {
+      setState(() {
+        if (manager.monthlyNetSalary > 0) {
+          _salaryController.text = manager.monthlyNetSalary.toStringAsFixed(0);
+        }
+      });
+    }
   }
 
   Future<void> _loadPatrimoine() async {
@@ -63,6 +75,7 @@ class _RealEstateSimulatorPageState extends State<RealEstateSimulatorPage> {
   void dispose() {
     _salaryController.dispose();
     _downPaymentController.dispose();
+    FinancialProfileManager().removeListener(_onProfileChanged);
     super.dispose();
   }
 
