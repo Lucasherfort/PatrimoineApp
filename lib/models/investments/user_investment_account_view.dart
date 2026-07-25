@@ -23,4 +23,28 @@ class UserInvestmentAccountView {
 
   // Vérifie si c'est une Assurance Vie (pas d'espèces)
   bool get isAssuranceVie => sourceName.toLowerCase().contains('assurance');
+
+  UserInvestmentAccountView copyWith({
+    int? id,
+    int? investmentCategoryId,
+    String? sourceName,
+    String? bankName,
+    String? logoUrl,
+    double? totalContribution,
+    double? cashBalance,
+    double? amount,
+    DateTime? openedAt,
+  }) {
+    return UserInvestmentAccountView(
+      id: id ?? this.id,
+      investmentCategoryId: investmentCategoryId ?? this.investmentCategoryId,
+      sourceName: sourceName ?? this.sourceName,
+      bankName: bankName ?? this.bankName,
+      logoUrl: logoUrl ?? this.logoUrl,
+      totalContribution: totalContribution ?? this.totalContribution,
+      cashBalance: cashBalance ?? this.cashBalance,
+      amount: amount ?? this.amount,
+      openedAt: openedAt ?? this.openedAt,
+    );
+  }
 }

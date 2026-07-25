@@ -4,8 +4,10 @@ import '../models/investments/user_investment_account_view.dart';
 import '../models/position.dart';
 import '../services/investment_service.dart';
 import '../services/position_service.dart';
+import '../services/theme_manager.dart';
 import '../widgets/Investment/investment_position_list.dart';
 import '../widgets/Investment/investment_summary_header.dart';
+import '../widgets/Investment/investment_projection_tab.dart';
 import '../widgets/position/add_position_dialog.dart';
 
 class InvestmentDetailPage extends StatefulWidget {
@@ -37,6 +39,9 @@ class _InvestmentDetailPageState extends State<InvestmentDetailPage> {
   List<InvestmentPosition> positions = [];
   UserInvestmentAccountView? accountView;
   bool isLoading = true;
+  int _currentIndex = 0;
+
+  bool get _isPEA => widget.accountName.toUpperCase().contains('PEA');
 
   @override
   void initState() {
@@ -161,24 +166,99 @@ class _InvestmentDetailPageState extends State<InvestmentDetailPage> {
                       color: isDark ? Colors.white : colorBlueMain,
                     ),
                   )
-                : Column(
-                    children: [
-                      if (accountView != null)
-                        InvestmentSummaryHeader(
-                          account: accountView!,
-                          positions: positions,
-                          onValueUpdated: _handleValueUpdated,
-                        ),
-                      Expanded(
-                        child: InvestmentPositionList(
-                          positions: positions,
-                          isLoading: false,
-                          positionService: _positionService,
-                          onPositionUpdated: _loadPositionsAndAccount,
-                        ),
-                      ),
-                    ],
+                : ListenableBuilder(
+                    listenable: ThemeManager(),
+                    builder: (context, child) {
+                      return IndexedStack(
+                        index: _currentIndex,
+                        children: [
+                          _buildAccountMainTab(),
+                          _buildCompoundInterestTab(),
+                        ],
+                      );
+                    },
                   ),
+          ),
+        ],
+      ),
+      bottomNavigationBar: _isPEA ? _buildBottomNavBar(context) : null,
+    );
+  }
+
+  Widget _buildAccountMainTab() {
+    return Column(
+      children: [
+        if (accountView != null)
+          InvestmentSummaryHeader(
+            account: accountView!,
+            positions: positions,
+            onValueUpdated: _handleValueUpdated,
+          ),
+        Expanded(
+          child: InvestmentPositionList(
+            positions: positions,
+            isLoading: false,
+            positionService: _positionService,
+            onPositionUpdated: _loadPositionsAndAccount,
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildCompoundInterestTab() {
+    if (accountView == null) return const SizedBox();
+
+    final positionsValue = positions.fold(
+      0.0,
+      (sum, pos) => sum + pos.totalValue,
+    );
+    final totalValueGross = accountView!.cashBalance + positionsValue;
+
+    // On calcule la valeur nette (ou brute selon la préférence) via le service
+    final displayedValue = _investmentService.calculateNetValue(
+      accountView!.copyWith(amount: totalValueGross),
+    );
+
+    // Le PnL au départ du simulateur suit désormais la préférence d'affichage
+    final pnl = displayedValue - accountView!.totalContribution;
+
+    return InvestmentProjectionTab(
+      initialDeposits: accountView!.totalContribution,
+      initialPnL: pnl,
+      openedAt: accountView!.openedAt,
+    );
+  }
+
+  Widget _buildBottomNavBar(BuildContext context) {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+
+    return Container(
+      decoration: BoxDecoration(
+        border: Border(
+          top: BorderSide(
+            color: isDark
+                ? Colors.white10
+                : Colors.black.withValues(alpha: 0.05),
+          ),
+        ),
+      ),
+      child: BottomNavigationBar(
+        currentIndex: _currentIndex,
+        onTap: (index) => setState(() => _currentIndex = index),
+        backgroundColor: theme.cardColor,
+        selectedItemColor: colorBlueMain,
+        unselectedItemColor: isDark ? Colors.white38 : Colors.black38,
+        elevation: 0,
+        items: const [
+          BottomNavigationBarItem(
+            icon: Icon(Icons.business_center),
+            label: 'Compte',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.show_chart_rounded),
+            label: 'Projections',
           ),
         ],
       ),
@@ -214,10 +294,11 @@ class _InvestmentDetailPageState extends State<InvestmentDetailPage> {
         ],
       ),
       actions: [
-        IconButton(
-          icon: Icon(Icons.add_circle_outline, color: color),
-          onPressed: _openAddPositionDialog,
-        ),
+        if (_currentIndex == 0)
+          IconButton(
+            icon: Icon(Icons.add_circle_outline, color: color),
+            onPressed: _openAddPositionDialog,
+          ),
         const SizedBox(width: 8),
       ],
     );
