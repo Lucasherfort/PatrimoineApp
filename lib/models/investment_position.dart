@@ -10,6 +10,7 @@ class InvestmentPosition {
   final String ticker;
   final String name;
   final double currentPrice;
+  final double? priceOpen;
 
   /// Infos propres à la position utilisateur
   final double quantity;
@@ -25,6 +26,7 @@ class InvestmentPosition {
     required this.quantity,
     required this.pru,
     required this.currentPrice,
+    this.priceOpen,
   });
 
   /// Valeur totale de la position
@@ -37,6 +39,15 @@ class InvestmentPosition {
   double get performance {
     if (pru == 0 || quantity == 0) return 0;
     return ((currentPrice / pru) - 1) * 100;
+  }
+
+  /// Évolution quotidienne (en valeur)
+  double get dayEvolution => priceOpen != null ? currentPrice - priceOpen! : 0;
+
+  /// Évolution quotidienne (en %)
+  double get dayEvolutionPercent {
+    if (priceOpen == null || priceOpen == 0) return 0;
+    return ((currentPrice / priceOpen!) - 1) * 100;
   }
 
   factory InvestmentPosition.fromMap(Map<String, dynamic> map) {
@@ -58,6 +69,9 @@ class InvestmentPosition {
       ticker: position['ticker'] as String,
       name: position['name'] as String,
       currentPrice: (position['price'] as num).toDouble(),
+      priceOpen: position['priceopen'] != null
+          ? (position['priceopen'] as num).toDouble()
+          : null,
     );
   }
 }

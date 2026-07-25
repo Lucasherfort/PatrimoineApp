@@ -68,7 +68,8 @@ class InvestmentService {
       ${PositionsTable.ticker},
       ${PositionsTable.name},
       ${PositionsTable.type},
-      ${PositionsTable.price}
+      ${PositionsTable.price},
+      ${PositionsTable.priceOpen}
     )
   ''';
 

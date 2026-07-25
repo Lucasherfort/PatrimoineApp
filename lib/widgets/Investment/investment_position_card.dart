@@ -97,13 +97,71 @@ class InvestmentPositionCard extends StatelessWidget {
                           ),
                         ),
                         const SizedBox(height: 2),
-                        Text(
-                          "Cours : ${_format(position.currentPrice)}€",
-                          style: TextStyle(
-                            fontSize: 11,
-                            color: Theme.of(context).textTheme.bodySmall?.color
-                                ?.withValues(alpha: 0.5),
-                          ),
+                        Row(
+                          children: [
+                            Text(
+                              "Cours : ${_format(position.currentPrice)}€",
+                              style: TextStyle(
+                                fontSize: 11,
+                                color: Theme.of(context)
+                                    .textTheme
+                                    .bodySmall
+                                    ?.color
+                                    ?.withValues(alpha: 0.5),
+                              ),
+                            ),
+                            if (position.priceOpen != null) ...[
+                              const SizedBox(width: 8),
+                              Container(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 4,
+                                  vertical: 1,
+                                ),
+                                decoration: BoxDecoration(
+                                  color:
+                                      (position.dayEvolutionPercent >= 0
+                                              ? (isDark
+                                                    ? colorGreen
+                                                    : colorGreenDark)
+                                              : (isDark
+                                                    ? colorRed
+                                                    : colorRedDark))
+                                          .withValues(alpha: 0.1),
+                                  borderRadius: BorderRadius.circular(4),
+                                ),
+                                child: Row(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    Icon(
+                                      position.dayEvolutionPercent >= 0
+                                          ? Icons.arrow_drop_up_rounded
+                                          : Icons.arrow_drop_down_rounded,
+                                      size: 14,
+                                      color: position.dayEvolutionPercent >= 0
+                                          ? (isDark
+                                                ? colorGreen
+                                                : colorGreenDark)
+                                          : (isDark ? colorRed : colorRedDark),
+                                    ),
+                                    Text(
+                                      "${position.dayEvolutionPercent.abs().toStringAsFixed(2)}%",
+                                      style: TextStyle(
+                                        fontSize: 10,
+                                        fontWeight: FontWeight.w900,
+                                        color: position.dayEvolutionPercent >= 0
+                                            ? (isDark
+                                                  ? colorGreen
+                                                  : colorGreenDark)
+                                            : (isDark
+                                                  ? colorRed
+                                                  : colorRedDark),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ],
+                          ],
                         ),
                       ],
                     ),

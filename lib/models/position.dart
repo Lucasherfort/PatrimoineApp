@@ -5,6 +5,7 @@ class Position {
   final String currency;
   final String type;
   final double price;
+  final double? priceOpen;
   final DateTime updatedAt;
 
   Position({
@@ -14,6 +15,7 @@ class Position {
     required this.currency,
     required this.type,
     required this.price,
+    this.priceOpen,
     required this.updatedAt,
   });
 
@@ -26,6 +28,9 @@ class Position {
       currency: map['currency'] as String,
       type: map['type'] as String,
       price: (map['price'] as num).toDouble(),
+      priceOpen: map['priceopen'] != null
+          ? (map['priceopen'] as num).toDouble()
+          : null,
       updatedAt: DateTime.parse(map['updated_at'] as String),
     );
   }
@@ -39,6 +44,7 @@ class Position {
       'currency': currency,
       'type': type,
       'price': price,
+      'priceopen': priceOpen,
       'updated_at': updatedAt.toIso8601String(),
     };
   }
