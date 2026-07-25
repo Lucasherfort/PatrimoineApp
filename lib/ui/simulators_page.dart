@@ -65,13 +65,6 @@ class SimulatorsPage extends StatelessWidget {
               ),
               _buildSimulatorCard(
                 context,
-                title: "Intérêts Composés",
-                subtitle: "Visualisez la puissance du temps sur votre épargne",
-                icon: Icons.trending_up,
-                isPlaceholder: true,
-              ),
-              _buildSimulatorCard(
-                context,
                 title: "Capacité d'investissement",
                 subtitle: "Combien pouvez-vous investir chaque mois ?",
                 icon: Icons.savings,

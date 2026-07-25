@@ -37,6 +37,9 @@ class _InvestmentDetailPageState extends State<InvestmentDetailPage> {
   List<InvestmentPosition> positions = [];
   UserInvestmentAccountView? accountView;
   bool isLoading = true;
+  int _currentIndex = 0;
+
+  bool get _isPEA => widget.accountName.toUpperCase().contains('PEA');
 
   @override
   void initState() {
@@ -161,24 +164,100 @@ class _InvestmentDetailPageState extends State<InvestmentDetailPage> {
                       color: isDark ? Colors.white : colorBlueMain,
                     ),
                   )
-                : Column(
+                : IndexedStack(
+                    index: _currentIndex,
                     children: [
-                      if (accountView != null)
-                        InvestmentSummaryHeader(
-                          account: accountView!,
-                          positions: positions,
-                          onValueUpdated: _handleValueUpdated,
-                        ),
-                      Expanded(
-                        child: InvestmentPositionList(
-                          positions: positions,
-                          isLoading: false,
-                          positionService: _positionService,
-                          onPositionUpdated: _loadPositionsAndAccount,
-                        ),
-                      ),
+                      _buildAccountMainTab(),
+                      _buildCompoundInterestTab(),
                     ],
                   ),
+          ),
+        ],
+      ),
+      bottomNavigationBar: _isPEA ? _buildBottomNavBar(context) : null,
+    );
+  }
+
+  Widget _buildAccountMainTab() {
+    return Column(
+      children: [
+        if (accountView != null)
+          InvestmentSummaryHeader(
+            account: accountView!,
+            positions: positions,
+            onValueUpdated: _handleValueUpdated,
+          ),
+        Expanded(
+          child: InvestmentPositionList(
+            positions: positions,
+            isLoading: false,
+            positionService: _positionService,
+            onPositionUpdated: _loadPositionsAndAccount,
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildCompoundInterestTab() {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    return Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(
+            Icons.auto_graph_rounded,
+            size: 64,
+            color: isDark ? Colors.white24 : Colors.black12,
+          ),
+          const SizedBox(height: 16),
+          Text(
+            "Intérêts composés",
+            style: TextStyle(
+              fontSize: 20,
+              fontWeight: FontWeight.bold,
+              color: isDark ? Colors.white70 : Colors.black54,
+            ),
+          ),
+          const SizedBox(height: 8),
+          Text(
+            "Simulateur à venir prochainement",
+            style: TextStyle(
+              color: isDark ? Colors.white38 : Colors.black38,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildBottomNavBar(BuildContext context) {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+
+    return Container(
+      decoration: BoxDecoration(
+        border: Border(
+          top: BorderSide(
+            color: isDark ? Colors.white10 : Colors.black.withValues(alpha: 0.05),
+          ),
+        ),
+      ),
+      child: BottomNavigationBar(
+        currentIndex: _currentIndex,
+        onTap: (index) => setState(() => _currentIndex = index),
+        backgroundColor: theme.cardColor,
+        selectedItemColor: colorBlueMain,
+        unselectedItemColor: isDark ? Colors.white38 : Colors.black38,
+        elevation: 0,
+        items: const [
+          BottomNavigationBarItem(
+            icon: Icon(Icons.business_center),
+            label: 'Compte',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.show_chart_rounded),
+            label: 'Intérêts composés',
           ),
         ],
       ),
@@ -214,10 +293,11 @@ class _InvestmentDetailPageState extends State<InvestmentDetailPage> {
         ],
       ),
       actions: [
-        IconButton(
-          icon: Icon(Icons.add_circle_outline, color: color),
-          onPressed: _openAddPositionDialog,
-        ),
+        if (_currentIndex == 0)
+          IconButton(
+            icon: Icon(Icons.add_circle_outline, color: color),
+            onPressed: _openAddPositionDialog,
+          ),
         const SizedBox(width: 8),
       ],
     );
