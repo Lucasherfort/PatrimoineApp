@@ -19,7 +19,8 @@ class InvestmentProjectionTab extends StatefulWidget {
   });
 
   @override
-  State<InvestmentProjectionTab> createState() => _InvestmentProjectionTabState();
+  State<InvestmentProjectionTab> createState() =>
+      _InvestmentProjectionTabState();
 }
 
 class _InvestmentProjectionTabState extends State<InvestmentProjectionTab> {
@@ -35,29 +36,57 @@ class _InvestmentProjectionTabState extends State<InvestmentProjectionTab> {
   double _annualRate = 6.0;
   int _horizonYears = 10;
 
-  final _formatter = NumberFormat.currency(locale: 'fr_FR', symbol: '€', decimalDigits: 0);
+  final _formatter = NumberFormat.currency(
+    locale: 'fr_FR',
+    symbol: '€',
+    decimalDigits: 0,
+  );
 
   @override
   void initState() {
     super.initState();
     _pastDeposits = widget.initialDeposits;
     _pastPnL = widget.initialPnL;
-    _depositsController = TextEditingController(text: _pastDeposits.toStringAsFixed(0));
+    _depositsController = TextEditingController(
+      text: _pastDeposits.toStringAsFixed(0),
+    );
     _pnlController = TextEditingController(text: _pastPnL.toStringAsFixed(0));
 
     final profile = FinancialProfileManager();
-    _monthlyContribution = profile.monthlyInvestment > 0 ? profile.monthlyInvestment : 200.0;
-    
+    _monthlyContribution = profile.monthlyInvestment > 0
+        ? profile.monthlyInvestment
+        : 200.0;
+
     // Default horizon calculation
     if (widget.openedAt != null) {
-      final ageInYears = DateTime.now().difference(widget.openedAt!).inDays / 365.25;
+      final ageInYears =
+          DateTime.now().difference(widget.openedAt!).inDays / 365.25;
       _horizonYears = max(1, (8 - ageInYears).ceil());
       if (ageInYears >= 8) _horizonYears = 10;
     }
 
-    _dcaController = TextEditingController(text: _monthlyContribution.toStringAsFixed(0));
-    _rateController = TextEditingController(text: _annualRate.toStringAsFixed(1));
+    _dcaController = TextEditingController(
+      text: _monthlyContribution.toStringAsFixed(0),
+    );
+    _rateController = TextEditingController(
+      text: _annualRate.toStringAsFixed(1),
+    );
     _horizonController = TextEditingController(text: _horizonYears.toString());
+  }
+
+  @override
+  void didUpdateWidget(covariant InvestmentProjectionTab oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    // Smart Sync: Only update the PnL if it changed in the widget AND the user
+    // hasn't manually modified it (or they matched the previous real value).
+    if (widget.initialPnL != oldWidget.initialPnL) {
+      if (_pastPnL == oldWidget.initialPnL) {
+        setState(() {
+          _pastPnL = widget.initialPnL;
+          _pnlController.text = _pastPnL.toStringAsFixed(0);
+        });
+      }
+    }
   }
 
   @override
@@ -78,7 +107,9 @@ class _InvestmentProjectionTabState extends State<InvestmentProjectionTab> {
       _pnlController.text = _pastPnL.toStringAsFixed(0);
 
       final profile = FinancialProfileManager();
-      _monthlyContribution = profile.monthlyInvestment > 0 ? profile.monthlyInvestment : 200.0;
+      _monthlyContribution = profile.monthlyInvestment > 0
+          ? profile.monthlyInvestment
+          : 200.0;
       _dcaController.text = _monthlyContribution.toStringAsFixed(0);
 
       _annualRate = 6.0;
@@ -111,7 +142,8 @@ class _InvestmentProjectionTabState extends State<InvestmentProjectionTab> {
       final actualContribution = min(_monthlyContribution, remainingCapacity);
 
       cumulativeDeposits += actualContribution;
-      currentBalance = (currentBalance + actualContribution) * (1 + monthlyRate);
+      currentBalance =
+          (currentBalance + actualContribution) * (1 + monthlyRate);
 
       if (m % 12 == 0) {
         final year = m ~/ 12;
@@ -156,33 +188,48 @@ class _InvestmentProjectionTabState extends State<InvestmentProjectionTab> {
           // KPI Cards
           Row(
             children: [
-              Expanded(child: _buildKPI("Capital Final", finalPoint.totalBalance, const Color(0xFF0D71EE))),
+              Expanded(
+                child: _buildKPI(
+                  "Capital Final",
+                  finalPoint.totalBalance,
+                  const Color(0xFF0D71EE),
+                ),
+              ),
               const SizedBox(width: 12),
-              Expanded(child: _buildKPI("Effort Épargne", totalEffort, isDark ? Colors.white70 : Colors.black54)),
+              Expanded(
+                child: _buildKPI(
+                  "Effort Épargne",
+                  totalEffort,
+                  isDark ? Colors.white70 : Colors.black54,
+                ),
+              ),
               const SizedBox(width: 12),
-              Expanded(child: _buildKPI("Gains Totaux", finalPoint.totalInterests, Colors.green)),
+              Expanded(
+                child: _buildKPI(
+                  "Gains Totaux",
+                  finalPoint.totalInterests,
+                  Colors.green,
+                ),
+              ),
             ],
           ),
-          
+
           if (limitReachedYear != null) ...[
             const SizedBox(height: 16),
             _buildInfo(
-              limitReachedYear == 0 
-                ? "Plafond des versements (150 000 €) déjà atteint." 
-                : "Plafond des versements (150 000 €) atteint au bout de $limitReachedYear ans."
+              limitReachedYear == 0
+                  ? "Plafond des versements (150 000 €) déjà atteint."
+                  : "Plafond des versements (150 000 €) atteint au bout de $limitReachedYear ans.",
             ),
           ],
 
           const SizedBox(height: 32),
-          
+
           // Chart
-          SizedBox(
-            height: 250,
-            child: _buildChart(projections),
-          ),
+          SizedBox(height: 250, child: _buildChart(projections)),
 
           const SizedBox(height: 32),
-          
+
           // Controls
           _buildSectionTitle("PARAMÈTRES DE PROJECTION"),
           _buildSliderControl(
@@ -226,16 +273,24 @@ class _InvestmentProjectionTabState extends State<InvestmentProjectionTab> {
           ),
 
           const SizedBox(height: 24),
-          
+
           _buildSectionTitle("ÉTAT INITIAL"),
           Row(
             children: [
               Expanded(
-                child: _buildNumericInput("Apports réels (€)", _depositsController, (val) => setState(() => _pastDeposits = val)),
+                child: _buildNumericInput(
+                  "Apports réels (€)",
+                  _depositsController,
+                  (val) => setState(() => _pastDeposits = val),
+                ),
               ),
               const SizedBox(width: 16),
               Expanded(
-                child: _buildNumericInput("PnL actuel (€)", _pnlController, (val) => setState(() => _pastPnL = val)),
+                child: _buildNumericInput(
+                  "PnL actuel (€)",
+                  _pnlController,
+                  (val) => setState(() => _pastPnL = val),
+                ),
               ),
             ],
           ),
@@ -245,7 +300,9 @@ class _InvestmentProjectionTabState extends State<InvestmentProjectionTab> {
               onPressed: _resetToReal,
               icon: const Icon(Icons.refresh_rounded, size: 18),
               label: const Text("Réinitialiser aux valeurs réelles"),
-              style: TextButton.styleFrom(foregroundColor: const Color(0xFF0D71EE)),
+              style: TextButton.styleFrom(
+                foregroundColor: const Color(0xFF0D71EE),
+              ),
             ),
           ),
           const SizedBox(height: 40),
@@ -261,17 +318,30 @@ class _InvestmentProjectionTabState extends State<InvestmentProjectionTab> {
       decoration: BoxDecoration(
         color: isDark ? Colors.white.withOpacity(0.03) : Colors.white,
         borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: isDark ? Colors.white10 : Colors.black.withOpacity(0.05)),
+        border: Border.all(
+          color: isDark ? Colors.white10 : Colors.black.withOpacity(0.05),
+        ),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(label, style: TextStyle(fontSize: 10, color: isDark ? Colors.white38 : Colors.black45, fontWeight: FontWeight.bold)),
+          Text(
+            label,
+            style: TextStyle(
+              fontSize: 10,
+              color: isDark ? Colors.white38 : Colors.black45,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
           const SizedBox(height: 4),
           FittedBox(
             child: Text(
               _formatter.format(value),
-              style: TextStyle(fontSize: 16, fontWeight: FontWeight.w900, color: color),
+              style: TextStyle(
+                fontSize: 16,
+                fontWeight: FontWeight.w900,
+                color: color,
+              ),
             ),
           ),
         ],
@@ -286,17 +356,34 @@ class _InvestmentProjectionTabState extends State<InvestmentProjectionTab> {
 
     return LineChart(
       LineChartData(
-        gridData: FlGridData(show: true, drawVerticalLine: false, getDrawingHorizontalLine: (val) => FlLine(color: isDark ? Colors.white10 : Colors.black.withOpacity(0.05), strokeWidth: 1)),
+        gridData: FlGridData(
+          show: true,
+          drawVerticalLine: false,
+          getDrawingHorizontalLine: (val) => FlLine(
+            color: isDark ? Colors.white10 : Colors.black.withOpacity(0.05),
+            strokeWidth: 1,
+          ),
+        ),
         titlesData: FlTitlesData(
-          rightTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
-          topTitles: const AxisTitles(sideTitles: SideTitles(showTitles: false)),
+          rightTitles: const AxisTitles(
+            sideTitles: SideTitles(showTitles: false),
+          ),
+          topTitles: const AxisTitles(
+            sideTitles: SideTitles(showTitles: false),
+          ),
           bottomTitles: AxisTitles(
             sideTitles: SideTitles(
               showTitles: true,
               interval: max(1.0, _horizonYears / 5),
               getTitlesWidget: (val, meta) => Padding(
                 padding: const EdgeInsets.only(top: 8.0),
-                child: Text("${val.toInt()}a", style: TextStyle(fontSize: 10, color: isDark ? Colors.white38 : Colors.black38)),
+                child: Text(
+                  "${val.toInt()}a",
+                  style: TextStyle(
+                    fontSize: 10,
+                    color: isDark ? Colors.white38 : Colors.black38,
+                  ),
+                ),
               ),
             ),
           ),
@@ -306,7 +393,15 @@ class _InvestmentProjectionTabState extends State<InvestmentProjectionTab> {
               reservedSize: 45,
               getTitlesWidget: (val, meta) {
                 if (val == 0) return const SizedBox();
-                return Text(val >= 1000000 ? "${(val/1000000).toStringAsFixed(1)}M" : "${(val/1000).toInt()}k", style: TextStyle(fontSize: 10, color: isDark ? Colors.white38 : Colors.black38));
+                return Text(
+                  val >= 1000000
+                      ? "${(val / 1000000).toStringAsFixed(1)}M"
+                      : "${(val / 1000).toInt()}k",
+                  style: TextStyle(
+                    fontSize: 10,
+                    color: isDark ? Colors.white38 : Colors.black38,
+                  ),
+                );
               },
             ),
           ),
@@ -315,7 +410,9 @@ class _InvestmentProjectionTabState extends State<InvestmentProjectionTab> {
         lineBarsData: [
           // Gains (PnL + Interests) - Layer on top
           LineChartBarData(
-            spots: data.map((p) => FlSpot(p.year.toDouble(), p.totalBalance)).toList(),
+            spots: data
+                .map((p) => FlSpot(p.year.toDouble(), p.totalBalance))
+                .toList(),
             isCurved: true,
             color: Colors.green,
             barWidth: 2,
@@ -328,7 +425,9 @@ class _InvestmentProjectionTabState extends State<InvestmentProjectionTab> {
           ),
           // Savings Effort - Bottom layer
           LineChartBarData(
-            spots: data.map((p) => FlSpot(p.year.toDouble(), p.savingsEffort)).toList(),
+            spots: data
+                .map((p) => FlSpot(p.year.toDouble(), p.savingsEffort))
+                .toList(),
             isCurved: true,
             color: accentColor,
             barWidth: 2,
@@ -341,8 +440,20 @@ class _InvestmentProjectionTabState extends State<InvestmentProjectionTab> {
         ],
         extraLinesData: ExtraLinesData(
           verticalLines: [
-            if (_horizonYears >= 5) VerticalLine(x: 5, color: Colors.orange.withOpacity(0.5), strokeWidth: 1, dashArray: [5, 5]),
-            if (_horizonYears >= 8) VerticalLine(x: 8, color: Colors.red.withOpacity(0.5), strokeWidth: 1, dashArray: [5, 5]),
+            if (_horizonYears >= 5)
+              VerticalLine(
+                x: 5,
+                color: Colors.orange.withOpacity(0.5),
+                strokeWidth: 1,
+                dashArray: [5, 5],
+              ),
+            if (_horizonYears >= 8)
+              VerticalLine(
+                x: 8,
+                color: Colors.red.withOpacity(0.5),
+                strokeWidth: 1,
+                dashArray: [5, 5],
+              ),
           ],
         ),
       ),
@@ -367,14 +478,25 @@ class _InvestmentProjectionTabState extends State<InvestmentProjectionTab> {
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            Text(label, style: TextStyle(fontSize: 13, color: isDark ? Colors.white70 : Colors.black87, fontWeight: FontWeight.w500)),
+            Text(
+              label,
+              style: TextStyle(
+                fontSize: 13,
+                color: isDark ? Colors.white70 : Colors.black87,
+                fontWeight: FontWeight.w500,
+              ),
+            ),
             SizedBox(
               width: 80,
               child: TextField(
                 controller: controller,
                 keyboardType: TextInputType.number,
                 textAlign: TextAlign.end,
-                style: const TextStyle(color: Color(0xFF0D71EE), fontWeight: FontWeight.bold, fontSize: 14),
+                style: const TextStyle(
+                  color: Color(0xFF0D71EE),
+                  fontWeight: FontWeight.bold,
+                  fontSize: 14,
+                ),
                 decoration: InputDecoration(
                   isDense: true,
                   suffixText: " $suffix",
@@ -385,7 +507,9 @@ class _InvestmentProjectionTabState extends State<InvestmentProjectionTab> {
                   if (d != null && d >= min && d <= max) {
                     onChanged(d);
                   } else {
-                    controller.text = value % 1 == 0 ? value.toInt().toString() : value.toStringAsFixed(1);
+                    controller.text = value % 1 == 0
+                        ? value.toInt().toString()
+                        : value.toStringAsFixed(1);
                   }
                 },
               ),
@@ -404,23 +528,44 @@ class _InvestmentProjectionTabState extends State<InvestmentProjectionTab> {
     );
   }
 
-  Widget _buildNumericInput(String label, TextEditingController controller, ValueChanged<double> onChanged) {
+  Widget _buildNumericInput(
+    String label,
+    TextEditingController controller,
+    ValueChanged<double> onChanged,
+  ) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(label, style: TextStyle(fontSize: 11, color: isDark ? Colors.white38 : Colors.black45, fontWeight: FontWeight.bold)),
+        Text(
+          label,
+          style: TextStyle(
+            fontSize: 11,
+            color: isDark ? Colors.white38 : Colors.black45,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
         const SizedBox(height: 8),
         TextField(
           controller: controller,
-          keyboardType: const TextInputType.numberWithOptions(decimal: true, signed: true),
-          inputFormatters: [FilteringTextInputFormatter.allow(RegExp(r'^-?\d*\.?\d*'))],
+          keyboardType: const TextInputType.numberWithOptions(
+            decimal: true,
+            signed: true,
+          ),
+          inputFormatters: [
+            FilteringTextInputFormatter.allow(RegExp(r'^-?\d*\.?\d*')),
+          ],
           style: const TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
           decoration: InputDecoration(
             isDense: true,
             filled: true,
-            fillColor: isDark ? Colors.white.withOpacity(0.05) : Colors.black.withOpacity(0.02),
-            border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none),
+            fillColor: isDark
+                ? Colors.white.withOpacity(0.05)
+                : Colors.black.withOpacity(0.02),
+            border: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(12),
+              borderSide: BorderSide.none,
+            ),
           ),
           onChanged: (val) {
             final double? d = double.tryParse(val.replaceAll(',', '.'));
@@ -437,7 +582,12 @@ class _InvestmentProjectionTabState extends State<InvestmentProjectionTab> {
       padding: const EdgeInsets.only(bottom: 16),
       child: Text(
         title,
-        style: TextStyle(color: isDark ? Colors.white38 : Colors.black38, fontSize: 11, fontWeight: FontWeight.w900, letterSpacing: 1.2),
+        style: TextStyle(
+          color: isDark ? Colors.white38 : Colors.black38,
+          fontSize: 11,
+          fontWeight: FontWeight.w900,
+          letterSpacing: 1.2,
+        ),
       ),
     );
   }
@@ -452,13 +602,21 @@ class _InvestmentProjectionTabState extends State<InvestmentProjectionTab> {
       ),
       child: Row(
         children: [
-          const Icon(Icons.info_outline_rounded, color: Color(0xFF0D71EE), size: 20),
+          const Icon(
+            Icons.info_outline_rounded,
+            color: Color(0xFF0D71EE),
+            size: 20,
+          ),
           const SizedBox(width: 12),
           Expanded(
             child: Text(
-              message, 
-              style: const TextStyle(color: Color(0xFF0D71EE), fontSize: 12, fontWeight: FontWeight.w600)
-            )
+              message,
+              style: const TextStyle(
+                color: Color(0xFF0D71EE),
+                fontSize: 12,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
           ),
         ],
       ),

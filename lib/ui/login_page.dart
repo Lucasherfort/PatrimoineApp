@@ -247,11 +247,18 @@ class _LoginPageState extends State<LoginPage> {
                     Padding(
                       padding: const EdgeInsets.only(top: 16),
                       child: Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 16,
+                          vertical: 8,
+                        ),
                         decoration: BoxDecoration(
                           color: const Color(0xFFFEF2F2),
                           borderRadius: BorderRadius.circular(12),
-                          border: Border.all(color: const Color(0xFFFCA5A5).withValues(alpha: 0.5)),
+                          border: Border.all(
+                            color: const Color(
+                              0xFFFCA5A5,
+                            ).withValues(alpha: 0.5),
+                          ),
                         ),
                         child: Text(
                           errorMessage!,
@@ -322,7 +329,10 @@ class _LoginPageState extends State<LoginPage> {
                   TextButton(
                     onPressed: isLoading ? null : _signup,
                     style: TextButton.styleFrom(
-                      padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
+                      padding: const EdgeInsets.symmetric(
+                        vertical: 12,
+                        horizontal: 16,
+                      ),
                     ),
                     child: RichText(
                       text: TextSpan(
@@ -405,7 +415,10 @@ class _LoginPageState extends State<LoginPage> {
             borderRadius: BorderRadius.circular(16),
             borderSide: const BorderSide(color: colorBlueMain, width: 2),
           ),
-          contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 18),
+          contentPadding: const EdgeInsets.symmetric(
+            horizontal: 20,
+            vertical: 18,
+          ),
         ),
       ),
     );

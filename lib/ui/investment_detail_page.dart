@@ -4,6 +4,7 @@ import '../models/investments/user_investment_account_view.dart';
 import '../models/position.dart';
 import '../services/investment_service.dart';
 import '../services/position_service.dart';
+import '../services/theme_manager.dart';
 import '../widgets/Investment/investment_position_list.dart';
 import '../widgets/Investment/investment_summary_header.dart';
 import '../widgets/Investment/investment_projection_tab.dart';
@@ -165,12 +166,17 @@ class _InvestmentDetailPageState extends State<InvestmentDetailPage> {
                       color: isDark ? Colors.white : colorBlueMain,
                     ),
                   )
-                : IndexedStack(
-                    index: _currentIndex,
-                    children: [
-                      _buildAccountMainTab(),
-                      _buildCompoundInterestTab(),
-                    ],
+                : ListenableBuilder(
+                    listenable: ThemeManager(),
+                    builder: (context, child) {
+                      return IndexedStack(
+                        index: _currentIndex,
+                        children: [
+                          _buildAccountMainTab(),
+                          _buildCompoundInterestTab(),
+                        ],
+                      );
+                    },
                   ),
           ),
         ],
@@ -203,11 +209,19 @@ class _InvestmentDetailPageState extends State<InvestmentDetailPage> {
   Widget _buildCompoundInterestTab() {
     if (accountView == null) return const SizedBox();
 
-    final positionsValue = positions.fold(0.0, (sum, pos) => sum + pos.totalValue);
+    final positionsValue = positions.fold(
+      0.0,
+      (sum, pos) => sum + pos.totalValue,
+    );
     final totalValueGross = accountView!.cashBalance + positionsValue;
-    
-    // On calcule le PnL brut pour le simulateur (plus simple à projeter)
-    final pnl = totalValueGross - accountView!.totalContribution;
+
+    // On calcule la valeur nette (ou brute selon la préférence) via le service
+    final displayedValue = _investmentService.calculateNetValue(
+      accountView!.copyWith(amount: totalValueGross),
+    );
+
+    // Le PnL au départ du simulateur suit désormais la préférence d'affichage
+    final pnl = displayedValue - accountView!.totalContribution;
 
     return InvestmentProjectionTab(
       initialDeposits: accountView!.totalContribution,
@@ -224,7 +238,9 @@ class _InvestmentDetailPageState extends State<InvestmentDetailPage> {
       decoration: BoxDecoration(
         border: Border(
           top: BorderSide(
-            color: isDark ? Colors.white10 : Colors.black.withValues(alpha: 0.05),
+            color: isDark
+                ? Colors.white10
+                : Colors.black.withValues(alpha: 0.05),
           ),
         ),
       ),

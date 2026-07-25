@@ -38,11 +38,12 @@ class _AnalysisPageState extends State<AnalysisPage> {
     if (!mounted) return;
     setState(() => _isLoading = true);
     try {
-      final details = await _patrimoineService.getDetailedEstimatedAnnualGains();
+      final details = await _patrimoineService
+          .getDetailedEstimatedAnnualGains();
       final crossing = await _patrimoineService.getCrossingPointIndicator();
       final cruising = await _patrimoineService.getCruisingSpeedIndicator();
-      final accounts =
-          await _patrimoineService.getInvestmentAccountsForUserWithPrices();
+      final accounts = await _patrimoineService
+          .getInvestmentAccountsForUserWithPrices();
 
       if (mounted) {
         setState(() {
@@ -69,8 +70,9 @@ class _AnalysisPageState extends State<AnalysisPage> {
 
     if (_isLoading) {
       return Scaffold(
-        backgroundColor:
-            isDark ? theme.scaffoldBackgroundColor : const Color(0xFFF8FAFC),
+        backgroundColor: isDark
+            ? theme.scaffoldBackgroundColor
+            : const Color(0xFFF8FAFC),
         body: const Center(
           child: CircularProgressIndicator(color: Color(0xFF0D71EE)),
         ),
@@ -78,8 +80,9 @@ class _AnalysisPageState extends State<AnalysisPage> {
     }
 
     return Scaffold(
-      backgroundColor:
-          isDark ? theme.scaffoldBackgroundColor : const Color(0xFFF8FAFC),
+      backgroundColor: isDark
+          ? theme.scaffoldBackgroundColor
+          : const Color(0xFFF8FAFC),
       body: Stack(
         children: [
           // --- BACKGROUND HALOS ---
@@ -91,9 +94,9 @@ class _AnalysisPageState extends State<AnalysisPage> {
               height: 400,
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
-                color: const Color(0xFF0D71EE).withValues(
-                  alpha: isDark ? 0.12 : 0.08,
-                ),
+                color: const Color(
+                  0xFF0D71EE,
+                ).withValues(alpha: isDark ? 0.12 : 0.08),
               ),
             ),
           ),
@@ -105,9 +108,9 @@ class _AnalysisPageState extends State<AnalysisPage> {
               height: 450,
               decoration: BoxDecoration(
                 shape: BoxShape.circle,
-                color: const Color(0xFF0D71EE).withValues(
-                  alpha: isDark ? 0.08 : 0.05,
-                ),
+                color: const Color(
+                  0xFF0D71EE,
+                ).withValues(alpha: isDark ? 0.08 : 0.05),
               ),
             ),
           ),
@@ -147,8 +150,9 @@ class _AnalysisPageState extends State<AnalysisPage> {
                         Text(
                           "Performances & Projections",
                           style: TextStyle(
-                            color:
-                                isDark ? Colors.white : const Color(0xFF0F172A),
+                            color: isDark
+                                ? Colors.white
+                                : const Color(0xFF0F172A),
                             fontSize: 28,
                             fontWeight: FontWeight.w900,
                             letterSpacing: -1.0,
@@ -348,7 +352,9 @@ class _AnalysisPageState extends State<AnalysisPage> {
                         borderRadius: BorderRadius.circular(100),
                       ),
                       child: Text(
-                        isNet ? "GAINS ESTIMÉS (NETS)" : "GAINS ESTIMÉS (BRUTS)",
+                        isNet
+                            ? "GAINS ESTIMÉS (NETS)"
+                            : "GAINS ESTIMÉS (BRUTS)",
                         style: const TextStyle(
                           color: Colors.white,
                           fontSize: 9,
@@ -786,7 +792,11 @@ class _AnalysisPageState extends State<AnalysisPage> {
         children: [
           Row(
             children: [
-              const Icon(Icons.analytics_outlined, color: Colors.orange, size: 20),
+              const Icon(
+                Icons.analytics_outlined,
+                color: Colors.orange,
+                size: 20,
+              ),
               const SizedBox(width: 12),
               const Text(
                 "DIAGNOSTIC TECHNIQUE",
@@ -876,7 +886,9 @@ class _AnalysisPageState extends State<AnalysisPage> {
                         "Bloqué car",
                         acc.openedAt == null
                             ? "Date manquante"
-                            : (age < 1 ? "Compte trop récent" : "Versements à 0€"),
+                            : (age < 1
+                                  ? "Compte trop récent"
+                                  : "Versements à 0€"),
                         color: Colors.red,
                       ),
                     ),
