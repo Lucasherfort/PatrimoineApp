@@ -10,12 +10,14 @@ class InvestmentProjectionTab extends StatefulWidget {
   final double initialDeposits;
   final double initialPnL;
   final DateTime? openedAt;
+  final bool isPeaCapped;
 
   const InvestmentProjectionTab({
     super.key,
     required this.initialDeposits,
     required this.initialPnL,
     this.openedAt,
+    this.isPeaCapped = true,
   });
 
   @override
@@ -136,10 +138,14 @@ class _InvestmentProjectionTabState extends State<InvestmentProjectionTab> {
     const double peaLimit = 150000.0;
 
     for (int m = 1; m <= _horizonYears * 12; m++) {
-      // Calculate remaining capacity before reaching the 150k€ limit
-      final remainingCapacity = max(0.0, peaLimit - cumulativeDeposits);
-      // Monthly contribution is capped by remaining capacity
-      final actualContribution = min(_monthlyContribution, remainingCapacity);
+      double actualContribution = _monthlyContribution;
+
+      if (widget.isPeaCapped) {
+        // Calculate remaining capacity before reaching the 150k€ limit
+        final remainingCapacity = max(0.0, peaLimit - cumulativeDeposits);
+        // Monthly contribution is capped by remaining capacity
+        actualContribution = min(_monthlyContribution, remainingCapacity);
+      }
 
       cumulativeDeposits += actualContribution;
       currentBalance =
@@ -176,7 +182,9 @@ class _InvestmentProjectionTabState extends State<InvestmentProjectionTab> {
     final projections = _calculateProjections();
     final finalPoint = projections.last;
     final totalEffort = finalPoint.savingsEffort;
-    final limitReachedYear = _findLimitReachedYear(projections);
+    final limitReachedYear = widget.isPeaCapped
+        ? _findLimitReachedYear(projections)
+        : null;
 
     final isDark = Theme.of(context).brightness == Brightness.dark;
 

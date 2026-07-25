@@ -42,6 +42,11 @@ class _InvestmentDetailPageState extends State<InvestmentDetailPage> {
   int _currentIndex = 0;
 
   bool get _isPEA => widget.accountName.toUpperCase().contains('PEA');
+  bool get _isAV =>
+      widget.accountName.toUpperCase().contains('ASSURANCE VIE') ||
+      widget.accountName.toUpperCase().contains('AV');
+
+  bool get _showTabs => _isPEA || _isAV;
 
   @override
   void initState() {
@@ -181,7 +186,7 @@ class _InvestmentDetailPageState extends State<InvestmentDetailPage> {
           ),
         ],
       ),
-      bottomNavigationBar: _isPEA ? _buildBottomNavBar(context) : null,
+      bottomNavigationBar: _showTabs ? _buildBottomNavBar(context) : null,
     );
   }
 
@@ -227,6 +232,7 @@ class _InvestmentDetailPageState extends State<InvestmentDetailPage> {
       initialDeposits: accountView!.totalContribution,
       initialPnL: pnl,
       openedAt: accountView!.openedAt,
+      isPeaCapped: _isPEA,
     );
   }
 
