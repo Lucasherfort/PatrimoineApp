@@ -191,7 +191,6 @@ class _RealEstateSimulatorPageState extends State<RealEstateSimulatorPage> {
                           ),
                         ],
                       ),
-                      _buildNetGrossBadge(context),
                     ],
                   ),
                   const SizedBox(height: 24),
@@ -465,46 +464,6 @@ class _RealEstateSimulatorPageState extends State<RealEstateSimulatorPage> {
             ),
           ],
         ),
-      ),
-    );
-  }
-
-  Widget _buildNetGrossBadge(BuildContext context) {
-    final isNet = ThemeManager().displayNetWealth;
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-      decoration: BoxDecoration(
-        color: isDark
-            ? Colors.white.withValues(alpha: 0.05)
-            : Colors.black.withValues(alpha: 0.03),
-        borderRadius: BorderRadius.circular(100),
-        border: Border.all(
-          color: isDark ? Colors.white12 : Colors.black.withValues(alpha: 0.05),
-        ),
-      ),
-      child: Row(
-        children: [
-          Container(
-            width: 6,
-            height: 6,
-            decoration: BoxDecoration(
-              shape: BoxShape.circle,
-              color: isNet ? Colors.green : Colors.orange,
-            ),
-          ),
-          const SizedBox(width: 8),
-          Text(
-            isNet ? "NET ESTIMÉ" : "BRUT TOTAL",
-            style: TextStyle(
-              fontSize: 9,
-              fontWeight: FontWeight.w900,
-              color: isDark ? Colors.white60 : Colors.black54,
-              letterSpacing: 0.5,
-            ),
-          ),
-        ],
       ),
     );
   }
