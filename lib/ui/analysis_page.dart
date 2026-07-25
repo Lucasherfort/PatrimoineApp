@@ -225,28 +225,6 @@ class _AnalysisPageState extends State<AnalysisPage> {
                             "Complétez votre profil financier pour voir ce seuil.",
                       ),
 
-                    const SizedBox(height: 40),
-
-                    // Upcoming Features
-                    Text(
-                      "À VENIR",
-                      style: TextStyle(
-                        color: isDark
-                            ? Colors.white.withValues(alpha: 0.4)
-                            : Colors.black38,
-                        fontSize: 12,
-                        fontWeight: FontWeight.w900,
-                        letterSpacing: 1.5,
-                      ),
-                    ),
-                    const SizedBox(height: 16),
-                    _buildPlaceholderCard(
-                      context,
-                      title: "Projections FIRE",
-                      icon: Icons.local_fire_department_outlined,
-                      subtitle: "Simulation de votre date de retraite",
-                    ),
-
                     const SizedBox(height: 32),
 
                     // Diagnostic Button
@@ -691,77 +669,6 @@ class _AnalysisPageState extends State<AnalysisPage> {
                 fontWeight: FontWeight.w600,
               ),
             ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildPlaceholderCard(
-    BuildContext context, {
-    required String title,
-    required IconData icon,
-    required String subtitle,
-  }) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-    final theme = Theme.of(context);
-
-    return Container(
-      margin: const EdgeInsets.only(bottom: 16),
-      padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        color: theme.cardColor,
-        borderRadius: BorderRadius.circular(24),
-        border: Border.all(
-          color: isDark
-              ? Colors.white.withValues(alpha: 0.05)
-              : Colors.black.withValues(alpha: 0.02),
-        ),
-      ),
-      child: Row(
-        children: [
-          Container(
-            padding: const EdgeInsets.all(12),
-            decoration: BoxDecoration(
-              color: isDark
-                  ? Colors.white.withValues(alpha: 0.05)
-                  : Colors.black.withValues(alpha: 0.03),
-              borderRadius: BorderRadius.circular(16),
-            ),
-            child: Icon(
-              icon,
-              color: isDark ? Colors.white12 : Colors.black12,
-              size: 24,
-            ),
-          ),
-          const SizedBox(width: 20),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  title,
-                  style: TextStyle(
-                    fontWeight: FontWeight.w800,
-                    fontSize: 15,
-                    color: isDark ? Colors.white24 : Colors.black26,
-                  ),
-                ),
-                Text(
-                  subtitle,
-                  style: TextStyle(
-                    color: isDark ? Colors.white10 : Colors.black12,
-                    fontSize: 12,
-                    fontWeight: FontWeight.w500,
-                  ),
-                ),
-              ],
-            ),
-          ),
-          Icon(
-            Icons.lock_outline_rounded,
-            size: 16,
-            color: isDark ? Colors.white10 : Colors.black12,
           ),
         ],
       ),
