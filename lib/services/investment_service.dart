@@ -297,13 +297,14 @@ class InvestmentService {
     final accounts = await getUserInvestmentAccountsView();
     double total = 0.0;
     for (final account in accounts) {
-      total += _calculateNetValueExplicit(account);
+      total += calculateNetValueNet(account);
     }
     return total;
   }
 
-  /// Version explicite du calcul net sans dépendre du ThemeManager
-  double _calculateNetValueExplicit(UserInvestmentAccountView account) {
+  /// Calcule la valeur nette d'un compte (après fiscalité sur les gains)
+  /// Indépendant des préférences globales de l'utilisateur.
+  double calculateNetValueNet(UserInvestmentAccountView account) {
     final gains = account.amount - account.totalContribution;
     if (gains <= 0) return account.amount;
 
