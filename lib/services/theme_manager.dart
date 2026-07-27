@@ -8,7 +8,7 @@ class ThemeManager with ChangeNotifier {
 
   final SettingsService _settingsService = SettingsService();
   AppThemeMode _themeMode = AppThemeMode.adaptive;
-  bool _displayNetWealth = false;
+  final bool _displayNetWealth = false; // 👈 Toujours brut par défaut
 
   AppThemeMode get appThemeMode => _themeMode;
   ThemeMode get themeMode => _settingsService.mapToThemeMode(_themeMode);
@@ -16,19 +16,12 @@ class ThemeManager with ChangeNotifier {
 
   Future<void> init() async {
     _themeMode = await _settingsService.getThemeMode();
-    _displayNetWealth = await _settingsService.getDisplayNetWealth();
     notifyListeners();
   }
 
   Future<void> setThemeMode(AppThemeMode mode) async {
     _themeMode = mode;
     await _settingsService.setThemeMode(mode);
-    notifyListeners();
-  }
-
-  Future<void> setDisplayNetWealth(bool value) async {
-    _displayNetWealth = value;
-    await _settingsService.setDisplayNetWealth(value);
     notifyListeners();
   }
 }

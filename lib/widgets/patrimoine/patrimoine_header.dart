@@ -4,6 +4,7 @@ import '../../services/theme_manager.dart';
 
 class PatrimoineHeader extends StatefulWidget {
   final double patrimoineTotal;
+  final double patrimoineNetEstimated; // 👈 Ajouté
   final double investedCapital;
   final double portfolioValue;
   final double netWorth;
@@ -13,6 +14,7 @@ class PatrimoineHeader extends StatefulWidget {
   const PatrimoineHeader({
     super.key,
     required this.patrimoineTotal,
+    required this.patrimoineNetEstimated, // 👈 Ajouté
     required this.investedCapital,
     required this.portfolioValue,
     required this.netWorth,
@@ -89,7 +91,6 @@ class _PatrimoineHeaderState extends State<PatrimoineHeader> {
             final theme = Theme.of(context);
             final textStyle = theme.textTheme;
             final isDark = theme.brightness == Brightness.dark;
-            final manager = ThemeManager();
 
             return SafeArea(
               child: Padding(
@@ -114,49 +115,6 @@ class _PatrimoineHeaderState extends State<PatrimoineHeader> {
                     ),
 
                     Text(
-                      "CONFIGURATION D'AFFICHAGE",
-                      style: textStyle.labelSmall?.copyWith(
-                        color: isDark ? Colors.white38 : Colors.black38,
-                        fontWeight: FontWeight.bold,
-                        letterSpacing: 1.2,
-                      ),
-                    ),
-                    const SizedBox(height: 12),
-
-                    // Sélecteur Brut / Net
-                    Container(
-                      padding: const EdgeInsets.all(4),
-                      decoration: BoxDecoration(
-                        color: isDark
-                            ? Colors.white.withValues(alpha: 0.05)
-                            : Colors.black.withValues(alpha: 0.03),
-                        borderRadius: BorderRadius.circular(14),
-                      ),
-                      child: Row(
-                        children: [
-                          Expanded(
-                            child: _buildTypeOption(
-                              context,
-                              label: "Patrimoine brut",
-                              isSelected: !manager.displayNetWealth,
-                              onTap: () => manager.setDisplayNetWealth(false),
-                            ),
-                          ),
-                          Expanded(
-                            child: _buildTypeOption(
-                              context,
-                              label: "Net estimé",
-                              isSelected: manager.displayNetWealth,
-                              onTap: () => manager.setDisplayNetWealth(true),
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-
-                    const SizedBox(height: 32),
-
-                    Text(
                       "Détails du patrimoine",
                       style: textStyle.titleLarge?.copyWith(
                         fontWeight: FontWeight.w900,
@@ -168,7 +126,7 @@ class _PatrimoineHeaderState extends State<PatrimoineHeader> {
                     // Section Performance
                     _buildModernInfoCard(
                       context,
-                      label: "Patrimoine net (versé)",
+                      label: "Patrimoine net constitué",
                       value: _isVisible
                           ? "${_formatAmount(widget.netPatrimoine)} €"
                           : "•••• €",
@@ -184,7 +142,7 @@ class _PatrimoineHeaderState extends State<PatrimoineHeader> {
                         Expanded(
                           child: _buildModernInfoCard(
                             context,
-                            label: "Rendement global",
+                            label: "Performance globale",
                             value: _isVisible
                                 ? "${yieldValue >= 0 ? '+' : ''}${yieldValue.toStringAsFixed(2)} %"
                                 : "•• %",
@@ -199,6 +157,20 @@ class _PatrimoineHeaderState extends State<PatrimoineHeader> {
                         ),
                       ],
                     ),
+                    const SizedBox(height: 12),
+
+                    // NOUVEAU : Patrimoine net estimé
+                    _buildModernInfoCard(
+                      context,
+                      label: "Patrimoine net estimé",
+                      value: _isVisible
+                          ? "${_formatAmount(widget.patrimoineNetEstimated)} €"
+                          : "•••• €",
+                      icon: Icons.verified_user_rounded,
+                      color: const Color(0xFF0D71EE).withValues(alpha: 0.1),
+                      textColor: const Color(0xFF0D71EE),
+                    ),
+
                     const SizedBox(height: 24),
 
                     Text(
@@ -332,48 +304,6 @@ class _PatrimoineHeaderState extends State<PatrimoineHeader> {
     );
   }
 
-  Widget _buildTypeOption(
-    BuildContext context, {
-    required String label,
-    required bool isSelected,
-    required VoidCallback onTap,
-  }) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-    return GestureDetector(
-      onTap: onTap,
-      child: AnimatedContainer(
-        duration: const Duration(milliseconds: 200),
-        padding: const EdgeInsets.symmetric(vertical: 10),
-        decoration: BoxDecoration(
-          color: isSelected
-              ? (isDark ? Colors.white.withValues(alpha: 0.1) : Colors.white)
-              : Colors.transparent,
-          borderRadius: BorderRadius.circular(10),
-          boxShadow: isSelected && !isDark
-              ? [
-                  BoxShadow(
-                    color: Colors.black.withValues(alpha: 0.05),
-                    blurRadius: 4,
-                    offset: const Offset(0, 2),
-                  ),
-                ]
-              : null,
-        ),
-        child: Text(
-          label,
-          textAlign: TextAlign.center,
-          style: TextStyle(
-            color: isSelected
-                ? (isDark ? Colors.white : const Color(0xFF0D71EE))
-                : (isDark ? Colors.white38 : Colors.black38),
-            fontWeight: isSelected ? FontWeight.bold : FontWeight.w500,
-            fontSize: 13,
-          ),
-        ),
-      ),
-    );
-  }
-
   @override
   Widget build(BuildContext context) {
     final bool showGains = widget.hasInvestments && widget.investedCapital > 0;
@@ -383,7 +313,6 @@ class _PatrimoineHeaderState extends State<PatrimoineHeader> {
     return ListenableBuilder(
       listenable: ThemeManager(),
       builder: (context, child) {
-        final isNet = ThemeManager().displayNetWealth;
         return Container(
           width: double.infinity,
           padding: const EdgeInsets.symmetric(vertical: 24),
@@ -394,7 +323,7 @@ class _PatrimoineHeaderState extends State<PatrimoineHeader> {
               // Label
               // =========================
               Text(
-                isNet ? "PATRIMOINE NET ESTIMÉ" : "PATRIMOINE BRUT TOTAL",
+                "PATRIMOINE BRUT TOTAL",
                 style: TextStyle(
                   color: isDark
                       ? Colors.white.withValues(alpha: 0.4)

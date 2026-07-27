@@ -3,7 +3,6 @@ import 'package:intl/intl.dart';
 import '../../models/investment_position.dart';
 import '../../models/investments/user_investment_account_view.dart';
 import '../../services/investment_service.dart';
-import '../../services/theme_manager.dart';
 
 class InvestmentSummaryHeader extends StatelessWidget {
   final UserInvestmentAccountView account;
@@ -44,22 +43,7 @@ class InvestmentSummaryHeader extends StatelessWidget {
   double get totalValue =>
       isAssuranceVie ? positionsValue : account.cashBalance + positionsValue;
 
-  double get displayedValue {
-    final service = InvestmentService();
-    // On met à jour l'objet pour le calcul sans modifier l'original par sécurité
-    final tempView = UserInvestmentAccountView(
-      id: account.id,
-      investmentCategoryId: account.investmentCategoryId,
-      sourceName: account.sourceName,
-      bankName: account.bankName,
-      logoUrl: account.logoUrl,
-      totalContribution: account.totalContribution,
-      cashBalance: account.cashBalance,
-      amount: totalValue,
-      openedAt: account.openedAt,
-    );
-    return service.calculateNetValue(tempView);
-  }
+  double get displayedValue => totalValue; // 👈 Toujours brut
 
   double get totalProfitLoss => displayedValue - account.totalContribution;
   double get performancePercentage {
@@ -89,9 +73,7 @@ class InvestmentSummaryHeader extends StatelessWidget {
         children: [
           // Titre discret
           Text(
-            ThemeManager().displayNetWealth
-                ? "VALEUR NETTE ESTIMÉE"
-                : "VALEUR TOTALE ESTIMÉE",
+            "VALEUR TOTALE ESTIMÉE",
             style: TextStyle(
               color: isDark
                   ? Colors.white.withValues(alpha: 0.4)

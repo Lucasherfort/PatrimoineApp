@@ -5,7 +5,6 @@ import '../services/financial_profile_manager.dart';
 import '../services/patrimoine_service.dart';
 import '../models/patrimoine/patrimonial_indicator.dart';
 import '../models/investments/estimated_gains_result.dart';
-import '../services/theme_manager.dart';
 
 class AnalysisPage extends StatefulWidget {
   const AnalysisPage({super.key});
@@ -33,13 +32,11 @@ class _AnalysisPageState extends State<AnalysisPage> {
   void initState() {
     super.initState();
     _loadData();
-    ThemeManager().addListener(_loadData);
     FinancialProfileManager().addListener(_loadData);
   }
 
   @override
   void dispose() {
-    ThemeManager().removeListener(_loadData);
     FinancialProfileManager().removeListener(_loadData);
     super.dispose();
   }
@@ -140,7 +137,7 @@ class _AnalysisPageState extends State<AnalysisPage> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    // Header row with Net/Gross pill
+                    // Header row
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
@@ -171,7 +168,6 @@ class _AnalysisPageState extends State<AnalysisPage> {
                             ),
                           ],
                         ),
-                        _buildNetGrossBadge(context),
                       ],
                     ),
                     const SizedBox(height: 24),
@@ -260,46 +256,6 @@ class _AnalysisPageState extends State<AnalysisPage> {
                   ],
                 ),
               ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildNetGrossBadge(BuildContext context) {
-    final isNet = ThemeManager().displayNetWealth;
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-      decoration: BoxDecoration(
-        color: isDark
-            ? Colors.white.withValues(alpha: 0.05)
-            : Colors.black.withValues(alpha: 0.03),
-        borderRadius: BorderRadius.circular(100),
-        border: Border.all(
-          color: isDark ? Colors.white12 : Colors.black.withValues(alpha: 0.05),
-        ),
-      ),
-      child: Row(
-        children: [
-          Container(
-            width: 6,
-            height: 6,
-            decoration: BoxDecoration(
-              shape: BoxShape.circle,
-              color: isNet ? Colors.green : Colors.orange,
-            ),
-          ),
-          const SizedBox(width: 8),
-          Text(
-            isNet ? "NET ESTIMÉ" : "BRUT TOTAL",
-            style: TextStyle(
-              fontSize: 9,
-              fontWeight: FontWeight.w900,
-              color: isDark ? Colors.white60 : Colors.black54,
-              letterSpacing: 0.5,
             ),
           ),
         ],
