@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import '../services/patrimoine_service.dart';
-import '../services/theme_manager.dart';
 import '../widgets/Investment/investment_list.dart';
 import '../widgets/Savings/savings_account_list.dart';
 import '../widgets/patrimoine/add_patrimoine_wizard.dart';
@@ -24,6 +23,7 @@ class HomePageState extends State<HomePage> {
   static const Color colorBlueMain = Color(0xFF0D71EE);
 
   double patrimoineTotal = 0.0;
+  double patrimoineNetEstimated = 0.0; // 👈 Ajouté
   double investedCapital = 0.0;
   double portfolioValue = 0.0;
   double netPatrimoine = 0.0;
@@ -37,12 +37,10 @@ class HomePageState extends State<HomePage> {
   void initState() {
     super.initState();
     _loadPatrimoine();
-    ThemeManager().addListener(_loadPatrimoine);
   }
 
   @override
   void dispose() {
-    ThemeManager().removeListener(_loadPatrimoine);
     super.dispose();
   }
 
@@ -65,7 +63,10 @@ class HomePageState extends State<HomePage> {
     setState(() => isLoading = true);
 
     try {
-      final total = await _patrimoineService.getPatrimoine();
+      final total = await _patrimoineService
+          .getPatrimoineGross(); // 👈 Toujours brut
+      final netEstimated = await _patrimoineService
+          .getPatrimoineNetEstimated(); // 👈 Calculé à part
       final liquidity = await _patrimoineService.hasLiquidityAccounts();
       final savings = await _patrimoineService.hasSavingsAccounts();
       final investments = await _patrimoineService.hasInvestmentAccounts();
@@ -78,6 +79,7 @@ class HomePageState extends State<HomePage> {
       if (mounted) {
         setState(() {
           patrimoineTotal = total;
+          patrimoineNetEstimated = netEstimated;
           hasLiquidityAccounts = liquidity;
           hasSavingsAccounts = savings;
           hasInvestmentAccounts = investments;
@@ -155,6 +157,7 @@ class HomePageState extends State<HomePage> {
                 const SizedBox(height: 20),
                 PatrimoineHeader(
                   patrimoineTotal: patrimoineTotal,
+                  patrimoineNetEstimated: patrimoineNetEstimated, // 👈 Ajouté
                   investedCapital: investedCapital,
                   portfolioValue: portfolioValue,
                   netWorth: investedCapital,

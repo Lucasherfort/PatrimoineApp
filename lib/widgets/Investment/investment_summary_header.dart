@@ -3,9 +3,8 @@ import 'package:intl/intl.dart';
 import '../../models/investment_position.dart';
 import '../../models/investments/user_investment_account_view.dart';
 import '../../services/investment_service.dart';
-import '../../services/theme_manager.dart';
 
-class InvestmentSummaryHeader extends StatelessWidget {
+class InvestmentSummaryHeader extends StatefulWidget {
   final UserInvestmentAccountView account;
   final List<InvestmentPosition> positions;
   final void Function(
@@ -21,6 +20,14 @@ class InvestmentSummaryHeader extends StatelessWidget {
     required this.positions,
     this.onValueUpdated,
   });
+
+  @override
+  State<InvestmentSummaryHeader> createState() =>
+      _InvestmentSummaryHeaderState();
+}
+
+class _InvestmentSummaryHeaderState extends State<InvestmentSummaryHeader> {
+  bool _isVisible = true;
 
   // --- Palette ---
   static const Color colorGreenFlash = Color(0xFF65E046);
@@ -38,35 +45,192 @@ class InvestmentSummaryHeader extends StatelessWidget {
     return formatter.format(amount).trim();
   }
 
-  bool get isAssuranceVie => account.isAssuranceVie;
+  bool get isAssuranceVie => widget.account.isAssuranceVie;
   double get positionsValue =>
-      positions.fold(0.0, (sum, pos) => sum + pos.totalValue);
-  double get totalValue =>
-      isAssuranceVie ? positionsValue : account.cashBalance + positionsValue;
+      widget.positions.fold(0.0, (sum, pos) => sum + pos.totalValue);
+  double get totalValue => isAssuranceVie
+      ? positionsValue
+      : widget.account.cashBalance + positionsValue;
 
-  double get displayedValue {
-    final service = InvestmentService();
-    // On met à jour l'objet pour le calcul sans modifier l'original par sécurité
-    final tempView = UserInvestmentAccountView(
-      id: account.id,
-      investmentCategoryId: account.investmentCategoryId,
-      sourceName: account.sourceName,
-      bankName: account.bankName,
-      logoUrl: account.logoUrl,
-      totalContribution: account.totalContribution,
-      cashBalance: account.cashBalance,
-      amount: totalValue,
-      openedAt: account.openedAt,
-    );
-    return service.calculateNetValue(tempView);
+  double get totalProfitLoss => totalValue - widget.account.totalContribution;
+  double get performancePercentage {
+    if (widget.account.totalContribution <= 0) return 0.0;
+    return ((totalValue - widget.account.totalContribution) /
+            widget.account.totalContribution) *
+        100;
   }
 
-  double get totalProfitLoss => displayedValue - account.totalContribution;
-  double get performancePercentage {
-    if (account.totalContribution <= 0) return 0.0;
-    return ((displayedValue - account.totalContribution) /
-            account.totalContribution) *
-        100;
+  String _getAccountAge() {
+    if (widget.account.openedAt == null) return "Inconnue";
+    final diff = DateTime.now().difference(widget.account.openedAt!);
+    final years = (diff.inDays / 365.25).floor();
+    final months = ((diff.inDays % 365.25) / 30.44).floor();
+
+    if (years > 0) {
+      return "$years an${years > 1 ? 's' : ''} et $months mois";
+    }
+    return "$months mois";
+  }
+
+  void _showDetailsPanel(BuildContext context) {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+    final textStyle = theme.textTheme;
+
+    final service = InvestmentService();
+    // On calcule la valeur nette explicitement pour le panneau
+    final netEstimatedValue = service.calculateNetValueNet(
+      widget.account.copyWith(amount: totalValue),
+    );
+
+    final netGain = netEstimatedValue - widget.account.totalContribution;
+    final taxRate = service.getCurrentTaxRate(widget.account);
+
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: theme.cardColor,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+      ),
+      builder: (context) {
+        return SafeArea(
+          child: Padding(
+            padding: const EdgeInsets.fromLTRB(24, 12, 24, 24),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // Barre de drag
+                Center(
+                  child: Container(
+                    width: 36,
+                    height: 4,
+                    margin: const EdgeInsets.only(bottom: 24),
+                    decoration: BoxDecoration(
+                      color: isDark
+                          ? Colors.white12
+                          : Colors.black.withValues(alpha: 0.1),
+                      borderRadius: BorderRadius.circular(2),
+                    ),
+                  ),
+                ),
+
+                Text(
+                  "DÉTAILS FISCAUX",
+                  style: textStyle.labelSmall?.copyWith(
+                    color: isDark ? Colors.white38 : Colors.black38,
+                    fontWeight: FontWeight.bold,
+                    letterSpacing: 1.2,
+                  ),
+                ),
+                const SizedBox(height: 24),
+
+                _buildModernInfoCard(
+                  context,
+                  label: "Ancienneté du compte",
+                  value: _getAccountAge(),
+                  icon: Icons.history_rounded,
+                  color: isDark
+                      ? Colors.white.withValues(alpha: 0.03)
+                      : Colors.grey.shade100,
+                ),
+                const SizedBox(height: 12),
+
+                _buildModernInfoCard(
+                  context,
+                  label: "Fiscalité appliquée",
+                  value: "${(taxRate * 100).toStringAsFixed(1)} %",
+                  icon: Icons.receipt_long_rounded,
+                  color: isDark
+                      ? Colors.white.withValues(alpha: 0.03)
+                      : Colors.grey.shade100,
+                ),
+                const SizedBox(height: 32),
+
+                Text(
+                  "Estimation nette",
+                  style: textStyle.titleLarge?.copyWith(
+                    fontWeight: FontWeight.w900,
+                    letterSpacing: -0.5,
+                  ),
+                ),
+                const SizedBox(height: 24),
+
+                _buildModernInfoCard(
+                  context,
+                  label: "Plus-value nette estimée",
+                  value: _isVisible
+                      ? "${netGain >= 0 ? '+' : ''}${_formatAmount(netGain)} €"
+                      : "•••• €",
+                  icon: Icons.trending_up_rounded,
+                  color: isDark
+                      ? Colors.white.withValues(alpha: 0.03)
+                      : Colors.grey.shade100,
+                ),
+                const SizedBox(height: 12),
+
+                _buildModernInfoCard(
+                  context,
+                  label: "Valeur nette estimée",
+                  value: _isVisible
+                      ? "${_formatAmount(netEstimatedValue)} €"
+                      : "•••• €",
+                  icon: Icons.verified_user_rounded,
+                  color: colorBlueMain.withValues(alpha: 0.1),
+                  textColor: colorBlueMain,
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _buildModernInfoCard(
+    BuildContext context, {
+    required String label,
+    required String value,
+    required IconData icon,
+    required Color color,
+    Color? textColor,
+  }) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: color,
+        borderRadius: BorderRadius.circular(16),
+      ),
+      child: Row(
+        children: [
+          Icon(
+            icon,
+            color: textColor ?? (isDark ? Colors.white70 : Colors.black87),
+            size: 20,
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Text(
+              label,
+              style: TextStyle(
+                color: isDark ? Colors.white54 : Colors.black54,
+                fontSize: 14,
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+          ),
+          Text(
+            value,
+            style: TextStyle(
+              color: textColor ?? (isDark ? Colors.white : Colors.black),
+              fontSize: 16,
+              fontWeight: FontWeight.w900,
+            ),
+          ),
+        ],
+      ),
+    );
   }
 
   @override
@@ -79,8 +243,10 @@ class InvestmentSummaryHeader extends StatelessWidget {
     final mainTextColor = isDark ? Colors.white : const Color(0xFF0F172A);
 
     final service = InvestmentService();
-    final double taxRate = service.getCurrentTaxRate(account);
-    final bool isAdvantageAcquired = service.isTaxAdvantageAcquired(account);
+    final double taxRate = service.getCurrentTaxRate(widget.account);
+    final bool isAdvantageAcquired = service.isTaxAdvantageAcquired(
+      widget.account,
+    );
 
     return Container(
       width: double.infinity,
@@ -89,9 +255,7 @@ class InvestmentSummaryHeader extends StatelessWidget {
         children: [
           // Titre discret
           Text(
-            ThemeManager().displayNetWealth
-                ? "VALEUR NETTE ESTIMÉE"
-                : "VALEUR TOTALE ESTIMÉE",
+            "VALEUR TOTALE ESTIMÉE",
             style: TextStyle(
               color: isDark
                   ? Colors.white.withValues(alpha: 0.4)
@@ -103,15 +267,60 @@ class InvestmentSummaryHeader extends StatelessWidget {
           ),
           const SizedBox(height: 8),
 
-          // Montant Principal
-          Text(
-            "${_formatAmount(displayedValue)} €",
-            style: TextStyle(
-              fontSize: 38,
-              fontWeight: FontWeight.w900,
-              color: mainTextColor,
-              letterSpacing: -1.0,
-            ),
+          // Montant Principal (Cliquable)
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              // Placeholder invisible pour garder le centrage
+              const Opacity(
+                opacity: 0,
+                child: IconButton(
+                  onPressed: null,
+                  icon: Icon(Icons.visibility_outlined, size: 22),
+                ),
+              ),
+
+              Expanded(
+                child: GestureDetector(
+                  onTap: () => _showDetailsPanel(context),
+                  child: AnimatedSwitcher(
+                    duration: const Duration(milliseconds: 300),
+                    child: FittedBox(
+                      fit: BoxFit.scaleDown,
+                      child: Text(
+                        _isVisible
+                            ? "${_formatAmount(totalValue)} €"
+                            : "•••••••• €",
+                        key: ValueKey(_isVisible),
+                        textAlign: TextAlign.center,
+                        style: TextStyle(
+                          fontSize: 38,
+                          fontWeight: FontWeight.w900,
+                          color: mainTextColor,
+                          letterSpacing: -1.0,
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+
+              // Bouton visibilité
+              IconButton(
+                onPressed: () {
+                  setState(() {
+                    _isVisible = !_isVisible;
+                  });
+                },
+                icon: Icon(
+                  _isVisible
+                      ? Icons.visibility_outlined
+                      : Icons.visibility_off_outlined,
+                  color: isDark ? Colors.white70 : Colors.black45,
+                  size: 22,
+                ),
+              ),
+            ],
           ),
           const SizedBox(height: 12),
 
@@ -138,7 +347,9 @@ class InvestmentSummaryHeader extends StatelessWidget {
                     ),
                     const SizedBox(width: 6),
                     Text(
-                      "${isProfit ? '+' : ''}${_formatAmount(totalProfitLoss)} € (${performancePercentage.toStringAsFixed(2)}%)",
+                      _isVisible
+                          ? "${isProfit ? '+' : ''}${_formatAmount(totalProfitLoss)} € (${performancePercentage.toStringAsFixed(2)}%)"
+                          : "•••• €",
                       style: TextStyle(
                         color: statusColor,
                         fontWeight: FontWeight.bold,
@@ -149,7 +360,7 @@ class InvestmentSummaryHeader extends StatelessWidget {
                 ),
               ),
               const SizedBox(width: 10),
-              // Petit bouton info/edit style "Glass"
+              // Petit bouton edit style "Glass"
               GestureDetector(
                 onTap: () => _openEditPanel(context),
                 child: Container(
@@ -188,17 +399,21 @@ class InvestmentSummaryHeader extends StatelessWidget {
                     child: _buildMetricItem(
                       context,
                       "ESPÈCES",
-                      "${_formatAmount(account.cashBalance)} €",
+                      _isVisible
+                          ? "${_formatAmount(widget.account.cashBalance)} €"
+                          : "•••• €",
                     ),
                   ),
                 Expanded(
                   child: _buildMetricItem(
                     context,
                     "VERSEMENTS",
-                    "${_formatAmount(account.totalContribution)} €",
+                    _isVisible
+                        ? "${_formatAmount(widget.account.totalContribution)} €"
+                        : "•••• €",
                   ),
                 ),
-                if (account.openedAt != null)
+                if (widget.account.openedAt != null)
                   Expanded(
                     child: _buildMetricItem(
                       context,
@@ -277,13 +492,15 @@ class InvestmentSummaryHeader extends StatelessWidget {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final theme = Theme.of(context);
     final cashController = TextEditingController(
-      text: account.cashBalance.toStringAsFixed(2).replaceAll('.', ','),
+      text: widget.account.cashBalance.toStringAsFixed(2).replaceAll('.', ','),
     );
     final depositsController = TextEditingController(
-      text: account.totalContribution.toStringAsFixed(2).replaceAll('.', ','),
+      text: widget.account.totalContribution
+          .toStringAsFixed(2)
+          .replaceAll('.', ','),
     );
 
-    DateTime? selectedDate = account.openedAt;
+    DateTime? selectedDate = widget.account.openedAt;
 
     showModalBottomSheet(
       context: context,
@@ -444,8 +661,8 @@ class InvestmentSummaryHeader extends StatelessWidget {
                       final deposits = double.tryParse(
                         depositsController.text.replaceAll(',', '.'),
                       );
-                      if (deposits != null && onValueUpdated != null) {
-                        onValueUpdated!(
+                      if (deposits != null && widget.onValueUpdated != null) {
+                        widget.onValueUpdated!(
                           isAssuranceVie ? 0.0 : (cash ?? 0.0),
                           deposits,
                           selectedDate,

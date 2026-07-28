@@ -4,7 +4,6 @@ import 'package:intl/intl.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../../services/patrimoine_service.dart';
 import '../../services/financial_profile_manager.dart';
-import '../../services/theme_manager.dart';
 
 class RealEstateSimulatorPage extends StatefulWidget {
   const RealEstateSimulatorPage({super.key});

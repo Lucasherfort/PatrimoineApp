@@ -282,7 +282,38 @@ class InvestmentService {
     }
   }
 
+  /// Calcule la valeur totale brute des investissements (sans fiscalité)
+  Future<double> getTotalPortfolioValueGross() async {
+    final accounts = await getUserInvestmentAccountsView();
+    double total = 0.0;
+    for (final account in accounts) {
+      total += account.amount;
+    }
+    return total;
+  }
+
+  /// Calcule la valeur totale nette des investissements (après fiscalité estimée)
+  Future<double> getTotalPortfolioValueNet() async {
+    final accounts = await getUserInvestmentAccountsView();
+    double total = 0.0;
+    for (final account in accounts) {
+      total += calculateNetValueNet(account);
+    }
+    return total;
+  }
+
+  /// Calcule la valeur nette d'un compte (après fiscalité sur les gains)
+  /// Indépendant des préférences globales de l'utilisateur.
+  double calculateNetValueNet(UserInvestmentAccountView account) {
+    final gains = account.amount - account.totalContribution;
+    if (gains <= 0) return account.amount;
+
+    final taxRate = getCurrentTaxRate(account);
+    return account.amount - (gains * taxRate);
+  }
+
   /// Calcule la valeur totale des investissements d'un utilisateur ✅
+  /// Dépend toujours du ThemeManager pour la rétrocompatibilité (si utilisé ailleurs)
   Future<double> getTotalPortfolioValue() async {
     final accounts = await getUserInvestmentAccountsView();
     double total = 0.0;

@@ -9,9 +9,11 @@ class SettingsService {
   SettingsService._internal();
 
   static const _keyThemeMode = 'theme_mode';
-  static const _keyDisplayNetWealth = 'display_net_wealth';
   static const _keyMonthlyNetSalary = 'monthly_net_salary';
   static const _keyMonthlyInvestment = 'monthly_investment';
+  static const _keyRetirementDesiredIncome = 'retirement_desired_income';
+  static const _keyRetirementEstimatedPension = 'retirement_estimated_pension';
+  static const _keyRetirementSwr = 'retirement_swr';
 
   Future<AppThemeMode> getThemeMode() async {
     final prefs = await SharedPreferences.getInstance();
@@ -25,16 +27,6 @@ class SettingsService {
   Future<void> setThemeMode(AppThemeMode mode) async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setString(_keyThemeMode, mode.name);
-  }
-
-  Future<bool> getDisplayNetWealth() async {
-    final prefs = await SharedPreferences.getInstance();
-    return prefs.getBool(_keyDisplayNetWealth) ?? false;
-  }
-
-  Future<void> setDisplayNetWealth(bool value) async {
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setBool(_keyDisplayNetWealth, value);
   }
 
   Future<double?> getMonthlyNetSalary() async {
@@ -55,6 +47,38 @@ class SettingsService {
   Future<void> setMonthlyInvestment(double value) async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setDouble(_keyMonthlyInvestment, value);
+  }
+
+  // --- Retraite ---
+
+  Future<double?> getRetirementDesiredIncome() async {
+    final prefs = await SharedPreferences.getInstance();
+    return prefs.getDouble(_keyRetirementDesiredIncome);
+  }
+
+  Future<void> setRetirementDesiredIncome(double value) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setDouble(_keyRetirementDesiredIncome, value);
+  }
+
+  Future<double?> getRetirementEstimatedPension() async {
+    final prefs = await SharedPreferences.getInstance();
+    return prefs.getDouble(_keyRetirementEstimatedPension);
+  }
+
+  Future<void> setRetirementEstimatedPension(double value) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setDouble(_keyRetirementEstimatedPension, value);
+  }
+
+  Future<double> getRetirementSwr() async {
+    final prefs = await SharedPreferences.getInstance();
+    return prefs.getDouble(_keyRetirementSwr) ?? 4.0;
+  }
+
+  Future<void> setRetirementSwr(double value) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setDouble(_keyRetirementSwr, value);
   }
 
   ThemeMode mapToThemeMode(AppThemeMode mode) {

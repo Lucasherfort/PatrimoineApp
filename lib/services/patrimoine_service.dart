@@ -34,7 +34,34 @@ class PatrimoineService {
 
   // ─── Total patrimoine ─────────────────────────────────────────────────────
 
+  /// Récupère la valeur totale brute du patrimoine
+  Future<double> getPatrimoineGross() async {
+    _requireUserId();
+
+    final values = await Future.wait([
+      _liquidityService.getTotalLiquidityValue(),
+      _savingsService.getTotalSavingsValue(),
+      _investmentService.getTotalPortfolioValueGross(),
+    ]);
+
+    return values.reduce((a, b) => a + b);
+  }
+
+  /// Récupère la valeur totale nette estimée du patrimoine
+  Future<double> getPatrimoineNetEstimated() async {
+    _requireUserId();
+
+    final values = await Future.wait([
+      _liquidityService.getTotalLiquidityValue(),
+      _savingsService.getTotalSavingsValue(),
+      _investmentService.getTotalPortfolioValueNet(),
+    ]);
+
+    return values.reduce((a, b) => a + b);
+  }
+
   /// Récupère la valeur totale du patrimoine (Liquidités + Épargne + Investissements)
+  /// Note: Dépend de la préférence Brut/Net actuelle
   Future<double> getPatrimoine() async {
     _requireUserId();
 
