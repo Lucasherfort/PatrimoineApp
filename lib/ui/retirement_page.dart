@@ -283,8 +283,9 @@ class _RetirementPageState extends State<RetirementPage> {
                                             ),
                                             const SizedBox(height: 4),
                                             Text(
-                                              _formatter
-                                                  .format(incomeToFinance),
+                                              _formatter.format(
+                                                incomeToFinance,
+                                              ),
                                               style: const TextStyle(
                                                 fontSize: 18,
                                                 fontWeight: FontWeight.w900,
@@ -397,8 +398,8 @@ class _RetirementPageState extends State<RetirementPage> {
                                             ),
                                       valueColor:
                                           const AlwaysStoppedAnimation<Color>(
-                                        Color(0xFF0D71EE),
-                                      ),
+                                            Color(0xFF0D71EE),
+                                          ),
                                     ),
                                   ),
                                   const SizedBox(height: 8),
@@ -517,7 +518,10 @@ class _RetirementPageState extends State<RetirementPage> {
               ),
             ),
           ],
-          if (child != null) child,
+          if (child != null) ...[
+            const SizedBox(height: 12),
+            child,
+          ],
         ],
       ),
     );
@@ -559,8 +563,9 @@ class _RetirementPageState extends State<RetirementPage> {
                 ),
                 TextField(
                   controller: controller,
-                  keyboardType:
-                      const TextInputType.numberWithOptions(decimal: true),
+                  keyboardType: const TextInputType.numberWithOptions(
+                    decimal: true,
+                  ),
                   onChanged: onChanged,
                   style: const TextStyle(
                     fontWeight: FontWeight.w900,
