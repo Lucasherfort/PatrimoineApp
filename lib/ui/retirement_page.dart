@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:url_launcher/url_launcher.dart';
 import '../services/financial_profile_manager.dart';
 import '../services/patrimoine_service.dart';
 
@@ -65,6 +66,17 @@ class _RetirementPageState extends State<RetirementPage> {
       }
     } catch (e) {
       if (mounted) setState(() => _isLoading = false);
+    }
+  }
+
+  Future<void> _launchUrl(String url) async {
+    final uri = Uri.parse(url);
+    if (!await launchUrl(uri, mode: LaunchMode.externalApplication)) {
+      if (mounted) {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Impossible d\'ouvrir : $url')));
+      }
     }
   }
 
@@ -438,6 +450,73 @@ class _RetirementPageState extends State<RetirementPage> {
                           padding: const EdgeInsets.symmetric(vertical: 40),
                           child: _buildEmptyStateView(isDark),
                         ),
+                      const SizedBox(height: 24),
+
+                      // Resources Section
+                      _buildSummaryCard(
+                        context,
+                        title: "RESSOURCES",
+                        padding: const EdgeInsets.all(16),
+                        child: InkWell(
+                          onTap: () =>
+                              _launchUrl("https://www.lassuranceretraite.fr/"),
+                          borderRadius: BorderRadius.circular(16),
+                          child: Container(
+                            padding: const EdgeInsets.all(12),
+                            decoration: BoxDecoration(
+                              color: isDark
+                                  ? Colors.white.withValues(alpha: 0.03)
+                                  : Colors.black.withValues(alpha: 0.02),
+                              borderRadius: BorderRadius.circular(16),
+                            ),
+                            child: Row(
+                              children: [
+                                const Icon(
+                                  Icons.language_rounded,
+                                  color: Color(0xFF0D71EE),
+                                  size: 20,
+                                ),
+                                const SizedBox(width: 12),
+                                Expanded(
+                                  child: Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      Text(
+                                        "L'Assurance Retraite",
+                                        style: TextStyle(
+                                          color: isDark
+                                              ? Colors.white70
+                                              : Colors.black87,
+                                          fontWeight: FontWeight.bold,
+                                          fontSize: 13,
+                                        ),
+                                      ),
+                                      Text(
+                                        "Estimer ma pension sur le site officiel",
+                                        style: TextStyle(
+                                          color: isDark
+                                              ? Colors.white24
+                                              : Colors.black38,
+                                          fontSize: 11,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                                Icon(
+                                  Icons.open_in_new_rounded,
+                                  color: isDark
+                                      ? Colors.white12
+                                      : Colors.black12,
+                                  size: 16,
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 40),
                     ],
                   ),
                 );
@@ -518,10 +597,7 @@ class _RetirementPageState extends State<RetirementPage> {
               ),
             ),
           ],
-          if (child != null) ...[
-            const SizedBox(height: 12),
-            child,
-          ],
+          if (child != null) ...[const SizedBox(height: 12), child],
         ],
       ),
     );
