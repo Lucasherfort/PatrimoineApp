@@ -17,9 +17,6 @@ class ProfilePage extends StatefulWidget {
 class _ProfilePageState extends State<ProfilePage> {
   late TextEditingController _salaryController;
   late TextEditingController _investmentController;
-  late TextEditingController _retirementIncomeController;
-  late TextEditingController _retirementPensionController;
-  late TextEditingController _retirementSwrController;
 
   @override
   void initState() {
@@ -35,28 +32,12 @@ class _ProfilePageState extends State<ProfilePage> {
           ? manager.monthlyInvestment.toString()
           : '',
     );
-    _retirementIncomeController = TextEditingController(
-      text: manager.retirementDesiredIncome > 0
-          ? manager.retirementDesiredIncome.toString()
-          : '',
-    );
-    _retirementPensionController = TextEditingController(
-      text: manager.retirementEstimatedPension > 0
-          ? manager.retirementEstimatedPension.toString()
-          : '',
-    );
-    _retirementSwrController = TextEditingController(
-      text: manager.retirementSwr.toString(),
-    );
   }
 
   @override
   void dispose() {
     _salaryController.dispose();
     _investmentController.dispose();
-    _retirementIncomeController.dispose();
-    _retirementPensionController.dispose();
-    _retirementSwrController.dispose();
     super.dispose();
   }
 
@@ -134,11 +115,6 @@ class _ProfilePageState extends State<ProfilePage> {
 
             // --- SECTION PROFIL FINANCIER ---
             _buildFinancialProfileSection(context),
-
-            const SizedBox(height: 24),
-
-            // --- SECTION RETRAITE ---
-            _buildRetirementSection(context),
 
             const SizedBox(height: 24),
 
@@ -392,77 +368,6 @@ class _ProfilePageState extends State<ProfilePage> {
                 onChanged: (val) {
                   final d = double.tryParse(val) ?? 0.0;
                   manager.setMonthlyInvestment(d);
-                },
-              ),
-            ],
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildRetirementSection(BuildContext context) {
-    final theme = Theme.of(context);
-    final isDark = theme.brightness == Brightness.dark;
-    final manager = FinancialProfileManager();
-
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          "RETRAITE",
-          style: TextStyle(
-            color: isDark
-                ? Colors.white.withValues(alpha: 0.4)
-                : Colors.black.withValues(alpha: 0.4),
-            fontSize: 11,
-            fontWeight: FontWeight.bold,
-            letterSpacing: 1.2,
-          ),
-        ),
-        const SizedBox(height: 16),
-        Container(
-          padding: const EdgeInsets.all(20),
-          decoration: BoxDecoration(
-            color: theme.cardColor,
-            borderRadius: BorderRadius.circular(20),
-            border: isDark
-                ? null
-                : Border.all(color: Colors.black.withValues(alpha: 0.05)),
-          ),
-          child: Column(
-            children: [
-              _buildNumericField(
-                context,
-                label: "Revenu annuel brut souhaité",
-                controller: _retirementIncomeController,
-                onChanged: (val) {
-                  final d = double.tryParse(val) ?? 0.0;
-                  manager.setRetirementDesiredIncome(d);
-                },
-              ),
-              const SizedBox(height: 20),
-              _buildNumericField(
-                context,
-                label: "Pension annuelle brute estimée",
-                controller: _retirementPensionController,
-                onChanged: (val) {
-                  final d = double.tryParse(val) ?? 0.0;
-                  manager.setRetirementEstimatedPension(d);
-                },
-              ),
-              const SizedBox(height: 20),
-              _buildNumericField(
-                context,
-                label: "Taux de retrait sécurisé",
-                controller: _retirementSwrController,
-                suffix: "%",
-                onChanged: (val) {
-                  double d = double.tryParse(val) ?? 4.0;
-                  // Clamp between 3 and 5 as per ticket
-                  if (d < 3) d = 3.0;
-                  if (d > 5) d = 5.0;
-                  manager.setRetirementSwr(d);
                 },
               ),
             ],

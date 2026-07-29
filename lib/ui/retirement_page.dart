@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:url_launcher/url_launcher.dart';
 import '../services/financial_profile_manager.dart';
 import '../services/patrimoine_service.dart';
 
@@ -18,13 +19,40 @@ class _RetirementPageState extends State<RetirementPage> {
     decimalDigits: 0,
   );
 
+  late TextEditingController _incomeController;
+  late TextEditingController _pensionController;
+  late TextEditingController _swrController;
+
   double _currentWealth = 0.0;
   bool _isLoading = true;
 
   @override
   void initState() {
     super.initState();
+    final manager = FinancialProfileManager();
+    _incomeController = TextEditingController(
+      text: manager.retirementDesiredIncome > 0
+          ? manager.retirementDesiredIncome.toStringAsFixed(0)
+          : '',
+    );
+    _pensionController = TextEditingController(
+      text: manager.retirementEstimatedPension > 0
+          ? manager.retirementEstimatedPension.toStringAsFixed(0)
+          : '',
+    );
+    _swrController = TextEditingController(
+      text: manager.retirementSwr.toStringAsFixed(1),
+    );
+
     _loadCurrentWealth();
+  }
+
+  @override
+  void dispose() {
+    _incomeController.dispose();
+    _pensionController.dispose();
+    _swrController.dispose();
+    super.dispose();
   }
 
   Future<void> _loadCurrentWealth() async {
@@ -38,6 +66,17 @@ class _RetirementPageState extends State<RetirementPage> {
       }
     } catch (e) {
       if (mounted) setState(() => _isLoading = false);
+    }
+  }
+
+  Future<void> _launchUrl(String url) async {
+    final uri = Uri.parse(url);
+    if (!await launchUrl(uri, mode: LaunchMode.externalApplication)) {
+      if (mounted) {
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text('Impossible d\'ouvrir : $url')));
+      }
     }
   }
 
@@ -97,12 +136,6 @@ class _RetirementPageState extends State<RetirementPage> {
               listenable: FinancialProfileManager(),
               builder: (context, child) {
                 final manager = FinancialProfileManager();
-
-                // Data presence check
-                if (manager.retirementDesiredIncome <= 0 ||
-                    manager.retirementEstimatedPension <= 0) {
-                  return _buildEmptyState(isDark);
-                }
 
                 // Calculations
                 final double incomeToFinance =
@@ -179,27 +212,54 @@ class _RetirementPageState extends State<RetirementPage> {
                       ),
                       const SizedBox(height: 20),
 
-                      // Card 1: Revenus (More compact)
+                      // Card 1: VOS PARAMÈTRES (Interactive)
                       _buildSummaryCard(
                         context,
-                        title: "VOS REVENUS",
+                        title: "VOS HYPOTHÈSES",
                         padding: const EdgeInsets.all(16),
                         child: Column(
                           children: [
-                            _buildInfoRow(
-                              "Revenu souhaité",
-                              _formatter.format(
-                                manager.retirementDesiredIncome,
-                              ),
-                              isDark,
+                            _buildCompactInputField(
+                              context,
+                              label: "Revenu souhaité",
+                              controller: _incomeController,
+                              onChanged: (val) {
+                                final d = double.tryParse(val) ?? 0.0;
+                                manager.setRetirementDesiredIncome(d);
+                              },
                             ),
-                            const SizedBox(height: 8),
-                            _buildInfoRow(
-                              "Pension estimée",
-                              _formatter.format(
-                                manager.retirementEstimatedPension,
-                              ),
-                              isDark,
+                            const SizedBox(height: 12),
+                            Row(
+                              children: [
+                                Expanded(
+                                  flex: 2,
+                                  child: _buildCompactInputField(
+                                    context,
+                                    label: "Pension estimée",
+                                    controller: _pensionController,
+                                    onChanged: (val) {
+                                      final d = double.tryParse(val) ?? 0.0;
+                                      manager.setRetirementEstimatedPension(d);
+                                    },
+                                  ),
+                                ),
+                                const SizedBox(width: 12),
+                                Expanded(
+                                  flex: 1,
+                                  child: _buildCompactInputField(
+                                    context,
+                                    label: "Taux",
+                                    controller: _swrController,
+                                    suffix: "%",
+                                    onChanged: (val) {
+                                      double d = double.tryParse(val) ?? 4.0;
+                                      if (d < 3) d = 3.0;
+                                      if (d > 5) d = 5.0;
+                                      manager.setRetirementSwr(d);
+                                    },
+                                  ),
+                                ),
+                              ],
                             ),
                           ],
                         ),
@@ -207,170 +267,256 @@ class _RetirementPageState extends State<RetirementPage> {
                       const SizedBox(height: 12),
 
                       // Card 2 & 3: Merged into a denser section
-                      _buildSummaryCard(
-                        context,
-                        title: "BESOIN & CIBLE",
-                        padding: const EdgeInsets.all(16),
-                        child: Column(
+                      if (manager.retirementDesiredIncome > 0)
+                        Column(
                           children: [
-                            Row(
-                              children: [
-                                Expanded(
-                                  child: Column(
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.start,
+                            _buildSummaryCard(
+                              context,
+                              title: "BESOIN & CIBLE",
+                              padding: const EdgeInsets.all(16),
+                              child: Column(
+                                children: [
+                                  Row(
                                     children: [
-                                      Text(
-                                        "À FINANCER",
-                                        style: TextStyle(
-                                          color: isDark
-                                              ? Colors.white24
-                                              : Colors.black26,
-                                          fontSize: 9,
-                                          fontWeight: FontWeight.bold,
+                                      Expanded(
+                                        child: Column(
+                                          crossAxisAlignment:
+                                              CrossAxisAlignment.start,
+                                          children: [
+                                            Text(
+                                              "À FINANCER",
+                                              style: TextStyle(
+                                                color: isDark
+                                                    ? Colors.white24
+                                                    : Colors.black26,
+                                                fontSize: 9,
+                                                fontWeight: FontWeight.bold,
+                                              ),
+                                            ),
+                                            const SizedBox(height: 4),
+                                            Text(
+                                              _formatter.format(
+                                                incomeToFinance,
+                                              ),
+                                              style: const TextStyle(
+                                                fontSize: 18,
+                                                fontWeight: FontWeight.w900,
+                                              ),
+                                            ),
+                                          ],
                                         ),
                                       ),
-                                      const SizedBox(height: 4),
-                                      Text(
-                                        _formatter.format(incomeToFinance),
-                                        style: const TextStyle(
-                                          fontSize: 18,
-                                          fontWeight: FontWeight.w900,
+                                      Container(
+                                        width: 1,
+                                        height: 30,
+                                        color: isDark
+                                            ? Colors.white12
+                                            : Colors.black.withValues(
+                                                alpha: 0.05,
+                                              ),
+                                      ),
+                                      const SizedBox(width: 16),
+                                      Expanded(
+                                        child: Column(
+                                          crossAxisAlignment:
+                                              CrossAxisAlignment.start,
+                                          children: [
+                                            Text(
+                                              "CAPITAL CIBLE",
+                                              style: TextStyle(
+                                                color: isDark
+                                                    ? Colors.white24
+                                                    : Colors.black26,
+                                                fontSize: 9,
+                                                fontWeight: FontWeight.bold,
+                                              ),
+                                            ),
+                                            const SizedBox(height: 4),
+                                            Text(
+                                              _formatter.format(targetWealth),
+                                              style: const TextStyle(
+                                                fontSize: 18,
+                                                fontWeight: FontWeight.w900,
+                                                color: Color(0xFF0D71EE),
+                                              ),
+                                            ),
+                                          ],
                                         ),
                                       ),
                                     ],
                                   ),
-                                ),
-                                Container(
-                                  width: 1,
-                                  height: 30,
-                                  color: isDark
-                                      ? Colors.white12
-                                      : Colors.black.withValues(alpha: 0.05),
-                                ),
-                                const SizedBox(width: 16),
-                                Expanded(
-                                  child: Column(
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.start,
-                                    children: [
-                                      Text(
-                                        "CAPITAL CIBLE",
-                                        style: TextStyle(
-                                          color: isDark
-                                              ? Colors.white24
-                                              : Colors.black26,
-                                          fontSize: 9,
-                                          fontWeight: FontWeight.bold,
-                                        ),
+                                  if (incomeToFinance > 0) ...[
+                                    const SizedBox(height: 12),
+                                    Text(
+                                      "Avec un taux de ${manager.retirementSwr.toStringAsFixed(1)}%, ce capital génère ${_formatter.format(incomeToFinance)} / an.",
+                                      style: TextStyle(
+                                        color: isDark
+                                            ? Colors.white38
+                                            : Colors.black45,
+                                        fontSize: 10,
+                                        height: 1.4,
                                       ),
-                                      const SizedBox(height: 4),
-                                      Text(
-                                        _formatter.format(targetWealth),
-                                        style: const TextStyle(
-                                          fontSize: 18,
-                                          fontWeight: FontWeight.w900,
-                                          color: Color(0xFF0D71EE),
-                                        ),
+                                    ),
+                                  ] else ...[
+                                    const SizedBox(height: 12),
+                                    Text(
+                                      "Votre pension couvre déjà votre objectif.",
+                                      style: const TextStyle(
+                                        color: Colors.green,
+                                        fontSize: 10,
+                                        fontWeight: FontWeight.bold,
                                       ),
-                                    ],
-                                  ),
-                                ),
-                              ],
-                            ),
-                            if (incomeToFinance > 0) ...[
-                              const SizedBox(height: 12),
-                              Text(
-                                "Avec un taux de ${manager.retirementSwr.toStringAsFixed(1)}%, ce capital génère ${_formatter.format(incomeToFinance)} / an.",
-                                style: TextStyle(
-                                  color: isDark
-                                      ? Colors.white38
-                                      : Colors.black45,
-                                  fontSize: 10,
-                                  height: 1.4,
-                                ),
+                                    ),
+                                  ],
+                                ],
                               ),
-                            ] else ...[
-                              const SizedBox(height: 12),
-                              Text(
-                                "Votre pension couvre déjà votre objectif.",
-                                style: const TextStyle(
-                                  color: Colors.green,
-                                  fontSize: 10,
-                                  fontWeight: FontWeight.bold,
-                                ),
-                              ),
-                            ],
-                          ],
-                        ),
-                      ),
-                      const SizedBox(height: 12),
-
-                      // Card 4: Progression (Compressed)
-                      _buildSummaryCard(
-                        context,
-                        title: "PROGRESSION",
-                        padding: const EdgeInsets.all(16),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                              children: [
-                                _buildMiniStat(
-                                  "Actuel",
-                                  _formatter.format(_currentWealth),
-                                  isDark,
-                                ),
-                                _buildMiniStat(
-                                  "Objectif",
-                                  _formatter.format(targetWealth),
-                                  isDark,
-                                ),
-                              ],
                             ),
                             const SizedBox(height: 12),
-                            ClipRRect(
-                              borderRadius: BorderRadius.circular(100),
-                              child: LinearProgressIndicator(
-                                value: progression,
-                                minHeight: 6,
-                                backgroundColor: isDark
-                                    ? Colors.white10
-                                    : Colors.black.withValues(alpha: 0.05),
-                                valueColor: const AlwaysStoppedAnimation<Color>(
-                                  Color(0xFF0D71EE),
-                                ),
-                              ),
-                            ),
-                            const SizedBox(height: 8),
-                            Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                              children: [
-                                Text(
-                                  "${(progression * 100).toInt()}% atteint",
-                                  style: const TextStyle(
-                                    color: Color(0xFF0D71EE),
-                                    fontWeight: FontWeight.bold,
-                                    fontSize: 11,
+
+                            // Card 4: Progression (Compressed)
+                            _buildSummaryCard(
+                              context,
+                              title: "PROGRESSION",
+                              padding: const EdgeInsets.all(16),
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Row(
+                                    mainAxisAlignment:
+                                        MainAxisAlignment.spaceBetween,
+                                    children: [
+                                      _buildMiniStat(
+                                        "Actuel",
+                                        _formatter.format(_currentWealth),
+                                        isDark,
+                                      ),
+                                      _buildMiniStat(
+                                        "Objectif",
+                                        _formatter.format(targetWealth),
+                                        isDark,
+                                      ),
+                                    ],
                                   ),
-                                ),
-                                if (remainingToBuild > 0)
-                                  Text(
-                                    "Reste : ${_formatter.format(remainingToBuild)}",
-                                    style: TextStyle(
-                                      color: isDark
-                                          ? Colors.white24
-                                          : Colors.black38,
-                                      fontSize: 11,
-                                      fontWeight: FontWeight.w600,
+                                  const SizedBox(height: 12),
+                                  ClipRRect(
+                                    borderRadius: BorderRadius.circular(100),
+                                    child: LinearProgressIndicator(
+                                      value: progression,
+                                      minHeight: 6,
+                                      backgroundColor: isDark
+                                          ? Colors.white10
+                                          : Colors.black.withValues(
+                                              alpha: 0.05,
+                                            ),
+                                      valueColor:
+                                          const AlwaysStoppedAnimation<Color>(
+                                            Color(0xFF0D71EE),
+                                          ),
                                     ),
                                   ),
-                              ],
+                                  const SizedBox(height: 8),
+                                  Row(
+                                    mainAxisAlignment:
+                                        MainAxisAlignment.spaceBetween,
+                                    children: [
+                                      Text(
+                                        "${(progression * 100).toInt()}% atteint",
+                                        style: const TextStyle(
+                                          color: Color(0xFF0D71EE),
+                                          fontWeight: FontWeight.bold,
+                                          fontSize: 11,
+                                        ),
+                                      ),
+                                      if (remainingToBuild > 0)
+                                        Text(
+                                          "Reste : ${_formatter.format(remainingToBuild)}",
+                                          style: TextStyle(
+                                            color: isDark
+                                                ? Colors.white24
+                                                : Colors.black38,
+                                            fontSize: 11,
+                                            fontWeight: FontWeight.w600,
+                                          ),
+                                        ),
+                                    ],
+                                  ),
+                                ],
+                              ),
                             ),
                           ],
+                        )
+                      else
+                        Padding(
+                          padding: const EdgeInsets.symmetric(vertical: 40),
+                          child: _buildEmptyStateView(isDark),
+                        ),
+                      const SizedBox(height: 24),
+
+                      // Resources Section
+                      _buildSummaryCard(
+                        context,
+                        title: "RESSOURCES",
+                        padding: const EdgeInsets.all(16),
+                        child: InkWell(
+                          onTap: () =>
+                              _launchUrl("https://www.lassuranceretraite.fr/"),
+                          borderRadius: BorderRadius.circular(16),
+                          child: Container(
+                            padding: const EdgeInsets.all(12),
+                            decoration: BoxDecoration(
+                              color: isDark
+                                  ? Colors.white.withValues(alpha: 0.03)
+                                  : Colors.black.withValues(alpha: 0.02),
+                              borderRadius: BorderRadius.circular(16),
+                            ),
+                            child: Row(
+                              children: [
+                                const Icon(
+                                  Icons.language_rounded,
+                                  color: Color(0xFF0D71EE),
+                                  size: 20,
+                                ),
+                                const SizedBox(width: 12),
+                                Expanded(
+                                  child: Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      Text(
+                                        "L'Assurance Retraite",
+                                        style: TextStyle(
+                                          color: isDark
+                                              ? Colors.white70
+                                              : Colors.black87,
+                                          fontWeight: FontWeight.bold,
+                                          fontSize: 13,
+                                        ),
+                                      ),
+                                      Text(
+                                        "Estimer ma pension sur le site officiel",
+                                        style: TextStyle(
+                                          color: isDark
+                                              ? Colors.white24
+                                              : Colors.black38,
+                                          fontSize: 11,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                                Icon(
+                                  Icons.open_in_new_rounded,
+                                  color: isDark
+                                      ? Colors.white12
+                                      : Colors.black12,
+                                  size: 16,
+                                ),
+                              ],
+                            ),
+                          ),
                         ),
                       ),
+                      const SizedBox(height: 40),
                     ],
                   ),
                 );
@@ -451,29 +597,71 @@ class _RetirementPageState extends State<RetirementPage> {
               ),
             ),
           ],
-          if (child != null) child,
+          if (child != null) ...[const SizedBox(height: 12), child],
         ],
       ),
     );
   }
 
-  Widget _buildInfoRow(String label, String value, bool isDark) {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-      children: [
-        Text(
-          label,
-          style: TextStyle(
-            color: isDark ? Colors.white70 : Colors.black87,
-            fontWeight: FontWeight.w500,
-            fontSize: 13,
+  Widget _buildCompactInputField(
+    BuildContext context, {
+    required String label,
+    required TextEditingController controller,
+    required ValueChanged<String> onChanged,
+    String suffix = "€",
+  }) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+      decoration: BoxDecoration(
+        color: isDark
+            ? Colors.white.withValues(alpha: 0.05)
+            : Colors.black.withValues(alpha: 0.02),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(
+          color: isDark ? Colors.white10 : Colors.black.withValues(alpha: 0.05),
+        ),
+      ),
+      child: Row(
+        children: [
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  label,
+                  style: TextStyle(
+                    color: isDark ? Colors.white38 : Colors.black38,
+                    fontSize: 9,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                TextField(
+                  controller: controller,
+                  keyboardType: const TextInputType.numberWithOptions(
+                    decimal: true,
+                  ),
+                  onChanged: onChanged,
+                  style: const TextStyle(
+                    fontWeight: FontWeight.w900,
+                    fontSize: 14,
+                  ),
+                  decoration: const InputDecoration(
+                    isDense: true,
+                    border: InputBorder.none,
+                    contentPadding: EdgeInsets.zero,
+                  ),
+                ),
+              ],
+            ),
           ),
-        ),
-        Text(
-          value,
-          style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 14),
-        ),
-      ],
+          Text(
+            suffix,
+            style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 14),
+          ),
+        ],
+      ),
     );
   }
 
@@ -498,32 +686,81 @@ class _RetirementPageState extends State<RetirementPage> {
     );
   }
 
-  Widget _buildEmptyState(bool isDark) {
-    return Center(
-      child: Padding(
-        padding: const EdgeInsets.all(40),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Icon(
-              Icons.auto_fix_high_rounded,
-              size: 48,
-              color: const Color(0xFF0D71EE).withValues(alpha: 0.3),
-            ),
-            const SizedBox(height: 24),
-            Text(
-              "Complétez vos préférences retraite afin d'estimer votre patrimoine cible.",
-              textAlign: TextAlign.center,
-              style: TextStyle(
-                color: isDark ? Colors.white38 : Colors.black38,
-                fontSize: 14,
-                fontWeight: FontWeight.w500,
-                height: 1.5,
+  Widget _buildEmptyStateView(bool isDark) {
+    return Column(
+      children: [
+        const SizedBox(height: 40),
+        _buildSummaryCard(
+          context,
+          title: "VOS HYPOTHÈSES",
+          padding: const EdgeInsets.all(16),
+          child: Column(
+            children: [
+              _buildCompactInputField(
+                context,
+                label: "Revenu souhaité",
+                controller: _incomeController,
+                onChanged: (val) {
+                  final d = double.tryParse(val) ?? 0.0;
+                  FinancialProfileManager().setRetirementDesiredIncome(d);
+                },
               ),
-            ),
-          ],
+              const SizedBox(height: 12),
+              Row(
+                children: [
+                  Expanded(
+                    flex: 2,
+                    child: _buildCompactInputField(
+                      context,
+                      label: "Pension estimée",
+                      controller: _pensionController,
+                      onChanged: (val) {
+                        final d = double.tryParse(val) ?? 0.0;
+                        FinancialProfileManager().setRetirementEstimatedPension(
+                          d,
+                        );
+                      },
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    flex: 1,
+                    child: _buildCompactInputField(
+                      context,
+                      label: "Taux",
+                      controller: _swrController,
+                      suffix: "%",
+                      onChanged: (val) {
+                        double d = double.tryParse(val) ?? 4.0;
+                        if (d < 3) d = 3.0;
+                        if (d > 5) d = 5.0;
+                        FinancialProfileManager().setRetirementSwr(d);
+                      },
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
         ),
-      ),
+        const SizedBox(height: 40),
+        Icon(
+          Icons.auto_fix_high_rounded,
+          size: 48,
+          color: const Color(0xFF0D71EE).withValues(alpha: 0.3),
+        ),
+        const SizedBox(height: 24),
+        Text(
+          "Renseignez vos revenus souhaités pour voir votre progression.",
+          textAlign: TextAlign.center,
+          style: TextStyle(
+            color: isDark ? Colors.white38 : Colors.black38,
+            fontSize: 14,
+            fontWeight: FontWeight.w500,
+            height: 1.5,
+          ),
+        ),
+      ],
     );
   }
 }
