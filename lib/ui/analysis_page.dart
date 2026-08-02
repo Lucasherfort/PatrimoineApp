@@ -212,6 +212,7 @@ class _AnalysisPageState extends State<AnalysisPage> {
                             color: const Color(0xFF0D71EE),
                             label: "Point de croisement",
                             subLabel: "Couverture de l'investissement",
+                            targetSuffix: "/an",
                           ),
                           const SizedBox(height: 12),
                           _buildModernIndicatorTile(
@@ -220,7 +221,8 @@ class _AnalysisPageState extends State<AnalysisPage> {
                             icon: Icons.sailing_rounded,
                             color: const Color(0xFF8B5CF6),
                             label: "Chiffre de croisière",
-                            subLabel: "Couverture du salaire net",
+                            subLabel: "Objectif de capital retraite",
+                            targetSuffix: "",
                           ),
                         ],
                       ),
@@ -364,6 +366,7 @@ class _AnalysisPageState extends State<AnalysisPage> {
     required Color color,
     required String label,
     required String subLabel,
+    String targetSuffix = "/an",
   }) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final theme = Theme.of(context);
@@ -447,7 +450,7 @@ class _AnalysisPageState extends State<AnalysisPage> {
                 ),
                 _buildValueInfo(
                   "Cible",
-                  "${_formatter.format(indicator.targetValue)}/an",
+                  "${_formatter.format(indicator.targetValue)}$targetSuffix",
                   isDark,
                 ),
               ],
