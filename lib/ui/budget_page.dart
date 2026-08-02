@@ -1,0 +1,615 @@
+import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
+import '../models/budget/budget_category.dart';
+import '../models/budget/budget_item.dart';
+import '../services/budget_service.dart';
+
+class BudgetPage extends StatefulWidget {
+  const BudgetPage({super.key});
+
+  @override
+  State<BudgetPage> createState() => _BudgetPageState();
+}
+
+class _BudgetPageState extends State<BudgetPage> {
+  final BudgetService _budgetService = BudgetService();
+  final _formatter = NumberFormat.currency(
+    locale: 'fr_FR',
+    symbol: '€',
+    decimalDigits: 0,
+  );
+
+  List<BudgetItem> _items = [];
+  List<BudgetCategory> _categories = [];
+  bool _isLoading = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadData();
+  }
+
+  Future<void> _loadData() async {
+    setState(() => _isLoading = true);
+    try {
+      final items = await _budgetService.getBudgetItems();
+      final categories = await _budgetService.getCategories();
+      if (mounted) {
+        setState(() {
+          _items = items;
+          _categories = categories;
+          _isLoading = false;
+        });
+      }
+    } catch (e) {
+      if (mounted) setState(() => _isLoading = false);
+    }
+  }
+
+  double get _totalIncome => _items
+      .where((i) => i.category?.type == BudgetType.income)
+      .fold(0.0, (sum, i) => sum + i.amount);
+
+  double get _totalExpense => _items
+      .where((i) => i.category?.type == BudgetType.expense)
+      .fold(0.0, (sum, i) => sum + i.amount);
+
+  double get _savingsCapacity => _totalIncome - _totalExpense;
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+    const colorBlue = Color(0xFF0D71EE);
+
+    return Scaffold(
+      backgroundColor: isDark
+          ? const Color(0xFF060B26)
+          : const Color(0xFFF8FAFC),
+      body: Stack(
+        children: [
+          // --- BACKGROUND HALOS ---
+          Positioned(
+            top: -50,
+            right: -100,
+            child: Container(
+              width: 300,
+              height: 300,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                color: colorBlue.withValues(alpha: isDark ? 0.12 : 0.07),
+              ),
+            ),
+          ),
+
+          SafeArea(
+            child: Column(
+              children: [
+                _buildHeader(context),
+                Expanded(
+                  child: _isLoading
+                      ? const Center(
+                          child: CircularProgressIndicator(color: colorBlue),
+                        )
+                      : RefreshIndicator(
+                          onRefresh: _loadData,
+                          color: Colors.white,
+                          backgroundColor: colorBlue,
+                          child: SingleChildScrollView(
+                            physics: const AlwaysScrollableScrollPhysics(),
+                            padding: const EdgeInsets.symmetric(horizontal: 24),
+                            child: Column(
+                              children: [
+                                const SizedBox(height: 24),
+                                _buildFlowSection(
+                                  context,
+                                  title: "REVENUS",
+                                  type: BudgetType.income,
+                                  color: Colors.green,
+                                ),
+                                const SizedBox(height: 32),
+                                _buildFlowSection(
+                                  context,
+                                  title: "DÉPENSES",
+                                  type: BudgetType.expense,
+                                  color: Colors.redAccent,
+                                ),
+                                const SizedBox(height: 100), // Spacing for FAB
+                              ],
+                            ),
+                          ),
+                        ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+      floatingActionButton: FloatingActionButton(
+        onPressed: () => _showAddFlowDialog(context),
+        backgroundColor: colorBlue,
+        elevation: 4,
+        child: const Icon(Icons.add, color: Colors.white),
+      ),
+    );
+  }
+
+  Widget _buildHeader(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    return Container(
+      padding: const EdgeInsets.fromLTRB(24, 20, 24, 20),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            "BUDGET MENSUEL",
+            style: TextStyle(
+              color: isDark
+                  ? Colors.white.withValues(alpha: 0.4)
+                  : Colors.black38,
+              fontSize: 10,
+              fontWeight: FontWeight.w900,
+              letterSpacing: 1.5,
+            ),
+          ),
+          const SizedBox(height: 6),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(
+                "Flux financiers",
+                style: TextStyle(
+                  color: isDark ? Colors.white : const Color(0xFF0F172A),
+                  fontSize: 26,
+                  fontWeight: FontWeight.w900,
+                  letterSpacing: -0.8,
+                ),
+              ),
+              _buildSavingsPill(),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildSavingsPill() {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+      decoration: BoxDecoration(
+        color: const Color(0xFF0D71EE).withValues(alpha: 0.1),
+        borderRadius: BorderRadius.circular(100),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          const Icon(Icons.savings_rounded, size: 14, color: Color(0xFF0D71EE)),
+          const SizedBox(width: 8),
+          Text(
+            "${_formatter.format(_savingsCapacity)} / mois",
+            style: const TextStyle(
+              color: Color(0xFF0D71EE),
+              fontWeight: FontWeight.w900,
+              fontSize: 12,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildFlowSection(
+    BuildContext context, {
+    required String title,
+    required BudgetType type,
+    required Color color,
+  }) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final sectionItems = _items.where((i) => i.category?.type == type).toList();
+    final total = sectionItems.fold(0.0, (sum, i) => sum + i.amount);
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Text(
+              title,
+              style: TextStyle(
+                color: isDark ? Colors.white24 : Colors.black26,
+                fontSize: 10,
+                fontWeight: FontWeight.w900,
+                letterSpacing: 1.2,
+              ),
+            ),
+            Text(
+              _formatter.format(total),
+              style: TextStyle(
+                color: color,
+                fontWeight: FontWeight.w900,
+                fontSize: 14,
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 12),
+        if (sectionItems.isEmpty)
+          _buildEmptyState(
+            context,
+            type == BudgetType.income
+                ? "Aucun revenu renseigné"
+                : "Aucune dépense renseignée",
+          )
+        else
+          ...sectionItems.map((item) => _buildFlowCard(context, item, color)),
+      ],
+    );
+  }
+
+  Widget _buildFlowCard(BuildContext context, BudgetItem item, Color color) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    return Container(
+      margin: const EdgeInsets.only(bottom: 10),
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Theme.of(context).cardColor,
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(
+          color: isDark
+              ? Colors.white.withValues(alpha: 0.05)
+              : Colors.black.withValues(alpha: 0.02),
+        ),
+      ),
+      child: Row(
+        children: [
+          Container(
+            padding: const EdgeInsets.all(10),
+            decoration: BoxDecoration(
+              color: color.withValues(alpha: 0.1),
+              borderRadius: BorderRadius.circular(14),
+            ),
+            child: Icon(
+              _getIconData(item.category?.icon),
+              color: color,
+              size: 20,
+            ),
+          ),
+          const SizedBox(width: 16),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  item.label,
+                  style: const TextStyle(
+                    fontWeight: FontWeight.w800,
+                    fontSize: 14,
+                  ),
+                ),
+                Text(
+                  item.category?.label ?? "Autre",
+                  style: TextStyle(
+                    color: isDark ? Colors.white24 : Colors.black26,
+                    fontSize: 11,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          Text(
+            _formatter.format(item.amount),
+            style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 15),
+          ),
+          const SizedBox(width: 8),
+          IconButton(
+            onPressed: () => _deleteItem(item.id),
+            icon: Icon(
+              Icons.delete_outline_rounded,
+              size: 20,
+              color: Colors.grey.withValues(alpha: 0.5),
+            ),
+            padding: EdgeInsets.zero,
+            constraints: const BoxConstraints(),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildEmptyState(BuildContext context, String message) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.symmetric(vertical: 32),
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(
+          color: isDark
+              ? Colors.white.withValues(alpha: 0.05)
+              : Colors.black.withValues(alpha: 0.05),
+          style: BorderStyle.solid,
+        ),
+      ),
+      child: Center(
+        child: Text(
+          message,
+          style: TextStyle(
+            color: isDark ? Colors.white10 : Colors.black12,
+            fontSize: 12,
+            fontWeight: FontWeight.w600,
+          ),
+        ),
+      ),
+    );
+  }
+
+  Future<void> _deleteItem(String id) async {
+    await _budgetService.deleteBudgetItem(id);
+    _loadData();
+  }
+
+  void _showAddFlowDialog(BuildContext context) {
+    final labelController = TextEditingController();
+    final amountController = TextEditingController();
+    BudgetType selectedType = BudgetType.expense;
+    BudgetCategory? selectedCategory;
+    const colorBlue = Color(0xFF0D71EE);
+
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (context) => StatefulBuilder(
+        builder: (context, setModalState) {
+          final filteredCategories = _categories
+              .where((c) => c.type == selectedType)
+              .toList();
+          if (selectedCategory == null && filteredCategories.isNotEmpty) {
+            selectedCategory = filteredCategories.first;
+          }
+
+          return Container(
+            decoration: BoxDecoration(
+              color: Theme.of(context).cardColor,
+              borderRadius: const BorderRadius.vertical(
+                top: Radius.circular(32),
+              ),
+            ),
+            padding: EdgeInsets.only(
+              left: 28,
+              right: 24,
+              top: 16,
+              bottom: MediaQuery.of(context).viewInsets.bottom + 32,
+            ),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Center(
+                  child: Container(
+                    width: 40,
+                    height: 4,
+                    decoration: BoxDecoration(
+                      color: Colors.grey.withValues(alpha: 0.2),
+                      borderRadius: BorderRadius.circular(2),
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 24),
+                const Text(
+                  "Ajouter un flux",
+                  style: TextStyle(
+                    fontSize: 22,
+                    fontWeight: FontWeight.w900,
+                    letterSpacing: -0.5,
+                  ),
+                ),
+                const SizedBox(height: 24),
+
+                // Choice Chips
+                Row(
+                  children: [
+                    Expanded(
+                      child: _buildTypeChip(
+                        label: "REVENU",
+                        isSelected: selectedType == BudgetType.income,
+                        color: Colors.green,
+                        onTap: () => setModalState(() {
+                          selectedType = BudgetType.income;
+                          selectedCategory = null;
+                        }),
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: _buildTypeChip(
+                        label: "DÉPENSE",
+                        isSelected: selectedType == BudgetType.expense,
+                        color: Colors.redAccent,
+                        onTap: () => setModalState(() {
+                          selectedType = BudgetType.expense;
+                          selectedCategory = null;
+                        }),
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 24),
+
+                TextField(
+                  controller: labelController,
+                  autofocus: true,
+                  decoration: InputDecoration(
+                    labelText: "Libellé",
+                    hintText: "Salaire, Loyer, Courses...",
+                    filled: true,
+                    fillColor: Colors.black.withValues(alpha: 0.02),
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(14),
+                      borderSide: BorderSide.none,
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 16),
+                TextField(
+                  controller: amountController,
+                  keyboardType: const TextInputType.numberWithOptions(
+                    decimal: true,
+                  ),
+                  decoration: InputDecoration(
+                    labelText: "Montant mensuel",
+                    suffixText: "€",
+                    filled: true,
+                    fillColor: Colors.black.withValues(alpha: 0.02),
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(14),
+                      borderSide: BorderSide.none,
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 16),
+
+                DropdownButtonFormField<BudgetCategory>(
+                  initialValue: selectedCategory,
+                  decoration: InputDecoration(
+                    labelText: "Catégorie",
+                    filled: true,
+                    fillColor: Colors.black.withValues(alpha: 0.02),
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(14),
+                      borderSide: BorderSide.none,
+                    ),
+                  ),
+                  items: filteredCategories
+                      .map(
+                        (cat) => DropdownMenuItem(
+                          value: cat,
+                          child: Row(
+                            children: [
+                              Icon(
+                                _getIconData(cat.icon),
+                                size: 18,
+                                color: colorBlue,
+                              ),
+                              const SizedBox(width: 12),
+                              Text(
+                                cat.label,
+                                style: const TextStyle(
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      )
+                      .toList(),
+                  onChanged: (val) =>
+                      setModalState(() => selectedCategory = val),
+                ),
+
+                const SizedBox(height: 32),
+                SizedBox(
+                  width: double.infinity,
+                  height: 56,
+                  child: ElevatedButton(
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: colorBlue,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(16),
+                      ),
+                      elevation: 0,
+                    ),
+                    onPressed: () async {
+                      final amount = double.tryParse(amountController.text);
+                      if (labelController.text.isNotEmpty &&
+                          amount != null &&
+                          selectedCategory != null) {
+                        await _budgetService.addBudgetItem(
+                          categoryId: selectedCategory!.id,
+                          label: labelController.text,
+                          amount: amount,
+                        );
+                        if (context.mounted) Navigator.pop(context);
+                        _loadData();
+                      }
+                    },
+                    child: const Text(
+                      "ENREGISTRER",
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontWeight: FontWeight.w900,
+                        fontSize: 15,
+                      ),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          );
+        },
+      ),
+    );
+  }
+
+  Widget _buildTypeChip({
+    required String label,
+    required bool isSelected,
+    required Color color,
+    required VoidCallback onTap,
+  }) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.symmetric(vertical: 14),
+        decoration: BoxDecoration(
+          color: isSelected ? color.withValues(alpha: 0.1) : Colors.transparent,
+          borderRadius: BorderRadius.circular(14),
+          border: Border.all(
+            color: isSelected ? color : Colors.grey.withValues(alpha: 0.2),
+            width: 1.5,
+          ),
+        ),
+        child: Text(
+          label,
+          textAlign: TextAlign.center,
+          style: TextStyle(
+            color: isSelected ? color : Colors.grey,
+            fontWeight: FontWeight.w900,
+            fontSize: 12,
+          ),
+        ),
+      ),
+    );
+  }
+
+  IconData _getIconData(String? name) {
+    switch (name) {
+      case 'work_outline':
+        return Icons.work_outline;
+      case 'pie_chart_outline':
+        return Icons.pie_chart_outline;
+      case 'vpn_key_outlined':
+        return Icons.vpn_key_outlined;
+      case 'card_giftcard':
+        return Icons.card_giftcard;
+      case 'home_outlined':
+        return Icons.home_outlined;
+      case 'restaurant':
+        return Icons.restaurant;
+      case 'directions_car_filled_outlined':
+        return Icons.directions_car_filled_outlined;
+      case 'receipt_long':
+        return Icons.receipt_long;
+      case 'celebration_outlined':
+        return Icons.celebration_outlined;
+      case 'security':
+        return Icons.security;
+      case 'more_horiz':
+        return Icons.more_horiz;
+      default:
+        return Icons.help_outline;
+    }
+  }
+}
