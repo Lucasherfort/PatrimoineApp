@@ -4,6 +4,8 @@ import 'package:patrimoine360/services/settings_service.dart';
 import 'package:patrimoine360/services/theme_manager.dart';
 import 'package:patrimoine360/services/financial_profile_manager.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import 'tools/real_estate_simulator_page.dart';
+import 'retirement_page.dart';
 import 'login_page.dart';
 
 class ProfilePage extends StatefulWidget {
@@ -108,6 +110,11 @@ class _ProfilePageState extends State<ProfilePage> {
 
             const SizedBox(height: 32),
 
+            // --- SECTION OUTILS ---
+            _buildToolsSection(context),
+
+            const SizedBox(height: 24),
+
             // --- SECTION APPARENCE ---
             _buildAppearanceSection(context),
 
@@ -160,6 +167,48 @@ class _ProfilePageState extends State<ProfilePage> {
           ],
         ),
       ),
+    );
+  }
+
+  Widget _buildToolsSection(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          "OUTILS & SIMULATEURS",
+          style: TextStyle(
+            color: isDark
+                ? Colors.white.withValues(alpha: 0.4)
+                : Colors.black.withValues(alpha: 0.4),
+            fontSize: 11,
+            fontWeight: FontWeight.bold,
+            letterSpacing: 1.2,
+          ),
+        ),
+        const SizedBox(height: 16),
+        _buildMenuOption(
+          context,
+          icon: Icons.home_work_rounded,
+          title: "Simulateur Immobilier",
+          subtitle: "Calculez votre capacité d'achat",
+          onTap: () => Navigator.push(
+            context,
+            MaterialPageRoute(builder: (_) => const RealEstateSimulatorPage()),
+          ),
+        ),
+        _buildMenuOption(
+          context,
+          icon: Icons.wb_sunny_rounded,
+          title: "Simulateur Retraite",
+          subtitle: "Préparez votre liberté financière",
+          onTap: () => Navigator.push(
+            context,
+            MaterialPageRoute(builder: (_) => const RetirementPage()),
+          ),
+        ),
+      ],
     );
   }
 
