@@ -7,6 +7,7 @@ class BudgetCategory {
   final String icon;
   final BudgetType type;
   final bool isDefault;
+  final bool isEssential;
 
   BudgetCategory({
     required this.id,
@@ -15,6 +16,7 @@ class BudgetCategory {
     required this.icon,
     required this.type,
     this.isDefault = true,
+    this.isEssential = false,
   });
 
   factory BudgetCategory.fromMap(Map<String, dynamic> map) {
@@ -25,6 +27,7 @@ class BudgetCategory {
       icon: map['icon'] ?? 'help_outline',
       type: map['type'] == 'income' ? BudgetType.income : BudgetType.expense,
       isDefault: map['is_default'] ?? true,
+      isEssential: map['is_essential'] ?? false,
     );
   }
 }

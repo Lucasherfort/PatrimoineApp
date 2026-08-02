@@ -61,19 +61,34 @@ class BudgetService {
 
   // ─── Calculs ──────────────────────────────────────────────────────────────
 
-  Future<double> getMonthlySavingsCapacity() async {
+  Future<double> getTotalIncomings() async {
     final items = await getBudgetItems();
-    double income = 0;
-    double expense = 0;
+    return items
+        .where((i) => i.category?.type == BudgetType.income)
+        .fold<double>(0.0, (sum, i) => sum + i.amount);
+  }
 
-    for (var item in items) {
-      if (item.category?.type == BudgetType.income) {
-        income += item.amount;
-      } else if (item.category?.type == BudgetType.expense) {
-        expense += item.amount;
-      }
-    }
+  Future<double> getTotalOutgoings() async {
+    final items = await getBudgetItems();
+    return items
+        .where((i) => i.category?.type == BudgetType.expense)
+        .fold<double>(0.0, (sum, i) => sum + i.amount);
+  }
 
-    return income - expense;
+  Future<double> getTotalEssentialExpenses() async {
+    final items = await getBudgetItems();
+    return items
+        .where(
+          (i) =>
+              i.category?.type == BudgetType.expense &&
+              i.category?.isEssential == true,
+        )
+        .fold<double>(0.0, (sum, i) => sum + i.amount);
+  }
+
+  Future<double> getMonthlySavingsCapacity() async {
+    final incoming = await getTotalIncomings();
+    final outgoing = await getTotalOutgoings();
+    return incoming - outgoing;
   }
 }

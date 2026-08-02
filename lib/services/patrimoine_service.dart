@@ -24,7 +24,8 @@ class PatrimoineService {
   final SavingsAccountService _savingsService = SavingsAccountService();
   final InvestmentService _investmentService = InvestmentService();
   final SettingsService _settingsService = SettingsService();
-  final FinancialProfileManager _financialProfileManager = FinancialProfileManager();
+  final FinancialProfileManager _financialProfileManager =
+      FinancialProfileManager();
 
   // ─── Utils ────────────────────────────────────────────────────────────────
 
@@ -234,22 +235,27 @@ class PatrimoineService {
   /// Progression du patrimoine actuel vers le patrimoine cible de retraite
   Future<PatrimonialIndicator> getCruisingSpeedIndicator() async {
     final double currentWealth = await getPatrimoineGross();
-    
+
     // Récupération des paramètres de retraite
-    final double incomeDesired = _financialProfileManager.retirementDesiredIncome;
-    final double pensionEstimated = _financialProfileManager.retirementEstimatedPension;
+    final double incomeDesired =
+        _financialProfileManager.retirementDesiredIncome;
+    final double pensionEstimated =
+        _financialProfileManager.retirementEstimatedPension;
     final double swr = _financialProfileManager.retirementSwr;
 
-    final double incomeToFinance = (incomeDesired - pensionEstimated).clamp(0.0, double.infinity);
-    final double targetWealth = incomeToFinance > 0 
+    final double incomeToFinance = (incomeDesired - pensionEstimated).clamp(
+      0.0,
+      double.infinity,
+    );
+    final double targetWealth = incomeToFinance > 0
         ? incomeToFinance / (swr / 100)
         : 0.0;
 
     final bool isCalculable = incomeDesired > 0;
-    
+
     // Si l'objectif est 0 (pension > revenu), progression 100%
-    final double progression = targetWealth > 0 
-        ? (currentWealth / targetWealth) * 100 
+    final double progression = targetWealth > 0
+        ? (currentWealth / targetWealth) * 100
         : (isCalculable ? 100.0 : 0.0);
 
     return PatrimonialIndicator(
