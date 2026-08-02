@@ -363,6 +363,35 @@ class _InvestmentProjectionTabState extends State<InvestmentProjectionTab> {
 
     return LineChart(
       LineChartData(
+        lineTouchData: LineTouchData(
+          handleBuiltInTouches: true,
+          touchTooltipData: LineTouchTooltipData(
+            tooltipBgColor: isDark ? const Color(0xFF1E293B) : Colors.white,
+            tooltipRoundedRadius: 12,
+            getTooltipItems: (List<LineBarSpot> touchedBarSpots) {
+              return touchedBarSpots.map((barSpot) {
+                final flSpot = barSpot;
+                if (flSpot.barIndex == 0) {
+                  return LineTooltipItem(
+                    "Année ${flSpot.x.toInt()}\n",
+                    TextStyle(color: isDark ? Colors.white70 : Colors.black54, fontWeight: FontWeight.bold, fontSize: 10),
+                    children: [
+                      TextSpan(
+                        text: "Total: ${_formatter.format(flSpot.y)}",
+                        style: const TextStyle(color: Colors.green, fontWeight: FontWeight.w900, fontSize: 13),
+                      ),
+                    ],
+                  );
+                } else {
+                  return LineTooltipItem(
+                    "Versé: ${_formatter.format(flSpot.y)}",
+                    TextStyle(color: accentColor, fontWeight: FontWeight.w900, fontSize: 13),
+                  );
+                }
+              }).toList();
+            },
+          ),
+        ),
         gridData: FlGridData(
           show: true,
           drawVerticalLine: false,

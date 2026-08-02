@@ -22,6 +22,7 @@ class _RetirementPageState extends State<RetirementPage> {
   late TextEditingController _incomeController;
   late TextEditingController _pensionController;
   late TextEditingController _swrController;
+  late TextEditingController _inflationController;
 
   double _currentWealth = 0.0;
   bool _isLoading = true;
@@ -43,6 +44,9 @@ class _RetirementPageState extends State<RetirementPage> {
     _swrController = TextEditingController(
       text: manager.retirementSwr.toStringAsFixed(1),
     );
+    _inflationController = TextEditingController(
+      text: manager.inflationRate.toStringAsFixed(1),
+    );
 
     _loadCurrentWealth();
   }
@@ -52,6 +56,7 @@ class _RetirementPageState extends State<RetirementPage> {
     _incomeController.dispose();
     _pensionController.dispose();
     _swrController.dispose();
+    _inflationController.dispose();
     super.dispose();
   }
 

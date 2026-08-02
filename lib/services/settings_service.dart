@@ -81,6 +81,16 @@ class SettingsService {
     await prefs.setDouble(_keyRetirementSwr, value);
   }
 
+  Future<double> getInflationRate() async {
+    final prefs = await SharedPreferences.getInstance();
+    return prefs.getDouble(_keyInflationRate) ?? 2.0;
+  }
+
+  Future<void> setInflationRate(double value) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setDouble(_keyInflationRate, value);
+  }
+
   ThemeMode mapToThemeMode(AppThemeMode mode) {
     switch (mode) {
       case AppThemeMode.light:
