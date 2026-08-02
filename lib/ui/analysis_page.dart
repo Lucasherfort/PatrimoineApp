@@ -2,7 +2,6 @@ import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import '../services/patrimoine_service.dart';
-import '../services/budget_service.dart';
 import '../services/financial_profile_manager.dart';
 
 class AnalysisPage extends StatefulWidget {
@@ -14,7 +13,6 @@ class AnalysisPage extends StatefulWidget {
 
 class _AnalysisPageState extends State<AnalysisPage> {
   final PatrimoineService _patrimoineService = PatrimoineService();
-  final BudgetService _budgetService = BudgetService();
 
   final _formatter = NumberFormat.currency(
     locale: 'fr_FR',
@@ -26,8 +24,8 @@ class _AnalysisPageState extends State<AnalysisPage> {
 
   // Data
   double _passiveGains = 0;
-  double _totalExpenses = 0;
   double _monthlyInvestment = 0;
+  double _monthlyNetSalary = 0;
   double _totalWealth = 0;
 
   // Asset Allocation
@@ -53,9 +51,10 @@ class _AnalysisPageState extends State<AnalysisPage> {
     try {
       final annualGains = await _patrimoineService
           .getEstimatedAnnualInvestmentGains();
-      final expenses = await _budgetService.getTotalOutgoings();
+
       final manager = FinancialProfileManager();
       final monthlyInv = manager.monthlyInvestment;
+      final monthlySalary = manager.monthlyNetSalary;
 
       final netWealth = await _patrimoineService.getNetPatrimoine();
 
@@ -69,8 +68,8 @@ class _AnalysisPageState extends State<AnalysisPage> {
       if (mounted) {
         setState(() {
           _passiveGains = annualGains / 12;
-          _totalExpenses = expenses;
           _monthlyInvestment = monthlyInv;
+          _monthlyNetSalary = monthlySalary;
           _totalWealth = netWealth;
           _totalLiquidity = results[0];
           _totalSavings = results[1];
@@ -138,47 +137,96 @@ class _AnalysisPageState extends State<AnalysisPage> {
                     _buildHeader(isDark),
                     const SizedBox(height: 24),
 
+                    // Gains Hero
+                    _buildGainsHero(context),
+                    const SizedBox(height: 28),
+
                     // Allocation Chart
                     if (_totalWealth > 0) ...[
                       _buildAllocationChart(isDark),
-                      const SizedBox(height: 32),
+                      const SizedBox(height: 28),
                     ],
 
-                    // 1. Cap de liberté
+                    // 1. Couverture du DCA (Point de croisement)
                     _buildIndicatorCard(
-                      title: "CAP DE LIBERTÉ",
-                      subtitle: "Indépendance financière totale",
-                      current: _passiveGains,
-                      target: _totalExpenses,
-                      icon: Icons.sailing_rounded,
-                      color: Colors.purple,
-                      unit: "€/mois",
-                    ),
-                    const SizedBox(height: 16),
-
-                    // 2. Point de croisement
-                    _buildIndicatorCard(
-                      title: "POINT DE CROISEMENT",
+                      title: "COUVERTURE DE L'INVESTISSEMENT",
                       subtitle: "Gains passifs vs Montant investi (DCA)",
                       current: _passiveGains,
                       target: _monthlyInvestment.clamp(1.0, double.infinity),
                       icon: Icons.sync_alt_rounded,
-                      color: Colors.redAccent,
+                      color: const Color(0xFF0D71EE),
                       unit: "€/mois",
                     ),
-                    const SizedBox(height: 16),
+                    const SizedBox(height: 20),
 
-                    // 3. Indice d'indépendance
-                    _buildIndiceCard(isDark),
-                    const SizedBox(height: 16),
-
-                    // 4. Horizon d'autonomie
-                    _buildHorizonCard(isDark),
-
-                    const SizedBox(height: 40),
+                    // 2. Couverture du Salaire
+                    _buildIndicatorCard(
+                      title: "COUVERTURE DU SALAIRE",
+                      subtitle: "Gains passifs vs Salaire net mensuel",
+                      current: _passiveGains,
+                      target: _monthlyNetSalary.clamp(1.0, double.infinity),
+                      icon: Icons.payments_outlined,
+                      color: const Color(0xFF8B5CF6),
+                      unit: "€/mois",
+                    ),
                   ],
                 ),
               ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildGainsHero(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 20),
+      decoration: BoxDecoration(
+        color: isDark
+            ? Colors.white.withValues(alpha: 0.02)
+            : Colors.white.withValues(alpha: 0.5),
+        borderRadius: BorderRadius.circular(28),
+        border: Border.all(
+          color: isDark ? Colors.white.withValues(alpha: 0.05) : Colors.white,
+        ),
+      ),
+      child: Column(
+        children: [
+          Text(
+            "GAINS MENSUELS ESTIMÉS",
+            style: TextStyle(
+              color: isDark ? Colors.white38 : Colors.black38,
+              fontSize: 10,
+              fontWeight: FontWeight.w800,
+              letterSpacing: 1.1,
+            ),
+          ),
+          const SizedBox(height: 4),
+          ShaderMask(
+            shaderCallback: (bounds) => const LinearGradient(
+              colors: [Color(0xFF0D71EE), Color(0xFF67C6F2)],
+            ).createShader(bounds),
+            child: Text(
+              _formatter.format(_passiveGains),
+              style: const TextStyle(
+                color: Colors.white,
+                fontSize: 42,
+                fontWeight: FontWeight.w900,
+                letterSpacing: -1.0,
+              ),
+            ),
+          ),
+          const SizedBox(height: 4),
+          Text(
+            "Moyenne générée par vos actifs",
+            style: TextStyle(
+              color: isDark ? Colors.white24 : Colors.black26,
+              fontSize: 11,
+              fontWeight: FontWeight.w600,
             ),
           ),
         ],
@@ -231,12 +279,17 @@ class _AnalysisPageState extends State<AnalysisPage> {
     final sortedEntries = allocation.entries.where((e) => e.value > 0).toList()
       ..sort((a, b) => b.value.compareTo(a.value));
 
+    final double totalAllocation = sortedEntries.fold(
+      0.0,
+      (sum, e) => sum + e.value,
+    );
+
     return Container(
-      height: 160,
-      padding: const EdgeInsets.all(20),
+      height: 145,
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
       decoration: BoxDecoration(
         color: Theme.of(context).cardColor,
-        borderRadius: BorderRadius.circular(28),
+        borderRadius: BorderRadius.circular(24),
         border: Border.all(
           color: isDark
               ? Colors.white.withValues(alpha: 0.05)
@@ -246,16 +299,17 @@ class _AnalysisPageState extends State<AnalysisPage> {
       child: Row(
         children: [
           Expanded(
-            flex: 2,
+            flex: 1,
             child: PieChart(
               PieChartData(
-                sectionsSpace: 4,
+                sectionsSpace: 3,
                 centerSpaceRadius: 30,
                 sections: sortedEntries.asMap().entries.map((entry) {
                   final value = entry.value.value;
-                  final percentage = (value / _totalWealth * 100);
+                  final percentage = totalAllocation > 0
+                      ? (value / totalAllocation * 100)
+                      : 0;
 
-                  // Map labels to original colors index
                   int colorIndex = 0;
                   if (entry.value.key == "Épargne") colorIndex = 1;
                   if (entry.value.key == "Investissements") colorIndex = 2;
@@ -263,7 +317,7 @@ class _AnalysisPageState extends State<AnalysisPage> {
                   return PieChartSectionData(
                     color: colors[colorIndex],
                     value: value,
-                    title: percentage >= 10 ? '${percentage.toInt()}%' : '',
+                    title: percentage >= 15 ? '${percentage.toInt()}%' : '',
                     radius: 40,
                     titleStyle: const TextStyle(
                       fontSize: 10,
@@ -275,9 +329,9 @@ class _AnalysisPageState extends State<AnalysisPage> {
               ),
             ),
           ),
-          const SizedBox(width: 24),
+          const SizedBox(width: 32),
           Expanded(
-            flex: 3,
+            flex: 2,
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -287,12 +341,12 @@ class _AnalysisPageState extends State<AnalysisPage> {
                 if (entry.value.key == "Investissements") colorIndex = 2;
 
                 return Padding(
-                  padding: const EdgeInsets.symmetric(vertical: 4),
+                  padding: const EdgeInsets.symmetric(vertical: 3),
                   child: Row(
                     children: [
                       Container(
-                        width: 8,
-                        height: 8,
+                        width: 7,
+                        height: 7,
                         decoration: BoxDecoration(
                           color: colors[colorIndex],
                           shape: BoxShape.circle,
@@ -367,7 +421,7 @@ class _AnalysisPageState extends State<AnalysisPage> {
                   color: color.withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(12),
                 ),
-                child: Icon(icon, color: color, size: 20),
+                child: Icon(icon, color: color, size: 18),
               ),
               const SizedBox(width: 16),
               Expanded(
@@ -382,6 +436,7 @@ class _AnalysisPageState extends State<AnalysisPage> {
                         letterSpacing: 0.5,
                       ),
                     ),
+                    const SizedBox(height: 2),
                     Text(
                       subtitle,
                       style: TextStyle(
@@ -396,11 +451,11 @@ class _AnalysisPageState extends State<AnalysisPage> {
                 const Icon(
                   Icons.check_circle_rounded,
                   color: Colors.green,
-                  size: 20,
+                  size: 18,
                 ),
             ],
           ),
-          const SizedBox(height: 20),
+          const SizedBox(height: 16),
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             crossAxisAlignment: CrossAxisAlignment.end,
@@ -409,7 +464,7 @@ class _AnalysisPageState extends State<AnalysisPage> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    "Actuel",
+                    "Progression",
                     style: TextStyle(
                       color: isDark ? Colors.white24 : Colors.black26,
                       fontSize: 10,
@@ -417,12 +472,11 @@ class _AnalysisPageState extends State<AnalysisPage> {
                     ),
                   ),
                   Text(
-                    isRatio
-                        ? current.toStringAsFixed(1)
-                        : _formatter.format(current),
-                    style: const TextStyle(
-                      fontSize: 18,
+                    "${(progression * 100).toInt()}%",
+                    style: TextStyle(
+                      fontSize: 22,
                       fontWeight: FontWeight.w900,
+                      color: color,
                     ),
                   ),
                 ],
@@ -439,9 +493,7 @@ class _AnalysisPageState extends State<AnalysisPage> {
                     ),
                   ),
                   Text(
-                    isRatio
-                        ? "$target $unit"
-                        : "${_formatter.format(target)} /mois",
+                    isRatio ? "$target $unit" : _formatter.format(target),
                     style: const TextStyle(
                       fontSize: 14,
                       fontWeight: FontWeight.bold,
@@ -451,136 +503,16 @@ class _AnalysisPageState extends State<AnalysisPage> {
               ),
             ],
           ),
-          const SizedBox(height: 16),
+          const SizedBox(height: 12),
           ClipRRect(
             borderRadius: BorderRadius.circular(100),
             child: LinearProgressIndicator(
               value: progression,
-              minHeight: 6,
+              minHeight: 5,
               backgroundColor: isDark
                   ? Colors.white10
                   : Colors.black.withValues(alpha: 0.05),
               valueColor: AlwaysStoppedAnimation<Color>(color),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildIndiceCard(bool isDark) {
-    final double indice = _totalExpenses > 0
-        ? (_passiveGains / _totalExpenses) * 100
-        : 0;
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.all(24),
-      decoration: BoxDecoration(
-        gradient: const LinearGradient(
-          colors: [Color(0xFF0D71EE), Color(0xFF0D5ED4)],
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-        ),
-        borderRadius: BorderRadius.circular(28),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          const Text(
-            "INDICE D'INDÉPENDANCE",
-            style: TextStyle(
-              color: Colors.white60,
-              fontSize: 10,
-              fontWeight: FontWeight.w900,
-              letterSpacing: 1.2,
-            ),
-          ),
-          const SizedBox(height: 8),
-          Row(
-            children: [
-              Text(
-                "${indice.toInt()}%",
-                style: const TextStyle(
-                  color: Colors.white,
-                  fontSize: 42,
-                  fontWeight: FontWeight.w900,
-                  letterSpacing: -1,
-                ),
-              ),
-              const SizedBox(width: 16),
-              const Expanded(
-                child: Text(
-                  "de vos dépenses totales sont couvertes par vos revenus passifs.",
-                  style: TextStyle(
-                    color: Colors.white70,
-                    fontSize: 12,
-                    height: 1.4,
-                  ),
-                ),
-              ),
-            ],
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildHorizonCard(bool isDark) {
-    // Horizon calculation: very simplified
-    // Based on monthly investment (DCA) and passive gains growth
-
-    int years = 0;
-    if (_monthlyInvestment > 0) {
-      double simulatedWealth = _totalWealth;
-      const double yield = 0.05; // 5% cautious yield
-      while (simulatedWealth * (yield / 12) < _totalExpenses && years < 50) {
-        simulatedWealth =
-            (simulatedWealth + (_monthlyInvestment * 12)) * (1 + yield);
-        years++;
-      }
-    } else {
-      years = 99; // Impossible horizon
-    }
-
-    final String horizonText = years >= 50 ? "Indéfini" : "$years ans";
-
-    return Container(
-      padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        color: isDark ? Colors.white.withValues(alpha: 0.03) : Colors.white,
-        borderRadius: BorderRadius.circular(24),
-        border: Border.all(
-          color: isDark ? Colors.white10 : Colors.black.withValues(alpha: 0.05),
-        ),
-      ),
-      child: Row(
-        children: [
-          const Icon(Icons.auto_awesome, color: Colors.amber, size: 24),
-          const SizedBox(width: 16),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const Text(
-                  "HORIZON D'AUTONOMIE",
-                  style: TextStyle(fontWeight: FontWeight.bold, fontSize: 12),
-                ),
-                Text(
-                  "Basé sur votre épargne actuelle",
-                  style: TextStyle(
-                    color: isDark ? Colors.white24 : Colors.black26,
-                    fontSize: 10,
-                  ),
-                ),
-              ],
-            ),
-          ),
-          Text(
-            horizonText,
-            style: const TextStyle(
-              fontWeight: FontWeight.w900,
-              fontSize: 20,
-              color: Color(0xFF0D71EE),
             ),
           ),
         ],
