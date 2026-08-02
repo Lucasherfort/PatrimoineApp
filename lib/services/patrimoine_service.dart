@@ -8,6 +8,7 @@ import '../models/investments/user_investment_account_view.dart';
 import '../models/patrimoine/patrimoine_category.dart';
 import '../models/patrimoine/patrimonial_indicator.dart';
 import '../models/investments/estimated_gains_result.dart';
+import 'financial_profile_manager.dart';
 import 'investment_service.dart';
 import 'liquidity_service.dart';
 import 'settings_service.dart';
@@ -23,6 +24,8 @@ class PatrimoineService {
   final SavingsAccountService _savingsService = SavingsAccountService();
   final InvestmentService _investmentService = InvestmentService();
   final SettingsService _settingsService = SettingsService();
+  final FinancialProfileManager _financialProfileManager =
+      FinancialProfileManager();
 
   // ─── Utils ────────────────────────────────────────────────────────────────
 
@@ -229,21 +232,38 @@ class PatrimoineService {
   }
 
   /// Calcule l'indicateur "Chiffre de croisière"
-  /// Gains annuels >= Salaire annuel
+  /// Progression du patrimoine actuel vers le patrimoine cible de retraite
   Future<PatrimonialIndicator> getCruisingSpeedIndicator() async {
-    final double gains = await getEstimatedAnnualInvestmentGains();
-    final double? monthlySalary = await _settingsService.getMonthlyNetSalary();
-    final double annualSalary = (monthlySalary ?? 0) * 12;
+    final double currentWealth = await getPatrimoineGross();
 
-    final bool isCalculable = annualSalary > 0;
-    final double progression = isCalculable ? (gains / annualSalary) * 100 : 0;
+    // Récupération des paramètres de retraite
+    final double incomeDesired =
+        _financialProfileManager.retirementDesiredIncome;
+    final double pensionEstimated =
+        _financialProfileManager.retirementEstimatedPension;
+    final double swr = _financialProfileManager.retirementSwr;
+
+    final double incomeToFinance = (incomeDesired - pensionEstimated).clamp(
+      0.0,
+      double.infinity,
+    );
+    final double targetWealth = incomeToFinance > 0
+        ? incomeToFinance / (swr / 100)
+        : 0.0;
+
+    final bool isCalculable = incomeDesired > 0;
+
+    // Si l'objectif est 0 (pension > revenu), progression 100%
+    final double progression = targetWealth > 0
+        ? (currentWealth / targetWealth) * 100
+        : (isCalculable ? 100.0 : 0.0);
 
     return PatrimonialIndicator(
       name: "Chiffre de croisière",
-      currentValue: gains,
-      targetValue: annualSalary,
-      progression: progression,
-      isReached: isCalculable && gains >= annualSalary,
+      currentValue: currentWealth,
+      targetValue: targetWealth,
+      progression: progression.clamp(0.0, 100.0),
+      isReached: isCalculable && currentWealth >= targetWealth,
       isCalculable: isCalculable,
     );
   }

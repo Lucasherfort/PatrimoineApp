@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:intl/intl.dart';
 import '../models/budget/budget_category.dart';
 import '../models/budget/budget_item.dart';
@@ -16,7 +17,7 @@ class _BudgetPageState extends State<BudgetPage> {
   final _formatter = NumberFormat.currency(
     locale: 'fr_FR',
     symbol: '€',
-    decimalDigits: 0,
+    decimalDigits: 2,
   );
 
   List<BudgetItem> _items = [];
@@ -249,69 +250,103 @@ class _BudgetPageState extends State<BudgetPage> {
 
   Widget _buildFlowCard(BuildContext context, BudgetItem item, Color color) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    return Container(
-      margin: const EdgeInsets.only(bottom: 10),
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: Theme.of(context).cardColor,
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(
-          color: isDark
-              ? Colors.white.withValues(alpha: 0.05)
-              : Colors.black.withValues(alpha: 0.02),
+    return GestureDetector(
+      onTap: () => _showAddFlowDialog(context, item: item),
+      onLongPress: () => _confirmDelete(context, item),
+      child: Container(
+        margin: const EdgeInsets.only(bottom: 10),
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: Theme.of(context).cardColor,
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(
+            color: isDark
+                ? Colors.white.withValues(alpha: 0.05)
+                : Colors.black.withValues(alpha: 0.02),
+          ),
+        ),
+        child: Row(
+          children: [
+            Container(
+              padding: const EdgeInsets.all(10),
+              decoration: BoxDecoration(
+                color: color.withValues(alpha: 0.1),
+                borderRadius: BorderRadius.circular(14),
+              ),
+              child: Icon(
+                _getIconData(item.category?.icon),
+                color: color,
+                size: 20,
+              ),
+            ),
+            const SizedBox(width: 16),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    item.label,
+                    style: const TextStyle(
+                      fontWeight: FontWeight.w800,
+                      fontSize: 14,
+                    ),
+                  ),
+                  Text(
+                    item.category?.label ?? "Autre",
+                    style: TextStyle(
+                      color: isDark ? Colors.white24 : Colors.black26,
+                      fontSize: 11,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            Text(
+              _formatter.format(item.amount),
+              style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 15),
+            ),
+          ],
         ),
       ),
-      child: Row(
-        children: [
-          Container(
-            padding: const EdgeInsets.all(10),
-            decoration: BoxDecoration(
-              color: color.withValues(alpha: 0.1),
-              borderRadius: BorderRadius.circular(14),
-            ),
-            child: Icon(
-              _getIconData(item.category?.icon),
-              color: color,
-              size: 20,
-            ),
-          ),
-          const SizedBox(width: 16),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  item.label,
-                  style: const TextStyle(
-                    fontWeight: FontWeight.w800,
-                    fontSize: 14,
-                  ),
-                ),
-                Text(
-                  item.category?.label ?? "Autre",
-                  style: TextStyle(
-                    color: isDark ? Colors.white24 : Colors.black26,
-                    fontSize: 11,
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-              ],
+    );
+  }
+
+  void _confirmDelete(BuildContext context, BudgetItem item) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        backgroundColor: Theme.of(context).cardColor,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+        title: const Text(
+          "Supprimer ?",
+          style: TextStyle(fontWeight: FontWeight.w900),
+        ),
+        content: Text("Voulez-vous vraiment supprimer '${item.label}' ?"),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: Text(
+              "ANNULER",
+              style: TextStyle(
+                color: isDark ? Colors.white38 : Colors.black38,
+                fontWeight: FontWeight.bold,
+              ),
             ),
           ),
-          Text(
-            _formatter.format(item.amount),
-            style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 15),
-          ),
-          const SizedBox(width: 8),
-          IconButton(
-            onPressed: () => _deleteItem(item.id),
-            icon: Icon(
-              Icons.delete_outline_rounded,
-              size: 20,
-              color: Colors.grey.withValues(alpha: 0.5),
+          TextButton(
+            onPressed: () {
+              _deleteItem(item.id);
+              Navigator.pop(context);
+            },
+            child: const Text(
+              "SUPPRIMER",
+              style: TextStyle(
+                color: Colors.redAccent,
+                fontWeight: FontWeight.bold,
+              ),
             ),
-            padding: EdgeInsets.zero,
-            constraints: const BoxConstraints(),
           ),
         ],
       ),
@@ -350,11 +385,13 @@ class _BudgetPageState extends State<BudgetPage> {
     _loadData();
   }
 
-  void _showAddFlowDialog(BuildContext context) {
-    final labelController = TextEditingController();
-    final amountController = TextEditingController();
-    BudgetType selectedType = BudgetType.expense;
-    BudgetCategory? selectedCategory;
+  void _showAddFlowDialog(BuildContext context, {BudgetItem? item}) {
+    final labelController = TextEditingController(text: item?.label);
+    final amountController = TextEditingController(
+      text: item != null ? item.amount.toString().replaceAll('.', ',') : '',
+    );
+    BudgetType selectedType = item?.category?.type ?? BudgetType.expense;
+    BudgetCategory? selectedCategory = item?.category;
     const colorBlue = Color(0xFF0D71EE);
 
     showModalBottomSheet(
@@ -366,8 +403,14 @@ class _BudgetPageState extends State<BudgetPage> {
           final filteredCategories = _categories
               .where((c) => c.type == selectedType)
               .toList();
+
           if (selectedCategory == null && filteredCategories.isNotEmpty) {
             selectedCategory = filteredCategories.first;
+          } else if (selectedCategory != null &&
+              selectedCategory!.type != selectedType) {
+            selectedCategory = filteredCategories.isNotEmpty
+                ? filteredCategories.first
+                : null;
           }
 
           return Container(
@@ -398,9 +441,9 @@ class _BudgetPageState extends State<BudgetPage> {
                   ),
                 ),
                 const SizedBox(height: 24),
-                const Text(
-                  "Ajouter un flux",
-                  style: TextStyle(
+                Text(
+                  item == null ? "Ajouter un flux" : "Modifier le flux",
+                  style: const TextStyle(
                     fontSize: 22,
                     fontWeight: FontWeight.w900,
                     letterSpacing: -0.5,
@@ -418,7 +461,6 @@ class _BudgetPageState extends State<BudgetPage> {
                         color: Colors.green,
                         onTap: () => setModalState(() {
                           selectedType = BudgetType.income;
-                          selectedCategory = null;
                         }),
                       ),
                     ),
@@ -430,7 +472,6 @@ class _BudgetPageState extends State<BudgetPage> {
                         color: Colors.redAccent,
                         onTap: () => setModalState(() {
                           selectedType = BudgetType.expense;
-                          selectedCategory = null;
                         }),
                       ),
                     ),
@@ -440,7 +481,7 @@ class _BudgetPageState extends State<BudgetPage> {
 
                 TextField(
                   controller: labelController,
-                  autofocus: true,
+                  autofocus: item == null,
                   decoration: InputDecoration(
                     labelText: "Libellé",
                     hintText: "Salaire, Loyer, Courses...",
@@ -458,6 +499,9 @@ class _BudgetPageState extends State<BudgetPage> {
                   keyboardType: const TextInputType.numberWithOptions(
                     decimal: true,
                   ),
+                  inputFormatters: [
+                    FilteringTextInputFormatter.allow(RegExp(r'^\d*[.,]?\d*')),
+                  ],
                   decoration: InputDecoration(
                     labelText: "Montant mensuel",
                     suffixText: "€",
@@ -472,7 +516,17 @@ class _BudgetPageState extends State<BudgetPage> {
                 const SizedBox(height: 16),
 
                 DropdownButtonFormField<BudgetCategory>(
-                  initialValue: selectedCategory,
+                  initialValue:
+                      selectedCategory != null &&
+                          filteredCategories.any(
+                            (c) => c.id == selectedCategory!.id,
+                          )
+                      ? filteredCategories.firstWhere(
+                          (c) => c.id == selectedCategory!.id,
+                        )
+                      : (filteredCategories.isNotEmpty
+                            ? filteredCategories.first
+                            : null),
                   decoration: InputDecoration(
                     labelText: "Catégorie",
                     filled: true,
@@ -522,22 +576,35 @@ class _BudgetPageState extends State<BudgetPage> {
                       elevation: 0,
                     ),
                     onPressed: () async {
-                      final amount = double.tryParse(amountController.text);
+                      final cleanAmount = amountController.text.replaceAll(
+                        ',',
+                        '.',
+                      );
+                      final amount = double.tryParse(cleanAmount);
                       if (labelController.text.isNotEmpty &&
                           amount != null &&
                           selectedCategory != null) {
-                        await _budgetService.addBudgetItem(
-                          categoryId: selectedCategory!.id,
-                          label: labelController.text,
-                          amount: amount,
-                        );
+                        if (item == null) {
+                          await _budgetService.addBudgetItem(
+                            categoryId: selectedCategory!.id,
+                            label: labelController.text,
+                            amount: amount,
+                          );
+                        } else {
+                          await _budgetService.updateBudgetItem(
+                            id: item.id,
+                            categoryId: selectedCategory!.id,
+                            label: labelController.text,
+                            amount: amount,
+                          );
+                        }
                         if (context.mounted) Navigator.pop(context);
                         _loadData();
                       }
                     },
-                    child: const Text(
-                      "ENREGISTRER",
-                      style: TextStyle(
+                    child: Text(
+                      item == null ? "ENREGISTRER" : "METTRE À JOUR",
+                      style: const TextStyle(
                         color: Colors.white,
                         fontWeight: FontWeight.w900,
                         fontSize: 15,

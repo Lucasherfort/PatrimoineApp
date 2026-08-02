@@ -4,8 +4,6 @@ import 'package:patrimoine360/services/settings_service.dart';
 import 'package:patrimoine360/services/theme_manager.dart';
 import 'package:patrimoine360/services/financial_profile_manager.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
-import 'tools/real_estate_simulator_page.dart';
-import 'retirement_page.dart';
 import 'login_page.dart';
 
 class ProfilePage extends StatefulWidget {
@@ -52,160 +50,180 @@ class _ProfilePageState extends State<ProfilePage> {
 
     return Scaffold(
       backgroundColor: isDark
-          ? theme.scaffoldBackgroundColor
+          ? const Color(0xFF060B26)
           : const Color(0xFFF8FAFC),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(24),
-        child: Column(
-          children: [
-            const SizedBox(height: 20),
-
-            // --- ENTÊTE MENU ---
-            Container(
-              padding: const EdgeInsets.all(20),
+      body: Stack(
+        children: [
+          // --- BACKGROUND HALOS ---
+          Positioned(
+            top: -50,
+            right: -100,
+            child: Container(
+              width: 300,
+              height: 300,
               decoration: BoxDecoration(
-                color: theme.cardColor,
-                borderRadius: BorderRadius.circular(24),
-                border: isDark
-                    ? null
-                    : Border.all(color: Colors.black.withValues(alpha: 0.05)),
+                shape: BoxShape.circle,
+                color: colorBlue.withValues(alpha: isDark ? 0.12 : 0.07),
               ),
-              child: Row(
+            ),
+          ),
+
+          SafeArea(
+            child: SingleChildScrollView(
+              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 20),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  CircleAvatar(
-                    radius: 30,
-                    backgroundColor: colorBlue.withValues(alpha: 0.1),
-                    child: const Icon(Icons.person, size: 32, color: colorBlue),
-                  ),
-                  const SizedBox(width: 16),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
+                  _buildHeader(isDark),
+                  const SizedBox(height: 32),
+
+                  // --- COMPTE ---
+                  Container(
+                    padding: const EdgeInsets.all(20),
+                    decoration: BoxDecoration(
+                      color: theme.cardColor,
+                      borderRadius: BorderRadius.circular(24),
+                      border: isDark
+                          ? null
+                          : Border.all(
+                              color: Colors.black.withValues(alpha: 0.05),
+                            ),
+                    ),
+                    child: Row(
                       children: [
-                        Text(
-                          "MON COMPTE",
-                          style: TextStyle(
-                            color: isDark ? Colors.white38 : Colors.black38,
-                            fontSize: 10,
-                            fontWeight: FontWeight.bold,
-                            letterSpacing: 1.1,
+                        CircleAvatar(
+                          radius: 30,
+                          backgroundColor: colorBlue.withValues(alpha: 0.1),
+                          child: const Icon(
+                            Icons.person,
+                            size: 32,
+                            color: colorBlue,
                           ),
                         ),
-                        Text(
-                          Supabase.instance.client.auth.currentUser?.email ??
-                              "Utilisateur",
-                          style: TextStyle(
-                            color: theme.textTheme.bodyLarge?.color,
-                            fontSize: 15,
-                            fontWeight: FontWeight.bold,
+                        const SizedBox(width: 16),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                "MON COMPTE",
+                                style: TextStyle(
+                                  color: isDark
+                                      ? Colors.white38
+                                      : Colors.black38,
+                                  fontSize: 10,
+                                  fontWeight: FontWeight.bold,
+                                  letterSpacing: 1.1,
+                                ),
+                              ),
+                              Text(
+                                Supabase
+                                        .instance
+                                        .client
+                                        .auth
+                                        .currentUser
+                                        ?.email ??
+                                    "Utilisateur",
+                                style: TextStyle(
+                                  color: theme.textTheme.bodyLarge?.color,
+                                  fontSize: 15,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ],
                           ),
-                          overflow: TextOverflow.ellipsis,
                         ),
                       ],
                     ),
                   ),
+
+                  const SizedBox(height: 32),
+
+                  // --- SECTION APPARENCE ---
+                  _buildAppearanceSection(context),
+
+                  const SizedBox(height: 24),
+
+                  // --- SECTION PROFIL FINANCIER ---
+                  _buildFinancialProfileSection(context),
+
+                  const SizedBox(height: 24),
+
+                  // --- AUTRES OPTIONS ---
+                  _buildMenuOption(
+                    context,
+                    icon: Icons.info_outline,
+                    title: "À propos",
+                    subtitle: "Version de l'application",
+                    trailing: Text(
+                      widget.appVersion,
+                      style: TextStyle(
+                        color: isDark ? Colors.white24 : Colors.black26,
+                        fontSize: 12,
+                      ),
+                    ),
+                  ),
+
+                  const SizedBox(height: 40),
+
+                  // --- BOUTON DÉCONNEXION ---
+                  SizedBox(
+                    width: double.infinity,
+                    child: ElevatedButton.icon(
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: colorRed.withValues(alpha: 0.1),
+                        foregroundColor: colorRed,
+                        padding: const EdgeInsets.symmetric(vertical: 16),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(16),
+                        ),
+                        side: BorderSide(
+                          color: colorRed.withValues(alpha: 0.3),
+                        ),
+                        elevation: 0,
+                      ),
+                      onPressed: () => _handleLogout(context),
+                      icon: const Icon(Icons.logout),
+                      label: const Text(
+                        "DÉCONNEXION",
+                        style: TextStyle(fontWeight: FontWeight.bold),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 40),
                 ],
               ),
             ),
-
-            const SizedBox(height: 32),
-
-            // --- SECTION OUTILS ---
-            _buildToolsSection(context),
-
-            const SizedBox(height: 24),
-
-            // --- SECTION APPARENCE ---
-            _buildAppearanceSection(context),
-
-            const SizedBox(height: 24),
-
-            // --- SECTION PROFIL FINANCIER ---
-            _buildFinancialProfileSection(context),
-
-            const SizedBox(height: 24),
-
-            // --- AUTRES OPTIONS ---
-            _buildMenuOption(
-              context,
-              icon: Icons.info_outline,
-              title: "À propos",
-              subtitle: "Version de l'application",
-              trailing: Text(
-                widget.appVersion,
-                style: TextStyle(
-                  color: isDark ? Colors.white24 : Colors.black26,
-                  fontSize: 12,
-                ),
-              ),
-            ),
-
-            const SizedBox(height: 40),
-
-            // --- BOUTON DÉCONNEXION ---
-            SizedBox(
-              width: double.infinity,
-              child: ElevatedButton.icon(
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: colorRed.withValues(alpha: 0.1),
-                  foregroundColor: colorRed,
-                  padding: const EdgeInsets.symmetric(vertical: 16),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(16),
-                  ),
-                  side: BorderSide(color: colorRed.withValues(alpha: 0.3)),
-                  elevation: 0,
-                ),
-                onPressed: () => _handleLogout(context),
-                icon: const Icon(Icons.logout),
-                label: const Text(
-                  "DÉCONNEXION",
-                  style: TextStyle(fontWeight: FontWeight.bold),
-                ),
-              ),
-            ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }
 
-  Widget _buildToolsSection(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-
+  Widget _buildHeader(bool isDark) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          "OUTILS & SIMULATEURS",
+          "MENU & OPTIONS",
           style: TextStyle(
             color: isDark
                 ? Colors.white.withValues(alpha: 0.4)
-                : Colors.black.withValues(alpha: 0.4),
-            fontSize: 11,
-            fontWeight: FontWeight.bold,
-            letterSpacing: 1.2,
+                : Colors.black38,
+            fontSize: 10,
+            fontWeight: FontWeight.w900,
+            letterSpacing: 1.5,
           ),
         ),
-        const SizedBox(height: 16),
-        _buildMenuOption(
-          context,
-          icon: Icons.home_work_rounded,
-          title: "Simulateur Immobilier",
-          subtitle: "Calculez votre capacité d'achat",
-          onTap: () => Navigator.push(
-            context,
-            MaterialPageRoute(builder: (_) => const RealEstateSimulatorPage()),
-          ),
-        ),
-        _buildMenuOption(
-          context,
-          icon: Icons.wb_sunny_rounded,
-          title: "Simulateur Retraite",
-          subtitle: "Préparez votre liberté financière",
-          onTap: () => Navigator.push(
-            context,
-            MaterialPageRoute(builder: (_) => const RetirementPage()),
+        const SizedBox(height: 4),
+        Text(
+          "Configuration",
+          style: TextStyle(
+            color: isDark ? Colors.white : const Color(0xFF0F172A),
+            fontSize: 26,
+            fontWeight: FontWeight.w900,
+            letterSpacing: -0.8,
           ),
         ),
       ],
