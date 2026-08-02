@@ -55,6 +55,24 @@ class BudgetService {
     });
   }
 
+  Future<void> updateBudgetItem({
+    required String id,
+    required String? categoryId,
+    required String label,
+    required double amount,
+    bool isRecurring = true,
+  }) async {
+    await _supabase
+        .from(BudgetItemTable.tableName)
+        .update({
+          BudgetItemTable.categoryId: categoryId,
+          BudgetItemTable.label: label,
+          BudgetItemTable.amount: amount,
+          BudgetItemTable.isRecurring: isRecurring,
+        })
+        .eq('id', id);
+  }
+
   Future<void> deleteBudgetItem(String id) async {
     await _supabase.from(BudgetItemTable.tableName).delete().eq('id', id);
   }

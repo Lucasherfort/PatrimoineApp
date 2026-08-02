@@ -4,6 +4,7 @@ import 'package:package_info_plus/package_info_plus.dart';
 import 'home_page.dart';
 import 'analysis_page.dart';
 import 'budget_page.dart';
+import 'simulators_page.dart';
 import 'profile_page.dart';
 
 class MainNavigation extends StatefulWidget {
@@ -56,6 +57,8 @@ class _MainNavigationState extends State<MainNavigation> {
       const AnalysisPage(),
 
       const BudgetPage(),
+
+      const SimulatorsPage(),
 
       ProfilePage(appVersion: appVersion),
     ];
@@ -110,8 +113,13 @@ class _MainNavigationState extends State<MainNavigation> {
           ),
 
           BottomNavigationBarItem(
-            icon: Icon(Icons.account_balance_wallet_rounded),
+            icon: Icon(Icons.pie_chart_rounded),
             label: 'Budget',
+          ),
+
+          BottomNavigationBarItem(
+            icon: Icon(Icons.rocket_launch_rounded),
+            label: 'Simulateurs',
           ),
 
           BottomNavigationBarItem(icon: Icon(Icons.menu), label: 'Menu'),

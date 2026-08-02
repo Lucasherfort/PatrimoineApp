@@ -26,15 +26,20 @@ class _AnalysisPageState extends State<AnalysisPage> {
   // Data
   double _passiveGains = 0;
   double _totalExpenses = 0;
-  double _essentialExpenses = 0;
-  double _savingsCapacity = 0;
-  double _liquidAssets = 0;
+  double _monthlyInvestment = 0;
   double _totalWealth = 0;
 
   @override
   void initState() {
     super.initState();
     _loadAllData();
+    FinancialProfileManager().addListener(_loadAllData);
+  }
+
+  @override
+  void dispose() {
+    FinancialProfileManager().removeListener(_loadAllData);
+    super.dispose();
   }
 
   Future<void> _loadAllData() async {
@@ -43,23 +48,16 @@ class _AnalysisPageState extends State<AnalysisPage> {
       final annualGains = await _patrimoineService
           .getEstimatedAnnualInvestmentGains();
       final expenses = await _budgetService.getTotalOutgoings();
-      final essentials = await _budgetService.getTotalEssentialExpenses();
-      final savingsCap = await _budgetService.getMonthlySavingsCapacity();
+      final manager = FinancialProfileManager();
+      final monthlyInv = manager.monthlyInvestment;
 
-      // For Safety Cape: Liquidities + Savings
       final netWealth = await _patrimoineService.getNetPatrimoine();
-      // Note: getNetPatrimoine is liquid + savings + invested capital
-      // We might want just liquid + savings for safety
-      final invested = await _patrimoineService.getTotalInvestedCapital();
-      final safetyBuffer = netWealth - invested;
 
       if (mounted) {
         setState(() {
           _passiveGains = annualGains / 12;
           _totalExpenses = expenses;
-          _essentialExpenses = essentials;
-          _savingsCapacity = savingsCap;
-          _liquidAssets = safetyBuffer;
+          _monthlyInvestment = monthlyInv;
           _totalWealth = netWealth;
           _isLoading = false;
         });
@@ -124,34 +122,7 @@ class _AnalysisPageState extends State<AnalysisPage> {
                     _buildHeader(isDark),
                     const SizedBox(height: 32),
 
-                    // 1. Point d'équilibre patrimonial
-                    _buildIndicatorCard(
-                      title: "ÉQUILIBRE PATRIMONIAL",
-                      subtitle: "Gains vs Dépenses essentielles",
-                      current: _passiveGains,
-                      target: _essentialExpenses,
-                      icon: Icons.balance_rounded,
-                      color: Colors.blue,
-                      unit: "€/mois",
-                    ),
-                    const SizedBox(height: 16),
-
-                    // 2. Cap de sécurité
-                    _buildIndicatorCard(
-                      title: "CAP DE SÉCURITÉ",
-                      subtitle: "Mois de dépenses d'avance",
-                      current: _totalExpenses > 0
-                          ? _liquidAssets / _totalExpenses
-                          : 0,
-                      target: 6, // Objectif standard 6 mois
-                      icon: Icons.shield_outlined,
-                      color: Colors.orange,
-                      unit: "mois",
-                      isRatio: true,
-                    ),
-                    const SizedBox(height: 16),
-
-                    // 3. Cap de liberté
+                    // 1. Cap de liberté
                     _buildIndicatorCard(
                       title: "CAP DE LIBERTÉ",
                       subtitle: "Indépendance financière totale",
@@ -163,23 +134,23 @@ class _AnalysisPageState extends State<AnalysisPage> {
                     ),
                     const SizedBox(height: 16),
 
-                    // 4. Point d'accélération
+                    // 2. Point de croisement
                     _buildIndicatorCard(
-                      title: "POINT D'ACCÉLÉRATION",
-                      subtitle: "Gains passifs vs Effort d'épargne",
+                      title: "POINT DE CROISEMENT",
+                      subtitle: "Gains passifs vs Montant investi (DCA)",
                       current: _passiveGains,
-                      target: _savingsCapacity.clamp(1.0, double.infinity),
-                      icon: Icons.rocket_launch_outlined,
+                      target: _monthlyInvestment.clamp(1.0, double.infinity),
+                      icon: Icons.sync_alt_rounded,
                       color: Colors.redAccent,
                       unit: "€/mois",
                     ),
                     const SizedBox(height: 16),
 
-                    // 5. Indice d'indépendance
+                    // 3. Indice d'indépendance
                     _buildIndiceCard(isDark),
                     const SizedBox(height: 16),
 
-                    // 6. Horizon d'autonomie
+                    // 4. Horizon d'autonomie
                     _buildHorizonCard(isDark),
 
                     const SizedBox(height: 40),
@@ -419,16 +390,15 @@ class _AnalysisPageState extends State<AnalysisPage> {
 
   Widget _buildHorizonCard(bool isDark) {
     // Horizon calculation: very simplified
-    // If savings capacity is positive, we assume it's invested at a certain rate (ex 5%)
-    // and we find when wealth * rate / 12 >= totalExpenses
+    // Based on monthly investment (DCA) and passive gains growth
 
     int years = 0;
-    if (_savingsCapacity > 0) {
+    if (_monthlyInvestment > 0) {
       double simulatedWealth = _totalWealth;
       const double yield = 0.05; // 5% cautious yield
       while (simulatedWealth * (yield / 12) < _totalExpenses && years < 50) {
         simulatedWealth =
-            (simulatedWealth + (_savingsCapacity * 12)) * (1 + yield);
+            (simulatedWealth + (_monthlyInvestment * 12)) * (1 + yield);
         years++;
       }
     } else {
