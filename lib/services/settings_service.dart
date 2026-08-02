@@ -14,6 +14,7 @@ class SettingsService {
   static const _keyRetirementDesiredIncome = 'retirement_desired_income';
   static const _keyRetirementEstimatedPension = 'retirement_estimated_pension';
   static const _keyRetirementSwr = 'retirement_swr';
+  static const _keyInflationRate = 'inflation_rate';
 
   Future<AppThemeMode> getThemeMode() async {
     final prefs = await SharedPreferences.getInstance();

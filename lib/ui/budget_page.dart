@@ -1,3 +1,4 @@
+import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:intl/intl.dart';
@@ -101,7 +102,11 @@ class _BudgetPageState extends State<BudgetPage> {
                             padding: const EdgeInsets.symmetric(horizontal: 24),
                             child: Column(
                               children: [
-                                const SizedBox(height: 24),
+                                if (_items.isNotEmpty) ...[
+                                  const SizedBox(height: 8),
+                                  _buildBudgetChart(isDark),
+                                  const SizedBox(height: 32),
+                                ],
                                 _buildFlowSection(
                                   context,
                                   title: "REVENUS",
@@ -168,6 +173,118 @@ class _BudgetPageState extends State<BudgetPage> {
               ),
               _buildSavingsPill(),
             ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildBudgetChart(bool isDark) {
+    final expensesByCat = <String, double>{};
+    for (var item in _items.where(
+      (i) => i.category?.type == BudgetType.expense,
+    )) {
+      final label = item.category?.label ?? "Autre";
+      expensesByCat[label] = (expensesByCat[label] ?? 0) + item.amount;
+    }
+
+    if (expensesByCat.isEmpty) return const SizedBox();
+
+    final totalExpense = expensesByCat.values.fold(0.0, (a, b) => a + b);
+
+    // Sort categories by amount descending
+    final sortedEntries = expensesByCat.entries.toList()
+      ..sort((a, b) => b.value.compareTo(a.value));
+
+    final List<Color> chartColors = [
+      const Color(0xFF0D71EE),
+      const Color(0xFF8B5CF6),
+      const Color(0xFFEC4899),
+      const Color(0xFFF59E0B),
+      const Color(0xFF10B981),
+      const Color(0xFF3B82F6),
+      const Color(0xFF6366F1),
+    ];
+
+    return Container(
+      height: 180,
+      padding: const EdgeInsets.symmetric(horizontal: 16),
+      child: Row(
+        children: [
+          Expanded(
+            flex: 4,
+            child: PieChart(
+              PieChartData(
+                sectionsSpace: 4,
+                centerSpaceRadius: 40,
+                sections: sortedEntries.asMap().entries.map((entry) {
+                  final index = entry.key;
+                  final value = entry.value.value;
+                  final percentage = (value / totalExpense * 100);
+
+                  return PieChartSectionData(
+                    color: chartColors[index % chartColors.length],
+                    value: value,
+                    title: percentage >= 8 ? '${percentage.toInt()}%' : '',
+                    radius: 50,
+                    titleStyle: const TextStyle(
+                      fontSize: 10,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.white,
+                    ),
+                  );
+                }).toList(),
+              ),
+            ),
+          ),
+          const SizedBox(width: 24),
+          Expanded(
+            flex: 5,
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: sortedEntries.take(4).toList().asMap().entries.map((
+                entry,
+              ) {
+                final index = entry.key;
+                return Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 4),
+                  child: Row(
+                    children: [
+                      Container(
+                        width: 8,
+                        height: 8,
+                        decoration: BoxDecoration(
+                          color: chartColors[index % chartColors.length],
+                          shape: BoxShape.circle,
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: Text(
+                          entry.value.key,
+                          style: TextStyle(
+                            fontSize: 11,
+                            fontWeight: FontWeight.w600,
+                            color: isDark ? Colors.white70 : Colors.black87,
+                          ),
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
+                      const SizedBox(width: 4),
+                      Text(
+                        _formatter.format(entry.value.value),
+                        style: TextStyle(
+                          fontSize: 11,
+                          fontWeight: FontWeight.w800,
+                          color: isDark ? Colors.white38 : Colors.black45,
+                        ),
+                      ),
+                    ],
+                  ),
+                );
+              }).toList(),
+            ),
           ),
         ],
       ),

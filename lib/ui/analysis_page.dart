@@ -1,3 +1,4 @@
+import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import '../services/patrimoine_service.dart';
@@ -29,6 +30,11 @@ class _AnalysisPageState extends State<AnalysisPage> {
   double _monthlyInvestment = 0;
   double _totalWealth = 0;
 
+  // Asset Allocation
+  double _totalLiquidity = 0;
+  double _totalSavings = 0;
+  double _totalInvestments = 0;
+
   @override
   void initState() {
     super.initState();
@@ -53,12 +59,22 @@ class _AnalysisPageState extends State<AnalysisPage> {
 
       final netWealth = await _patrimoineService.getNetPatrimoine();
 
+      // Fetch components for allocation chart
+      final results = await Future.wait([
+        _patrimoineService.getLiquidityValue(),
+        _patrimoineService.getSavingsValue(),
+        _patrimoineService.getInvestmentsValue(),
+      ]);
+
       if (mounted) {
         setState(() {
           _passiveGains = annualGains / 12;
           _totalExpenses = expenses;
           _monthlyInvestment = monthlyInv;
           _totalWealth = netWealth;
+          _totalLiquidity = results[0];
+          _totalSavings = results[1];
+          _totalInvestments = results[2];
           _isLoading = false;
         });
       }
@@ -120,7 +136,13 @@ class _AnalysisPageState extends State<AnalysisPage> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     _buildHeader(isDark),
-                    const SizedBox(height: 32),
+                    const SizedBox(height: 24),
+
+                    // Allocation Chart
+                    if (_totalWealth > 0) ...[
+                      _buildAllocationChart(isDark),
+                      const SizedBox(height: 32),
+                    ],
 
                     // 1. Cap de liberté
                     _buildIndicatorCard(
@@ -190,6 +212,121 @@ class _AnalysisPageState extends State<AnalysisPage> {
           ),
         ),
       ],
+    );
+  }
+
+  Widget _buildAllocationChart(bool isDark) {
+    final Map<String, double> allocation = {
+      "Liquidités": _totalLiquidity,
+      "Épargne": _totalSavings,
+      "Investissements": _totalInvestments,
+    };
+
+    final List<Color> colors = [
+      const Color(0xFF0D71EE), // Liquidités
+      const Color(0xFF8B5CF6), // Épargne
+      const Color(0xFF10B981), // Investissements
+    ];
+
+    final sortedEntries = allocation.entries.where((e) => e.value > 0).toList()
+      ..sort((a, b) => b.value.compareTo(a.value));
+
+    return Container(
+      height: 160,
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: Theme.of(context).cardColor,
+        borderRadius: BorderRadius.circular(28),
+        border: Border.all(
+          color: isDark
+              ? Colors.white.withValues(alpha: 0.05)
+              : Colors.black.withValues(alpha: 0.02),
+        ),
+      ),
+      child: Row(
+        children: [
+          Expanded(
+            flex: 2,
+            child: PieChart(
+              PieChartData(
+                sectionsSpace: 4,
+                centerSpaceRadius: 30,
+                sections: sortedEntries.asMap().entries.map((entry) {
+                  final value = entry.value.value;
+                  final percentage = (value / _totalWealth * 100);
+
+                  // Map labels to original colors index
+                  int colorIndex = 0;
+                  if (entry.value.key == "Épargne") colorIndex = 1;
+                  if (entry.value.key == "Investissements") colorIndex = 2;
+
+                  return PieChartSectionData(
+                    color: colors[colorIndex],
+                    value: value,
+                    title: percentage >= 10 ? '${percentage.toInt()}%' : '',
+                    radius: 40,
+                    titleStyle: const TextStyle(
+                      fontSize: 10,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.white,
+                    ),
+                  );
+                }).toList(),
+              ),
+            ),
+          ),
+          const SizedBox(width: 24),
+          Expanded(
+            flex: 3,
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: sortedEntries.asMap().entries.map((entry) {
+                int colorIndex = 0;
+                if (entry.value.key == "Épargne") colorIndex = 1;
+                if (entry.value.key == "Investissements") colorIndex = 2;
+
+                return Padding(
+                  padding: const EdgeInsets.symmetric(vertical: 4),
+                  child: Row(
+                    children: [
+                      Container(
+                        width: 8,
+                        height: 8,
+                        decoration: BoxDecoration(
+                          color: colors[colorIndex],
+                          shape: BoxShape.circle,
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                      Expanded(
+                        child: Text(
+                          entry.value.key,
+                          style: TextStyle(
+                            fontSize: 11,
+                            fontWeight: FontWeight.w600,
+                            color: isDark ? Colors.white70 : Colors.black87,
+                          ),
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
+                      const SizedBox(width: 4),
+                      Text(
+                        _formatter.format(entry.value.value),
+                        style: TextStyle(
+                          fontSize: 11,
+                          fontWeight: FontWeight.w800,
+                          color: isDark ? Colors.white38 : Colors.black45,
+                        ),
+                      ),
+                    ],
+                  ),
+                );
+              }).toList(),
+            ),
+          ),
+        ],
+      ),
     );
   }
 
