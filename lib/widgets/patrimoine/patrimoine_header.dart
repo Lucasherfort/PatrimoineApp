@@ -9,16 +9,18 @@ class PatrimoineHeader extends StatefulWidget {
   final double portfolioValue;
   final double netWorth;
   final double netPatrimoine;
+  final double? historicalInvestmentValue; // 👈 Modifié
   final bool hasInvestments;
 
   const PatrimoineHeader({
     super.key,
     required this.patrimoineTotal,
-    required this.patrimoineNetEstimated, // 👈 Ajouté
+    required this.patrimoineNetEstimated,
     required this.investedCapital,
     required this.portfolioValue,
     required this.netWorth,
     required this.netPatrimoine,
+    this.historicalInvestmentValue, // 👈 Modifié
     this.hasInvestments = true,
   });
 
@@ -304,6 +306,49 @@ class _PatrimoineHeaderState extends State<PatrimoineHeader> {
     );
   }
 
+  Widget _buildDailyEvolution(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final diff = widget.portfolioValue - widget.historicalInvestmentValue!;
+    final percentage = (diff / widget.historicalInvestmentValue!) * 100;
+
+    final Color trendColor = diff >= 0
+        ? (isDark ? colorGreenFlash : colorGreenDark)
+        : (isDark ? colorOrangeLogo : colorOrangeDark);
+
+    return Padding(
+      padding: const EdgeInsets.only(top: 4, bottom: 8),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+            decoration: BoxDecoration(
+              color: trendColor.withValues(alpha: 0.1),
+              borderRadius: BorderRadius.circular(6),
+            ),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Icon(Icons.show_chart_rounded, size: 12, color: trendColor),
+                const SizedBox(width: 6),
+                Text(
+                  _isVisible
+                      ? "Variation marchés : ${diff >= 0 ? '+' : ''}${_formatAmount(diff)} € (${diff >= 0 ? '+' : ''}${percentage.toStringAsFixed(2)} %)"
+                      : "Variation marchés : •••• € (•• %)",
+                  style: TextStyle(
+                    color: trendColor,
+                    fontSize: 11,
+                    fontWeight: FontWeight.w800,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final bool showGains = widget.hasInvestments && widget.investedCapital > 0;
@@ -399,6 +444,14 @@ class _PatrimoineHeaderState extends State<PatrimoineHeader> {
                   ],
                 ),
               ),
+
+              // =========================
+              // Évolution Journalière (Bourse/Marchés)
+              // =========================
+              if (widget.historicalInvestmentValue != null &&
+                  widget.historicalInvestmentValue! > 0) ...[
+                _buildDailyEvolution(context),
+              ],
 
               // =========================
               // Gains

@@ -27,6 +27,7 @@ class HomePageState extends State<HomePage> {
   double investedCapital = 0.0;
   double portfolioValue = 0.0;
   double netPatrimoine = 0.0;
+  double? historicalInvestmentValue; // 👈 Modifié
   bool isLoading = true;
 
   bool hasLiquidityAccounts = false;
@@ -73,8 +74,10 @@ class HomePageState extends State<HomePage> {
       final investedCapitalAmount = await _patrimoineService
           .getTotalInvestedCapital();
       final portfolioValueAmount = await _patrimoineService
-          .getTotalPortfolioValue();
+          .getInvestmentsValue(); // 👈 Utilise la valeur brute des investissements
       final netPatrimoineAmount = await _patrimoineService.getNetPatrimoine();
+      final historical = await _patrimoineService
+          .getLatestHistoricalInvestmentValue();
 
       if (mounted) {
         setState(() {
@@ -86,6 +89,7 @@ class HomePageState extends State<HomePage> {
           investedCapital = investedCapitalAmount;
           netPatrimoine = netPatrimoineAmount;
           portfolioValue = portfolioValueAmount;
+          historicalInvestmentValue = historical;
           isLoading = false;
         });
       }
@@ -157,11 +161,13 @@ class HomePageState extends State<HomePage> {
                 const SizedBox(height: 20),
                 PatrimoineHeader(
                   patrimoineTotal: patrimoineTotal,
-                  patrimoineNetEstimated: patrimoineNetEstimated, // 👈 Ajouté
+                  patrimoineNetEstimated: patrimoineNetEstimated,
                   investedCapital: investedCapital,
                   portfolioValue: portfolioValue,
                   netWorth: investedCapital,
                   netPatrimoine: netPatrimoine,
+                  historicalInvestmentValue:
+                      historicalInvestmentValue, // 👈 Modifié
                   hasInvestments: hasInvestmentAccounts,
                 ),
                 Expanded(

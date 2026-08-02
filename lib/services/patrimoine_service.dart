@@ -289,4 +289,23 @@ class PatrimoineService {
 
     return values[0] + values[1] + values[2];
   }
+
+  // ─── Historique ───────────────────────────────────────────────────────────
+
+  /// Récupère la dernière valeur enregistrée des investissements (avant aujourd'hui)
+  Future<double?> getLatestHistoricalInvestmentValue() async {
+    final userId = _requireUserId();
+
+    final response = await _supabase
+        .from('wealth_history')
+        .select('total_investments')
+        .eq('user_id', userId)
+        .lt('recorded_at', DateTime.now().toIso8601String().substring(0, 10))
+        .order('recorded_at', ascending: false)
+        .limit(1)
+        .maybeSingle();
+
+    if (response == null) return null;
+    return (response['total_investments'] as num).toDouble();
+  }
 }
