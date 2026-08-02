@@ -27,6 +27,14 @@ class PatrimoineService {
   final FinancialProfileManager _financialProfileManager =
       FinancialProfileManager();
 
+  // ─── Composantes ──────────────────────────────────────────────────────────
+
+  Future<double> getLiquidityValue() =>
+      _liquidityService.getTotalLiquidityValue();
+  Future<double> getSavingsValue() => _savingsService.getTotalSavingsValue();
+  Future<double> getInvestmentsValue() =>
+      _investmentService.getTotalPortfolioValueGross();
+
   // ─── Utils ────────────────────────────────────────────────────────────────
 
   String _requireUserId() {

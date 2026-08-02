@@ -16,12 +16,14 @@ class FinancialProfileManager with ChangeNotifier {
   double _retirementDesiredIncome = 0.0;
   double _retirementEstimatedPension = 0.0;
   double _retirementSwr = 4.0;
+  double _inflationRate = 2.0;
 
   double get monthlyNetSalary => _monthlyNetSalary;
   double get monthlyInvestment => _monthlyInvestment;
   double get retirementDesiredIncome => _retirementDesiredIncome;
   double get retirementEstimatedPension => _retirementEstimatedPension;
   double get retirementSwr => _retirementSwr;
+  double get inflationRate => _inflationRate;
 
   Future<void> init() async {
     _monthlyNetSalary = await _settingsService.getMonthlyNetSalary() ?? 0.0;
@@ -31,6 +33,7 @@ class FinancialProfileManager with ChangeNotifier {
     _retirementEstimatedPension =
         await _settingsService.getRetirementEstimatedPension() ?? 0.0;
     _retirementSwr = await _settingsService.getRetirementSwr();
+    _inflationRate = await _settingsService.getInflationRate();
     notifyListeners();
   }
 
@@ -66,6 +69,13 @@ class FinancialProfileManager with ChangeNotifier {
     if (_retirementSwr == value) return;
     _retirementSwr = value;
     await _settingsService.setRetirementSwr(value);
+    notifyListeners();
+  }
+
+  Future<void> setInflationRate(double value) async {
+    if (_inflationRate == value) return;
+    _inflationRate = value;
+    await _settingsService.setInflationRate(value);
     notifyListeners();
   }
 }
