@@ -166,36 +166,50 @@ class _RetirementPageState extends State<RetirementPage> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      // Header (Compact)
+                      // Header (Compact with Back Button)
                       Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
-                          Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Text(
-                                "RETRAITE & FIRE",
-                                style: TextStyle(
-                                  color: isDark
-                                      ? Colors.white.withValues(alpha: 0.4)
-                                      : Colors.black38,
-                                  fontSize: 10,
-                                  fontWeight: FontWeight.w900,
-                                  letterSpacing: 1.5,
+                          IconButton(
+                            onPressed: () => Navigator.pop(context),
+                            icon: Icon(
+                              Icons.arrow_back_ios_new_rounded,
+                              color: isDark
+                                  ? Colors.white
+                                  : const Color(0xFF0F172A),
+                              size: 20,
+                            ),
+                            padding: EdgeInsets.zero,
+                            constraints: const BoxConstraints(),
+                          ),
+                          const SizedBox(width: 16),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  "RETRAITE & FIRE",
+                                  style: TextStyle(
+                                    color: isDark
+                                        ? Colors.white.withValues(alpha: 0.4)
+                                        : Colors.black38,
+                                    fontSize: 10,
+                                    fontWeight: FontWeight.w900,
+                                    letterSpacing: 1.5,
+                                  ),
                                 ),
-                              ),
-                              Text(
-                                "Objectif Liberté",
-                                style: TextStyle(
-                                  color: isDark
-                                      ? Colors.white
-                                      : const Color(0xFF0F172A),
-                                  fontSize: 24,
-                                  fontWeight: FontWeight.w900,
-                                  letterSpacing: -0.5,
+                                Text(
+                                  "Objectif Liberté",
+                                  style: TextStyle(
+                                    color: isDark
+                                        ? Colors.white
+                                        : const Color(0xFF0F172A),
+                                    fontSize: 24,
+                                    fontWeight: FontWeight.w900,
+                                    letterSpacing: -0.5,
+                                  ),
                                 ),
-                              ),
-                            ],
+                              ],
+                            ),
                           ),
                           Icon(
                             Icons.wb_sunny_rounded,
@@ -694,77 +708,24 @@ class _RetirementPageState extends State<RetirementPage> {
   Widget _buildEmptyStateView(bool isDark) {
     return Column(
       children: [
-        const SizedBox(height: 40),
-        _buildSummaryCard(
-          context,
-          title: "VOS HYPOTHÈSES",
-          padding: const EdgeInsets.all(16),
-          child: Column(
-            children: [
-              _buildCompactInputField(
-                context,
-                label: "Revenu souhaité",
-                controller: _incomeController,
-                onChanged: (val) {
-                  final d = double.tryParse(val) ?? 0.0;
-                  FinancialProfileManager().setRetirementDesiredIncome(d);
-                },
-              ),
-              const SizedBox(height: 12),
-              Row(
-                children: [
-                  Expanded(
-                    flex: 2,
-                    child: _buildCompactInputField(
-                      context,
-                      label: "Pension estimée",
-                      controller: _pensionController,
-                      onChanged: (val) {
-                        final d = double.tryParse(val) ?? 0.0;
-                        FinancialProfileManager().setRetirementEstimatedPension(
-                          d,
-                        );
-                      },
-                    ),
-                  ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    flex: 1,
-                    child: _buildCompactInputField(
-                      context,
-                      label: "Taux",
-                      controller: _swrController,
-                      suffix: "%",
-                      onChanged: (val) {
-                        double d = double.tryParse(val) ?? 4.0;
-                        if (d < 3) d = 3.0;
-                        if (d > 5) d = 5.0;
-                        FinancialProfileManager().setRetirementSwr(d);
-                      },
-                    ),
-                  ),
-                ],
-              ),
-            ],
-          ),
-        ),
-        const SizedBox(height: 40),
+        const SizedBox(height: 24),
         Icon(
           Icons.auto_fix_high_rounded,
-          size: 48,
+          size: 40,
           color: const Color(0xFF0D71EE).withValues(alpha: 0.3),
         ),
-        const SizedBox(height: 24),
+        const SizedBox(height: 16),
         Text(
-          "Renseignez vos revenus souhaités pour voir votre progression.",
+          "Renseignez votre revenu souhaité pour projeter votre capital cible.",
           textAlign: TextAlign.center,
           style: TextStyle(
             color: isDark ? Colors.white38 : Colors.black38,
-            fontSize: 14,
+            fontSize: 13,
             fontWeight: FontWeight.w500,
             height: 1.5,
           ),
         ),
+        const SizedBox(height: 24),
       ],
     );
   }

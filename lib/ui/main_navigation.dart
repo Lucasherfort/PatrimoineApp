@@ -3,8 +3,8 @@ import 'package:package_info_plus/package_info_plus.dart';
 
 import 'home_page.dart';
 import 'analysis_page.dart';
-import 'tools/real_estate_simulator_page.dart';
-import 'retirement_page.dart';
+import 'budget_page.dart';
+import 'simulators_page.dart';
 import 'profile_page.dart';
 
 class MainNavigation extends StatefulWidget {
@@ -56,9 +56,9 @@ class _MainNavigationState extends State<MainNavigation> {
 
       const AnalysisPage(),
 
-      const RealEstateSimulatorPage(),
+      const BudgetPage(),
 
-      const RetirementPage(),
+      const SimulatorsPage(),
 
       ProfilePage(appVersion: appVersion),
     ];
@@ -113,19 +113,16 @@ class _MainNavigationState extends State<MainNavigation> {
           ),
 
           BottomNavigationBarItem(
-            icon: Icon(Icons.home_work),
-            label: 'Immobilier',
+            icon: Icon(Icons.pie_chart_rounded),
+            label: 'Budget',
           ),
 
           BottomNavigationBarItem(
-            icon: Icon(Icons.wb_sunny_rounded),
-            label: 'Retraite',
+            icon: Icon(Icons.rocket_launch_rounded),
+            label: 'Simulateurs',
           ),
 
-          BottomNavigationBarItem(
-            icon: Icon(Icons.settings),
-            label: 'Paramètres',
-          ),
+          BottomNavigationBarItem(icon: Icon(Icons.menu), label: 'Menu'),
         ],
       ),
     );
