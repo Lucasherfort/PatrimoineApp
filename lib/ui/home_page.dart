@@ -167,8 +167,9 @@ class HomePageState extends State<HomePage> {
                   netWorth: investedCapital,
                   netPatrimoine: netPatrimoine,
                   historicalInvestmentValue:
-                      historicalInvestmentValue, // 👈 Modifié
+                      historicalInvestmentValue,
                   hasInvestments: hasInvestmentAccounts,
+                  onAddPressed: openAddPatrimoinePanel, // 👈 Ajouté
                 ),
                 Expanded(
                   child: hasAnyAccount

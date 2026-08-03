@@ -7,10 +7,11 @@ class PatrimoineHeader extends StatefulWidget {
   final double patrimoineNetEstimated; // 👈 Ajouté
   final double investedCapital;
   final double portfolioValue;
-  final double netWorth;
+  final double netWorth; // 👈 Rajouté
   final double netPatrimoine;
-  final double? historicalInvestmentValue; // 👈 Modifié
+  final double? historicalInvestmentValue;
   final bool hasInvestments;
+  final VoidCallback? onAddPressed; // 👈 Ajouté
 
   const PatrimoineHeader({
     super.key,
@@ -20,8 +21,9 @@ class PatrimoineHeader extends StatefulWidget {
     required this.portfolioValue,
     required this.netWorth,
     required this.netPatrimoine,
-    this.historicalInvestmentValue, // 👈 Modifié
+    this.historicalInvestmentValue,
     this.hasInvestments = true,
+    this.onAddPressed, // 👈 Ajouté
   });
 
   @override
@@ -314,15 +316,33 @@ class _PatrimoineHeaderState extends State<PatrimoineHeader> {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              // --- TOP: LABEL ---
-              Text(
-                "PATRIMOINE BRUT TOTAL",
-                style: TextStyle(
-                  color: isDark ? Colors.white.withValues(alpha: 0.3) : Colors.black38,
-                  fontSize: 11,
-                  fontWeight: FontWeight.w800,
-                  letterSpacing: 2.0,
-                ),
+              // --- TOP: LABEL & ADD BUTTON ---
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  const SizedBox(width: 48), // Spacer to balance the add button
+                  Text(
+                    "PATRIMOINE BRUT TOTAL",
+                    style: TextStyle(
+                      color: isDark ? Colors.white.withValues(alpha: 0.3) : Colors.black38,
+                      fontSize: 11,
+                      fontWeight: FontWeight.w800,
+                      letterSpacing: 2.0,
+                    ),
+                  ),
+                  SizedBox(
+                    width: 48,
+                    child: IconButton(
+                      onPressed: widget.onAddPressed,
+                      icon: Icon(
+                        Icons.add_circle_outline_rounded,
+                        color: isDark ? Colors.white24 : Colors.black26,
+                        size: 24,
+                      ),
+                      padding: EdgeInsets.zero,
+                    ),
+                  ),
+                ],
               ),
 
               const SizedBox(height: 12),

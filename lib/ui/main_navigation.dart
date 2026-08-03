@@ -68,14 +68,6 @@ class _MainNavigationState extends State<MainNavigation> {
 
       body: IndexedStack(index: _currentIndex, children: pages),
 
-      floatingActionButton: _currentIndex == 0
-          ? FloatingActionButton(
-              onPressed: () => _homeKey.currentState?.openAddPatrimoinePanel(),
-              backgroundColor: colorBlueMain,
-              child: const Icon(Icons.add, color: Colors.white, size: 30),
-            )
-          : null,
-
       bottomNavigationBar: BottomNavigationBar(
         currentIndex: _currentIndex,
 
