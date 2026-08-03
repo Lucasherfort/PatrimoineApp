@@ -58,13 +58,6 @@ class _PatrimoineHeaderState extends State<PatrimoineHeader> {
         100;
   }
 
-  Color get _gainsColor {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-    if (_gainsPercentage > 0) return isDark ? colorGreenFlash : colorGreenDark;
-    if (_gainsPercentage < 0) return isDark ? colorOrangeLogo : colorOrangeDark;
-    return isDark ? Colors.white70 : Colors.black45;
-  }
-
   void _showInfoPanel(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final double investmentPercentage = widget.netPatrimoine > 0
@@ -306,49 +299,6 @@ class _PatrimoineHeaderState extends State<PatrimoineHeader> {
     );
   }
 
-  Widget _buildDailyEvolution(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-    final diff = widget.portfolioValue - widget.historicalInvestmentValue!;
-    final percentage = (diff / widget.historicalInvestmentValue!) * 100;
-
-    final Color trendColor = diff >= 0
-        ? (isDark ? colorGreenFlash : colorGreenDark)
-        : (isDark ? colorOrangeLogo : colorOrangeDark);
-
-    return Padding(
-      padding: const EdgeInsets.only(top: 4, bottom: 8),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-            decoration: BoxDecoration(
-              color: trendColor.withValues(alpha: 0.1),
-              borderRadius: BorderRadius.circular(6),
-            ),
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Icon(Icons.show_chart_rounded, size: 12, color: trendColor),
-                const SizedBox(width: 6),
-                Text(
-                  _isVisible
-                      ? "Variation marchés : ${diff >= 0 ? '+' : ''}${_formatAmount(diff)} € (${diff >= 0 ? '+' : ''}${percentage.toStringAsFixed(2)} %)"
-                      : "Variation marchés : •••• € (•• %)",
-                  style: TextStyle(
-                    color: trendColor,
-                    fontSize: 11,
-                    fontWeight: FontWeight.w800,
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
   @override
   Widget build(BuildContext context) {
     final bool showGains = widget.hasInvestments && widget.investedCapital > 0;
@@ -360,133 +310,160 @@ class _PatrimoineHeaderState extends State<PatrimoineHeader> {
       builder: (context, child) {
         return Container(
           width: double.infinity,
-          padding: const EdgeInsets.symmetric(vertical: 24),
+          padding: const EdgeInsets.symmetric(vertical: 32, horizontal: 24),
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              // =========================
-              // Label
-              // =========================
+              // --- TOP: LABEL ---
               Text(
                 "PATRIMOINE BRUT TOTAL",
                 style: TextStyle(
-                  color: isDark
-                      ? Colors.white.withValues(alpha: 0.4)
-                      : Colors.black54,
+                  color: isDark ? Colors.white.withValues(alpha: 0.3) : Colors.black38,
                   fontSize: 11,
-                  fontWeight: FontWeight.w700,
+                  fontWeight: FontWeight.w800,
                   letterSpacing: 2.0,
                 ),
               ),
 
-              const SizedBox(height: 10),
+              const SizedBox(height: 12),
 
-              // =========================
-              // Montant principal
-              // =========================
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 16),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    // Placeholder invisible pour garder le centrage
-                    const Opacity(
-                      opacity: 0,
-                      child: IconButton(
-                        onPressed: null,
-                        icon: Icon(Icons.visibility_outlined, size: 22),
-                      ),
-                    ),
-
-                    // Montant centré et cliquable
-                    Expanded(
-                      child: GestureDetector(
-                        onTap: () => _showInfoPanel(context),
-                        child: AnimatedSwitcher(
-                          duration: const Duration(milliseconds: 300),
-                          child: FittedBox(
-                            fit: BoxFit.scaleDown,
-                            child: Text(
-                              _isVisible
-                                  ? "${_formatAmount(widget.patrimoineTotal)} €"
-                                  : "•••••••• €",
-                              key: ValueKey(_isVisible),
-                              textAlign: TextAlign.center,
-                              style: TextStyle(
-                                fontSize: 38,
-                                fontWeight: FontWeight.w900,
-                                color: isDark
-                                    ? Colors.white
-                                    : const Color(0xFF0F172A),
-                                letterSpacing: -1.0,
-                              ),
-                            ),
+              // --- CENTER: AMOUNT & VISIBILITY ---
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  const SizedBox(width: 40), // Spacer for centering
+                  Expanded(
+                    child: GestureDetector(
+                      onTap: () => _showInfoPanel(context),
+                      child: FittedBox(
+                        fit: BoxFit.scaleDown,
+                        child: Text(
+                          _isVisible
+                              ? "${_formatAmount(widget.patrimoineTotal)} €"
+                              : "•••••••• €",
+                          textAlign: TextAlign.center,
+                          style: TextStyle(
+                            fontSize: 38,
+                            fontWeight: FontWeight.w900,
+                            color: isDark ? Colors.white : const Color(0xFF0F172A),
+                            letterSpacing: -1.2,
                           ),
                         ),
                       ),
                     ),
-
-                    // Bouton visibilité
-                    IconButton(
-                      onPressed: () {
-                        setState(() {
-                          _isVisible = !_isVisible;
-                        });
-                      },
+                  ),
+                  SizedBox(
+                    width: 40,
+                    child: IconButton(
+                      onPressed: () => setState(() => _isVisible = !_isVisible),
                       icon: Icon(
-                        _isVisible
-                            ? Icons.visibility_outlined
-                            : Icons.visibility_off_outlined,
-                        color: isDark ? Colors.white70 : Colors.black45,
+                        _isVisible ? Icons.visibility_outlined : Icons.visibility_off_outlined,
+                        color: isDark ? Colors.white24 : Colors.black12,
                         size: 22,
                       ),
+                      padding: EdgeInsets.zero,
                     ),
-                  ],
-                ),
+                  ),
+                ],
               ),
 
-              // =========================
-              // Évolution Journalière (Bourse/Marchés)
-              // =========================
-              if (widget.historicalInvestmentValue != null &&
-                  widget.historicalInvestmentValue! > 0) ...[
-                _buildDailyEvolution(context),
-              ],
+              const SizedBox(height: 24),
 
-              // =========================
-              // Gains
-              // =========================
-              if (showGains) ...[
-                const SizedBox(height: 8),
-
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
+              // --- BOTTOM: DUAL INDICATORS ---
+              if (showGains || (widget.historicalInvestmentValue != null && widget.historicalInvestmentValue! > 0))
+                Wrap(
+                  spacing: 12,
+                  runSpacing: 12,
+                  alignment: WrapAlignment.center,
                   children: [
-                    Icon(
-                      profitLoss >= 0 ? Icons.trending_up : Icons.trending_down,
-                      size: 14,
-                      color: _gainsColor,
-                    ),
-
-                    const SizedBox(width: 6),
-
-                    Text(
-                      _isVisible
-                          ? "${profitLoss >= 0 ? '+' : ''}${_formatAmount(profitLoss)} € (${_gainsPercentage >= 0 ? '+' : ''}${_gainsPercentage.toStringAsFixed(2)}%)"
-                          : "•••• €",
-                      style: TextStyle(
-                        fontSize: 14,
-                        fontWeight: FontWeight.w700,
-                        color: _gainsColor,
+                    // Variation Jour Badge
+                    if (widget.historicalInvestmentValue != null && widget.historicalInvestmentValue! > 0)
+                      _buildPremiumBadge(
+                        context,
+                        label: "Marchés",
+                        diff: widget.portfolioValue - widget.historicalInvestmentValue!,
+                        percentage: ((widget.portfolioValue - widget.historicalInvestmentValue!) / widget.historicalInvestmentValue!) * 100,
+                        icon: Icons.bolt_rounded,
                       ),
-                    ),
+
+                    // Gains Totaux Badge
+                    if (showGains)
+                      _buildPremiumBadge(
+                        context,
+                        label: "Gains",
+                        diff: profitLoss,
+                        percentage: _gainsPercentage,
+                        icon: Icons.auto_graph_rounded,
+                      ),
                   ],
                 ),
-              ],
             ],
           ),
         );
       },
+    );
+  }
+
+  Widget _buildPremiumBadge(
+    BuildContext context, {
+    required String label,
+    required double diff,
+    required double percentage,
+    required IconData icon,
+  }) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final bool isPositive = diff >= 0;
+    final Color color = isPositive ? colorGreenFlash : const Color(0xFFFF5F5F);
+
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+      decoration: BoxDecoration(
+        color: isDark ? Colors.white.withValues(alpha: 0.03) : Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(
+          color: isDark ? Colors.white.withValues(alpha: 0.05) : Colors.black.withValues(alpha: 0.03),
+        ),
+        boxShadow: [
+          if (!isDark)
+            BoxShadow(
+              color: Colors.black.withValues(alpha: 0.02),
+              blurRadius: 10,
+              offset: const Offset(0, 4),
+            ),
+        ],
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(icon, size: 14, color: color),
+          const SizedBox(width: 8),
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(
+                label.toUpperCase(),
+                style: TextStyle(
+                  color: isDark ? Colors.white24 : Colors.black26,
+                  fontSize: 8,
+                  fontWeight: FontWeight.w900,
+                  letterSpacing: 0.5,
+                ),
+              ),
+              Text(
+                _isVisible
+                    ? "${isPositive ? '+' : ''}${_formatAmount(diff)} € (${isPositive ? '+' : ''}${percentage.toStringAsFixed(2)}%)"
+                    : "•••• € (••%)",
+                style: TextStyle(
+                  color: isDark ? Colors.white70 : Colors.black87,
+                  fontSize: 12,
+                  fontWeight: FontWeight.w700,
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
     );
   }
 }
