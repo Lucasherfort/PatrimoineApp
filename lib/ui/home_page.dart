@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../services/data_sync_service.dart'; // 👈 Ajouté
 import '../services/patrimoine_service.dart';
 import '../widgets/Investment/investment_list.dart';
 import '../widgets/Savings/savings_account_list.dart';
@@ -92,6 +93,9 @@ class HomePageState extends State<HomePage> {
           historicalInvestmentValue = historical;
           isLoading = false;
         });
+        
+        // 🟢 ON NOTIFIE LES AUTRES ONGLETS (Analyse, etc.)
+        DataSyncService().notifyDataUpdated();
       }
     } catch (e) {
       if (mounted) {

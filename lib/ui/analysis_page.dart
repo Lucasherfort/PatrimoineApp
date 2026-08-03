@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import '../services/patrimoine_service.dart';
 import '../services/financial_profile_manager.dart';
+import '../services/data_sync_service.dart';
 
 class AnalysisPage extends StatefulWidget {
   const AnalysisPage({super.key});
@@ -38,11 +39,13 @@ class _AnalysisPageState extends State<AnalysisPage> {
     super.initState();
     _loadAllData();
     FinancialProfileManager().addListener(_loadAllData);
+    DataSyncService().addListener(_loadAllData); // 👈 Écoute les mises à jour globales
   }
 
   @override
   void dispose() {
     FinancialProfileManager().removeListener(_loadAllData);
+    DataSyncService().removeListener(_loadAllData); // 👈 Nettoyage
     super.dispose();
   }
 
