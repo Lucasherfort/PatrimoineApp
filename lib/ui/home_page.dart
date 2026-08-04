@@ -28,7 +28,8 @@ class HomePageState extends State<HomePage> {
   double investedCapital = 0.0;
   double portfolioValue = 0.0;
   double netPatrimoine = 0.0;
-  double? historicalInvestmentValue; // 👈 Modifié
+  double? historicalInvestmentValue;
+  String? historicalInvestmentDate; // 👈 Ajouté
   bool isLoading = true;
 
   bool hasLiquidityAccounts = false;
@@ -77,8 +78,8 @@ class HomePageState extends State<HomePage> {
       final portfolioValueAmount = await _patrimoineService
           .getInvestmentsValue(); // 👈 Utilise la valeur brute des investissements
       final netPatrimoineAmount = await _patrimoineService.getNetPatrimoine();
-      final historical = await _patrimoineService
-          .getLatestHistoricalInvestmentValue();
+      final historicalData = await _patrimoineService
+          .getLatestHistoricalInvestment();
 
       if (mounted) {
         setState(() {
@@ -90,10 +91,18 @@ class HomePageState extends State<HomePage> {
           investedCapital = investedCapitalAmount;
           netPatrimoine = netPatrimoineAmount;
           portfolioValue = portfolioValueAmount;
-          historicalInvestmentValue = historical;
+
+          if (historicalData != null) {
+            historicalInvestmentValue = historicalData['value'] as double;
+            historicalInvestmentDate = historicalData['date'] as String;
+          } else {
+            historicalInvestmentValue = null;
+            historicalInvestmentDate = null;
+          }
+
           isLoading = false;
         });
-        
+
         // 🟢 ON NOTIFIE LES AUTRES ONGLETS (Analyse, etc.)
         DataSyncService().notifyDataUpdated();
       }
@@ -170,10 +179,11 @@ class HomePageState extends State<HomePage> {
                   portfolioValue: portfolioValue,
                   netWorth: investedCapital,
                   netPatrimoine: netPatrimoine,
-                  historicalInvestmentValue:
-                      historicalInvestmentValue,
+                  historicalInvestmentValue: historicalInvestmentValue,
+                  historicalInvestmentDate:
+                      historicalInvestmentDate, // 👈 Ajouté
                   hasInvestments: hasInvestmentAccounts,
-                  onAddPressed: openAddPatrimoinePanel, // 👈 Ajouté
+                  onAddPressed: openAddPatrimoinePanel,
                 ),
                 Expanded(
                   child: hasAnyAccount
