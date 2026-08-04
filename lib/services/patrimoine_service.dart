@@ -292,20 +292,24 @@ class PatrimoineService {
 
   // ─── Historique ───────────────────────────────────────────────────────────
 
-  /// Récupère la dernière valeur enregistrée des investissements (avant aujourd'hui)
-  Future<double?> getLatestHistoricalInvestmentValue() async {
+  /// Récupère la dernière valeur enregistrée des investissements (clôture la plus récente)
+  Future<Map<String, dynamic>?> getLatestHistoricalInvestment() async {
     final userId = _requireUserId();
 
+    // On récupère simplement la toute dernière valeur enregistrée pour cet utilisateur
     final response = await _supabase
         .from('wealth_history')
-        .select('total_investments')
+        .select('total_investments, recorded_at')
         .eq('user_id', userId)
-        .lt('recorded_at', DateTime.now().toIso8601String().substring(0, 10))
         .order('recorded_at', ascending: false)
         .limit(1)
         .maybeSingle();
 
     if (response == null) return null;
-    return (response['total_investments'] as num).toDouble();
+
+    return {
+      'value': (response['total_investments'] as num).toDouble(),
+      'date': response['recorded_at'] as String,
+    };
   }
 }

@@ -39,7 +39,9 @@ class _AnalysisPageState extends State<AnalysisPage> {
     super.initState();
     _loadAllData();
     FinancialProfileManager().addListener(_loadAllData);
-    DataSyncService().addListener(_loadAllData); // 👈 Écoute les mises à jour globales
+    DataSyncService().addListener(
+      _loadAllData,
+    ); // 👈 Écoute les mises à jour globales
   }
 
   @override

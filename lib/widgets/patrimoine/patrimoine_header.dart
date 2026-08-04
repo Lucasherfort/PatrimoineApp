@@ -10,8 +10,9 @@ class PatrimoineHeader extends StatefulWidget {
   final double netWorth; // 👈 Rajouté
   final double netPatrimoine;
   final double? historicalInvestmentValue;
+  final String? historicalInvestmentDate; // 👈 Ajouté
   final bool hasInvestments;
-  final VoidCallback? onAddPressed; // 👈 Ajouté
+  final VoidCallback? onAddPressed;
 
   const PatrimoineHeader({
     super.key,
@@ -22,8 +23,9 @@ class PatrimoineHeader extends StatefulWidget {
     required this.netWorth,
     required this.netPatrimoine,
     this.historicalInvestmentValue,
+    this.historicalInvestmentDate, // 👈 Ajouté
     this.hasInvestments = true,
-    this.onAddPressed, // 👈 Ajouté
+    this.onAddPressed,
   });
 
   @override
@@ -324,7 +326,9 @@ class _PatrimoineHeaderState extends State<PatrimoineHeader> {
                   Text(
                     "PATRIMOINE BRUT TOTAL",
                     style: TextStyle(
-                      color: isDark ? Colors.white.withValues(alpha: 0.3) : Colors.black38,
+                      color: isDark
+                          ? Colors.white.withValues(alpha: 0.3)
+                          : Colors.black38,
                       fontSize: 11,
                       fontWeight: FontWeight.w800,
                       letterSpacing: 2.0,
@@ -365,7 +369,9 @@ class _PatrimoineHeaderState extends State<PatrimoineHeader> {
                           style: TextStyle(
                             fontSize: 38,
                             fontWeight: FontWeight.w900,
-                            color: isDark ? Colors.white : const Color(0xFF0F172A),
+                            color: isDark
+                                ? Colors.white
+                                : const Color(0xFF0F172A),
                             letterSpacing: -1.2,
                           ),
                         ),
@@ -377,7 +383,9 @@ class _PatrimoineHeaderState extends State<PatrimoineHeader> {
                     child: IconButton(
                       onPressed: () => setState(() => _isVisible = !_isVisible),
                       icon: Icon(
-                        _isVisible ? Icons.visibility_outlined : Icons.visibility_off_outlined,
+                        _isVisible
+                            ? Icons.visibility_outlined
+                            : Icons.visibility_off_outlined,
                         color: isDark ? Colors.white24 : Colors.black12,
                         size: 22,
                       ),
@@ -390,30 +398,48 @@ class _PatrimoineHeaderState extends State<PatrimoineHeader> {
               const SizedBox(height: 24),
 
               // --- BOTTOM: DUAL INDICATORS ---
-              if (showGains || (widget.historicalInvestmentValue != null && widget.historicalInvestmentValue! > 0))
-                Wrap(
-                  spacing: 12,
-                  runSpacing: 12,
-                  alignment: WrapAlignment.center,
+              if (showGains ||
+                  (widget.historicalInvestmentValue != null &&
+                      widget.historicalInvestmentValue! > 0))
+                Row(
                   children: [
                     // Variation Jour Badge
-                    if (widget.historicalInvestmentValue != null && widget.historicalInvestmentValue! > 0)
-                      _buildPremiumBadge(
-                        context,
-                        label: "Marchés",
-                        diff: widget.portfolioValue - widget.historicalInvestmentValue!,
-                        percentage: ((widget.portfolioValue - widget.historicalInvestmentValue!) / widget.historicalInvestmentValue!) * 100,
-                        icon: Icons.bolt_rounded,
+                    if (widget.historicalInvestmentValue != null &&
+                        widget.historicalInvestmentValue! > 0)
+                      Expanded(
+                        child: _buildPremiumBadge(
+                          context,
+                          label: "Marchés",
+                          subtitle: widget.historicalInvestmentDate != null
+                              ? "${widget.historicalInvestmentDate!.substring(8, 10)}/${widget.historicalInvestmentDate!.substring(5, 7)}"
+                              : null,
+                          diff:
+                              widget.portfolioValue -
+                              widget.historicalInvestmentValue!,
+                          percentage:
+                              ((widget.portfolioValue -
+                                      widget.historicalInvestmentValue!) /
+                                  widget.historicalInvestmentValue!) *
+                              100,
+                          icon: Icons.bolt_rounded,
+                        ),
                       ),
+
+                    if (showGains &&
+                        (widget.historicalInvestmentValue != null &&
+                            widget.historicalInvestmentValue! > 0))
+                      const SizedBox(width: 12),
 
                     // Gains Totaux Badge
                     if (showGains)
-                      _buildPremiumBadge(
-                        context,
-                        label: "Gains",
-                        diff: profitLoss,
-                        percentage: _gainsPercentage,
-                        icon: Icons.auto_graph_rounded,
+                      Expanded(
+                        child: _buildPremiumBadge(
+                          context,
+                          label: "Gains",
+                          diff: profitLoss,
+                          percentage: _gainsPercentage,
+                          icon: Icons.auto_graph_rounded,
+                        ),
                       ),
                   ],
                 ),
@@ -427,6 +453,7 @@ class _PatrimoineHeaderState extends State<PatrimoineHeader> {
   Widget _buildPremiumBadge(
     BuildContext context, {
     required String label,
+    String? subtitle,
     required double diff,
     required double percentage,
     required IconData icon,
@@ -436,12 +463,14 @@ class _PatrimoineHeaderState extends State<PatrimoineHeader> {
     final Color color = isPositive ? colorGreenFlash : const Color(0xFFFF5F5F);
 
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
       decoration: BoxDecoration(
         color: isDark ? Colors.white.withValues(alpha: 0.03) : Colors.white,
         borderRadius: BorderRadius.circular(16),
         border: Border.all(
-          color: isDark ? Colors.white.withValues(alpha: 0.05) : Colors.black.withValues(alpha: 0.03),
+          color: isDark
+              ? Colors.white.withValues(alpha: 0.05)
+              : Colors.black.withValues(alpha: 0.03),
         ),
         boxShadow: [
           if (!isDark)
@@ -453,34 +482,43 @@ class _PatrimoineHeaderState extends State<PatrimoineHeader> {
         ],
       ),
       child: Row(
-        mainAxisSize: MainAxisSize.min,
         children: [
           Icon(icon, size: 14, color: color),
           const SizedBox(width: 8),
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Text(
-                label.toUpperCase(),
-                style: TextStyle(
-                  color: isDark ? Colors.white24 : Colors.black26,
-                  fontSize: 8,
-                  fontWeight: FontWeight.w900,
-                  letterSpacing: 0.5,
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                FittedBox(
+                  fit: BoxFit.scaleDown,
+                  child: Text(
+                    subtitle != null
+                        ? "${label.toUpperCase()} $subtitle"
+                        : label.toUpperCase(),
+                    style: TextStyle(
+                      color: isDark ? Colors.white24 : Colors.black26,
+                      fontSize: 8,
+                      fontWeight: FontWeight.w900,
+                      letterSpacing: 0.5,
+                    ),
+                  ),
                 ),
-              ),
-              Text(
-                _isVisible
-                    ? "${isPositive ? '+' : ''}${_formatAmount(diff)} € (${isPositive ? '+' : ''}${percentage.toStringAsFixed(2)}%)"
-                    : "•••• € (••%)",
-                style: TextStyle(
-                  color: isDark ? Colors.white70 : Colors.black87,
-                  fontSize: 12,
-                  fontWeight: FontWeight.w700,
+                FittedBox(
+                  fit: BoxFit.scaleDown,
+                  child: Text(
+                    _isVisible
+                        ? "${isPositive ? '+' : ''}${_formatAmount(diff)} € (${isPositive ? '+' : ''}${percentage.toStringAsFixed(2)}%)"
+                        : "•••• € (••%)",
+                    style: TextStyle(
+                      color: isDark ? Colors.white70 : Colors.black87,
+                      fontSize: 12,
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
         ],
       ),
