@@ -49,12 +49,15 @@ class _RealEstateSimulatorPageState extends State<RealEstateSimulatorPage> {
 
   Future<void> _loadPatrimoine() async {
     try {
-      final value = await PatrimoineService().getNetPatrimoine();
+      // Utilisation du patrimoine net estimé (après fiscalité et avec intérêts)
+      // C'est la valeur réelle disponible pour un apport
+      final value = await PatrimoineService().getPatrimoineNetEstimated();
       final financialProfile = FinancialProfileManager();
 
       if (mounted) {
         setState(() {
           _netPatrimoine = value;
+          // On garde 80% comme apport suggéré pour laisser une marge de sécurité
           _downPaymentController.text = (_netPatrimoine * 0.8).toStringAsFixed(
             0,
           );
