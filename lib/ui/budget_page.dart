@@ -15,15 +15,19 @@ class BudgetPage extends StatefulWidget {
 
 class _BudgetPageState extends State<BudgetPage> {
   final BudgetService _budgetService = BudgetService();
-  final _formatter = NumberFormat.currency(
-    locale: 'fr_FR',
-    symbol: '€',
-    decimalDigits: 2,
-  );
+
+  String _formatAmount(double amount, {bool includeSymbol = true}) {
+    final formatter = NumberFormat("#,##0.00", "fr_FR");
+    final formatted = formatter
+        .format(amount)
+        .replaceAll(RegExp(r'[\s\u00A0\u202F]'), '\u2007');
+    return includeSymbol ? "$formatted €" : formatted;
+  }
 
   List<BudgetItem> _items = [];
   List<BudgetCategory> _categories = [];
   bool _isLoading = true;
+  bool _isVisible = true; // 👈 Ajouté pour gérer la visibilité des montants
 
   @override
   void initState() {
@@ -162,13 +166,31 @@ class _BudgetPageState extends State<BudgetPage> {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Text(
-                "Flux financiers",
-                style: TextStyle(
-                  color: isDark ? Colors.white : const Color(0xFF0F172A),
-                  fontSize: 26,
-                  fontWeight: FontWeight.w900,
-                  letterSpacing: -0.8,
+              Expanded(
+                child: Row(
+                  children: [
+                    Text(
+                      "Flux financiers",
+                      style: TextStyle(
+                        color: isDark ? Colors.white : const Color(0xFF0F172A),
+                        fontSize: 26,
+                        fontWeight: FontWeight.w900,
+                        letterSpacing: -0.8,
+                      ),
+                    ),
+                    IconButton(
+                      onPressed: () => setState(() => _isVisible = !_isVisible),
+                      icon: Icon(
+                        _isVisible
+                            ? Icons.visibility_outlined
+                            : Icons.visibility_off_outlined,
+                        color: isDark ? Colors.white24 : Colors.black12,
+                        size: 18,
+                      ),
+                      padding: const EdgeInsets.only(left: 8),
+                      constraints: const BoxConstraints(),
+                    ),
+                  ],
                 ),
               ),
               _buildSavingsPill(),
@@ -273,7 +295,7 @@ class _BudgetPageState extends State<BudgetPage> {
                       ),
                       const SizedBox(width: 4),
                       Text(
-                        _formatter.format(entry.value.value),
+                        _formatAmount(entry.value.value),
                         style: TextStyle(
                           fontSize: 11,
                           fontWeight: FontWeight.w800,
@@ -304,7 +326,9 @@ class _BudgetPageState extends State<BudgetPage> {
           const Icon(Icons.savings_rounded, size: 14, color: Color(0xFF0D71EE)),
           const SizedBox(width: 8),
           Text(
-            "${_formatter.format(_savingsCapacity)} / mois",
+            _isVisible
+                ? "${_formatAmount(_savingsCapacity, includeSymbol: false)} / mois"
+                : "•••• €",
             style: const TextStyle(
               color: Color(0xFF0D71EE),
               fontWeight: FontWeight.w900,
@@ -342,7 +366,7 @@ class _BudgetPageState extends State<BudgetPage> {
               ),
             ),
             Text(
-              _formatter.format(total),
+              _isVisible ? _formatAmount(total) : "•••• €",
               style: TextStyle(
                 color: color,
                 fontWeight: FontWeight.w900,
@@ -420,7 +444,7 @@ class _BudgetPageState extends State<BudgetPage> {
               ),
             ),
             Text(
-              _formatter.format(item.amount),
+              _isVisible ? _formatAmount(item.amount) : "••• €",
               style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 15),
             ),
           ],

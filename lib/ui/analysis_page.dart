@@ -1,7 +1,7 @@
-import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import '../services/patrimoine_service.dart';
+import '../services/budget_service.dart';
 import '../services/financial_profile_manager.dart';
 import '../services/data_sync_service.dart';
 
@@ -15,24 +15,22 @@ class AnalysisPage extends StatefulWidget {
 class _AnalysisPageState extends State<AnalysisPage> {
   final PatrimoineService _patrimoineService = PatrimoineService();
 
-  final _formatter = NumberFormat.currency(
-    locale: 'fr_FR',
-    symbol: '€',
-    decimalDigits: 0,
-  );
+  String _formatAmount(double amount, {bool includeSymbol = true}) {
+    final formatter = NumberFormat("#,##0", "fr_FR");
+    final formatted = formatter
+        .format(amount)
+        .replaceAll(RegExp(r'[\s\u00A0\u202F]'), '\u2007');
+    return includeSymbol ? "$formatted €" : formatted;
+  }
 
   bool _isLoading = true;
 
   // Data
   double _passiveGains = 0;
+  double _totalExpenses = 0;
   double _monthlyInvestment = 0;
   double _monthlyNetSalary = 0;
-  double _totalWealth = 0;
-
-  // Asset Allocation
-  double _totalLiquidity = 0;
-  double _totalSavings = 0;
-  double _totalInvestments = 0;
+  bool _isVisible = true;
 
   @override
   void initState() {
@@ -61,24 +59,15 @@ class _AnalysisPageState extends State<AnalysisPage> {
       final monthlyInv = manager.monthlyInvestment;
       final monthlySalary = manager.monthlyNetSalary;
 
-      final netWealth = await _patrimoineService.getNetPatrimoine();
-
-      // Fetch components for allocation chart
-      final results = await Future.wait([
-        _patrimoineService.getLiquidityValue(),
-        _patrimoineService.getSavingsValue(),
-        _patrimoineService.getInvestmentsValue(),
-      ]);
+      await _patrimoineService.getNetPatrimoine();
+      final expenses = await BudgetService().getTotalOutgoings();
 
       if (mounted) {
         setState(() {
           _passiveGains = annualGains / 12;
           _monthlyInvestment = monthlyInv;
           _monthlyNetSalary = monthlySalary;
-          _totalWealth = netWealth;
-          _totalLiquidity = results[0];
-          _totalSavings = results[1];
-          _totalInvestments = results[2];
+          _totalExpenses = expenses;
           _isLoading = false;
         });
       }
@@ -146,13 +135,19 @@ class _AnalysisPageState extends State<AnalysisPage> {
                     _buildGainsHero(context),
                     const SizedBox(height: 28),
 
-                    // Allocation Chart
-                    if (_totalWealth > 0) ...[
-                      _buildAllocationChart(isDark),
-                      const SizedBox(height: 28),
-                    ],
+                    // 1. Couverture des dépenses
+                    _buildIndicatorCard(
+                      title: "COUVERTURE DES DÉPENSES",
+                      subtitle: "Gains passifs vs Dépenses totales",
+                      current: _passiveGains,
+                      target: _totalExpenses.clamp(1.0, double.infinity),
+                      icon: Icons.shopping_cart_outlined,
+                      color: Colors.orange,
+                      unit: "€/mois",
+                    ),
+                    const SizedBox(height: 16),
 
-                    // 1. Couverture du DCA (Point de croisement)
+                    // 2. Couverture du DCA (Point de croisement)
                     _buildIndicatorCard(
                       title: "COUVERTURE DE L'INVESTISSEMENT",
                       subtitle: "Gains passifs vs Montant investi (DCA)",
@@ -162,9 +157,9 @@ class _AnalysisPageState extends State<AnalysisPage> {
                       color: const Color(0xFF0D71EE),
                       unit: "€/mois",
                     ),
-                    const SizedBox(height: 20),
+                    const SizedBox(height: 16),
 
-                    // 2. Couverture du Salaire
+                    // 3. Couverture du Salaire
                     _buildIndicatorCard(
                       title: "COUVERTURE DU SALAIRE",
                       subtitle: "Gains passifs vs Salaire net mensuel",
@@ -216,7 +211,7 @@ class _AnalysisPageState extends State<AnalysisPage> {
               colors: [Color(0xFF0D71EE), Color(0xFF67C6F2)],
             ).createShader(bounds),
             child: Text(
-              _formatter.format(_passiveGains),
+              _isVisible ? _formatAmount(_passiveGains) : "•••• €",
               style: const TextStyle(
                 color: Colors.white,
                 fontSize: 42,
@@ -240,152 +235,46 @@ class _AnalysisPageState extends State<AnalysisPage> {
   }
 
   Widget _buildHeader(bool isDark) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
-        Text(
-          "ANALYSE STRATÉGIQUE",
-          style: TextStyle(
-            color: isDark
-                ? Colors.white.withValues(alpha: 0.4)
-                : Colors.black38,
-            fontSize: 10,
-            fontWeight: FontWeight.w900,
-            letterSpacing: 1.5,
-          ),
+        Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              "ANALYSE STRATÉGIQUE",
+              style: TextStyle(
+                color: isDark
+                    ? Colors.white.withValues(alpha: 0.4)
+                    : Colors.black38,
+                fontSize: 10,
+                fontWeight: FontWeight.w900,
+                letterSpacing: 1.5,
+              ),
+            ),
+            const SizedBox(height: 4),
+            Text(
+              "Pilote d'Indépendance",
+              style: TextStyle(
+                color: isDark ? Colors.white : const Color(0xFF0F172A),
+                fontSize: 26,
+                fontWeight: FontWeight.w900,
+                letterSpacing: -0.8,
+              ),
+            ),
+          ],
         ),
-        const SizedBox(height: 4),
-        Text(
-          "Pilote d'Indépendance",
-          style: TextStyle(
-            color: isDark ? Colors.white : const Color(0xFF0F172A),
-            fontSize: 26,
-            fontWeight: FontWeight.w900,
-            letterSpacing: -0.8,
+        IconButton(
+          onPressed: () => setState(() => _isVisible = !_isVisible),
+          icon: Icon(
+            _isVisible
+                ? Icons.visibility_outlined
+                : Icons.visibility_off_outlined,
+            color: isDark ? Colors.white24 : Colors.black12,
+            size: 20,
           ),
         ),
       ],
-    );
-  }
-
-  Widget _buildAllocationChart(bool isDark) {
-    final Map<String, double> allocation = {
-      "Liquidités": _totalLiquidity,
-      "Épargne": _totalSavings,
-      "Investissements": _totalInvestments,
-    };
-
-    final List<Color> colors = [
-      const Color(0xFF0D71EE), // Liquidités
-      const Color(0xFF8B5CF6), // Épargne
-      const Color(0xFF10B981), // Investissements
-    ];
-
-    final sortedEntries = allocation.entries.where((e) => e.value > 0).toList()
-      ..sort((a, b) => b.value.compareTo(a.value));
-
-    final double totalAllocation = sortedEntries.fold(
-      0.0,
-      (sum, e) => sum + e.value,
-    );
-
-    return Container(
-      height: 145,
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-      decoration: BoxDecoration(
-        color: Theme.of(context).cardColor,
-        borderRadius: BorderRadius.circular(24),
-        border: Border.all(
-          color: isDark
-              ? Colors.white.withValues(alpha: 0.05)
-              : Colors.black.withValues(alpha: 0.02),
-        ),
-      ),
-      child: Row(
-        children: [
-          Expanded(
-            flex: 1,
-            child: PieChart(
-              PieChartData(
-                sectionsSpace: 3,
-                centerSpaceRadius: 30,
-                sections: sortedEntries.asMap().entries.map((entry) {
-                  final value = entry.value.value;
-                  final percentage = totalAllocation > 0
-                      ? (value / totalAllocation * 100)
-                      : 0;
-
-                  int colorIndex = 0;
-                  if (entry.value.key == "Épargne") colorIndex = 1;
-                  if (entry.value.key == "Investissements") colorIndex = 2;
-
-                  return PieChartSectionData(
-                    color: colors[colorIndex],
-                    value: value,
-                    title: percentage >= 15 ? '${percentage.toInt()}%' : '',
-                    radius: 40,
-                    titleStyle: const TextStyle(
-                      fontSize: 10,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.white,
-                    ),
-                  );
-                }).toList(),
-              ),
-            ),
-          ),
-          const SizedBox(width: 32),
-          Expanded(
-            flex: 2,
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: sortedEntries.asMap().entries.map((entry) {
-                int colorIndex = 0;
-                if (entry.value.key == "Épargne") colorIndex = 1;
-                if (entry.value.key == "Investissements") colorIndex = 2;
-
-                return Padding(
-                  padding: const EdgeInsets.symmetric(vertical: 3),
-                  child: Row(
-                    children: [
-                      Container(
-                        width: 7,
-                        height: 7,
-                        decoration: BoxDecoration(
-                          color: colors[colorIndex],
-                          shape: BoxShape.circle,
-                        ),
-                      ),
-                      const SizedBox(width: 8),
-                      Expanded(
-                        child: Text(
-                          entry.value.key,
-                          style: TextStyle(
-                            fontSize: 11,
-                            fontWeight: FontWeight.w600,
-                            color: isDark ? Colors.white70 : Colors.black87,
-                          ),
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                      ),
-                      const SizedBox(width: 4),
-                      Text(
-                        _formatter.format(entry.value.value),
-                        style: TextStyle(
-                          fontSize: 11,
-                          fontWeight: FontWeight.w800,
-                          color: isDark ? Colors.white38 : Colors.black45,
-                        ),
-                      ),
-                    ],
-                  ),
-                );
-              }).toList(),
-            ),
-          ),
-        ],
-      ),
     );
   }
 
@@ -498,7 +387,11 @@ class _AnalysisPageState extends State<AnalysisPage> {
                     ),
                   ),
                   Text(
-                    isRatio ? "$target $unit" : _formatter.format(target),
+                    _isVisible
+                        ? (isRatio
+                              ? "$target $unit"
+                              : "${_formatAmount(target, includeSymbol: false)} $unit")
+                        : "•• $unit",
                     style: const TextStyle(
                       fontSize: 14,
                       fontWeight: FontWeight.bold,

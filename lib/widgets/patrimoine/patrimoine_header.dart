@@ -460,7 +460,11 @@ class _PatrimoineHeaderState extends State<PatrimoineHeader> {
   }) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     final bool isPositive = diff >= 0;
-    final Color color = isPositive ? colorGreenFlash : const Color(0xFFFF5F5F);
+
+    // On définit la couleur selon la performance
+    final Color color = isPositive
+        ? (isDark ? colorGreenFlash : colorGreenDark)
+        : const Color(0xFFFF5F5F);
 
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
@@ -511,9 +515,10 @@ class _PatrimoineHeaderState extends State<PatrimoineHeader> {
                         ? "${isPositive ? '+' : ''}${_formatAmount(diff)} € (${isPositive ? '+' : ''}${percentage.toStringAsFixed(2)}%)"
                         : "•••• € (••%)",
                     style: TextStyle(
-                      color: isDark ? Colors.white70 : Colors.black87,
+                      color:
+                          color, // 👈 On applique la couleur au texte également
                       fontSize: 12,
-                      fontWeight: FontWeight.w700,
+                      fontWeight: FontWeight.w800,
                     ),
                   ),
                 ),
