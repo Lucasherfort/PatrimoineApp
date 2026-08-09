@@ -256,10 +256,14 @@ class _AnalysisPageState extends State<AnalysisPage> {
 
   Widget _buildIndependenceRoadmap(bool isDark) {
     // Calcul des états des trophées
-    final bool hasSecurity = _totalExpenses > 0 && (_availableCash / _totalExpenses) >= 3;
-    final bool hasVitality = _totalExpenses > 0 && (_passiveGains / _totalExpenses) >= 0.20;
-    final bool hasVelocity = _monthlyInvestment > 0 && (_passiveGains >= _monthlyInvestment);
-    final bool hasFreedom = _monthlyNetSalary > 0 && (_passiveGains >= _monthlyNetSalary);
+    final bool hasSecurity =
+        _totalExpenses > 0 && (_availableCash / _totalExpenses) >= 3;
+    final bool hasVitality =
+        _totalExpenses > 0 && (_passiveGains / _totalExpenses) >= 0.20;
+    final bool hasVelocity =
+        _monthlyInvestment > 0 && (_passiveGains >= _monthlyInvestment);
+    final bool hasFreedom =
+        _monthlyNetSalary > 0 && (_passiveGains >= _monthlyNetSalary);
 
     int stepsAchieved = 0;
     if (hasSecurity) stepsAchieved++;
@@ -296,10 +300,30 @@ class _AnalysisPageState extends State<AnalysisPage> {
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            _buildTrophy(Icons.shield_rounded, "SÉCURITÉ", hasSecurity, Colors.teal),
-            _buildTrophy(Icons.shopping_basket_rounded, "VITALITÉ", hasVitality, Colors.orange),
-            _buildTrophy(Icons.bolt_rounded, "VITESSE", hasVelocity, const Color(0xFF0D71EE)),
-            _buildTrophy(Icons.auto_awesome_rounded, "LIBERTÉ", hasFreedom, const Color(0xFF8B5CF6)),
+            _buildTrophy(
+              Icons.shield_rounded,
+              "SÉCURITÉ",
+              hasSecurity,
+              Colors.teal,
+            ),
+            _buildTrophy(
+              Icons.shopping_basket_rounded,
+              "VITALITÉ",
+              hasVitality,
+              Colors.orange,
+            ),
+            _buildTrophy(
+              Icons.bolt_rounded,
+              "VITESSE",
+              hasVelocity,
+              const Color(0xFF0D71EE),
+            ),
+            _buildTrophy(
+              Icons.auto_awesome_rounded,
+              "LIBERTÉ",
+              hasFreedom,
+              const Color(0xFF8B5CF6),
+            ),
           ],
         ),
         const SizedBox(height: 20),
@@ -308,7 +332,9 @@ class _AnalysisPageState extends State<AnalysisPage> {
           child: LinearProgressIndicator(
             value: stepsAchieved / 4,
             minHeight: 6,
-            backgroundColor: isDark ? Colors.white10 : Colors.black.withValues(alpha: 0.05),
+            backgroundColor: isDark
+                ? Colors.white10
+                : Colors.black.withValues(alpha: 0.05),
             valueColor: const AlwaysStoppedAnimation<Color>(Color(0xFF0D71EE)),
           ),
         ),
@@ -325,23 +351,27 @@ class _AnalysisPageState extends State<AnalysisPage> {
     final double pInvestments = (_totalInvestments / total) * 100;
 
     String status = "ÉQUILIBRÉE";
-    String advice = "Votre répartition est saine et suit les standards de gestion.";
+    String advice =
+        "Votre répartition est saine et suit les standards de gestion.";
     Color statusColor = Colors.green;
     int score = 100;
 
     if (pLiquidity > 30) {
       status = "TROP DE CASH";
-      advice = "Votre argent dort. Envisagez de placer cet excédent sur des livrets ou en bourse.";
+      advice =
+          "Votre argent dort. Envisagez de placer cet excédent sur des livrets ou en bourse.";
       statusColor = Colors.orange;
       score -= 20;
     } else if (pInvestments > 80) {
       status = "EXPOSITION ÉLEVÉE";
-      advice = "Vous êtes très exposé aux marchés. Assurez-vous d'avoir assez de liquidités en cas de crise.";
+      advice =
+          "Vous êtes très exposé aux marchés. Assurez-vous d'avoir assez de liquidités en cas de crise.";
       statusColor = Colors.redAccent;
       score -= 15;
     } else if (pInvestments < 20 && total > 5000) {
       status = "SOUS-OPTIMISÉE";
-      advice = "Votre capital travaille peu. Augmentez votre part d'investissement pour battre l'inflation.";
+      advice =
+          "Votre capital travaille peu. Augmentez votre part d'investissement pour battre l'inflation.";
       statusColor = Colors.blue;
       score -= 25;
     }
@@ -353,7 +383,9 @@ class _AnalysisPageState extends State<AnalysisPage> {
         color: Theme.of(context).cardColor,
         borderRadius: BorderRadius.circular(28),
         border: Border.all(
-          color: isDark ? Colors.white.withValues(alpha: 0.05) : Colors.black.withValues(alpha: 0.02),
+          color: isDark
+              ? Colors.white.withValues(alpha: 0.05)
+              : Colors.black.withValues(alpha: 0.02),
         ),
       ),
       child: Column(
@@ -400,13 +432,18 @@ class _AnalysisPageState extends State<AnalysisPage> {
                     child: CircularProgressIndicator(
                       value: score / 100,
                       strokeWidth: 6,
-                      backgroundColor: isDark ? Colors.white10 : Colors.black.withValues(alpha: 0.05),
+                      backgroundColor: isDark
+                          ? Colors.white10
+                          : Colors.black.withValues(alpha: 0.05),
                       valueColor: AlwaysStoppedAnimation<Color>(statusColor),
                     ),
                   ),
                   Text(
                     "$score",
-                    style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w900),
+                    style: const TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.w900,
+                    ),
                   ),
                 ],
               ),
@@ -427,9 +464,17 @@ class _AnalysisPageState extends State<AnalysisPage> {
           // Mini barres de répartition
           _buildMiniAllocationBar("Cash", pLiquidity, const Color(0xFF0D71EE)),
           const SizedBox(height: 10),
-          _buildMiniAllocationBar("Sécurité", pSavings, const Color(0xFF8B5CF6)),
+          _buildMiniAllocationBar(
+            "Sécurité",
+            pSavings,
+            const Color(0xFF8B5CF6),
+          ),
           const SizedBox(height: 10),
-          _buildMiniAllocationBar("Croissance", pInvestments, const Color(0xFF10B981)),
+          _buildMiniAllocationBar(
+            "Croissance",
+            pInvestments,
+            const Color(0xFF10B981),
+          ),
         ],
       ),
     );
@@ -456,7 +501,9 @@ class _AnalysisPageState extends State<AnalysisPage> {
             child: LinearProgressIndicator(
               value: percent / 100,
               minHeight: 4,
-              backgroundColor: isDark ? Colors.white.withValues(alpha: 0.02) : Colors.black.withValues(alpha: 0.02),
+              backgroundColor: isDark
+                  ? Colors.white.withValues(alpha: 0.02)
+                  : Colors.black.withValues(alpha: 0.02),
               valueColor: AlwaysStoppedAnimation<Color>(color),
             ),
           ),
@@ -474,16 +521,23 @@ class _AnalysisPageState extends State<AnalysisPage> {
     );
   }
 
-  Widget _buildTrophy(IconData icon, String label, bool isAchieved, Color color) {
+  Widget _buildTrophy(
+    IconData icon,
+    String label,
+    bool isAchieved,
+    Color color,
+  ) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     return Column(
       children: [
         Container(
           padding: const EdgeInsets.all(12),
           decoration: BoxDecoration(
-            color: isAchieved 
-                ? color.withValues(alpha: 0.15) 
-                : (isDark ? Colors.white.withValues(alpha: 0.03) : Colors.black.withValues(alpha: 0.03)),
+            color: isAchieved
+                ? color.withValues(alpha: 0.15)
+                : (isDark
+                      ? Colors.white.withValues(alpha: 0.03)
+                      : Colors.black.withValues(alpha: 0.03)),
             shape: BoxShape.circle,
             border: Border.all(
               color: isAchieved ? color : Colors.transparent,
@@ -492,9 +546,11 @@ class _AnalysisPageState extends State<AnalysisPage> {
           ),
           child: Icon(
             icon,
-            color: isAchieved 
-                ? color 
-                : (isDark ? Colors.white10 : Colors.black.withValues(alpha: 0.1)),
+            color: isAchieved
+                ? color
+                : (isDark
+                      ? Colors.white10
+                      : Colors.black.withValues(alpha: 0.1)),
             size: 20,
           ),
         ),
@@ -505,8 +561,8 @@ class _AnalysisPageState extends State<AnalysisPage> {
             fontSize: 8,
             fontWeight: FontWeight.w900,
             letterSpacing: 0.5,
-            color: isAchieved 
-                ? (isDark ? Colors.white70 : Colors.black87) 
+            color: isAchieved
+                ? (isDark ? Colors.white70 : Colors.black87)
                 : (isDark ? Colors.white10 : Colors.black12),
           ),
         ),
