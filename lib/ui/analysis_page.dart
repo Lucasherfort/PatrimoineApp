@@ -145,18 +145,6 @@ class _AnalysisPageState extends State<AnalysisPage> {
                     _buildIndependenceRoadmap(isDark),
                     const SizedBox(height: 32),
 
-                    // 0. Sécurité (Épargne de précaution)
-                    _buildIndicatorCard(
-                      title: "ÉPARGNE DE PRÉCAUTION",
-                      subtitle: "Cash disponible vs 6 mois de dépenses",
-                      current: _availableCash,
-                      target: (_totalExpenses * 6).clamp(1.0, double.infinity),
-                      icon: Icons.shield_outlined,
-                      color: Colors.blue,
-                      unit: "€",
-                    ),
-                    const SizedBox(height: 16),
-
                     // 1. Couverture des dépenses
                     _buildIndicatorCard(
                       title: "COUVERTURE DES DÉPENSES",
@@ -271,13 +259,6 @@ class _AnalysisPageState extends State<AnalysisPage> {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          _buildRoadmapStep(
-            icon: Icons.shield_outlined,
-            label: "SÉCURITÉ",
-            isAchieved:
-                _availableCash >= (_totalExpenses * 6) && _totalExpenses > 0,
-            color: Colors.blue,
-          ),
           _buildRoadmapStep(
             icon: Icons.shopping_bag_outlined,
             label: "BESOINS",
