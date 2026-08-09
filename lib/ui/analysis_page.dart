@@ -31,9 +31,6 @@ class _AnalysisPageState extends State<AnalysisPage> {
   double _monthlyInvestment = 0;
   double _monthlyNetSalary = 0;
   double _availableCash = 0;
-  double _totalLiquidity = 0;
-  double _totalSavings = 0;
-  double _totalInvestments = 0;
   bool _isVisible = true;
 
   @override
@@ -66,7 +63,7 @@ class _AnalysisPageState extends State<AnalysisPage> {
       // Récupération des composantes
       final liquidity = await _patrimoineService.getLiquidityValue();
       final savings = await _patrimoineService.getSavingsValue();
-      final investments = await _patrimoineService.getInvestmentsValue();
+      await _patrimoineService.getInvestmentsValue();
       await _patrimoineService.getNetPatrimoine();
       final expenses = await BudgetService().getTotalOutgoings();
 
@@ -77,9 +74,6 @@ class _AnalysisPageState extends State<AnalysisPage> {
           _monthlyNetSalary = monthlySalary;
           _totalExpenses = expenses;
           _availableCash = liquidity + savings;
-          _totalLiquidity = liquidity;
-          _totalSavings = savings;
-          _totalInvestments = investments;
           _isLoading = false;
         });
       }
@@ -151,9 +145,17 @@ class _AnalysisPageState extends State<AnalysisPage> {
                     _buildIndependenceRoadmap(isDark),
                     const SizedBox(height: 32),
 
-                    // --- ANALYSE DE STRATÉGIE ---
-                    _buildStrategyAnalysis(isDark),
-                    const SizedBox(height: 32),
+                    // 0. Sécurité (Épargne de précaution)
+                    _buildIndicatorCard(
+                      title: "ÉPARGNE DE PRÉCAUTION",
+                      subtitle: "Cash disponible vs 6 mois de dépenses",
+                      current: _availableCash,
+                      target: (_totalExpenses * 6).clamp(1.0, double.infinity),
+                      icon: Icons.shield_outlined,
+                      color: Colors.blue,
+                      unit: "€",
+                    ),
+                    const SizedBox(height: 16),
 
                     // 1. Couverture des dépenses
                     _buildIndicatorCard(
@@ -255,278 +257,58 @@ class _AnalysisPageState extends State<AnalysisPage> {
   }
 
   Widget _buildIndependenceRoadmap(bool isDark) {
-    // Calcul des états des trophées
-    final bool hasSecurity =
-        _totalExpenses > 0 && (_availableCash / _totalExpenses) >= 3;
-    final bool hasVitality =
-        _totalExpenses > 0 && (_passiveGains / _totalExpenses) >= 0.20;
-    final bool hasVelocity =
-        _monthlyInvestment > 0 && (_passiveGains >= _monthlyInvestment);
-    final bool hasFreedom =
-        _monthlyNetSalary > 0 && (_passiveGains >= _monthlyNetSalary);
-
-    int stepsAchieved = 0;
-    if (hasSecurity) stepsAchieved++;
-    if (hasVitality) stepsAchieved++;
-    if (hasVelocity) stepsAchieved++;
-    if (hasFreedom) stepsAchieved++;
-
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            Text(
-              "PARCOURS D'INDÉPENDANCE",
-              style: TextStyle(
-                color: isDark ? Colors.white38 : Colors.black38,
-                fontSize: 10,
-                fontWeight: FontWeight.w900,
-                letterSpacing: 1.5,
-              ),
-            ),
-            Text(
-              "$stepsAchieved / 4",
-              style: const TextStyle(
-                color: Color(0xFF0D71EE),
-                fontSize: 12,
-                fontWeight: FontWeight.w900,
-              ),
-            ),
-          ],
-        ),
-        const SizedBox(height: 16),
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-          children: [
-            _buildTrophy(
-              Icons.shield_rounded,
-              "SÉCURITÉ",
-              hasSecurity,
-              Colors.teal,
-            ),
-            _buildTrophy(
-              Icons.shopping_basket_rounded,
-              "VITALITÉ",
-              hasVitality,
-              Colors.orange,
-            ),
-            _buildTrophy(
-              Icons.bolt_rounded,
-              "VITESSE",
-              hasVelocity,
-              const Color(0xFF0D71EE),
-            ),
-            _buildTrophy(
-              Icons.auto_awesome_rounded,
-              "LIBERTÉ",
-              hasFreedom,
-              const Color(0xFF8B5CF6),
-            ),
-          ],
-        ),
-        const SizedBox(height: 20),
-        ClipRRect(
-          borderRadius: BorderRadius.circular(100),
-          child: LinearProgressIndicator(
-            value: stepsAchieved / 4,
-            minHeight: 6,
-            backgroundColor: isDark
-                ? Colors.white10
-                : Colors.black.withValues(alpha: 0.05),
-            valueColor: const AlwaysStoppedAnimation<Color>(Color(0xFF0D71EE)),
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildStrategyAnalysis(bool isDark) {
-    final double total = _totalLiquidity + _totalSavings + _totalInvestments;
-    if (total <= 0) return const SizedBox();
-
-    final double pLiquidity = (_totalLiquidity / total) * 100;
-    final double pSavings = (_totalSavings / total) * 100;
-    final double pInvestments = (_totalInvestments / total) * 100;
-
-    String status = "ÉQUILIBRÉE";
-    String advice =
-        "Votre répartition est saine et suit les standards de gestion.";
-    Color statusColor = Colors.green;
-    int score = 100;
-
-    if (pLiquidity > 30) {
-      status = "TROP DE CASH";
-      advice =
-          "Votre argent dort. Envisagez de placer cet excédent sur des livrets ou en bourse.";
-      statusColor = Colors.orange;
-      score -= 20;
-    } else if (pInvestments > 80) {
-      status = "EXPOSITION ÉLEVÉE";
-      advice =
-          "Vous êtes très exposé aux marchés. Assurez-vous d'avoir assez de liquidités en cas de crise.";
-      statusColor = Colors.redAccent;
-      score -= 15;
-    } else if (pInvestments < 20 && total > 5000) {
-      status = "SOUS-OPTIMISÉE";
-      advice =
-          "Votre capital travaille peu. Augmentez votre part d'investissement pour battre l'inflation.";
-      statusColor = Colors.blue;
-      score -= 25;
-    }
-
     return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.all(24),
+      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 24),
       decoration: BoxDecoration(
-        color: Theme.of(context).cardColor,
+        color: isDark ? Colors.white.withValues(alpha: 0.02) : Colors.white,
         borderRadius: BorderRadius.circular(28),
         border: Border.all(
           color: isDark
               ? Colors.white.withValues(alpha: 0.05)
-              : Colors.black.withValues(alpha: 0.02),
+              : Colors.black.withValues(alpha: 0.03),
         ),
       ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Text(
-                "ANALYSE DE LA STRATÉGIE",
-                style: TextStyle(
-                  color: isDark ? Colors.white38 : Colors.black38,
-                  fontSize: 10,
-                  fontWeight: FontWeight.w900,
-                  letterSpacing: 1.2,
-                ),
-              ),
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                decoration: BoxDecoration(
-                  color: statusColor.withValues(alpha: 0.1),
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                child: Text(
-                  status,
-                  style: TextStyle(
-                    color: statusColor,
-                    fontSize: 9,
-                    fontWeight: FontWeight.w900,
-                  ),
-                ),
-              ),
-            ],
+          _buildRoadmapStep(
+            icon: Icons.shield_outlined,
+            label: "SÉCURITÉ",
+            isAchieved:
+                _availableCash >= (_totalExpenses * 6) && _totalExpenses > 0,
+            color: Colors.blue,
           ),
-          const SizedBox(height: 20),
-          Row(
-            children: [
-              Stack(
-                alignment: Alignment.center,
-                children: [
-                  SizedBox(
-                    width: 60,
-                    height: 60,
-                    child: CircularProgressIndicator(
-                      value: score / 100,
-                      strokeWidth: 6,
-                      backgroundColor: isDark
-                          ? Colors.white10
-                          : Colors.black.withValues(alpha: 0.05),
-                      valueColor: AlwaysStoppedAnimation<Color>(statusColor),
-                    ),
-                  ),
-                  Text(
-                    "$score",
-                    style: const TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.w900,
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(width: 20),
-              Expanded(
-                child: Text(
-                  advice,
-                  style: TextStyle(
-                    fontSize: 12,
-                    color: isDark ? Colors.white70 : Colors.black87,
-                    height: 1.4,
-                  ),
-                ),
-              ),
-            ],
+          _buildRoadmapStep(
+            icon: Icons.shopping_bag_outlined,
+            label: "BESOINS",
+            isAchieved: _passiveGains >= _totalExpenses && _totalExpenses > 0,
+            color: Colors.orange,
           ),
-          const SizedBox(height: 24),
-          // Mini barres de répartition
-          _buildMiniAllocationBar("Cash", pLiquidity, const Color(0xFF0D71EE)),
-          const SizedBox(height: 10),
-          _buildMiniAllocationBar(
-            "Sécurité",
-            pSavings,
-            const Color(0xFF8B5CF6),
+          _buildRoadmapStep(
+            icon: Icons.auto_graph_outlined,
+            label: "CROISSANCE",
+            isAchieved:
+                _passiveGains >= _monthlyInvestment && _monthlyInvestment > 0,
+            color: const Color(0xFF0D71EE),
           ),
-          const SizedBox(height: 10),
-          _buildMiniAllocationBar(
-            "Croissance",
-            pInvestments,
-            const Color(0xFF10B981),
+          _buildRoadmapStep(
+            icon: Icons.star_outline_rounded,
+            label: "LIBERTÉ",
+            isAchieved:
+                _passiveGains >= _monthlyNetSalary && _monthlyNetSalary > 0,
+            color: const Color(0xFF8B5CF6),
           ),
         ],
       ),
     );
   }
 
-  Widget _buildMiniAllocationBar(String label, double percent, Color color) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-    return Row(
-      children: [
-        SizedBox(
-          width: 70,
-          child: Text(
-            label,
-            style: TextStyle(
-              fontSize: 9,
-              fontWeight: FontWeight.w800,
-              color: isDark ? Colors.white24 : Colors.black26,
-            ),
-          ),
-        ),
-        Expanded(
-          child: ClipRRect(
-            borderRadius: BorderRadius.circular(100),
-            child: LinearProgressIndicator(
-              value: percent / 100,
-              minHeight: 4,
-              backgroundColor: isDark
-                  ? Colors.white.withValues(alpha: 0.02)
-                  : Colors.black.withValues(alpha: 0.02),
-              valueColor: AlwaysStoppedAnimation<Color>(color),
-            ),
-          ),
-        ),
-        const SizedBox(width: 12),
-        SizedBox(
-          width: 30,
-          child: Text(
-            "${percent.toInt()}%",
-            textAlign: TextAlign.end,
-            style: const TextStyle(fontSize: 10, fontWeight: FontWeight.bold),
-          ),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildTrophy(
-    IconData icon,
-    String label,
-    bool isAchieved,
-    Color color,
-  ) {
+  Widget _buildRoadmapStep({
+    required IconData icon,
+    required String label,
+    required bool isAchieved,
+    required Color color,
+  }) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     return Column(
       children: [
