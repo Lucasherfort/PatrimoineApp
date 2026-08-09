@@ -101,10 +101,7 @@ class InvestmentPositionCard extends StatelessWidget {
                           "Cours : ${_format(position.currentPrice)}€",
                           style: TextStyle(
                             fontSize: 11,
-                            color: Theme.of(context)
-                                .textTheme
-                                .bodySmall
-                                ?.color
+                            color: Theme.of(context).textTheme.bodySmall?.color
                                 ?.withValues(alpha: 0.5),
                           ),
                         ),
