@@ -73,7 +73,7 @@ class _AddPositionDialogState extends State<AddPositionDialog> {
       if (query.isNotEmpty) {
         filtered = filtered.where((p) {
           return p.name.toLowerCase().contains(query) ||
-              p.ticker.toLowerCase().contains(query);
+              p.isin.toLowerCase().contains(query);
         }).toList();
       }
 
@@ -95,7 +95,7 @@ class _AddPositionDialogState extends State<AddPositionDialog> {
 
     if (_isPositionAlreadyInAccount(_selectedPosition!)) {
       _showSnack(
-        'Cette position (${_selectedPosition!.ticker}) existe déjà dans ce compte',
+        'Cette position (${_selectedPosition!.isin}) existe déjà dans ce compte',
       );
       return;
     }
@@ -260,7 +260,7 @@ class _AddPositionDialogState extends State<AddPositionDialog> {
       controller: _searchController,
       style: TextStyle(color: theme.textTheme.bodyLarge?.color),
       decoration: InputDecoration(
-        hintText: 'Rechercher par nom ou ticker...',
+        hintText: 'Rechercher par nom ou ISIN...',
         hintStyle: TextStyle(color: isDark ? Colors.white24 : Colors.black26),
         prefixIcon: const Icon(Icons.search, color: colorPurple),
         filled: true,
@@ -337,7 +337,7 @@ class _AddPositionDialogState extends State<AddPositionDialog> {
                       Row(
                         children: [
                           Text(
-                            position.ticker,
+                            position.isin,
                             style: const TextStyle(
                               color: colorPurple,
                               fontWeight: FontWeight.w900,
@@ -420,7 +420,7 @@ class _AddPositionDialogState extends State<AddPositionDialog> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            "CONFIGURATION : ${_selectedPosition!.ticker}",
+            "CONFIGURATION : ${_selectedPosition!.isin}",
             style: const TextStyle(
               color: colorPurple,
               fontSize: 10,

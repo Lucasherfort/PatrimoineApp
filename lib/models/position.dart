@@ -1,6 +1,7 @@
 class Position {
   final int id;
   final String ticker;
+  final String isin; // 👈 Ajouté
   final String name;
   final String currency;
   final String type;
@@ -11,6 +12,7 @@ class Position {
   Position({
     required this.id,
     required this.ticker,
+    required this.isin, // 👈 Ajouté
     required this.name,
     required this.currency,
     required this.type,
@@ -24,6 +26,7 @@ class Position {
     return Position(
       id: map['id'] as int,
       ticker: map['ticker'] as String,
+      isin: map['isin'] as String? ?? '', // 👈 Ajouté avec gestion du null
       name: map['name'] as String,
       currency: map['currency'] as String,
       type: map['type'] as String,
@@ -40,6 +43,7 @@ class Position {
     return {
       'id': id,
       'ticker': ticker,
+      'isin': isin, // 👈 Ajouté
       'name': name,
       'currency': currency,
       'type': type,
@@ -51,6 +55,6 @@ class Position {
 
   @override
   String toString() {
-    return 'Position(id: $id, ticker: $ticker, name: $name, price: $price, type: $type, currency: $currency)';
+    return 'Position(id: $id, ticker: $ticker, isin: $isin, name: $name, price: $price, type: $type, currency: $currency)';
   }
 }
