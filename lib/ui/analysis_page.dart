@@ -30,6 +30,7 @@ class _AnalysisPageState extends State<AnalysisPage> {
   double _totalExpenses = 0;
   double _monthlyInvestment = 0;
   double _monthlyNetSalary = 0;
+  double _availableCash = 0; // 👈 Re-déclaré ici
   bool _isVisible = true;
 
   @override
@@ -62,12 +63,17 @@ class _AnalysisPageState extends State<AnalysisPage> {
       await _patrimoineService.getNetPatrimoine();
       final expenses = await BudgetService().getTotalOutgoings();
 
+      // Récupération du cash disponible (Liquidités + Épargne)
+      final liquidity = await _patrimoineService.getLiquidityValue();
+      final savings = await _patrimoineService.getSavingsValue();
+
       if (mounted) {
         setState(() {
           _passiveGains = annualGains / 12;
           _monthlyInvestment = monthlyInv;
           _monthlyNetSalary = monthlySalary;
           _totalExpenses = expenses;
+          _availableCash = liquidity + savings; // 👈 Assigné ici
           _isLoading = false;
         });
       }
@@ -133,7 +139,11 @@ class _AnalysisPageState extends State<AnalysisPage> {
 
                     // Gains Hero
                     _buildGainsHero(context),
-                    const SizedBox(height: 28),
+                    const SizedBox(height: 32),
+
+                    // --- PARCOURS D'INDÉPENDANCE ---
+                    _buildIndependenceRoadmap(isDark),
+                    const SizedBox(height: 32),
 
                     // 1. Couverture des dépenses
                     _buildIndicatorCard(
@@ -231,6 +241,109 @@ class _AnalysisPageState extends State<AnalysisPage> {
           ),
         ],
       ),
+    );
+  }
+
+  Widget _buildIndependenceRoadmap(bool isDark) {
+    
+    // Calcul des états des trophées
+    final bool hasSecurity = _totalExpenses > 0 && (_availableCash / _totalExpenses) >= 3;
+    final bool hasVitality = _totalExpenses > 0 && (_passiveGains / _totalExpenses) >= 0.20;
+    final bool hasVelocity = _monthlyInvestment > 0 && (_passiveGains >= _monthlyInvestment);
+    final bool hasFreedom = _monthlyNetSalary > 0 && (_passiveGains >= _monthlyNetSalary);
+
+    int stepsAchieved = 0;
+    if (hasSecurity) stepsAchieved++;
+    if (hasVitality) stepsAchieved++;
+    if (hasVelocity) stepsAchieved++;
+    if (hasFreedom) stepsAchieved++;
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Text(
+              "PARCOURS D'INDÉPENDANCE",
+              style: TextStyle(
+                color: isDark ? Colors.white38 : Colors.black38,
+                fontSize: 10,
+                fontWeight: FontWeight.w900,
+                letterSpacing: 1.5,
+              ),
+            ),
+            Text(
+              "$stepsAchieved / 4",
+              style: const TextStyle(
+                color: Color(0xFF0D71EE),
+                fontSize: 12,
+                fontWeight: FontWeight.w900,
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 16),
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            _buildTrophy(Icons.shield_rounded, "SÉCURITÉ", hasSecurity, Colors.teal),
+            _buildTrophy(Icons.shopping_basket_rounded, "VITALITÉ", hasVitality, Colors.orange),
+            _buildTrophy(Icons.bolt_rounded, "VITESSE", hasVelocity, const Color(0xFF0D71EE)),
+            _buildTrophy(Icons.auto_awesome_rounded, "LIBERTÉ", hasFreedom, const Color(0xFF8B5CF6)),
+          ],
+        ),
+        const SizedBox(height: 20),
+        ClipRRect(
+          borderRadius: BorderRadius.circular(100),
+          child: LinearProgressIndicator(
+            value: stepsAchieved / 4,
+            minHeight: 6,
+            backgroundColor: isDark ? Colors.white10 : Colors.black.withValues(alpha: 0.05),
+            valueColor: const AlwaysStoppedAnimation<Color>(Color(0xFF0D71EE)),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildTrophy(IconData icon, String label, bool isAchieved, Color color) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    return Column(
+      children: [
+        Container(
+          padding: const EdgeInsets.all(12),
+          decoration: BoxDecoration(
+            color: isAchieved 
+                ? color.withValues(alpha: 0.15) 
+                : (isDark ? Colors.white.withValues(alpha: 0.03) : Colors.black.withValues(alpha: 0.03)),
+            shape: BoxShape.circle,
+            border: Border.all(
+              color: isAchieved ? color : Colors.transparent,
+              width: 2,
+            ),
+          ),
+          child: Icon(
+            icon,
+            color: isAchieved 
+                ? color 
+                : (isDark ? Colors.white10 : Colors.black.withValues(alpha: 0.1)),
+            size: 20,
+          ),
+        ),
+        const SizedBox(height: 8),
+        Text(
+          label,
+          style: TextStyle(
+            fontSize: 8,
+            fontWeight: FontWeight.w900,
+            letterSpacing: 0.5,
+            color: isAchieved 
+                ? (isDark ? Colors.white70 : Colors.black87) 
+                : (isDark ? Colors.white10 : Colors.black12),
+          ),
+        ),
+      ],
     );
   }
 
