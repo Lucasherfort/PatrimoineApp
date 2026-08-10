@@ -30,7 +30,6 @@ class _AnalysisPageState extends State<AnalysisPage> {
   double _totalExpenses = 0;
   double _monthlyInvestment = 0;
   double _monthlyNetSalary = 0;
-  double _availableCash = 0;
   bool _isVisible = true;
 
   @override
@@ -61,8 +60,6 @@ class _AnalysisPageState extends State<AnalysisPage> {
       final monthlySalary = manager.monthlyNetSalary;
 
       // Récupération des composantes
-      final liquidity = await _patrimoineService.getLiquidityValue();
-      final savings = await _patrimoineService.getSavingsValue();
       await _patrimoineService.getInvestmentsValue();
       await _patrimoineService.getNetPatrimoine();
       final expenses = await BudgetService().getTotalOutgoings();
@@ -73,7 +70,6 @@ class _AnalysisPageState extends State<AnalysisPage> {
           _monthlyInvestment = monthlyInv;
           _monthlyNetSalary = monthlySalary;
           _totalExpenses = expenses;
-          _availableCash = liquidity + savings;
           _isLoading = false;
         });
       }

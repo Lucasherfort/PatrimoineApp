@@ -2,7 +2,7 @@ name: patrimoine360
 description: "A new Flutter project."
 publish_to: 'none'
 
-version: 2.3.8+1
+version: 2.4.0+1
 
 environment:
   sdk: ^3.10.4
@@ -22,6 +22,9 @@ dependencies:
   shared_preferences: ^2.3.5
   cupertino_icons: ^1.0.8
   package_info_plus: ^9.0.1
+  flutter_local_notifications: ^17.2.2
+  workmanager: ^0.10.7
+  timezone: ^0.9.4
 
 dev_dependencies:
   flutter_test:

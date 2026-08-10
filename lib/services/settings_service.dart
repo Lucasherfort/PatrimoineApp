@@ -15,6 +15,7 @@ class SettingsService {
   static const _keyRetirementEstimatedPension = 'retirement_estimated_pension';
   static const _keyRetirementSwr = 'retirement_swr';
   static const _keyInflationRate = 'inflation_rate';
+  static const _keyNotificationsEnabled = 'notifications_enabled';
 
   Future<AppThemeMode> getThemeMode() async {
     final prefs = await SharedPreferences.getInstance();
@@ -90,6 +91,16 @@ class SettingsService {
   Future<void> setInflationRate(double value) async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setDouble(_keyInflationRate, value);
+  }
+
+  Future<bool> areNotificationsEnabled() async {
+    final prefs = await SharedPreferences.getInstance();
+    return prefs.getBool(_keyNotificationsEnabled) ?? false;
+  }
+
+  Future<void> setNotificationsEnabled(bool value) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setBool(_keyNotificationsEnabled, value);
   }
 
   ThemeMode mapToThemeMode(AppThemeMode mode) {
