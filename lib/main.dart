@@ -9,6 +9,8 @@ import 'ui/main_navigation.dart';
 import 'ui/login_page.dart';
 import 'services/theme_manager.dart';
 import 'services/financial_profile_manager.dart';
+import 'services/notification_service.dart';
+import 'services/background_service.dart';
 
 void main() async {
   // 1. Indispensable pour les appels asynchrones au démarrage
@@ -34,6 +36,11 @@ void main() async {
     DeviceOrientation.portraitUp,
     DeviceOrientation.portraitDown,
   ]);
+
+  // 6. Initialisation Notifications & Tâches de fond
+  await NotificationService().init();
+  await BackgroundService().init();
+  await BackgroundService().registerDailyTask();
 
   runApp(const PatrimoineApp());
 }

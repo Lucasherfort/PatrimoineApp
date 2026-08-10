@@ -3,6 +3,8 @@ import 'package:flutter/services.dart';
 import 'package:patrimoine360/services/settings_service.dart';
 import 'package:patrimoine360/services/theme_manager.dart';
 import 'package:patrimoine360/services/financial_profile_manager.dart';
+import 'package:patrimoine360/services/notification_service.dart';
+import 'package:patrimoine360/services/background_service.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'login_page.dart';
 
@@ -17,10 +19,12 @@ class ProfilePage extends StatefulWidget {
 class _ProfilePageState extends State<ProfilePage> {
   late TextEditingController _salaryController;
   late TextEditingController _investmentController;
+  bool _notificationsEnabled = false;
 
   @override
   void initState() {
     super.initState();
+    _loadSettings();
     final manager = FinancialProfileManager();
     _salaryController = TextEditingController(
       text: manager.monthlyNetSalary > 0
@@ -32,6 +36,34 @@ class _ProfilePageState extends State<ProfilePage> {
           ? manager.monthlyInvestment.toString()
           : '',
     );
+  }
+
+  Future<void> _loadSettings() async {
+    final enabled = await SettingsService().areNotificationsEnabled();
+    if (mounted) {
+      setState(() => _notificationsEnabled = enabled);
+    }
+  }
+
+  Future<void> _toggleNotifications(bool value) async {
+    if (value) {
+      final granted = await NotificationService().requestPermissions();
+      if (!granted) {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text("Permission de notification refusée")),
+          );
+        }
+        return;
+      }
+      await BackgroundService().registerDailyTask();
+    } else {
+      // Pour iOS/Android, Workmanager ne permet pas facilement de cancel une tâche périodique spécifique sans son ID
+      // Mais on peut simplement ignorer la tâche dans le callbackDispatcher si désactivé
+    }
+
+    await SettingsService().setNotificationsEnabled(value);
+    setState(() => _notificationsEnabled = value);
   }
 
   @override
@@ -142,6 +174,11 @@ class _ProfilePageState extends State<ProfilePage> {
 
                   // --- SECTION APPARENCE ---
                   _buildAppearanceSection(context),
+
+                  const SizedBox(height: 24),
+
+                  // --- SECTION NOTIFICATIONS ---
+                  _buildNotificationSection(context),
 
                   const SizedBox(height: 24),
 
@@ -381,6 +418,65 @@ class _ProfilePageState extends State<ProfilePage> {
                 ),
               );
             },
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildNotificationSection(BuildContext context) {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          "NOTIFICATIONS",
+          style: TextStyle(
+            color: isDark
+                ? Colors.white.withValues(alpha: 0.4)
+                : Colors.black.withValues(alpha: 0.4),
+            fontSize: 11,
+            fontWeight: FontWeight.bold,
+            letterSpacing: 1.2,
+          ),
+        ),
+        const SizedBox(height: 16),
+        Container(
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+          decoration: BoxDecoration(
+            color: theme.cardColor,
+            borderRadius: BorderRadius.circular(20),
+            border: isDark
+                ? null
+                : Border.all(color: Colors.black.withValues(alpha: 0.05)),
+          ),
+          child: ListTile(
+            contentPadding: EdgeInsets.zero,
+            leading: Container(
+              padding: const EdgeInsets.all(8),
+              decoration: BoxDecoration(
+                color: isDark
+                    ? Colors.white.withValues(alpha: 0.05)
+                    : Colors.black.withValues(alpha: 0.03),
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Icon(
+                Icons.notifications_active_outlined,
+                color: isDark ? Colors.white70 : Colors.black54,
+                size: 20,
+              ),
+            ),
+            title: const Text(
+              "Résumé quotidien (18h)",
+              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
+            ),
+            trailing: Switch.adaptive(
+              value: _notificationsEnabled,
+              activeThumbColor: const Color(0xFF0D71EE),
+              onChanged: _toggleNotifications,
+            ),
           ),
         ),
       ],
