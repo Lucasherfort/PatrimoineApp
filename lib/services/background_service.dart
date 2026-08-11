@@ -1,15 +1,18 @@
+import 'package:flutter/foundation.dart';
 import 'package:workmanager/workmanager.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'patrimoine_service.dart';
 import 'notification_service.dart';
 import 'settings_service.dart';
 import 'package:intl/intl.dart';
+import 'dart:io';
 
 @pragma('vm:entry-point')
 void callbackDispatcher() {
   Workmanager().executeTask((task, inputData) async {
     try {
       // 1. Vérification si les notifications sont activées
+      // On le fait avant tout le reste pour économiser de la batterie
       final settings = SettingsService();
       final isEnabled = await settings.areNotificationsEnabled();
       if (!isEnabled) return true;
@@ -38,8 +41,9 @@ void callbackDispatcher() {
 
         // On ne notifie que si variation significative (> 0.01€)
         if (diff.abs() > 0.01) {
-          final percentage =
-              previousValue > 0 ? (diff / previousValue) * 100 : 0.0;
+          final percentage = previousValue > 0
+              ? (diff / previousValue) * 100
+              : 0.0;
 
           final formatter = NumberFormat.currency(
             locale: 'fr_FR',
@@ -83,11 +87,15 @@ class BackgroundService {
   factory BackgroundService() => _instance;
   BackgroundService._internal();
 
+  bool get _isSupported => !kIsWeb && (Platform.isAndroid || Platform.isIOS);
+
   Future<void> init() async {
+    if (!_isSupported) return;
     await Workmanager().initialize(callbackDispatcher);
   }
 
   Future<void> registerDailyTask() async {
+    if (!_isSupported) return;
     // On annule d'abord toute tâche existante pour éviter les doublons
     await Workmanager().cancelByUniqueName("daily-wealth-check");
 
@@ -97,14 +105,13 @@ class BackgroundService {
       "daily-wealth-check-task",
       frequency: const Duration(hours: 24),
       initialDelay: _calculateInitialDelay(),
-      existingWorkPolicy: ExistingWorkPolicy.replace,
-      constraints: Constraints(
-        networkType: NetworkType.connected,
-      ),
+      existingWorkPolicy: ExistingPeriodicWorkPolicy.replace,
+      constraints: Constraints(networkType: NetworkType.connected),
     );
   }
 
   Future<void> cancelDailyTask() async {
+    if (!_isSupported) return;
     await Workmanager().cancelByUniqueName("daily-wealth-check");
   }
 

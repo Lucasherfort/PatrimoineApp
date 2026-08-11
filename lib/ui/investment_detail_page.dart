@@ -78,6 +78,10 @@ class _InvestmentDetailPageState extends State<InvestmentDetailPage> {
       );
 
       if (!mounted) return;
+
+      // Tri par plus-value latente décroissante
+      fetchedPositions.sort((a, b) => b.latentGain.compareTo(a.latentGain));
+
       setState(() {
         positions = fetchedPositions;
         accountView = account;
