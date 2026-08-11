@@ -40,7 +40,8 @@ void main() async {
   // 6. Initialisation Notifications & Tâches de fond
   await NotificationService().init();
   await BackgroundService().init();
-  await BackgroundService().registerDailyTask();
+  // On ne re-enregistre pas la tâche à chaque démarrage pour ne pas décaler le planning
+  // La tâche est gérée via l'onglet Profil (activation/désactivation)
 
   runApp(const PatrimoineApp());
 }

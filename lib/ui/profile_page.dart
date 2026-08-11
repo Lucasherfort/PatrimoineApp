@@ -58,8 +58,7 @@ class _ProfilePageState extends State<ProfilePage> {
       }
       await BackgroundService().registerDailyTask();
     } else {
-      // Pour iOS/Android, Workmanager ne permet pas facilement de cancel une tâche périodique spécifique sans son ID
-      // Mais on peut simplement ignorer la tâche dans le callbackDispatcher si désactivé
+      await BackgroundService().cancelDailyTask();
     }
 
     await SettingsService().setNotificationsEnabled(value);
