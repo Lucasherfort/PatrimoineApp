@@ -103,6 +103,7 @@ class _InvestmentProjectionTabState extends State<InvestmentProjectionTab> {
 
   void _resetToReal() {
     setState(() {
+      _cachedProjections = null;
       _pastDeposits = widget.initialDeposits;
       _pastPnL = widget.initialPnL;
       _depositsController.text = _pastDeposits.toStringAsFixed(0);
@@ -119,7 +120,11 @@ class _InvestmentProjectionTabState extends State<InvestmentProjectionTab> {
     });
   }
 
+  List<InvestmentProjectionPoint>? _cachedProjections;
+
   List<InvestmentProjectionPoint> _calculateProjections() {
+    if (_cachedProjections != null) return _cachedProjections!;
+
     List<InvestmentProjectionPoint> points = [];
     double currentBalance = _pastDeposits + _pastPnL;
     double cumulativeDeposits = _pastDeposits;
@@ -163,6 +168,7 @@ class _InvestmentProjectionTabState extends State<InvestmentProjectionTab> {
         );
       }
     }
+    _cachedProjections = points;
     return points;
   }
 
@@ -234,7 +240,10 @@ class _InvestmentProjectionTabState extends State<InvestmentProjectionTab> {
           const SizedBox(height: 32),
 
           // Chart
-          SizedBox(height: 250, child: _buildChart(projections)),
+          SizedBox(
+            height: 250,
+            child: RepaintBoundary(child: _buildChart(projections)),
+          ),
 
           const SizedBox(height: 32),
 
@@ -249,7 +258,10 @@ class _InvestmentProjectionTabState extends State<InvestmentProjectionTab> {
             divisions: 100,
             suffix: "€",
             onChanged: (val) {
-              setState(() => _monthlyContribution = val);
+              setState(() {
+                _monthlyContribution = val;
+                _cachedProjections = null;
+              });
               _dcaController.text = val.toStringAsFixed(0);
             },
           ),
@@ -262,7 +274,10 @@ class _InvestmentProjectionTabState extends State<InvestmentProjectionTab> {
             divisions: 149,
             suffix: "%",
             onChanged: (val) {
-              setState(() => _annualRate = val);
+              setState(() {
+                _annualRate = val;
+                _cachedProjections = null;
+              });
               _rateController.text = val.toStringAsFixed(1);
             },
           ),
@@ -275,7 +290,10 @@ class _InvestmentProjectionTabState extends State<InvestmentProjectionTab> {
             divisions: 39,
             suffix: "ans",
             onChanged: (val) {
-              setState(() => _horizonYears = val.toInt());
+              setState(() {
+                _horizonYears = val.toInt();
+                _cachedProjections = null;
+              });
               _horizonController.text = val.toInt().toString();
             },
           ),
@@ -289,7 +307,10 @@ class _InvestmentProjectionTabState extends State<InvestmentProjectionTab> {
                 child: _buildNumericInput(
                   "Apports réels (€)",
                   _depositsController,
-                  (val) => setState(() => _pastDeposits = val),
+                  (val) => setState(() {
+                    _pastDeposits = val;
+                    _cachedProjections = null;
+                  }),
                 ),
               ),
               const SizedBox(width: 16),
@@ -297,7 +318,10 @@ class _InvestmentProjectionTabState extends State<InvestmentProjectionTab> {
                 child: _buildNumericInput(
                   "PnL actuel (€)",
                   _pnlController,
-                  (val) => setState(() => _pastPnL = val),
+                  (val) => setState(() {
+                    _pastPnL = val;
+                    _cachedProjections = null;
+                  }),
                 ),
               ),
             ],

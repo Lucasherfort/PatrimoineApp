@@ -235,27 +235,29 @@ class _BudgetPageState extends State<BudgetPage> {
         children: [
           Expanded(
             flex: 4,
-            child: PieChart(
-              PieChartData(
-                sectionsSpace: 4,
-                centerSpaceRadius: 40,
-                sections: sortedEntries.asMap().entries.map((entry) {
-                  final index = entry.key;
-                  final value = entry.value.value;
-                  final percentage = (value / totalExpense * 100);
+            child: RepaintBoundary(
+              child: PieChart(
+                PieChartData(
+                  sectionsSpace: 4,
+                  centerSpaceRadius: 40,
+                  sections: sortedEntries.asMap().entries.map((entry) {
+                    final index = entry.key;
+                    final value = entry.value.value;
+                    final percentage = (value / totalExpense * 100);
 
-                  return PieChartSectionData(
-                    color: chartColors[index % chartColors.length],
-                    value: value,
-                    title: percentage >= 8 ? '${percentage.toInt()}%' : '',
-                    radius: 50,
-                    titleStyle: const TextStyle(
-                      fontSize: 10,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.white,
-                    ),
-                  );
-                }).toList(),
+                    return PieChartSectionData(
+                      color: chartColors[index % chartColors.length],
+                      value: value,
+                      title: percentage >= 8 ? '${percentage.toInt()}%' : '',
+                      radius: 50,
+                      titleStyle: const TextStyle(
+                        fontSize: 10,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.white,
+                      ),
+                    );
+                  }).toList(),
+                ),
               ),
             ),
           ),

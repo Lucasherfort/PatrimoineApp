@@ -359,20 +359,22 @@ class _PatrimoineHeaderState extends State<PatrimoineHeader> {
                   Expanded(
                     child: GestureDetector(
                       onTap: () => _showInfoPanel(context),
-                      child: FittedBox(
-                        fit: BoxFit.scaleDown,
-                        child: Text(
-                          _isVisible
-                              ? "${_formatAmount(widget.patrimoineTotal)} €"
-                              : "•••••••• €",
-                          textAlign: TextAlign.center,
-                          style: TextStyle(
-                            fontSize: 38,
-                            fontWeight: FontWeight.w900,
-                            color: isDark
-                                ? Colors.white
-                                : const Color(0xFF0F172A),
-                            letterSpacing: -1.2,
+                      child: RepaintBoundary(
+                        child: FittedBox(
+                          fit: BoxFit.scaleDown,
+                          child: Text(
+                            _isVisible
+                                ? "${_formatAmount(widget.patrimoineTotal)} €"
+                                : "•••••••• €",
+                            textAlign: TextAlign.center,
+                            style: TextStyle(
+                              fontSize: 38,
+                              fontWeight: FontWeight.w900,
+                              color: isDark
+                                  ? Colors.white
+                                  : const Color(0xFF0F172A),
+                              letterSpacing: -1.2,
+                            ),
                           ),
                         ),
                       ),

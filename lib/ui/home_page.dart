@@ -145,24 +145,28 @@ class HomePageState extends State<HomePage> {
           Positioned(
             top: -100,
             right: -50,
-            child: Container(
-              width: 350,
-              height: 350,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                color: colorBlueMain.withValues(alpha: isDark ? 0.12 : 0.08),
+            child: RepaintBoundary(
+              child: Container(
+                width: 350,
+                height: 350,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: colorBlueMain.withValues(alpha: isDark ? 0.12 : 0.08),
+                ),
               ),
             ),
           ),
           Positioned(
             bottom: 100,
             left: -100,
-            child: Container(
-              width: 400,
-              height: 400,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                color: colorBlueMain.withValues(alpha: isDark ? 0.08 : 0.05),
+            child: RepaintBoundary(
+              child: Container(
+                width: 400,
+                height: 400,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: colorBlueMain.withValues(alpha: isDark ? 0.08 : 0.05),
+                ),
               ),
             ),
           ),

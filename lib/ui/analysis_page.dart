@@ -104,14 +104,16 @@ class _AnalysisPageState extends State<AnalysisPage> {
           Positioned(
             top: -50,
             right: -100,
-            child: Container(
-              width: 300,
-              height: 300,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                color: const Color(
-                  0xFF0D71EE,
-                ).withValues(alpha: isDark ? 0.12 : 0.07),
+            child: RepaintBoundary(
+              child: Container(
+                width: 300,
+                height: 300,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: const Color(
+                    0xFF0D71EE,
+                  ).withValues(alpha: isDark ? 0.12 : 0.07),
+                ),
               ),
             ),
           ),
@@ -212,17 +214,19 @@ class _AnalysisPageState extends State<AnalysisPage> {
             ),
           ),
           const SizedBox(height: 4),
-          ShaderMask(
-            shaderCallback: (bounds) => const LinearGradient(
-              colors: [Color(0xFF0D71EE), Color(0xFF67C6F2)],
-            ).createShader(bounds),
-            child: Text(
-              _isVisible ? _formatAmount(_passiveGains) : "•••• €",
-              style: const TextStyle(
-                color: Colors.white,
-                fontSize: 42,
-                fontWeight: FontWeight.w900,
-                letterSpacing: -1.0,
+          RepaintBoundary(
+            child: ShaderMask(
+              shaderCallback: (bounds) => const LinearGradient(
+                colors: [Color(0xFF0D71EE), Color(0xFF67C6F2)],
+              ).createShader(bounds),
+              child: Text(
+                _isVisible ? _formatAmount(_passiveGains) : "•••• €",
+                style: const TextStyle(
+                  color: Colors.white,
+                  fontSize: 42,
+                  fontWeight: FontWeight.w900,
+                  letterSpacing: -1.0,
+                ),
               ),
             ),
           ),

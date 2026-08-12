@@ -41,8 +41,8 @@ class _RealEstateSimulatorPageState extends State<RealEstateSimulatorPage> {
     if (mounted) {
       setState(() {
         if (manager.monthlyNetSalary > 0) {
-          _monthlyPaymentController.text =
-              (manager.monthlyNetSalary * 0.35).toStringAsFixed(0);
+          _monthlyPaymentController.text = (manager.monthlyNetSalary * 0.35)
+              .toStringAsFixed(0);
         }
       });
     }
