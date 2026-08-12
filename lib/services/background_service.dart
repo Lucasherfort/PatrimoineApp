@@ -117,8 +117,8 @@ class BackgroundService {
 
   Duration _calculateInitialDelay() {
     final now = DateTime.now();
-    // On vise 18h00
-    var target = DateTime(now.year, now.month, now.day, 18, 0);
+    // On vise 19h00
+    var target = DateTime(now.year, now.month, now.day, 19, 0);
 
     if (target.isBefore(now)) {
       target = target.add(const Duration(days: 1));

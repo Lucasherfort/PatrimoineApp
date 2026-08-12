@@ -14,7 +14,6 @@ class RealEstateSimulatorPage extends StatefulWidget {
 }
 
 class _RealEstateSimulatorPageState extends State<RealEstateSimulatorPage> {
-  final _salaryController = TextEditingController(text: "2500");
   final _downPaymentController = TextEditingController(text: "0");
   final _monthlyPaymentController = TextEditingController(text: "0");
 
@@ -42,7 +41,6 @@ class _RealEstateSimulatorPageState extends State<RealEstateSimulatorPage> {
     if (mounted) {
       setState(() {
         if (manager.monthlyNetSalary > 0) {
-          _salaryController.text = manager.monthlyNetSalary.toStringAsFixed(0);
           _monthlyPaymentController.text =
               (manager.monthlyNetSalary * 0.35).toStringAsFixed(0);
         }
@@ -65,8 +63,6 @@ class _RealEstateSimulatorPageState extends State<RealEstateSimulatorPage> {
             0,
           );
           if (financialProfile.monthlyNetSalary > 0) {
-            _salaryController.text = financialProfile.monthlyNetSalary
-                .toStringAsFixed(0);
             _monthlyPaymentController.text =
                 (financialProfile.monthlyNetSalary * 0.35).toStringAsFixed(0);
           }
@@ -80,7 +76,6 @@ class _RealEstateSimulatorPageState extends State<RealEstateSimulatorPage> {
 
   @override
   void dispose() {
-    _salaryController.dispose();
     _downPaymentController.dispose();
     _monthlyPaymentController.dispose();
     FinancialProfileManager().removeListener(_onProfileChanged);
@@ -88,10 +83,9 @@ class _RealEstateSimulatorPageState extends State<RealEstateSimulatorPage> {
   }
 
   // --- CALCULS ---
-  double get _monthlySalary => double.tryParse(_salaryController.text) ?? 0;
   double get _downPayment => double.tryParse(_downPaymentController.text) ?? 0;
   double get _maxMonthlyPayment =>
-      double.tryParse(_monthlyPaymentController.text) ?? (_monthlySalary * 0.35);
+      double.tryParse(_monthlyPaymentController.text) ?? 0;
 
   double get _borrowingCapacity {
     if (_maxMonthlyPayment <= 0) return 0;
@@ -231,34 +225,21 @@ class _RealEstateSimulatorPageState extends State<RealEstateSimulatorPage> {
                       Expanded(
                         child: _buildCompactInput(
                           context,
-                          label: "Salaire Net",
-                          controller: _salaryController,
-                          icon: Icons.payments_outlined,
-                          onChanged: (val) {
-                            final salary = double.tryParse(val) ?? 0;
-                            _monthlyPaymentController.text =
-                                (salary * 0.35).toStringAsFixed(0);
-                            setState(() {});
-                          },
+                          label: "Mensualité",
+                          controller: _monthlyPaymentController,
+                          icon: Icons.calendar_month_outlined,
                         ),
                       ),
                       const SizedBox(width: 12),
                       Expanded(
                         child: _buildCompactInput(
                           context,
-                          label: "Mensualité",
-                          controller: _monthlyPaymentController,
-                          icon: Icons.calendar_month_outlined,
+                          label: "Apport Perso.",
+                          controller: _downPaymentController,
+                          icon: Icons.savings_outlined,
                         ),
                       ),
                     ],
-                  ),
-                  const SizedBox(height: 12),
-                  _buildCompactInput(
-                    context,
-                    label: "Apport Personnel",
-                    controller: _downPaymentController,
-                    icon: Icons.savings_outlined,
                   ),
                   const SizedBox(height: 20),
 
@@ -562,23 +543,11 @@ class _RealEstateSimulatorPageState extends State<RealEstateSimulatorPage> {
           ),
           const SizedBox(height: 16),
           Row(
-            mainAxisAlignment: MainAxisAlignment.spaceAround,
+            mainAxisAlignment: MainAxisAlignment.center,
             children: [
               _buildCompactSubStat(
                 context,
-                "Mensualité",
-                "${_maxMonthlyPayment.toInt()} €",
-              ),
-              Container(
-                width: 1,
-                height: 24,
-                color: isDark
-                    ? Colors.white10
-                    : Colors.black.withValues(alpha: 0.05),
-              ),
-              _buildCompactSubStat(
-                context,
-                "Prêt Max",
+                "Prêt Maximum",
                 _formatter.format(_borrowingCapacity),
               ),
             ],

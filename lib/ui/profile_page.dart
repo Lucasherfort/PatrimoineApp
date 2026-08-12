@@ -468,7 +468,7 @@ class _ProfilePageState extends State<ProfilePage> {
               ),
             ),
             title: const Text(
-              "Résumé quotidien (18h)",
+              "Résumé quotidien (19h)",
               style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
             ),
             trailing: Switch.adaptive(
