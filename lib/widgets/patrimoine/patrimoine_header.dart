@@ -401,12 +401,14 @@ class _PatrimoineHeaderState extends State<PatrimoineHeader> {
 
               // --- BOTTOM: DUAL INDICATORS ---
               if (showGains ||
-                  (widget.historicalInvestmentValue != null &&
+                  (widget.hasInvestments &&
+                      widget.historicalInvestmentValue != null &&
                       widget.historicalInvestmentValue! > 0))
                 Row(
                   children: [
                     // Variation Jour Badge
-                    if (widget.historicalInvestmentValue != null &&
+                    if (widget.hasInvestments &&
+                        widget.historicalInvestmentValue != null &&
                         widget.historicalInvestmentValue! > 0)
                       Expanded(
                         child: _buildPremiumBadge(
@@ -428,7 +430,8 @@ class _PatrimoineHeaderState extends State<PatrimoineHeader> {
                       ),
 
                     if (showGains &&
-                        (widget.historicalInvestmentValue != null &&
+                        (widget.hasInvestments &&
+                            widget.historicalInvestmentValue != null &&
                             widget.historicalInvestmentValue! > 0))
                       const SizedBox(width: 12),
 
