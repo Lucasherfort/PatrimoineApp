@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import 'package:intl/date_symbol_data_local.dart';
 import 'package:intl/intl.dart';
 
+import 'l10n/app_localizations.dart';
 import 'ui/main_navigation.dart';
 import 'ui/login_page.dart';
 import 'services/theme_manager.dart';
@@ -58,13 +58,9 @@ class PatrimoineApp extends StatelessWidget {
           title: 'Patrimoine App',
           debugShowCheckedModeBanner: false,
           themeMode: ThemeManager().themeMode,
-          localizationsDelegates: const [
-            GlobalMaterialLocalizations.delegate,
-            GlobalWidgetsLocalizations.delegate,
-            GlobalCupertinoLocalizations.delegate,
-          ],
-          supportedLocales: const [Locale('fr', 'FR')],
-          locale: const Locale('fr', 'FR'),
+          locale: ThemeManager().locale,
+          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          supportedLocales: AppLocalizations.supportedLocales,
           // Thème Clair
           theme: ThemeData(
             brightness: Brightness.light,

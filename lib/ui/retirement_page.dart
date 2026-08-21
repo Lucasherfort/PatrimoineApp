@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:url_launcher/url_launcher.dart';
+import '../l10n/app_localizations.dart';
 import '../services/financial_profile_manager.dart';
 import '../services/patrimoine_service.dart';
 
@@ -187,7 +188,7 @@ class _RetirementPageState extends State<RetirementPage> {
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
                                 Text(
-                                  "RETRAITE & FIRE",
+                                  AppLocalizations.of(context)!.retirementFire,
                                   style: TextStyle(
                                     color: isDark
                                         ? Colors.white.withValues(alpha: 0.4)
@@ -198,7 +199,7 @@ class _RetirementPageState extends State<RetirementPage> {
                                   ),
                                 ),
                                 Text(
-                                  "Objectif Liberté",
+                                  AppLocalizations.of(context)!.freedomGoal,
                                   style: TextStyle(
                                     color: isDark
                                         ? Colors.white
@@ -222,7 +223,7 @@ class _RetirementPageState extends State<RetirementPage> {
                       ),
                       const SizedBox(height: 8),
                       Text(
-                        "Simulations en brut annuel.",
+                        AppLocalizations.of(context)!.grossAnnualSimulations,
                         style: TextStyle(
                           color: isDark ? Colors.white24 : Colors.black26,
                           fontSize: 10,
@@ -234,13 +235,13 @@ class _RetirementPageState extends State<RetirementPage> {
                       // Card 1: VOS PARAMÈTRES (Interactive)
                       _buildSummaryCard(
                         context,
-                        title: "VOS HYPOTHÈSES",
+                        title: AppLocalizations.of(context)!.yourAssumptions,
                         padding: const EdgeInsets.all(16),
                         child: Column(
                           children: [
                             _buildCompactInputField(
                               context,
-                              label: "Revenu souhaité",
+                              label: AppLocalizations.of(context)!.desiredIncome,
                               controller: _incomeController,
                               onChanged: (val) {
                                 final d = double.tryParse(val) ?? 0.0;
@@ -254,7 +255,7 @@ class _RetirementPageState extends State<RetirementPage> {
                                   flex: 2,
                                   child: _buildCompactInputField(
                                     context,
-                                    label: "Pension estimée",
+                                    label: AppLocalizations.of(context)!.estimatedPension,
                                     controller: _pensionController,
                                     onChanged: (val) {
                                       final d = double.tryParse(val) ?? 0.0;
@@ -267,7 +268,7 @@ class _RetirementPageState extends State<RetirementPage> {
                                   flex: 1,
                                   child: _buildCompactInputField(
                                     context,
-                                    label: "Taux",
+                                    label: AppLocalizations.of(context)!.rate,
                                     controller: _swrController,
                                     suffix: "%",
                                     onChanged: (val) {
@@ -291,7 +292,7 @@ class _RetirementPageState extends State<RetirementPage> {
                           children: [
                             _buildSummaryCard(
                               context,
-                              title: "BESOIN & CIBLE",
+                              title: AppLocalizations.of(context)!.needAndTarget,
                               padding: const EdgeInsets.all(16),
                               child: Column(
                                 children: [
@@ -303,7 +304,7 @@ class _RetirementPageState extends State<RetirementPage> {
                                               CrossAxisAlignment.start,
                                           children: [
                                             Text(
-                                              "À FINANCER",
+                                              AppLocalizations.of(context)!.toFinance,
                                               style: TextStyle(
                                                 color: isDark
                                                     ? Colors.white24
@@ -341,7 +342,7 @@ class _RetirementPageState extends State<RetirementPage> {
                                               CrossAxisAlignment.start,
                                           children: [
                                             Text(
-                                              "CAPITAL CIBLE",
+                                              AppLocalizations.of(context)!.targetCapital,
                                               style: TextStyle(
                                                 color: isDark
                                                     ? Colors.white24
@@ -367,7 +368,10 @@ class _RetirementPageState extends State<RetirementPage> {
                                   if (incomeToFinance > 0) ...[
                                     const SizedBox(height: 12),
                                     Text(
-                                      "Avec un taux de ${manager.retirementSwr.toStringAsFixed(1)}%, ce capital génère ${_formatter.format(incomeToFinance)} / an.",
+                                      AppLocalizations.of(context)!.capitalGenerationInfo(
+                                        manager.retirementSwr.toStringAsFixed(1),
+                                        _formatter.format(incomeToFinance),
+                                      ),
                                       style: TextStyle(
                                         color: isDark
                                             ? Colors.white38
@@ -379,7 +383,7 @@ class _RetirementPageState extends State<RetirementPage> {
                                   ] else ...[
                                     const SizedBox(height: 12),
                                     Text(
-                                      "Votre pension couvre déjà votre objectif.",
+                                      AppLocalizations.of(context)!.pensionCoversGoal,
                                       style: const TextStyle(
                                         color: Colors.green,
                                         fontSize: 10,
@@ -395,7 +399,7 @@ class _RetirementPageState extends State<RetirementPage> {
                             // Card 4: Progression (Compressed)
                             _buildSummaryCard(
                               context,
-                              title: "PROGRESSION",
+                              title: AppLocalizations.of(context)!.progression,
                               padding: const EdgeInsets.all(16),
                               child: Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -405,12 +409,12 @@ class _RetirementPageState extends State<RetirementPage> {
                                         MainAxisAlignment.spaceBetween,
                                     children: [
                                       _buildMiniStat(
-                                        "Actuel",
+                                        AppLocalizations.of(context)!.current,
                                         _formatter.format(_currentWealth),
                                         isDark,
                                       ),
                                       _buildMiniStat(
-                                        "Objectif",
+                                        AppLocalizations.of(context)!.objective,
                                         _formatter.format(targetWealth),
                                         isDark,
                                       ),
@@ -439,7 +443,7 @@ class _RetirementPageState extends State<RetirementPage> {
                                         MainAxisAlignment.spaceBetween,
                                     children: [
                                       Text(
-                                        "${(progression * 100).toInt()}% atteint",
+                                        AppLocalizations.of(context)!.reachedPercent((progression * 100).toInt()),
                                         style: const TextStyle(
                                           color: Color(0xFF0D71EE),
                                           fontWeight: FontWeight.bold,
@@ -448,7 +452,7 @@ class _RetirementPageState extends State<RetirementPage> {
                                       ),
                                       if (remainingToBuild > 0)
                                         Text(
-                                          "Reste : ${_formatter.format(remainingToBuild)}",
+                                          AppLocalizations.of(context)!.remainingAmount(_formatter.format(remainingToBuild)),
                                           style: TextStyle(
                                             color: isDark
                                                 ? Colors.white24
@@ -474,7 +478,7 @@ class _RetirementPageState extends State<RetirementPage> {
                       // Resources Section
                       _buildSummaryCard(
                         context,
-                        title: "RESSOURCES",
+                        title: AppLocalizations.of(context)!.resources,
                         padding: const EdgeInsets.all(16),
                         child: InkWell(
                           onTap: () =>
@@ -502,7 +506,7 @@ class _RetirementPageState extends State<RetirementPage> {
                                         CrossAxisAlignment.start,
                                     children: [
                                       Text(
-                                        "L'Assurance Retraite",
+                                        AppLocalizations.of(context)!.retirementInsurance,
                                         style: TextStyle(
                                           color: isDark
                                               ? Colors.white70
@@ -512,7 +516,7 @@ class _RetirementPageState extends State<RetirementPage> {
                                         ),
                                       ),
                                       Text(
-                                        "Estimer ma pension sur le site officiel",
+                                        AppLocalizations.of(context)!.estimatePensionOfficialSite,
                                         style: TextStyle(
                                           color: isDark
                                               ? Colors.white24
@@ -716,7 +720,7 @@ class _RetirementPageState extends State<RetirementPage> {
         ),
         const SizedBox(height: 16),
         Text(
-          "Renseignez votre revenu souhaité pour projeter votre capital cible.",
+          AppLocalizations.of(context)!.fillDesiredIncomePrompt,
           textAlign: TextAlign.center,
           style: TextStyle(
             color: isDark ? Colors.white38 : Colors.black38,

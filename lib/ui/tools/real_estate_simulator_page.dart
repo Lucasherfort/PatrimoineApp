@@ -2,6 +2,7 @@ import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:url_launcher/url_launcher.dart';
+import '../../l10n/app_localizations.dart';
 import '../../services/patrimoine_service.dart';
 import '../../services/financial_profile_manager.dart';
 
@@ -185,7 +186,7 @@ class _RealEstateSimulatorPageState extends State<RealEstateSimulatorPage> {
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Text(
-                              "IMMOBILIER",
+                              AppLocalizations.of(context)!.realEstate,
                               style: TextStyle(
                                 color: isDark
                                     ? Colors.white.withValues(alpha: 0.4)
@@ -196,7 +197,7 @@ class _RealEstateSimulatorPageState extends State<RealEstateSimulatorPage> {
                               ),
                             ),
                             Text(
-                              "Simulateur",
+                              AppLocalizations.of(context)!.simulator,
                               style: TextStyle(
                                 color: isDark
                                     ? Colors.white
@@ -219,13 +220,13 @@ class _RealEstateSimulatorPageState extends State<RealEstateSimulatorPage> {
                   const SizedBox(height: 32),
 
                   // Section Inputs: Vos Données
-                  _buildSectionHeader(context, "VOTRE PROFIL FINANCIER"),
+                  _buildSectionHeader(context, AppLocalizations.of(context)!.yourFinancialProfile),
                   Row(
                     children: [
                       Expanded(
                         child: _buildCompactInput(
                           context,
-                          label: "Mensualité",
+                          label: AppLocalizations.of(context)!.monthlyPayment,
                           controller: _monthlyPaymentController,
                           icon: Icons.calendar_month_outlined,
                         ),
@@ -234,7 +235,7 @@ class _RealEstateSimulatorPageState extends State<RealEstateSimulatorPage> {
                       Expanded(
                         child: _buildCompactInput(
                           context,
-                          label: "Apport Perso.",
+                          label: AppLocalizations.of(context)!.personalDownPayment,
                           controller: _downPaymentController,
                           icon: Icons.savings_outlined,
                         ),
@@ -244,10 +245,10 @@ class _RealEstateSimulatorPageState extends State<RealEstateSimulatorPage> {
                   const SizedBox(height: 20),
 
                   // Section Inputs: Paramètres Crédit
-                  _buildSectionHeader(context, "PARAMÈTRES DU PRÊT"),
+                  _buildSectionHeader(context, AppLocalizations.of(context)!.loanParameters),
                   _buildCompactSlider(
                     context,
-                    label: "Durée",
+                    label: AppLocalizations.of(context)!.duration,
                     value: _loanDurationYears,
                     min: 5,
                     max: 30,
@@ -259,7 +260,7 @@ class _RealEstateSimulatorPageState extends State<RealEstateSimulatorPage> {
                   const SizedBox(height: 8),
                   _buildCompactSlider(
                     context,
-                    label: "Taux",
+                    label: AppLocalizations.of(context)!.interestRate,
                     value: _interestRate,
                     min: 0.5,
                     max: 6.0,
@@ -271,7 +272,7 @@ class _RealEstateSimulatorPageState extends State<RealEstateSimulatorPage> {
                   const SizedBox(height: 24),
 
                   // Resources Section
-                  _buildSectionHeader(context, "EXPLORER LE MARCHÉ"),
+                  _buildSectionHeader(context, AppLocalizations.of(context)!.exploreMarket),
                   SizedBox(
                     height: 90,
                     child: ListView(
@@ -495,6 +496,7 @@ class _RealEstateSimulatorPageState extends State<RealEstateSimulatorPage> {
 
   Widget _buildHeroHeader(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
+    final l10n = AppLocalizations.of(context)!;
 
     return Container(
       width: double.infinity,
@@ -518,7 +520,7 @@ class _RealEstateSimulatorPageState extends State<RealEstateSimulatorPage> {
       child: Column(
         children: [
           Text(
-            "CAPACITÉ D'ACHAT MAXIMALE",
+            l10n.maxPurchaseCapacity,
             style: TextStyle(
               color: isDark ? Colors.white38 : Colors.black38,
               fontSize: 10,
@@ -547,7 +549,7 @@ class _RealEstateSimulatorPageState extends State<RealEstateSimulatorPage> {
             children: [
               _buildCompactSubStat(
                 context,
-                "Prêt Maximum",
+                l10n.maxLoan,
                 _formatter.format(_borrowingCapacity),
               ),
             ],

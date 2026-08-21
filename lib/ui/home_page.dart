@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../l10n/app_localizations.dart';
 import '../services/data_sync_service.dart'; // 👈 Ajouté
 import '../services/patrimoine_service.dart';
 import '../widgets/Investment/investment_list.dart';
@@ -227,6 +228,7 @@ class HomePageState extends State<HomePage> {
 
   Widget _buildEmptyState(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
+    final l10n = AppLocalizations.of(context)!;
     return Center(
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
@@ -240,7 +242,7 @@ class HomePageState extends State<HomePage> {
           ),
           const SizedBox(height: 16),
           Text(
-            "Aucun compte disponible",
+            l10n.noAccountsAvailable,
             style: TextStyle(
               color: isDark
                   ? Colors.white.withValues(alpha: 0.6)
@@ -251,7 +253,7 @@ class HomePageState extends State<HomePage> {
           ),
           const SizedBox(height: 8),
           Text(
-            "Utilisez le bouton + pour commencer",
+            l10n.usePlusButtonToStart,
             style: TextStyle(
               color: isDark
                   ? Colors.white.withValues(alpha: 0.3)

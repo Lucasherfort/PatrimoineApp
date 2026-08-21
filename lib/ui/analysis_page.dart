@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import '../l10n/app_localizations.dart';
 import '../services/patrimoine_service.dart';
 import '../services/budget_service.dart';
 import '../services/financial_profile_manager.dart';
@@ -145,7 +146,7 @@ class _AnalysisPageState extends State<AnalysisPage> {
 
                     // 1. Couverture des dépenses
                     _buildIndicatorCard(
-                      title: "COUVERTURE DES DÉPENSES",
+                      title: AppLocalizations.of(context)!.expenseCoverage,
                       subtitle: "Gains passifs vs Dépenses totales",
                       current: _passiveGains,
                       target: _totalExpenses,
@@ -157,7 +158,7 @@ class _AnalysisPageState extends State<AnalysisPage> {
 
                     // 2. Couverture du DCA (Point de croisement)
                     _buildIndicatorCard(
-                      title: "COUVERTURE DE L'INVESTISSEMENT",
+                      title: AppLocalizations.of(context)!.investmentCoverage,
                       subtitle: "Gains passifs vs Montant investi (DCA)",
                       current: _passiveGains,
                       target: _monthlyInvestment,
@@ -169,7 +170,7 @@ class _AnalysisPageState extends State<AnalysisPage> {
 
                     // 3. Couverture du Salaire
                     _buildIndicatorCard(
-                      title: "COUVERTURE DU SALAIRE",
+                      title: AppLocalizations.of(context)!.salaryCoverage,
                       subtitle: "Gains passifs vs Salaire net mensuel",
                       current: _passiveGains,
                       target: _monthlyNetSalary,
@@ -205,7 +206,7 @@ class _AnalysisPageState extends State<AnalysisPage> {
       child: Column(
         children: [
           Text(
-            "GAINS MENSUELS ESTIMÉS",
+            AppLocalizations.of(context)!.monthlyGains,
             style: TextStyle(
               color: isDark ? Colors.white38 : Colors.black38,
               fontSize: 10,
@@ -232,7 +233,7 @@ class _AnalysisPageState extends State<AnalysisPage> {
           ),
           const SizedBox(height: 4),
           Text(
-            "Moyenne générée par vos actifs",
+            AppLocalizations.of(context)!.averageGenerated,
             style: TextStyle(
               color: isDark ? Colors.white24 : Colors.black26,
               fontSize: 11,
@@ -261,20 +262,20 @@ class _AnalysisPageState extends State<AnalysisPage> {
         children: [
           _buildRoadmapStep(
             icon: Icons.shopping_bag_outlined,
-            label: "BESOINS",
+            label: AppLocalizations.of(context)!.needs,
             isAchieved: _passiveGains >= _totalExpenses && _totalExpenses > 0,
             color: Colors.orange,
           ),
           _buildRoadmapStep(
             icon: Icons.auto_graph_outlined,
-            label: "CROISSANCE",
+            label: AppLocalizations.of(context)!.growth,
             isAchieved:
                 _passiveGains >= _monthlyInvestment && _monthlyInvestment > 0,
             color: const Color(0xFF0D71EE),
           ),
           _buildRoadmapStep(
             icon: Icons.star_outline_rounded,
-            label: "LIBERTÉ",
+            label: AppLocalizations.of(context)!.liberty,
             isAchieved:
                 _passiveGains >= _monthlyNetSalary && _monthlyNetSalary > 0,
             color: const Color(0xFF8B5CF6),
@@ -334,6 +335,7 @@ class _AnalysisPageState extends State<AnalysisPage> {
   }
 
   Widget _buildHeader(bool isDark) {
+    final l10n = AppLocalizations.of(context)!;
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
@@ -341,7 +343,7 @@ class _AnalysisPageState extends State<AnalysisPage> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              "ANALYSE STRATÉGIQUE",
+              l10n.analysisTitle,
               style: TextStyle(
                 color: isDark
                     ? Colors.white.withValues(alpha: 0.4)
@@ -353,7 +355,7 @@ class _AnalysisPageState extends State<AnalysisPage> {
             ),
             const SizedBox(height: 4),
             Text(
-              "Pilote d'Indépendance",
+              l10n.independencePilot,
               style: TextStyle(
                 color: isDark ? Colors.white : const Color(0xFF0F172A),
                 fontSize: 26,

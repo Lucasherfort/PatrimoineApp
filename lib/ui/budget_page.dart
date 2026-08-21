@@ -2,6 +2,7 @@ import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:intl/intl.dart';
+import '../l10n/app_localizations.dart';
 import '../models/budget/budget_category.dart';
 import '../models/budget/budget_item.dart';
 import '../services/budget_service.dart';
@@ -113,14 +114,14 @@ class _BudgetPageState extends State<BudgetPage> {
                                 ],
                                 _buildFlowSection(
                                   context,
-                                  title: "REVENUS",
+                                  title: AppLocalizations.of(context)!.income,
                                   type: BudgetType.income,
                                   color: Colors.green,
                                 ),
                                 const SizedBox(height: 32),
                                 _buildFlowSection(
                                   context,
-                                  title: "DÉPENSES",
+                                  title: AppLocalizations.of(context)!.expenses,
                                   type: BudgetType.expense,
                                   color: Colors.redAccent,
                                 ),
@@ -146,13 +147,14 @@ class _BudgetPageState extends State<BudgetPage> {
 
   Widget _buildHeader(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
+    final l10n = AppLocalizations.of(context)!;
     return Container(
       padding: const EdgeInsets.fromLTRB(24, 20, 24, 20),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            "BUDGET MENSUEL",
+            l10n.monthlyBudget,
             style: TextStyle(
               color: isDark
                   ? Colors.white.withValues(alpha: 0.4)
@@ -170,7 +172,7 @@ class _BudgetPageState extends State<BudgetPage> {
                 child: Row(
                   children: [
                     Text(
-                      "Flux financiers",
+                      l10n.financialFlows,
                       style: TextStyle(
                         color: isDark ? Colors.white : const Color(0xFF0F172A),
                         fontSize: 26,
@@ -202,11 +204,12 @@ class _BudgetPageState extends State<BudgetPage> {
   }
 
   Widget _buildBudgetChart(bool isDark) {
+    final l10n = AppLocalizations.of(context)!;
     final expensesByCat = <String, double>{};
     for (var item in _items.where(
       (i) => i.category?.type == BudgetType.expense,
     )) {
-      final label = item.category?.label ?? "Autre";
+      final label = item.category?.label ?? l10n.other;
       expensesByCat[label] = (expensesByCat[label] ?? 0) + item.amount;
     }
 
@@ -349,6 +352,7 @@ class _BudgetPageState extends State<BudgetPage> {
     required Color color,
   }) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
+    final l10n = AppLocalizations.of(context)!;
     final sectionItems = _items.where((i) => i.category?.type == type).toList();
     final total = sectionItems.fold(0.0, (sum, i) => sum + i.amount);
 
@@ -382,8 +386,8 @@ class _BudgetPageState extends State<BudgetPage> {
           _buildEmptyState(
             context,
             type == BudgetType.income
-                ? "Aucun revenu renseigné"
-                : "Aucune dépense renseignée",
+                ? l10n.noIncomeReported
+                : l10n.noExpenseReported,
           )
         else
           ...sectionItems.map((item) => _buildFlowCard(context, item, color)),
@@ -393,6 +397,7 @@ class _BudgetPageState extends State<BudgetPage> {
 
   Widget _buildFlowCard(BuildContext context, BudgetItem item, Color color) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
+    final l10n = AppLocalizations.of(context)!;
     return GestureDetector(
       onTap: () => _showAddFlowDialog(context, item: item),
       onLongPress: () => _confirmDelete(context, item),
@@ -435,7 +440,7 @@ class _BudgetPageState extends State<BudgetPage> {
                     ),
                   ),
                   Text(
-                    item.category?.label ?? "Autre",
+                    item.category?.label ?? l10n.other,
                     style: TextStyle(
                       color: isDark ? Colors.white24 : Colors.black26,
                       fontSize: 11,
@@ -457,21 +462,22 @@ class _BudgetPageState extends State<BudgetPage> {
 
   void _confirmDelete(BuildContext context, BudgetItem item) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
+    final l10n = AppLocalizations.of(context)!;
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
         backgroundColor: Theme.of(context).cardColor,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
-        title: const Text(
-          "Supprimer ?",
-          style: TextStyle(fontWeight: FontWeight.w900),
+        title: Text(
+          l10n.deleteTitle,
+          style: const TextStyle(fontWeight: FontWeight.w900),
         ),
-        content: Text("Voulez-vous vraiment supprimer '${item.label}' ?"),
+        content: Text(l10n.confirmDelete(item.label)),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(context),
             child: Text(
-              "ANNULER",
+              l10n.cancel,
               style: TextStyle(
                 color: isDark ? Colors.white38 : Colors.black38,
                 fontWeight: FontWeight.bold,
@@ -483,9 +489,9 @@ class _BudgetPageState extends State<BudgetPage> {
               _deleteItem(item.id);
               Navigator.pop(context);
             },
-            child: const Text(
-              "SUPPRIMER",
-              style: TextStyle(
+            child: Text(
+              l10n.delete,
+              style: const TextStyle(
                 color: Colors.redAccent,
                 fontWeight: FontWeight.bold,
               ),
@@ -529,6 +535,7 @@ class _BudgetPageState extends State<BudgetPage> {
   }
 
   void _showAddFlowDialog(BuildContext context, {BudgetItem? item}) {
+    final l10n = AppLocalizations.of(context)!;
     final labelController = TextEditingController(text: item?.label);
     final amountController = TextEditingController(
       text: item != null ? item.amount.toString().replaceAll('.', ',') : '',
@@ -585,7 +592,7 @@ class _BudgetPageState extends State<BudgetPage> {
                 ),
                 const SizedBox(height: 24),
                 Text(
-                  item == null ? "Ajouter un flux" : "Modifier le flux",
+                  item == null ? l10n.addFlow : l10n.editFlow,
                   style: const TextStyle(
                     fontSize: 22,
                     fontWeight: FontWeight.w900,
@@ -599,7 +606,7 @@ class _BudgetPageState extends State<BudgetPage> {
                   children: [
                     Expanded(
                       child: _buildTypeChip(
-                        label: "REVENU",
+                        label: l10n.incomeType,
                         isSelected: selectedType == BudgetType.income,
                         color: Colors.green,
                         onTap: () => setModalState(() {
@@ -610,7 +617,7 @@ class _BudgetPageState extends State<BudgetPage> {
                     const SizedBox(width: 12),
                     Expanded(
                       child: _buildTypeChip(
-                        label: "DÉPENSE",
+                        label: l10n.expenseType,
                         isSelected: selectedType == BudgetType.expense,
                         color: Colors.redAccent,
                         onTap: () => setModalState(() {
@@ -626,7 +633,7 @@ class _BudgetPageState extends State<BudgetPage> {
                   controller: labelController,
                   autofocus: item == null,
                   decoration: InputDecoration(
-                    labelText: "Libellé",
+                    labelText: l10n.label,
                     hintText: "Salaire, Loyer, Courses...",
                     filled: true,
                     fillColor: Colors.black.withValues(alpha: 0.02),
@@ -646,7 +653,7 @@ class _BudgetPageState extends State<BudgetPage> {
                     FilteringTextInputFormatter.allow(RegExp(r'^\d*[.,]?\d*')),
                   ],
                   decoration: InputDecoration(
-                    labelText: "Montant mensuel",
+                    labelText: l10n.monthlyAmount,
                     suffixText: "€",
                     filled: true,
                     fillColor: Colors.black.withValues(alpha: 0.02),
@@ -671,7 +678,7 @@ class _BudgetPageState extends State<BudgetPage> {
                             ? filteredCategories.first
                             : null),
                   decoration: InputDecoration(
-                    labelText: "Catégorie",
+                    labelText: l10n.category,
                     filled: true,
                     fillColor: Colors.black.withValues(alpha: 0.02),
                     border: OutlineInputBorder(
@@ -746,7 +753,7 @@ class _BudgetPageState extends State<BudgetPage> {
                       }
                     },
                     child: Text(
-                      item == null ? "ENREGISTRER" : "METTRE À JOUR",
+                      item == null ? l10n.save : l10n.update,
                       style: const TextStyle(
                         color: Colors.white,
                         fontWeight: FontWeight.w900,

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 
+import '../l10n/app_localizations.dart';
 import 'home_page.dart';
 import 'analysis_page.dart';
 import 'budget_page.dart';
@@ -63,58 +64,48 @@ class _MainNavigationState extends State<MainNavigation> {
       ProfilePage(appVersion: appVersion),
     ];
 
+    final l10n = AppLocalizations.of(context)!;
+
     return Scaffold(
       backgroundColor: theme.scaffoldBackgroundColor,
-
       body: IndexedStack(index: _currentIndex, children: pages),
-
       bottomNavigationBar: BottomNavigationBar(
         currentIndex: _currentIndex,
-
         onTap: (index) {
           setState(() {
             _currentIndex = index;
           });
         },
-
         backgroundColor: theme.cardColor,
-
         selectedItemColor: colorBlueMain,
-
         unselectedItemColor: isDark
             ? Colors.white.withValues(alpha: 0.4)
             : Colors.black26,
-
         type: BottomNavigationBarType.fixed,
-
         showUnselectedLabels: true,
-
         selectedFontSize: 12,
-
         unselectedFontSize: 12,
-
-        items: const [
+        items: [
           BottomNavigationBarItem(
-            icon: Icon(Icons.business_center),
-            label: 'Patrimoine',
+            icon: const Icon(Icons.business_center),
+            label: l10n.navHome,
           ),
-
           BottomNavigationBarItem(
-            icon: Icon(Icons.bar_chart),
-            label: 'Analyse',
+            icon: const Icon(Icons.bar_chart),
+            label: l10n.navAnalysis,
           ),
-
           BottomNavigationBarItem(
-            icon: Icon(Icons.pie_chart_rounded),
-            label: 'Budget',
+            icon: const Icon(Icons.pie_chart_rounded),
+            label: l10n.navBudget,
           ),
-
           BottomNavigationBarItem(
-            icon: Icon(Icons.rocket_launch_rounded),
-            label: 'Simulateurs',
+            icon: const Icon(Icons.rocket_launch_rounded),
+            label: l10n.navSimulators,
           ),
-
-          BottomNavigationBarItem(icon: Icon(Icons.menu), label: 'Menu'),
+          BottomNavigationBarItem(
+            icon: const Icon(Icons.menu),
+            label: l10n.navProfile,
+          ),
         ],
       ),
     );

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../l10n/app_localizations.dart';
 import 'tools/real_estate_simulator_page.dart';
 import 'retirement_page.dart';
 
@@ -37,14 +38,14 @@ class SimulatorsPage extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  _buildHeader(isDark),
+                  _buildHeader(isDark, context),
                   const SizedBox(height: 32),
 
                   _buildToolCard(
                     context,
                     icon: Icons.home_work_rounded,
-                    title: "Simulateur Immobilier",
-                    subtitle: "Calculez votre capacité d'achat réelle",
+                    title: AppLocalizations.of(context)!.realEstateSimulator,
+                    subtitle: AppLocalizations.of(context)!.calculatePurchaseCapacity,
                     onTap: () => Navigator.push(
                       context,
                       MaterialPageRoute(
@@ -56,8 +57,8 @@ class SimulatorsPage extends StatelessWidget {
                   _buildToolCard(
                     context,
                     icon: Icons.wb_sunny_rounded,
-                    title: "Simulateur Retraite",
-                    subtitle: "Projetez votre indépendance financière",
+                    title: AppLocalizations.of(context)!.retirementSimulator,
+                    subtitle: AppLocalizations.of(context)!.projectIndependence,
                     onTap: () => Navigator.push(
                       context,
                       MaterialPageRoute(builder: (_) => const RetirementPage()),
@@ -72,12 +73,13 @@ class SimulatorsPage extends StatelessWidget {
     );
   }
 
-  Widget _buildHeader(bool isDark) {
+  Widget _buildHeader(bool isDark, BuildContext context) {
+    final l10n = AppLocalizations.of(context)!;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          "OUTILS DE PROJECTION",
+          l10n.projectionTools,
           style: TextStyle(
             color: isDark
                 ? Colors.white.withValues(alpha: 0.4)
@@ -89,7 +91,7 @@ class SimulatorsPage extends StatelessWidget {
         ),
         const SizedBox(height: 4),
         Text(
-          "Simulateurs",
+          l10n.simulators,
           style: TextStyle(
             color: isDark ? Colors.white : const Color(0xFF0F172A),
             fontSize: 26,
