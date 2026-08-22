@@ -78,6 +78,7 @@ class _ProfilePageState extends State<ProfilePage> {
     const Color colorBlue = Color(0xFF0D71EE);
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
+    final l10n = AppLocalizations.of(context)!;
 
     return Scaffold(
       backgroundColor: isDark
@@ -137,7 +138,7 @@ class _ProfilePageState extends State<ProfilePage> {
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               Text(
-                                "MON COMPTE",
+                                l10n.account,
                                 style: TextStyle(
                                   color: isDark
                                       ? Colors.white38
@@ -190,8 +191,8 @@ class _ProfilePageState extends State<ProfilePage> {
                   _buildMenuOption(
                     context,
                     icon: Icons.info_outline,
-                    title: "À propos",
-                    subtitle: "Version de l'application",
+                    title: l10n.about,
+                    subtitle: l10n.version,
                     trailing: Text(
                       widget.appVersion,
                       style: TextStyle(
@@ -221,9 +222,9 @@ class _ProfilePageState extends State<ProfilePage> {
                       ),
                       onPressed: () => _handleLogout(context),
                       icon: const Icon(Icons.logout),
-                      label: const Text(
-                        "DÉCONNEXION",
-                        style: TextStyle(fontWeight: FontWeight.bold),
+                      label: Text(
+                        l10n.logout,
+                        style: const TextStyle(fontWeight: FontWeight.bold),
                       ),
                     ),
                   ),
@@ -238,11 +239,12 @@ class _ProfilePageState extends State<ProfilePage> {
   }
 
   Widget _buildHeader(bool isDark) {
+    final l10n = AppLocalizations.of(context)!;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          "MENU & OPTIONS",
+          l10n.navProfile.toUpperCase(),
           style: TextStyle(
             color: isDark
                 ? Colors.white.withValues(alpha: 0.4)
@@ -330,12 +332,13 @@ class _ProfilePageState extends State<ProfilePage> {
   Widget _buildAppearanceSection(BuildContext context) {
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
+    final l10n = AppLocalizations.of(context)!;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          "APPARENCE",
+          l10n.appearance,
           style: TextStyle(
             color: isDark
                 ? Colors.white.withValues(alpha: 0.4)
@@ -358,63 +361,168 @@ class _ProfilePageState extends State<ProfilePage> {
           child: ListenableBuilder(
             listenable: ThemeManager(),
             builder: (context, child) {
-              return ListTile(
-                contentPadding: EdgeInsets.zero,
-                leading: Container(
-                  padding: const EdgeInsets.all(8),
-                  decoration: BoxDecoration(
-                    color: isDark
-                        ? Colors.white.withValues(alpha: 0.05)
-                        : Colors.black.withValues(alpha: 0.03),
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                  child: Icon(
-                    Icons.palette_outlined,
-                    color: isDark ? Colors.white70 : Colors.black54,
-                    size: 20,
-                  ),
-                ),
-                title: Text(
-                  "Thème de l'application",
-                  style: TextStyle(
-                    color: theme.textTheme.bodyLarge?.color,
-                    fontWeight: FontWeight.bold,
-                    fontSize: 14,
-                  ),
-                ),
-                trailing: DropdownButton<AppThemeMode>(
-                  value: ThemeManager().appThemeMode,
-                  dropdownColor: theme.cardColor,
-                  underline: const SizedBox(),
-                  icon: Icon(
-                    Icons.keyboard_arrow_down,
-                    color: isDark ? Colors.white24 : Colors.black26,
-                  ),
-                  style: TextStyle(
-                    color: theme.textTheme.bodyLarge?.color,
-                    fontSize: 14,
-                    fontWeight: FontWeight.w600,
-                  ),
-                  onChanged: (AppThemeMode? newMode) {
-                    if (newMode != null) {
-                      ThemeManager().setThemeMode(newMode);
-                    }
-                  },
-                  items: const [
-                    DropdownMenuItem(
-                      value: AppThemeMode.light,
-                      child: Text("Clair"),
+              return Column(
+                children: [
+                  // --- THÈME ---
+                  ListTile(
+                    contentPadding: EdgeInsets.zero,
+                    leading: Container(
+                      padding: const EdgeInsets.all(8),
+                      decoration: BoxDecoration(
+                        color: isDark
+                            ? Colors.white.withValues(alpha: 0.05)
+                            : Colors.black.withValues(alpha: 0.03),
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: Icon(
+                        Icons.palette_outlined,
+                        color: isDark ? Colors.white70 : Colors.black54,
+                        size: 20,
+                      ),
                     ),
-                    DropdownMenuItem(
-                      value: AppThemeMode.dark,
-                      child: Text("Sombre"),
+                    title: Text(
+                      l10n.theme,
+                      style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
                     ),
-                    DropdownMenuItem(
-                      value: AppThemeMode.adaptive,
-                      child: Text("Adaptatif"),
+                    trailing: DropdownButton<AppThemeMode>(
+                      value: ThemeManager().appThemeMode,
+                      dropdownColor: theme.cardColor,
+                      underline: const SizedBox(),
+                      icon: Icon(
+                        Icons.keyboard_arrow_down,
+                        color: isDark ? Colors.white24 : Colors.black26,
+                      ),
+                      style: TextStyle(
+                        color: theme.textTheme.bodyLarge?.color,
+                        fontSize: 14,
+                        fontWeight: FontWeight.w600,
+                      ),
+                      onChanged: (AppThemeMode? newMode) {
+                        if (newMode != null) {
+                          ThemeManager().setThemeMode(newMode);
+                        }
+                      },
+                      items: [
+                        DropdownMenuItem(
+                          value: AppThemeMode.light,
+                          child: Text(l10n.themeLight),
+                        ),
+                        DropdownMenuItem(
+                          value: AppThemeMode.dark,
+                          child: Text(l10n.themeDark),
+                        ),
+                        DropdownMenuItem(
+                          value: AppThemeMode.adaptive,
+                          child: Text(l10n.themeSystem),
+                        ),
+                      ],
                     ),
-                  ],
-                ),
+                  ),
+                  Divider(color: isDark ? Colors.white10 : Colors.black.withValues(alpha: 0.05), height: 1),
+                  
+                  // --- LANGUE ---
+                  ListTile(
+                    contentPadding: EdgeInsets.zero,
+                    leading: Container(
+                      padding: const EdgeInsets.all(8),
+                      decoration: BoxDecoration(
+                        color: isDark
+                            ? Colors.white.withValues(alpha: 0.05)
+                            : Colors.black.withValues(alpha: 0.03),
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: Icon(
+                        Icons.language_rounded,
+                        color: isDark ? Colors.white70 : Colors.black54,
+                        size: 20,
+                      ),
+                    ),
+                    title: Text(
+                      l10n.language,
+                      style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
+                    ),
+                    trailing: DropdownButton<String?>(
+                      value: ThemeManager().locale?.languageCode,
+                      dropdownColor: theme.cardColor,
+                      underline: const SizedBox(),
+                      icon: Icon(
+                        Icons.keyboard_arrow_down,
+                        color: isDark ? Colors.white24 : Colors.black26,
+                      ),
+                      style: TextStyle(
+                        color: theme.textTheme.bodyLarge?.color,
+                        fontSize: 14,
+                        fontWeight: FontWeight.w600,
+                      ),
+                      onChanged: (String? newLang) {
+                        ThemeManager().setLocale(newLang);
+                      },
+                      items: [
+                        DropdownMenuItem(
+                          value: null,
+                          child: Text(l10n.languageSystem),
+                        ),
+                        const DropdownMenuItem(
+                          value: 'fr',
+                          child: Text("Français"),
+                        ),
+                        const DropdownMenuItem(
+                          value: 'en',
+                          child: Text("English"),
+                        ),
+                      ],
+                    ),
+                  ),
+                  Divider(color: isDark ? Colors.white10 : Colors.black.withValues(alpha: 0.05), height: 1),
+
+                  // --- POLICE ---
+                  ListTile(
+                    contentPadding: EdgeInsets.zero,
+                    leading: Container(
+                      padding: const EdgeInsets.all(8),
+                      decoration: BoxDecoration(
+                        color: isDark
+                            ? Colors.white.withValues(alpha: 0.05)
+                            : Colors.black.withValues(alpha: 0.03),
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: Icon(
+                        Icons.font_download_outlined,
+                        color: isDark ? Colors.white70 : Colors.black54,
+                        size: 20,
+                      ),
+                    ),
+                    title: const Text(
+                      "Police d'écriture",
+                      style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
+                    ),
+                    trailing: DropdownButton<String>(
+                      value: ThemeManager().fontName,
+                      dropdownColor: theme.cardColor,
+                      underline: const SizedBox(),
+                      icon: Icon(
+                        Icons.keyboard_arrow_down,
+                        color: isDark ? Colors.white24 : Colors.black26,
+                      ),
+                      style: TextStyle(
+                        color: theme.textTheme.bodyLarge?.color,
+                        fontSize: 14,
+                        fontWeight: FontWeight.w600,
+                      ),
+                      onChanged: (String? newFont) {
+                        if (newFont != null) {
+                          ThemeManager().setFont(newFont);
+                        }
+                      },
+                      items: const [
+                        DropdownMenuItem(value: 'Default', child: Text("Défaut")),
+                        DropdownMenuItem(value: 'Inter', child: Text("Inter")),
+                        DropdownMenuItem(value: 'Montserrat', child: Text("Montserrat")),
+                        DropdownMenuItem(value: 'Plus Jakarta Sans', child: Text("Jakarta")),
+                      ],
+                    ),
+                  ),
+                ],
               );
             },
           ),
@@ -426,12 +534,13 @@ class _ProfilePageState extends State<ProfilePage> {
   Widget _buildNotificationSection(BuildContext context) {
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
+    final l10n = AppLocalizations.of(context)!;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          "NOTIFICATIONS",
+          l10n.notifications,
           style: TextStyle(
             color: isDark
                 ? Colors.white.withValues(alpha: 0.4)
@@ -467,9 +576,9 @@ class _ProfilePageState extends State<ProfilePage> {
                 size: 20,
               ),
             ),
-            title: const Text(
-              "Résumé quotidien (19h)",
-              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
+            title: Text(
+              l10n.dailySummary,
+              style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
             ),
             trailing: Switch.adaptive(
               value: _notificationsEnabled,
@@ -486,12 +595,13 @@ class _ProfilePageState extends State<ProfilePage> {
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
     final manager = FinancialProfileManager();
+    final l10n = AppLocalizations.of(context)!;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          "PROFIL FINANCIER",
+          l10n.financialProfile,
           style: TextStyle(
             color: isDark
                 ? Colors.white.withValues(alpha: 0.4)
@@ -515,7 +625,7 @@ class _ProfilePageState extends State<ProfilePage> {
             children: [
               _buildNumericField(
                 context,
-                label: "Salaire net mensuel",
+                label: l10n.monthlySalary,
                 controller: _salaryController,
                 onChanged: (val) {
                   final d = double.tryParse(val) ?? 0.0;
@@ -525,7 +635,7 @@ class _ProfilePageState extends State<ProfilePage> {
               const SizedBox(height: 20),
               _buildNumericField(
                 context,
-                label: "Investissement mensuel",
+                label: l10n.monthlyInvestment,
                 controller: _investmentController,
                 onChanged: (val) {
                   final d = double.tryParse(val) ?? 0.0;

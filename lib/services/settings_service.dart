@@ -16,6 +16,8 @@ class SettingsService {
   static const _keyRetirementSwr = 'retirement_swr';
   static const _keyInflationRate = 'inflation_rate';
   static const _keyNotificationsEnabled = 'notifications_enabled';
+  static const _keyLanguageCode = 'language_code';
+  static const _keyAppFont = 'app_font';
 
   Future<AppThemeMode> getThemeMode() async {
     final prefs = await SharedPreferences.getInstance();
@@ -101,6 +103,30 @@ class SettingsService {
   Future<void> setNotificationsEnabled(bool value) async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setBool(_keyNotificationsEnabled, value);
+  }
+
+  Future<String?> getLanguageCode() async {
+    final prefs = await SharedPreferences.getInstance();
+    return prefs.getString(_keyLanguageCode);
+  }
+
+  Future<void> setLanguageCode(String? code) async {
+    final prefs = await SharedPreferences.getInstance();
+    if (code == null) {
+      await prefs.remove(_keyLanguageCode);
+    } else {
+      await prefs.setString(_keyLanguageCode, code);
+    }
+  }
+
+  Future<String> getAppFont() async {
+    final prefs = await SharedPreferences.getInstance();
+    return prefs.getString(_keyAppFont) ?? 'Default';
+  }
+
+  Future<void> setAppFont(String fontName) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString(_keyAppFont, fontName);
   }
 
   ThemeMode mapToThemeMode(AppThemeMode mode) {

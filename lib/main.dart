@@ -54,20 +54,18 @@ class PatrimoineApp extends StatelessWidget {
     return ListenableBuilder(
       listenable: ThemeManager(),
       builder: (context, child) {
+        final themeManager = ThemeManager();
         return MaterialApp(
           title: 'Patrimoine App',
           debugShowCheckedModeBanner: false,
-          themeMode: ThemeManager().themeMode,
-          localizationsDelegates: const [
-            GlobalMaterialLocalizations.delegate,
-            GlobalWidgetsLocalizations.delegate,
-            GlobalCupertinoLocalizations.delegate,
-          ],
-          supportedLocales: const [Locale('fr', 'FR')],
-          locale: const Locale('fr', 'FR'),
+          themeMode: themeManager.themeMode,
+          locale: themeManager.locale,
+          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          supportedLocales: AppLocalizations.supportedLocales,
           // Thème Clair
           theme: ThemeData(
             brightness: Brightness.light,
+            textTheme: themeManager.getTextTheme(ThemeData.light().textTheme),
             colorScheme: ColorScheme.fromSeed(
               seedColor: const Color(0xFF0D71EE),
               brightness: Brightness.light,
@@ -80,6 +78,7 @@ class PatrimoineApp extends StatelessWidget {
           // Thème Sombre
           darkTheme: ThemeData(
             brightness: Brightness.dark,
+            textTheme: themeManager.getTextTheme(ThemeData.dark().textTheme),
             colorScheme: ColorScheme.fromSeed(
               seedColor: const Color(0xFF0D71EE),
               brightness: Brightness.dark,
