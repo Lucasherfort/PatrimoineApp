@@ -43,6 +43,7 @@ flutter_icons:
 
 flutter:
   uses-material-design: true
+  generate: true
 
   assets:
     - assets/icon/patrimoine360.png

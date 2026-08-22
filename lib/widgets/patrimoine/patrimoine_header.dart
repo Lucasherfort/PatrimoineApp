@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import '../../l10n/app_localizations.dart';
 import '../../services/theme_manager.dart';
 
 class PatrimoineHeader extends StatefulWidget {
@@ -64,6 +65,7 @@ class _PatrimoineHeaderState extends State<PatrimoineHeader> {
 
   void _showInfoPanel(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
+    final l10n = AppLocalizations.of(context)!;
     final double investmentPercentage = widget.netPatrimoine > 0
         ? (widget.netWorth / widget.netPatrimoine) * 100
         : 0;
@@ -114,7 +116,7 @@ class _PatrimoineHeaderState extends State<PatrimoineHeader> {
                     ),
 
                     Text(
-                      "Détails du patrimoine",
+                      l10n.detailsPatrimoine,
                       style: textStyle.titleLarge?.copyWith(
                         fontWeight: FontWeight.w900,
                         letterSpacing: -0.5,
@@ -125,7 +127,7 @@ class _PatrimoineHeaderState extends State<PatrimoineHeader> {
                     // Section Performance
                     _buildModernInfoCard(
                       context,
-                      label: "Patrimoine net constitué",
+                      label: l10n.netWealthConstituted,
                       value: _isVisible
                           ? "${_formatAmount(widget.netPatrimoine)} €"
                           : "•••• €",
@@ -141,7 +143,7 @@ class _PatrimoineHeaderState extends State<PatrimoineHeader> {
                         Expanded(
                           child: _buildModernInfoCard(
                             context,
-                            label: "Performance globale",
+                            label: l10n.globalPerformance,
                             value: _isVisible
                                 ? "${yieldValue >= 0 ? '+' : ''}${yieldValue.toStringAsFixed(2)} %"
                                 : "•• %",
@@ -161,7 +163,7 @@ class _PatrimoineHeaderState extends State<PatrimoineHeader> {
                     // NOUVEAU : Patrimoine net estimé
                     _buildModernInfoCard(
                       context,
-                      label: "Patrimoine net estimé",
+                      label: l10n.netWealthEstimated,
                       value: _isVisible
                           ? "${_formatAmount(widget.patrimoineNetEstimated)} €"
                           : "•••• €",
@@ -187,7 +189,7 @@ class _PatrimoineHeaderState extends State<PatrimoineHeader> {
                         Expanded(
                           child: _buildModernSmallCard(
                             context,
-                            label: "Montant investi",
+                            label: l10n.investedAmount,
                             value: _isVisible
                                 ? "${_formatAmount(widget.netWorth)} €"
                                 : "•••• €",
@@ -197,7 +199,7 @@ class _PatrimoineHeaderState extends State<PatrimoineHeader> {
                         Expanded(
                           child: _buildModernSmallCard(
                             context,
-                            label: "Part investie",
+                            label: l10n.investedPart,
                             value: _isVisible
                                 ? "${investmentPercentage.toStringAsFixed(1)} %"
                                 : "•• %",
@@ -324,7 +326,7 @@ class _PatrimoineHeaderState extends State<PatrimoineHeader> {
                 children: [
                   const SizedBox(width: 48), // Spacer to balance the add button
                   Text(
-                    "PATRIMOINE BRUT TOTAL",
+                    AppLocalizations.of(context)!.totalGrossWealth,
                     style: TextStyle(
                       color: isDark
                           ? Colors.white.withValues(alpha: 0.3)
