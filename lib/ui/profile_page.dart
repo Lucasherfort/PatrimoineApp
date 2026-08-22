@@ -6,6 +6,7 @@ import 'package:patrimoine360/services/financial_profile_manager.dart';
 import 'package:patrimoine360/services/notification_service.dart';
 import 'package:patrimoine360/services/background_service.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
+import '../l10n/app_localizations.dart';
 import 'login_page.dart';
 
 class ProfilePage extends StatefulWidget {
