@@ -466,12 +466,17 @@ class _PatrimoineHeaderState extends State<PatrimoineHeader> {
     required IconData icon,
   }) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final bool isPositive = diff >= 0;
+
+    // Seuil pour considérer la variation comme nulle (évite les +0,00 ou -0,00)
+    final bool isNeutral = diff.abs() < 0.01;
+    final bool isPositive = diff > 0;
 
     // On définit la couleur selon la performance
-    final Color color = isPositive
-        ? (isDark ? colorGreenFlash : colorGreenDark)
-        : const Color(0xFFFF5F5F);
+    final Color color = isNeutral
+        ? (isDark ? Colors.white38 : Colors.black38)
+        : (isPositive
+            ? (isDark ? colorGreenFlash : colorGreenDark)
+            : const Color(0xFFFF5F5F));
 
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
@@ -519,7 +524,9 @@ class _PatrimoineHeaderState extends State<PatrimoineHeader> {
                   fit: BoxFit.scaleDown,
                   child: Text(
                     _isVisible
-                        ? "${isPositive ? '+' : ''}${_formatAmount(diff)} € (${isPositive ? '+' : ''}${percentage.toStringAsFixed(2)}%)"
+                        ? (isNeutral
+                            ? "0,00 € (0,00%)"
+                            : "${isPositive ? '+' : ''}${_formatAmount(diff)} € (${percentage >= 0 ? '+' : ''}${percentage.toStringAsFixed(2)}%)")
                         : "•••• € (••%)",
                     style: TextStyle(
                       color:
