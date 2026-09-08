@@ -220,7 +220,10 @@ class _RealEstateSimulatorPageState extends State<RealEstateSimulatorPage> {
                   const SizedBox(height: 32),
 
                   // Section Inputs: Vos Données
-                  _buildSectionHeader(context, AppLocalizations.of(context)!.yourFinancialProfile),
+                  _buildSectionHeader(
+                    context,
+                    AppLocalizations.of(context)!.yourFinancialProfile,
+                  ),
                   Row(
                     children: [
                       Expanded(
@@ -235,7 +238,9 @@ class _RealEstateSimulatorPageState extends State<RealEstateSimulatorPage> {
                       Expanded(
                         child: _buildCompactInput(
                           context,
-                          label: AppLocalizations.of(context)!.personalDownPayment,
+                          label: AppLocalizations.of(
+                            context,
+                          )!.personalDownPayment,
                           controller: _downPaymentController,
                           icon: Icons.savings_outlined,
                         ),
@@ -245,7 +250,10 @@ class _RealEstateSimulatorPageState extends State<RealEstateSimulatorPage> {
                   const SizedBox(height: 20),
 
                   // Section Inputs: Paramètres Crédit
-                  _buildSectionHeader(context, AppLocalizations.of(context)!.loanParameters),
+                  _buildSectionHeader(
+                    context,
+                    AppLocalizations.of(context)!.loanParameters,
+                  ),
                   _buildCompactSlider(
                     context,
                     label: AppLocalizations.of(context)!.duration,
@@ -272,7 +280,10 @@ class _RealEstateSimulatorPageState extends State<RealEstateSimulatorPage> {
                   const SizedBox(height: 24),
 
                   // Resources Section
-                  _buildSectionHeader(context, AppLocalizations.of(context)!.exploreMarket),
+                  _buildSectionHeader(
+                    context,
+                    AppLocalizations.of(context)!.exploreMarket,
+                  ),
                   SizedBox(
                     height: 90,
                     child: ListView(

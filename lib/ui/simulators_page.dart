@@ -45,7 +45,9 @@ class SimulatorsPage extends StatelessWidget {
                     context,
                     icon: Icons.home_work_rounded,
                     title: AppLocalizations.of(context)!.realEstateSimulator,
-                    subtitle: AppLocalizations.of(context)!.calculatePurchaseCapacity,
+                    subtitle: AppLocalizations.of(
+                      context,
+                    )!.calculatePurchaseCapacity,
                     onTap: () => Navigator.push(
                       context,
                       MaterialPageRoute(

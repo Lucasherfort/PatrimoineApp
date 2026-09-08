@@ -475,8 +475,8 @@ class _PatrimoineHeaderState extends State<PatrimoineHeader> {
     final Color color = isNeutral
         ? (isDark ? Colors.white38 : Colors.black38)
         : (isPositive
-            ? (isDark ? colorGreenFlash : colorGreenDark)
-            : const Color(0xFFFF5F5F));
+              ? (isDark ? colorGreenFlash : colorGreenDark)
+              : const Color(0xFFFF5F5F));
 
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 10),
@@ -525,8 +525,8 @@ class _PatrimoineHeaderState extends State<PatrimoineHeader> {
                   child: Text(
                     _isVisible
                         ? (isNeutral
-                            ? "0,00 € (0,00%)"
-                            : "${isPositive ? '+' : ''}${_formatAmount(diff)} € (${percentage >= 0 ? '+' : ''}${percentage.toStringAsFixed(2)}%)")
+                              ? "0,00 € (0,00%)"
+                              : "${isPositive ? '+' : ''}${_formatAmount(diff)} € (${percentage >= 0 ? '+' : ''}${percentage.toStringAsFixed(2)}%)")
                         : "•••• € (••%)",
                     style: TextStyle(
                       color:

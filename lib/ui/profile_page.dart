@@ -383,7 +383,10 @@ class _ProfilePageState extends State<ProfilePage> {
                     ),
                     title: Text(
                       l10n.theme,
-                      style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
+                      style: const TextStyle(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 14,
+                      ),
                     ),
                     trailing: DropdownButton<AppThemeMode>(
                       value: ThemeManager().appThemeMode,
@@ -419,8 +422,13 @@ class _ProfilePageState extends State<ProfilePage> {
                       ],
                     ),
                   ),
-                  Divider(color: isDark ? Colors.white10 : Colors.black.withValues(alpha: 0.05), height: 1),
-                  
+                  Divider(
+                    color: isDark
+                        ? Colors.white10
+                        : Colors.black.withValues(alpha: 0.05),
+                    height: 1,
+                  ),
+
                   // --- LANGUE ---
                   ListTile(
                     contentPadding: EdgeInsets.zero,
@@ -440,7 +448,10 @@ class _ProfilePageState extends State<ProfilePage> {
                     ),
                     title: Text(
                       l10n.language,
-                      style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
+                      style: const TextStyle(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 14,
+                      ),
                     ),
                     trailing: DropdownButton<String?>(
                       value: ThemeManager().locale?.languageCode,
@@ -474,7 +485,12 @@ class _ProfilePageState extends State<ProfilePage> {
                       ],
                     ),
                   ),
-                  Divider(color: isDark ? Colors.white10 : Colors.black.withValues(alpha: 0.05), height: 1),
+                  Divider(
+                    color: isDark
+                        ? Colors.white10
+                        : Colors.black.withValues(alpha: 0.05),
+                    height: 1,
+                  ),
 
                   // --- POLICE ---
                   ListTile(
@@ -495,7 +511,10 @@ class _ProfilePageState extends State<ProfilePage> {
                     ),
                     title: const Text(
                       "Police d'écriture",
-                      style: TextStyle(fontWeight: FontWeight.bold, fontSize: 14),
+                      style: TextStyle(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 14,
+                      ),
                     ),
                     trailing: DropdownButton<String>(
                       value: ThemeManager().fontName,
@@ -516,10 +535,19 @@ class _ProfilePageState extends State<ProfilePage> {
                         }
                       },
                       items: const [
-                        DropdownMenuItem(value: 'Default', child: Text("Défaut")),
+                        DropdownMenuItem(
+                          value: 'Default',
+                          child: Text("Défaut"),
+                        ),
                         DropdownMenuItem(value: 'Inter', child: Text("Inter")),
-                        DropdownMenuItem(value: 'Montserrat', child: Text("Montserrat")),
-                        DropdownMenuItem(value: 'Plus Jakarta Sans', child: Text("Jakarta")),
+                        DropdownMenuItem(
+                          value: 'Montserrat',
+                          child: Text("Montserrat"),
+                        ),
+                        DropdownMenuItem(
+                          value: 'Plus Jakarta Sans',
+                          child: Text("Jakarta"),
+                        ),
                       ],
                     ),
                   ),

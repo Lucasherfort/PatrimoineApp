@@ -241,7 +241,9 @@ class _RetirementPageState extends State<RetirementPage> {
                           children: [
                             _buildCompactInputField(
                               context,
-                              label: AppLocalizations.of(context)!.desiredIncome,
+                              label: AppLocalizations.of(
+                                context,
+                              )!.desiredIncome,
                               controller: _incomeController,
                               onChanged: (val) {
                                 final d = double.tryParse(val) ?? 0.0;
@@ -255,7 +257,9 @@ class _RetirementPageState extends State<RetirementPage> {
                                   flex: 2,
                                   child: _buildCompactInputField(
                                     context,
-                                    label: AppLocalizations.of(context)!.estimatedPension,
+                                    label: AppLocalizations.of(
+                                      context,
+                                    )!.estimatedPension,
                                     controller: _pensionController,
                                     onChanged: (val) {
                                       final d = double.tryParse(val) ?? 0.0;
@@ -292,7 +296,9 @@ class _RetirementPageState extends State<RetirementPage> {
                           children: [
                             _buildSummaryCard(
                               context,
-                              title: AppLocalizations.of(context)!.needAndTarget,
+                              title: AppLocalizations.of(
+                                context,
+                              )!.needAndTarget,
                               padding: const EdgeInsets.all(16),
                               child: Column(
                                 children: [
@@ -304,7 +310,9 @@ class _RetirementPageState extends State<RetirementPage> {
                                               CrossAxisAlignment.start,
                                           children: [
                                             Text(
-                                              AppLocalizations.of(context)!.toFinance,
+                                              AppLocalizations.of(
+                                                context,
+                                              )!.toFinance,
                                               style: TextStyle(
                                                 color: isDark
                                                     ? Colors.white24
@@ -342,7 +350,9 @@ class _RetirementPageState extends State<RetirementPage> {
                                               CrossAxisAlignment.start,
                                           children: [
                                             Text(
-                                              AppLocalizations.of(context)!.targetCapital,
+                                              AppLocalizations.of(
+                                                context,
+                                              )!.targetCapital,
                                               style: TextStyle(
                                                 color: isDark
                                                     ? Colors.white24
@@ -368,8 +378,12 @@ class _RetirementPageState extends State<RetirementPage> {
                                   if (incomeToFinance > 0) ...[
                                     const SizedBox(height: 12),
                                     Text(
-                                      AppLocalizations.of(context)!.capitalGenerationInfo(
-                                        manager.retirementSwr.toStringAsFixed(1),
+                                      AppLocalizations.of(
+                                        context,
+                                      )!.capitalGenerationInfo(
+                                        manager.retirementSwr.toStringAsFixed(
+                                          1,
+                                        ),
                                         _formatter.format(incomeToFinance),
                                       ),
                                       style: TextStyle(
@@ -383,7 +397,9 @@ class _RetirementPageState extends State<RetirementPage> {
                                   ] else ...[
                                     const SizedBox(height: 12),
                                     Text(
-                                      AppLocalizations.of(context)!.pensionCoversGoal,
+                                      AppLocalizations.of(
+                                        context,
+                                      )!.pensionCoversGoal,
                                       style: const TextStyle(
                                         color: Colors.green,
                                         fontSize: 10,
@@ -443,7 +459,11 @@ class _RetirementPageState extends State<RetirementPage> {
                                         MainAxisAlignment.spaceBetween,
                                     children: [
                                       Text(
-                                        AppLocalizations.of(context)!.reachedPercent((progression * 100).toInt()),
+                                        AppLocalizations.of(
+                                          context,
+                                        )!.reachedPercent(
+                                          (progression * 100).toInt(),
+                                        ),
                                         style: const TextStyle(
                                           color: Color(0xFF0D71EE),
                                           fontWeight: FontWeight.bold,
@@ -452,7 +472,11 @@ class _RetirementPageState extends State<RetirementPage> {
                                       ),
                                       if (remainingToBuild > 0)
                                         Text(
-                                          AppLocalizations.of(context)!.remainingAmount(_formatter.format(remainingToBuild)),
+                                          AppLocalizations.of(
+                                            context,
+                                          )!.remainingAmount(
+                                            _formatter.format(remainingToBuild),
+                                          ),
                                           style: TextStyle(
                                             color: isDark
                                                 ? Colors.white24
@@ -506,7 +530,9 @@ class _RetirementPageState extends State<RetirementPage> {
                                         CrossAxisAlignment.start,
                                     children: [
                                       Text(
-                                        AppLocalizations.of(context)!.retirementInsurance,
+                                        AppLocalizations.of(
+                                          context,
+                                        )!.retirementInsurance,
                                         style: TextStyle(
                                           color: isDark
                                               ? Colors.white70
@@ -516,7 +542,9 @@ class _RetirementPageState extends State<RetirementPage> {
                                         ),
                                       ),
                                       Text(
-                                        AppLocalizations.of(context)!.estimatePensionOfficialSite,
+                                        AppLocalizations.of(
+                                          context,
+                                        )!.estimatePensionOfficialSite,
                                         style: TextStyle(
                                           color: isDark
                                               ? Colors.white24
