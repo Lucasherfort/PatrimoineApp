@@ -31,7 +31,6 @@ class _AnalysisPageState extends State<AnalysisPage> {
   double _totalExpenses = 0;
   double _monthlyInvestment = 0;
   double _monthlyNetSalary = 0;
-  bool _isVisible = true;
 
   @override
   void initState() {
@@ -221,7 +220,7 @@ class _AnalysisPageState extends State<AnalysisPage> {
                 colors: [Color(0xFF0D71EE), Color(0xFF67C6F2)],
               ).createShader(bounds),
               child: Text(
-                _isVisible ? _formatAmount(_passiveGains) : "•••• €",
+                _formatAmount(_passiveGains),
                 style: const TextStyle(
                   color: Colors.white,
                   fontSize: 42,
@@ -336,43 +335,28 @@ class _AnalysisPageState extends State<AnalysisPage> {
 
   Widget _buildHeader(bool isDark) {
     final l10n = AppLocalizations.of(context)!;
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              l10n.analysisTitle,
-              style: TextStyle(
-                color: isDark
-                    ? Colors.white.withValues(alpha: 0.4)
-                    : Colors.black38,
-                fontSize: 10,
-                fontWeight: FontWeight.w900,
-                letterSpacing: 1.5,
-              ),
-            ),
-            const SizedBox(height: 4),
-            Text(
-              l10n.independencePilot,
-              style: TextStyle(
-                color: isDark ? Colors.white : const Color(0xFF0F172A),
-                fontSize: 26,
-                fontWeight: FontWeight.w900,
-                letterSpacing: -0.8,
-              ),
-            ),
-          ],
+        Text(
+          l10n.analysisTitle,
+          style: TextStyle(
+            color: isDark
+                ? Colors.white.withValues(alpha: 0.4)
+                : Colors.black38,
+            fontSize: 10,
+            fontWeight: FontWeight.w900,
+            letterSpacing: 1.5,
+          ),
         ),
-        IconButton(
-          onPressed: () => setState(() => _isVisible = !_isVisible),
-          icon: Icon(
-            _isVisible
-                ? Icons.visibility_outlined
-                : Icons.visibility_off_outlined,
-            color: isDark ? Colors.white24 : Colors.black12,
-            size: 20,
+        const SizedBox(height: 4),
+        Text(
+          l10n.independencePilot,
+          style: TextStyle(
+            color: isDark ? Colors.white : const Color(0xFF0F172A),
+            fontSize: 26,
+            fontWeight: FontWeight.w900,
+            letterSpacing: -0.8,
           ),
         ),
       ],
@@ -488,11 +472,9 @@ class _AnalysisPageState extends State<AnalysisPage> {
                     ),
                   ),
                   Text(
-                    _isVisible
-                        ? (isRatio
-                              ? "$target $unit"
-                              : "${_formatAmount(target, includeSymbol: false)} $unit")
-                        : "•• $unit",
+                    isRatio
+                        ? "$target $unit"
+                        : "${_formatAmount(target, includeSymbol: false)} $unit",
                     style: const TextStyle(
                       fontSize: 14,
                       fontWeight: FontWeight.bold,
