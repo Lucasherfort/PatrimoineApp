@@ -28,7 +28,6 @@ class _BudgetPageState extends State<BudgetPage> {
   List<BudgetItem> _items = [];
   List<BudgetCategory> _categories = [];
   bool _isLoading = true;
-  bool _isVisible = true; // 👈 Ajouté pour gérer la visibilité des montants
 
   @override
   void initState() {
@@ -168,31 +167,13 @@ class _BudgetPageState extends State<BudgetPage> {
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Expanded(
-                child: Row(
-                  children: [
-                    Text(
-                      l10n.financialFlows,
-                      style: TextStyle(
-                        color: isDark ? Colors.white : const Color(0xFF0F172A),
-                        fontSize: 26,
-                        fontWeight: FontWeight.w900,
-                        letterSpacing: -0.8,
-                      ),
-                    ),
-                    IconButton(
-                      onPressed: () => setState(() => _isVisible = !_isVisible),
-                      icon: Icon(
-                        _isVisible
-                            ? Icons.visibility_outlined
-                            : Icons.visibility_off_outlined,
-                        color: isDark ? Colors.white24 : Colors.black12,
-                        size: 18,
-                      ),
-                      padding: const EdgeInsets.only(left: 8),
-                      constraints: const BoxConstraints(),
-                    ),
-                  ],
+              Text(
+                l10n.financialFlows,
+                style: TextStyle(
+                  color: isDark ? Colors.white : const Color(0xFF0F172A),
+                  fontSize: 26,
+                  fontWeight: FontWeight.w900,
+                  letterSpacing: -0.8,
                 ),
               ),
               _buildSavingsPill(),
@@ -331,9 +312,7 @@ class _BudgetPageState extends State<BudgetPage> {
           const Icon(Icons.savings_rounded, size: 14, color: Color(0xFF0D71EE)),
           const SizedBox(width: 8),
           Text(
-            _isVisible
-                ? "${_formatAmount(_savingsCapacity, includeSymbol: false)} / mois"
-                : "•••• €",
+            "${_formatAmount(_savingsCapacity, includeSymbol: false)} / mois",
             style: const TextStyle(
               color: Color(0xFF0D71EE),
               fontWeight: FontWeight.w900,
@@ -372,7 +351,7 @@ class _BudgetPageState extends State<BudgetPage> {
               ),
             ),
             Text(
-              _isVisible ? _formatAmount(total) : "•••• €",
+              _formatAmount(total),
               style: TextStyle(
                 color: color,
                 fontWeight: FontWeight.w900,
@@ -451,7 +430,7 @@ class _BudgetPageState extends State<BudgetPage> {
               ),
             ),
             Text(
-              _isVisible ? _formatAmount(item.amount) : "••• €",
+              _formatAmount(item.amount),
               style: const TextStyle(fontWeight: FontWeight.w900, fontSize: 15),
             ),
           ],
