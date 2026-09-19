@@ -802,6 +802,8 @@ class _BudgetPageState extends State<BudgetPage> {
         return Icons.celebration_outlined;
       case 'security':
         return Icons.security;
+      case 'bolt':
+        return Icons.bolt;
       case 'more_horiz':
         return Icons.more_horiz;
       default:

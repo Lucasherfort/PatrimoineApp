@@ -114,5 +114,6 @@
   "loanParameters": "PARAMÈTRES DU PRÊT",
   "duration": "Durée",
   "interestRate": "Taux",
-  "exploreMarket": "EXPLORER LE MARCHÉ"
+  "exploreMarket": "EXPLORER LE MARCHÉ",
+  "categoryEnergy": "Énergie"
 }
