@@ -1,3 +1,4 @@
+import 'package:flutter/cupertino.dart';
 import 'package:patrimoine360/bdd/banks_table.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../bdd/savings_category_table.dart';
@@ -16,9 +17,6 @@ class SavingsAccountService {
     ${UserSavingsAccountTable.id},
     ${UserSavingsAccountTable.principal},
     ${UserSavingsAccountTable.interest},
-    ${UserSavingsAccountTable.interestRate},
-    ${UserSavingsAccountTable.openedAt},
-    ${UserSavingsAccountTable.automaticInterestCalculation},
     ${SavingsSourceTable.tableName} (
       ${SavingsSourceTable.id},
       ${SavingsSourceTable.savingsCategoryId},
@@ -49,7 +47,9 @@ class SavingsAccountService {
           .eq(UserSavingsAccountTable.userId, user.id);
 
       return response.map<UserSavingsAccountView>(_mapToView).toList();
-    } catch (e) {
+    } catch (e, stack) {
+      debugPrint('ERREUR getUserSavingsAccounts: $e');
+      debugPrint('STACK: $stack');
       return [];
     }
   }
@@ -61,8 +61,6 @@ class SavingsAccountService {
     required double principal,
     required double interest,
     required bool automaticInterestCalculation,
-    double? interestRate,
-    DateTime? openedAt,
   }) async {
     try {
       await _supabase
@@ -72,8 +70,6 @@ class SavingsAccountService {
             UserSavingsAccountTable.interest: interest,
             UserSavingsAccountTable.automaticInterestCalculation:
                 automaticInterestCalculation,
-            UserSavingsAccountTable.interestRate: interestRate,
-            UserSavingsAccountTable.openedAt: openedAt?.toIso8601String(),
             UserSavingsAccountTable.updatedAt: DateTime.now().toIso8601String(),
           })
           .eq(UserSavingsAccountTable.id, savingsAccountId);
@@ -174,26 +170,59 @@ class SavingsAccountService {
   // ─── Helpers privés ───────────────────────────────────────────────────────
 
   UserSavingsAccountView _mapToView(Map<String, dynamic> item) {
-    final source = item[SavingsSourceTable.tableName] as Map<String, dynamic>;
-    final bank = source[BanksTable.tableName] as Map<String, dynamic>;
-    final category =
-        source[SavingsCategoryTable.tableName] as Map<String, dynamic>;
+    try {
+      dynamic sourceRaw = item[SavingsSourceTable.tableName];
+      final source = sourceRaw is List
+          ? sourceRaw.first
+          : sourceRaw as Map<String, dynamic>?;
 
-    return UserSavingsAccountView(
-      id: item[UserSavingsAccountTable.id] as int,
-      sourceName: category[SavingsCategoryTable.name] as String,
-      bankName: bank[BanksTable.name] as String,
-      logoUrl: _resolveLogoUrl(bank[BanksTable.icon] as String?),
-      principal: (item[UserSavingsAccountTable.principal] as num).toDouble(),
-      interest: (item[UserSavingsAccountTable.interest] as num).toDouble(),
-      openedAt: item[UserSavingsAccountTable.openedAt] != null
-          ? DateTime.parse(item[UserSavingsAccountTable.openedAt] as String)
-          : null,
-      interestRate:
-          (item[UserSavingsAccountTable.interestRate] as num?)?.toDouble() ??
-          (category[SavingsCategoryTable.interestRate] as num?)?.toDouble(),
-      ceiling: (category[SavingsCategoryTable.ceiling] as num?)?.toDouble(),
-    );
+      if (source == null) {
+        throw Exception(
+          "Relation 'savings_source' manquante pour le compte ID: ${item[UserSavingsAccountTable.id]}",
+        );
+      }
+
+      dynamic bankRaw = source[BanksTable.tableName];
+      final bank = bankRaw is List
+          ? bankRaw.first
+          : bankRaw as Map<String, dynamic>?;
+
+      if (bank == null) {
+        throw Exception(
+          "Relation 'banks' manquante pour le compte ID: ${item[UserSavingsAccountTable.id]}",
+        );
+      }
+
+      dynamic categoryRaw = source[SavingsCategoryTable.tableName];
+      final category = categoryRaw is List
+          ? categoryRaw.first
+          : categoryRaw as Map<String, dynamic>?;
+
+      if (category == null) {
+        throw Exception(
+          "Relation 'savings_category' manquante pour le compte ID: ${item[UserSavingsAccountTable.id]}",
+        );
+      }
+
+      return UserSavingsAccountView(
+        id: item[UserSavingsAccountTable.id] as int,
+        sourceName: category[SavingsCategoryTable.name] as String,
+        bankName: bank[BanksTable.name] as String,
+        logoUrl: _resolveLogoUrl(bank[BanksTable.icon] as String?),
+        principal:
+            (item[UserSavingsAccountTable.principal] as num?)?.toDouble() ??
+            0.0,
+        interest:
+            (item[UserSavingsAccountTable.interest] as num?)?.toDouble() ?? 0.0,
+        interestRate: (category[SavingsCategoryTable.interestRate] as num?)
+            ?.toDouble(),
+        ceiling: (category[SavingsCategoryTable.ceiling] as num?)?.toDouble(),
+      );
+    } catch (e) {
+      debugPrint('ERREUR _mapToView Savings: $e');
+      debugPrint('ITEM DATA: $item');
+      rethrow;
+    }
   }
 
   String _resolveLogoUrl(String? iconPath) {
@@ -226,32 +255,7 @@ class SavingsAccountService {
 
   /// Récupère la valeur totale nette estimée de l'épargne (fiscalité déduite si applicable)
   Future<double> getTotalSavingsValueNet() async {
-    final accounts = await getUserSavingsAccounts();
-    double total = 0;
-
-    for (var acc in accounts) {
-      if (acc.sourceName.toUpperCase().contains('PEL') &&
-          acc.openedAt != null) {
-        final flatTaxDate = DateTime(2018, 1, 1);
-        final isAfter2018 =
-            acc.openedAt!.isAfter(flatTaxDate) ||
-            acc.openedAt!.isAtSameMomentAs(flatTaxDate);
-        final ageInYears =
-            DateTime.now().difference(acc.openedAt!).inDays / 365.25;
-
-        double taxRate;
-        if (isAfter2018 || ageInYears > 12) {
-          taxRate = 0.30; // IR 12.8% + PS 17.2%
-        } else {
-          taxRate = 0.172; // Uniquement PS 17.2%
-        }
-        total += acc.principal + (acc.interest * (1 - taxRate));
-      } else {
-        total += acc.principal + acc.interest;
-      }
-    }
-
-    return total;
+    return getTotalSavingsValue();
   }
 
   /// Récupère uniquement le capital déposé (Principal) de l'épargne.

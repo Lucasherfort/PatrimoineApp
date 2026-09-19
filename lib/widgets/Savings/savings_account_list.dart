@@ -58,21 +58,26 @@ class _SavingsAccountListState extends State<SavingsAccountList> {
     return FutureBuilder<List<UserSavingsAccountView>>(
       future: _accountsFuture,
       builder: (context, snapshot) {
-        if (snapshot.connectionState == ConnectionState.waiting) {
+        if (snapshot.connectionState == ConnectionState.waiting &&
+            _accounts.isEmpty) {
           return const SizedBox();
         }
 
         if (snapshot.hasError) {
+          debugPrint('ERREUR SavingsAccountList snapshot: ${snapshot.error}');
           return Padding(
             padding: const EdgeInsets.all(16),
             child: Text(
-              'Erreur de chargement des comptes épargne',
+              'Erreur de chargement : ${snapshot.error}',
               style: TextStyle(color: Colors.red.shade400),
             ),
           );
         }
 
-        if (_accounts.isEmpty) {
+        final List<UserSavingsAccountView> displayAccounts =
+            snapshot.data ?? _accounts;
+
+        if (displayAccounts.isEmpty) {
           return const SizedBox.shrink();
         }
 
@@ -108,7 +113,7 @@ class _SavingsAccountListState extends State<SavingsAccountList> {
                     ),
                   ),
                   const Spacer(),
-                  if (_accounts.length > 1)
+                  if (displayAccounts.length > 1)
                     Container(
                       padding: const EdgeInsets.symmetric(
                         horizontal: 10,
@@ -125,7 +130,7 @@ class _SavingsAccountListState extends State<SavingsAccountList> {
                         ),
                       ),
                       child: Text(
-                        '${_formatAmount(_accounts.fold<double>(0, (sum, a) => sum + a.principal + a.interest))} €',
+                        '${_formatAmount(displayAccounts.fold<double>(0, (sum, a) => sum + a.principal + a.interest))} €',
                         style: TextStyle(
                           fontSize: 13,
                           fontWeight: FontWeight.bold,
@@ -138,24 +143,14 @@ class _SavingsAccountListState extends State<SavingsAccountList> {
                 ],
               ),
             ),
-            ..._accounts.map(
+            ...displayAccounts.map(
               (account) => SavingsAccountCard(
                 account: account,
                 onValueUpdated: (updatedAccount) {
-                  final index = _accounts.indexWhere(
-                    (a) => a.id == updatedAccount.id,
-                  );
-                  if (index != -1) {
-                    setState(() {
-                      _accounts[index] = updatedAccount;
-                      _accounts.sort(
-                        (a, b) => (b.principal + b.interest).compareTo(
-                          a.principal + a.interest,
-                        ),
-                      );
-                    });
-                    widget.onAccountUpdated();
-                  }
+                  setState(() {
+                    _loadAccounts();
+                  });
+                  widget.onAccountUpdated();
                 },
                 onDeleted: () => _deleteAccount(account.id),
               ),

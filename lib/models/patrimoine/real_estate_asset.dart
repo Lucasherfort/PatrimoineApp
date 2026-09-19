@@ -16,14 +16,19 @@ class RealEstateAsset {
   });
 
   factory RealEstateAsset.fromJson(Map<String, dynamic> json) {
+    dynamic catRaw = json['real_estate_category'];
+    final category = catRaw is List
+        ? catRaw.first
+        : catRaw as Map<String, dynamic>?;
+
     return RealEstateAsset(
       id: json['id'],
       categoryId: json['category_id'],
-      categoryName:
-          json['real_estate_category']['label'] ??
-          json['real_estate_category']['name'],
+      categoryName: category != null
+          ? (category['label'] ?? category['name'] ?? 'Inconnu')
+          : 'Inconnu',
       label: json['label'],
-      amount: (json['amount'] as num).toDouble(),
+      amount: (json['amount'] as num?)?.toDouble() ?? 0.0,
       address: json['address'],
     );
   }

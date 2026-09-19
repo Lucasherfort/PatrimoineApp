@@ -49,6 +49,10 @@ class RealEstateService {
 
   Future<double> getTotalRealEstateValue() async {
     final assets = await getUserRealEstateAssets();
-    return assets.fold<double>(0.0, (sum, asset) => sum + asset.amount);
+    double total = 0.0;
+    for (var asset in assets) {
+      total += asset.amount;
+    }
+    return total;
   }
 }

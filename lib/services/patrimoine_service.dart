@@ -122,7 +122,7 @@ class PatrimoineService {
     final response = await _supabase
         .from(table)
         .select(idColumn)
-        .eq(UserLiquidityAccountTable.userId, userId)
+        .eq('user_id', userId)
         .limit(1);
     return response.isNotEmpty;
   }
