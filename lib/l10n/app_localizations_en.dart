@@ -327,4 +327,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get exploreMarket => 'EXPLORE THE MARKET';
+
+  @override
+  String get categoryEnergy => 'Energy';
 }

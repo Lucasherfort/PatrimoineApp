@@ -327,4 +327,7 @@ class AppLocalizationsFr extends AppLocalizations {
 
   @override
   String get exploreMarket => 'EXPLORER LE MARCHÉ';
+
+  @override
+  String get categoryEnergy => 'Énergie';
 }

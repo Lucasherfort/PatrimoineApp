@@ -36,26 +36,82 @@ class _RealEstateListState extends State<RealEstateList> {
     }
   }
 
+  String _formatAmount(double amount) {
+    final parts = amount.toStringAsFixed(2).split('.');
+    final intPart = parts[0].replaceAllMapped(
+      RegExp(r'(\d)(?=(\d{3})+$)'),
+      (m) => '${m[1]}\u00A0',
+    );
+    return '$intPart,${parts[1]}';
+  }
+
   @override
   Widget build(BuildContext context) {
     if (_isLoading) return const SizedBox();
     if (_assets.isEmpty) return const SizedBox();
 
     final isDark = Theme.of(context).brightness == Brightness.dark;
+    final totalRealEstate = _assets.fold<double>(0, (sum, a) => sum + a.amount);
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Padding(
-          padding: const EdgeInsets.fromLTRB(16, 24, 16, 12),
-          child: Text(
-            "IMMOBILIER",
-            style: TextStyle(
-              color: isDark ? Colors.white38 : Colors.black38,
-              fontSize: 11,
-              fontWeight: FontWeight.w900,
-              letterSpacing: 1.2,
-            ),
+          padding: const EdgeInsets.fromLTRB(16, 16, 16, 8),
+          child: Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  color: Colors.orange.shade400.withValues(alpha: 0.2),
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: Icon(
+                  Icons.home_work_rounded,
+                  color: isDark
+                      ? Colors.orange.shade300
+                      : Colors.orange.shade700,
+                  size: 20,
+                ),
+              ),
+              const SizedBox(width: 12),
+              Text(
+                "Immobilier",
+                style: TextStyle(
+                  fontSize: 20,
+                  fontWeight: FontWeight.bold,
+                  color: isDark ? Colors.white : const Color(0xFF0F172A),
+                ),
+              ),
+              const Spacer(),
+              if (_assets.length > 1)
+                Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 10,
+                    vertical: 4,
+                  ),
+                  decoration: BoxDecoration(
+                    color: isDark
+                        ? Colors.orange.shade400.withValues(alpha: 0.15)
+                        : Colors.orange.shade50,
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(
+                      color: Colors.orange.shade400.withValues(alpha: 0.3),
+                      width: 1,
+                    ),
+                  ),
+                  child: Text(
+                    '${_formatAmount(totalRealEstate)} €',
+                    style: TextStyle(
+                      fontSize: 13,
+                      fontWeight: FontWeight.bold,
+                      color: isDark
+                          ? Colors.orange.shade300
+                          : Colors.orange.shade800,
+                    ),
+                  ),
+                ),
+            ],
           ),
         ),
         ..._assets.map(

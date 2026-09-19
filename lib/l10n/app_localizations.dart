@@ -715,6 +715,12 @@ abstract class AppLocalizations {
   /// In fr, this message translates to:
   /// **'EXPLORER LE MARCHÉ'**
   String get exploreMarket;
+
+  /// No description provided for @categoryEnergy.
+  ///
+  /// In fr, this message translates to:
+  /// **'Énergie'**
+  String get categoryEnergy;
 }
 
 class _AppLocalizationsDelegate

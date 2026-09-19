@@ -15,12 +15,62 @@ class RealEstateAssetCard extends StatelessWidget {
     this.onDeleted,
   });
 
+  String _formatAmount(double amount) {
+    final formatter = NumberFormat.currency(
+      locale: 'fr_FR',
+      symbol: '€',
+      decimalDigits: 2,
+    );
+    return formatter.format(amount);
+  }
+
+  void _confirmDelete(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        backgroundColor: Theme.of(context).cardColor,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        title: const Text(
+          'Confirmer la suppression',
+          style: TextStyle(fontWeight: FontWeight.bold),
+        ),
+        content: Text("Voulez-vous vraiment supprimer « ${asset.label} » ?"),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Annuler'),
+          ),
+          ElevatedButton(
+            onPressed: () {
+              Navigator.pop(context);
+              if (onDeleted != null) onDeleted!();
+            },
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.red,
+              foregroundColor: Colors.white,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(8),
+              ),
+            ),
+            child: const Text('Supprimer'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  IconData _getIconForCategory(String category) {
+    if (category.contains('Principale')) return Icons.home_rounded;
+    if (category.contains('Secondaire')) return Icons.beach_access_rounded;
+    if (category.contains('Locatif')) return Icons.apartment_rounded;
+    if (category.contains('Caution')) return Icons.security_rounded;
+    return Icons.account_balance_rounded;
+  }
+
   @override
   Widget build(BuildContext context) {
-    final currencyFormat = NumberFormat.currency(locale: 'fr_FR', symbol: '€');
-
-    return Container(
-      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
       child: InkWell(
         borderRadius: BorderRadius.circular(16),
         onTap: () async {
@@ -30,7 +80,7 @@ class RealEstateAssetCard extends StatelessWidget {
               builder: (_) => RealEstateDetailPage(asset: asset),
             ),
           );
-          if (result == true) onUpdated?.call();
+          if (result == true && onUpdated != null) onUpdated!();
         },
         onLongPress: () => _confirmDelete(context),
         child: Container(
@@ -47,6 +97,7 @@ class RealEstateAssetCard extends StatelessWidget {
           child: IntrinsicHeight(
             child: Row(
               children: [
+                // Barre d'accentuation à gauche
                 Container(
                   width: 4,
                   margin: const EdgeInsets.symmetric(vertical: 12),
@@ -58,9 +109,12 @@ class RealEstateAssetCard extends StatelessWidget {
                   ),
                 ),
                 const SizedBox(width: 12),
+
+                /// Icône de l'actif
                 Container(
                   width: 46,
                   height: 46,
+                  padding: const EdgeInsets.all(6),
                   decoration: BoxDecoration(
                     color: Theme.of(context).brightness == Brightness.dark
                         ? Colors.white.withValues(alpha: 0.05)
@@ -70,15 +124,20 @@ class RealEstateAssetCard extends StatelessWidget {
                   child: Icon(
                     _getIconForCategory(asset.categoryName),
                     color: Colors.orange.shade300,
-                    size: 24,
+                    size: 22,
                   ),
                 ),
                 const SizedBox(width: 14),
+
+                /// Infos à gauche
                 Expanded(
                   child: Padding(
-                    padding: const EdgeInsets.symmetric(vertical: 14),
+                    padding: const EdgeInsets.symmetric(
+                      vertical: 12,
+                    ), // Ajusté de 14 à 12
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
+                      mainAxisAlignment: MainAxisAlignment.center,
                       children: [
                         Text(
                           asset.label,
@@ -87,6 +146,8 @@ class RealEstateAssetCard extends StatelessWidget {
                             fontSize: 16,
                             color: Theme.of(context).textTheme.bodyLarge?.color,
                           ),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
                         ),
                         const SizedBox(height: 2),
                         Text(
@@ -95,19 +156,25 @@ class RealEstateAssetCard extends StatelessWidget {
                             fontSize: 13,
                             color: Theme.of(context).textTheme.bodySmall?.color,
                           ),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
                         ),
                       ],
                     ),
                   ),
                 ),
+
+                /// Valeur à droite
                 Padding(
                   padding: const EdgeInsets.only(right: 16),
-                  child: Text(
-                    currencyFormat.format(asset.amount),
-                    style: TextStyle(
-                      fontSize: 17,
-                      fontWeight: FontWeight.w900,
-                      color: Theme.of(context).textTheme.bodyLarge?.color,
+                  child: Center(
+                    child: Text(
+                      _formatAmount(asset.amount),
+                      style: TextStyle(
+                        fontSize: 17,
+                        fontWeight: FontWeight.w900,
+                        color: Theme.of(context).textTheme.bodyLarge?.color,
+                      ),
                     ),
                   ),
                 ),
@@ -115,39 +182,6 @@ class RealEstateAssetCard extends StatelessWidget {
             ),
           ),
         ),
-      ),
-    );
-  }
-
-  IconData _getIconForCategory(String category) {
-    if (category.contains('Principale')) return Icons.home_rounded;
-    if (category.contains('Secondaire')) return Icons.beach_access_rounded;
-    if (category.contains('Locatif')) return Icons.apartment_rounded;
-    if (category.contains('Caution')) return Icons.security_rounded;
-    return Icons.account_balance_rounded;
-  }
-
-  void _confirmDelete(BuildContext context) {
-    showDialog(
-      context: context,
-      builder: (_) => AlertDialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        title: const Text("Supprimer l'actif"),
-        content: Text("Voulez-vous vraiment supprimer « ${asset.label} » ?"),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text("Annuler"),
-          ),
-          ElevatedButton(
-            style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
-            onPressed: () {
-              Navigator.pop(context);
-              onDeleted?.call();
-            },
-            child: const Text("Supprimer"),
-          ),
-        ],
       ),
     );
   }
