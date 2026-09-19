@@ -83,9 +83,17 @@ class _AddPatrimoineWizardState extends State<AddPatrimoineWizard> {
   Future<void> _loadSourcesForCategory(PatrimoineCategory category) async {
     setState(() => isLoading = true);
     try {
+      debugPrint('Chargement des sources pour la catégorie: ${category.name}');
       final loadedSources = await _wizardService.getSourcesForCategory(
         category,
       );
+
+      if (loadedSources.isEmpty) {
+        _showError('Aucun type de compte trouvé pour cette catégorie.');
+        setState(() => isLoading = false);
+        return;
+      }
+
       setState(() {
         sources = loadedSources;
         selectedSource = null;
@@ -93,11 +101,23 @@ class _AddPatrimoineWizardState extends State<AddPatrimoineWizard> {
         currentStep = 1;
       });
     } catch (e) {
+      debugPrint('Erreur _loadSourcesForCategory: $e');
+      _showError('Erreur de chargement: $e');
       setState(() => isLoading = false);
     }
   }
 
   Future<void> _loadBanksForSource(SourceItem source) async {
+    if (source.type == 'real_estate') {
+      // Pour l'immobilier, on saute l'étape des banques
+      setState(() {
+        selectedSource = source;
+        selectedBank = null;
+        currentStep = 2; // On va directement à l'étape finale de saisie
+      });
+      return;
+    }
+
     setState(() => isLoading = true);
     try {
       final loadedBanks = await _loadBanksBySourceType(source);
@@ -143,6 +163,9 @@ class _AddPatrimoineWizardState extends State<AddPatrimoineWizard> {
     }
 
     setState(() => isSaving = true);
+    debugPrint(
+      'Début sauvegarde patrimoine. Type source: ${selectedSource?.type}',
+    );
 
     try {
       if (selectedSource!.type == 'liquidity') {
@@ -202,14 +225,28 @@ class _AddPatrimoineWizardState extends State<AddPatrimoineWizard> {
                 'amount': 0,
               });
         }
+      } else if (selectedSource!.type == 'real_estate') {
+        debugPrint(
+          'Insertion RealEstate: id_cat=${selectedSource!.id}, label=${_searchController.text}',
+        );
+        await Supabase.instance.client.from('user_real_estate_asset').insert({
+          'user_id': user.id,
+          'category_id': selectedSource!.id,
+          'label': _searchController.text.isNotEmpty
+              ? _searchController.text
+              : selectedSource!.name,
+          'amount': 0,
+        });
+        debugPrint('Insertion RealEstate réussie');
       }
 
-      _showSuccess('Compte créé avec succès');
+      _showSuccess('Élément ajouté avec succès');
       if (mounted) Navigator.pop(context, true);
     } catch (e) {
+      debugPrint('Erreur lors de la sauvegarde: $e');
       _showError('Erreur lors de la création: $e');
     } finally {
-      setState(() => isSaving = false);
+      if (mounted) setState(() => isSaving = false);
     }
   }
 
@@ -278,7 +315,11 @@ class _AddPatrimoineWizardState extends State<AddPatrimoineWizard> {
     String title = "Ajouter un compte";
     if (currentStep == 0) title = "Catégorie de patrimoine";
     if (currentStep == 1) title = "Type de compte";
-    if (currentStep == 2) title = "Établissement bancaire";
+    if (currentStep == 2) {
+      title = selectedSource?.type == 'real_estate'
+          ? "Nom de votre actif"
+          : "Établissement bancaire";
+    }
 
     return Row(
       children: [
@@ -296,7 +337,9 @@ class _AddPatrimoineWizardState extends State<AddPatrimoineWizard> {
               ),
               if (selectedCategory != null && currentStep > 0)
                 Text(
-                  selectedCategory!.label,
+                  selectedCategory!.name == 'RealEstate'
+                      ? "Immobilier"
+                      : selectedCategory!.label,
                   style: TextStyle(
                     color: isDark
                         ? Colors.white.withValues(alpha: 0.4)
@@ -347,10 +390,50 @@ class _AddPatrimoineWizardState extends State<AddPatrimoineWizard> {
       case 1:
         return _buildSourceList(context);
       case 2:
+        if (selectedSource?.type == 'real_estate') {
+          return _buildRealEstateNamingStep(context);
+        }
         return _buildBankSearchableList(context);
       default:
         return const SizedBox();
     }
+  }
+
+  Widget _buildRealEstateNamingStep(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        const SizedBox(height: 8),
+        Text(
+          "Donnez un nom personnalisé à cet actif (ex: Maison de campagne, Caution appartement Lyon...)",
+          style: TextStyle(
+            color: isDark ? Colors.white54 : Colors.black54,
+            fontSize: 14,
+          ),
+        ),
+        const SizedBox(height: 24),
+        TextField(
+          controller: _searchController, // On réutilise ce controller
+          autofocus: true,
+          style: TextStyle(color: Theme.of(context).textTheme.bodyLarge?.color),
+          decoration: InputDecoration(
+            hintText: "Nom de l'actif",
+            hintStyle: TextStyle(
+              color: isDark ? Colors.white24 : Colors.black26,
+            ),
+            filled: true,
+            fillColor: isDark
+                ? Colors.white.withValues(alpha: 0.05)
+                : Colors.black.withValues(alpha: 0.03),
+            border: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(16),
+              borderSide: BorderSide.none,
+            ),
+          ),
+        ),
+      ],
+    );
   }
 
   Widget _buildCategoryGrid(BuildContext context) {
@@ -374,9 +457,15 @@ class _AddPatrimoineWizardState extends State<AddPatrimoineWizard> {
           icon = Icons.trending_up_rounded;
         }
 
+        String label = category.label;
+        if (category.name == 'RealEstate') {
+          icon = Icons.home_work_rounded;
+          label = "Immobilier";
+        }
+
         return _buildSelectionCard(
           context,
-          title: category.label,
+          title: label,
           icon: icon,
           isSelected: isSelected,
           onTap: () {
@@ -644,7 +733,10 @@ class _AddPatrimoineWizardState extends State<AddPatrimoineWizard> {
         if (currentStep == 2)
           Expanded(
             child: ElevatedButton(
-              onPressed: (selectedBank != null && !isSaving)
+              onPressed:
+                  (selectedBank != null ||
+                          selectedSource?.type == 'real_estate') &&
+                      !isSaving
                   ? _savePatrimoine
                   : null,
               style: ElevatedButton.styleFrom(

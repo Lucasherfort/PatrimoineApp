@@ -124,6 +124,29 @@ class PatrimoineWizardService {
           .toList();
     }
 
+    if (categoryName == 'RealEstate') {
+      try {
+        final response = await _supabase
+            .from('real_estate_category')
+            .select('id, name, label');
+
+        debugPrint('Réponse brute Supabase RealEstate: $response');
+
+        return (response as List)
+            .map(
+              (item) => SourceItem(
+                id: item['id'] as int,
+                name: (item['label'] as String?) ?? (item['name'] as String),
+                type: 'real_estate',
+              ),
+            )
+            .toList();
+      } catch (e) {
+        debugPrint('Erreur Supabase RealEstate: $e');
+        rethrow;
+      }
+    }
+
     return [];
   }
 

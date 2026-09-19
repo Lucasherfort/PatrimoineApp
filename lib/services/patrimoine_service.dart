@@ -1,4 +1,5 @@
 import 'package:patrimoine360/services/savings_account_service.dart';
+import 'package:patrimoine360/services/real_estate_service.dart'; // 👈 Ajouté
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../bdd/patrimoine_category_table.dart';
 import '../bdd/user_investment_account_table.dart';
@@ -23,6 +24,7 @@ class PatrimoineService {
   final LiquidityService _liquidityService = LiquidityService();
   final SavingsAccountService _savingsService = SavingsAccountService();
   final InvestmentService _investmentService = InvestmentService();
+  final RealEstateService _realEstateService = RealEstateService(); // 👈 Ajouté
   final SettingsService _settingsService = SettingsService();
   final FinancialProfileManager _financialProfileManager =
       FinancialProfileManager();
@@ -34,6 +36,8 @@ class PatrimoineService {
   Future<double> getSavingsValue() => _savingsService.getTotalSavingsValue();
   Future<double> getInvestmentsValue() =>
       _investmentService.getTotalPortfolioValueGross();
+  Future<double> getRealEstateValue() =>
+      _realEstateService.getTotalRealEstateValue(); // 👈 Ajouté
 
   // ─── Utils ────────────────────────────────────────────────────────────────
 
@@ -53,6 +57,7 @@ class PatrimoineService {
       _liquidityService.getTotalLiquidityValue(),
       _savingsService.getTotalSavingsValue(),
       _investmentService.getTotalPortfolioValueGross(),
+      _realEstateService.getTotalRealEstateValue(), // 👈 Ajouté
     ]);
 
     return values.reduce((a, b) => a + b);
@@ -64,8 +69,9 @@ class PatrimoineService {
 
     final values = await Future.wait([
       _liquidityService.getTotalLiquidityValue(),
-      _savingsService.getTotalSavingsValue(),
+      _savingsService.getTotalSavingsValueNet(),
       _investmentService.getTotalPortfolioValueNet(),
+      _realEstateService.getTotalRealEstateValue(), // 👈 Ajouté
     ]);
 
     return values.reduce((a, b) => a + b);
@@ -80,6 +86,7 @@ class PatrimoineService {
       _liquidityService.getTotalLiquidityValue(),
       _savingsService.getTotalSavingsValue(),
       _investmentService.getUserInvestmentsTotalValue(),
+      _realEstateService.getTotalRealEstateValue(), // 👈 Ajouté
     ]);
 
     return values.reduce((a, b) => a + b);
@@ -106,6 +113,9 @@ class PatrimoineService {
     UserInvestmentAccountTable.tableName,
     UserInvestmentAccountTable.id,
   );
+
+  Future<bool> hasRealEstateAssets() =>
+      _hasAccounts('user_real_estate_asset', 'id'); // 👈 Ajouté
 
   Future<bool> _hasAccounts(String table, String idColumn) async {
     final userId = _requireUserId();
@@ -152,6 +162,8 @@ class PatrimoineService {
     final liquidityAccounts = results[0] as List;
     final savingsAccounts = results[1] as List;
     final investmentAccounts = results[2] as List;
+    final realEstateAssets = await _realEstateService
+        .getUserRealEstateAssets(); // 👈 Ajouté
 
     return [
       liquidityAccounts.fold<double>(0.0, (sum, a) => sum + a.amount),
@@ -160,6 +172,10 @@ class PatrimoineService {
         0.0,
         (sum, a) => sum + a.cumulativeDeposits,
       ),
+      realEstateAssets.fold<double>(
+        0.0,
+        (sum, a) => sum + a.amount,
+      ), // 👈 Ajouté
     ].fold<double>(0.0, (sum, subtotal) => sum + subtotal);
   }
 
@@ -170,9 +186,10 @@ class PatrimoineService {
       _liquidityService.getTotalLiquidityValue(),
       _savingsService.getTotalSavingsPrincipal(),
       getTotalInvestedCapital(),
+      _realEstateService.getTotalRealEstateValue(), // 👈 Ajouté
     ]);
 
-    return values[0] + values[1] + values[2];
+    return values[0] + values[1] + values[2] + values[3];
   }
 
   /// Calcule le capital total investi par l'utilisateur
@@ -285,9 +302,10 @@ class PatrimoineService {
       _liquidityService.getTotalLiquidityValue(),
       _savingsService.getTotalSavingsPrincipal(),
       getTotalInvestedCapital(),
+      _realEstateService.getTotalRealEstateValue(), // 👈 Ajouté
     ]);
 
-    return values[0] + values[1] + values[2];
+    return values[0] + values[1] + values[2] + values[3];
   }
 
   // ─── Historique ───────────────────────────────────────────────────────────

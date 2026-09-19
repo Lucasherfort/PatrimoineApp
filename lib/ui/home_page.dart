@@ -4,6 +4,7 @@ import '../services/data_sync_service.dart'; // 👈 Ajouté
 import '../services/patrimoine_service.dart';
 import '../widgets/Investment/investment_list.dart';
 import '../widgets/Savings/savings_account_list.dart';
+import '../widgets/RealEstate/real_estate_list.dart'; // 👈 Ajouté
 import '../widgets/patrimoine/add_patrimoine_wizard.dart';
 import '../widgets/Liquidity/liquidity_account_list.dart';
 import '../widgets/patrimoine/patrimoine_header.dart';
@@ -36,6 +37,7 @@ class HomePageState extends State<HomePage> {
   bool hasLiquidityAccounts = false;
   bool hasSavingsAccounts = false;
   bool hasInvestmentAccounts = false;
+  bool hasRealEstateAssets = false; // 👈 Ajouté
 
   @override
   void initState() {
@@ -74,6 +76,8 @@ class HomePageState extends State<HomePage> {
       final liquidity = await _patrimoineService.hasLiquidityAccounts();
       final savings = await _patrimoineService.hasSavingsAccounts();
       final investments = await _patrimoineService.hasInvestmentAccounts();
+      final realEstate = await _patrimoineService
+          .hasRealEstateAssets(); // 👈 Ajouté
       final investedCapitalAmount = await _patrimoineService
           .getTotalInvestedCapital();
       final portfolioValueAmount = await _patrimoineService
@@ -89,6 +93,7 @@ class HomePageState extends State<HomePage> {
           hasLiquidityAccounts = liquidity;
           hasSavingsAccounts = savings;
           hasInvestmentAccounts = investments;
+          hasRealEstateAssets = realEstate; // 👈 Ajouté
           investedCapital = investedCapitalAmount;
           netPatrimoine = netPatrimoineAmount;
           portfolioValue = portfolioValueAmount;
@@ -134,7 +139,10 @@ class HomePageState extends State<HomePage> {
     }
 
     final hasAnyAccount =
-        hasLiquidityAccounts || hasSavingsAccounts || hasInvestmentAccounts;
+        hasLiquidityAccounts ||
+        hasSavingsAccounts ||
+        hasInvestmentAccounts ||
+        hasRealEstateAssets;
 
     return Scaffold(
       backgroundColor: isDark
@@ -213,6 +221,8 @@ class HomePageState extends State<HomePage> {
                                 InvestmentList(
                                   onAccountUpdated: _loadPatrimoine,
                                 ),
+                              if (hasRealEstateAssets)
+                                RealEstateList(onAssetUpdated: _loadPatrimoine),
                             ],
                           ),
                         )

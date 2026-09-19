@@ -16,6 +16,8 @@ class SavingsAccountService {
     ${UserSavingsAccountTable.id},
     ${UserSavingsAccountTable.principal},
     ${UserSavingsAccountTable.interest},
+    ${UserSavingsAccountTable.interestRate},
+    ${UserSavingsAccountTable.openedAt},
     ${UserSavingsAccountTable.automaticInterestCalculation},
     ${SavingsSourceTable.tableName} (
       ${SavingsSourceTable.id},
@@ -59,6 +61,8 @@ class SavingsAccountService {
     required double principal,
     required double interest,
     required bool automaticInterestCalculation,
+    double? interestRate,
+    DateTime? openedAt,
   }) async {
     try {
       await _supabase
@@ -68,6 +72,8 @@ class SavingsAccountService {
             UserSavingsAccountTable.interest: interest,
             UserSavingsAccountTable.automaticInterestCalculation:
                 automaticInterestCalculation,
+            UserSavingsAccountTable.interestRate: interestRate,
+            UserSavingsAccountTable.openedAt: openedAt?.toIso8601String(),
             UserSavingsAccountTable.updatedAt: DateTime.now().toIso8601String(),
           })
           .eq(UserSavingsAccountTable.id, savingsAccountId);
@@ -180,11 +186,12 @@ class SavingsAccountService {
       logoUrl: _resolveLogoUrl(bank[BanksTable.icon] as String?),
       principal: (item[UserSavingsAccountTable.principal] as num).toDouble(),
       interest: (item[UserSavingsAccountTable.interest] as num).toDouble(),
-      automaticInterestCalculation:
-          item[UserSavingsAccountTable.automaticInterestCalculation] as bool? ??
-          false,
-      interestRate: (category[SavingsCategoryTable.interestRate] as num?)
-          ?.toDouble(),
+      openedAt: item[UserSavingsAccountTable.openedAt] != null
+          ? DateTime.parse(item[UserSavingsAccountTable.openedAt] as String)
+          : null,
+      interestRate:
+          (item[UserSavingsAccountTable.interestRate] as num?)?.toDouble() ??
+          (category[SavingsCategoryTable.interestRate] as num?)?.toDouble(),
       ceiling: (category[SavingsCategoryTable.ceiling] as num?)?.toDouble(),
     );
   }
@@ -215,6 +222,36 @@ class SavingsAccountService {
           ((row[UserSavingsAccountTable.principal] as num?)?.toDouble() ?? 0) +
           ((row[UserSavingsAccountTable.interest] as num?)?.toDouble() ?? 0),
     );
+  }
+
+  /// Récupère la valeur totale nette estimée de l'épargne (fiscalité déduite si applicable)
+  Future<double> getTotalSavingsValueNet() async {
+    final accounts = await getUserSavingsAccounts();
+    double total = 0;
+
+    for (var acc in accounts) {
+      if (acc.sourceName.toUpperCase().contains('PEL') &&
+          acc.openedAt != null) {
+        final flatTaxDate = DateTime(2018, 1, 1);
+        final isAfter2018 =
+            acc.openedAt!.isAfter(flatTaxDate) ||
+            acc.openedAt!.isAtSameMomentAs(flatTaxDate);
+        final ageInYears =
+            DateTime.now().difference(acc.openedAt!).inDays / 365.25;
+
+        double taxRate;
+        if (isAfter2018 || ageInYears > 12) {
+          taxRate = 0.30; // IR 12.8% + PS 17.2%
+        } else {
+          taxRate = 0.172; // Uniquement PS 17.2%
+        }
+        total += acc.principal + (acc.interest * (1 - taxRate));
+      } else {
+        total += acc.principal + acc.interest;
+      }
+    }
+
+    return total;
   }
 
   /// Récupère uniquement le capital déposé (Principal) de l'épargne.
