@@ -1,165 +1,230 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
-import '../../models/liquidity/user_liquidity_account_view.dart';
-import '../../models/savings/user_savings_account_view.dart';
+import '../models/investments/user_investment_account_view.dart';
+import '../models/liquidity/user_liquidity_account_view.dart';
+import '../models/savings/user_savings_account_view.dart';
+import '../services/investment_service.dart';
 import '../services/liquidity_service.dart';
 import '../services/savings_account_service.dart';
 
-class SavingsDetailPage extends StatefulWidget {
-  final UserSavingsAccountView account;
+enum DestinationAccountType { liquidity, savings, pea }
 
-  const SavingsDetailPage({super.key, required this.account});
+class TransferDestinationAccount {
+  final int id;
+  final String label;
+  final String bankName;
+  final DestinationAccountType type;
+  final double currentBalance;
+  final dynamic rawAccount;
 
-  @override
-  State<SavingsDetailPage> createState() => _SavingsDetailPageState();
+  TransferDestinationAccount({
+    required this.id,
+    required this.label,
+    required this.bankName,
+    required this.type,
+    required this.currentBalance,
+    required this.rawAccount,
+  });
+
+  String get typeLabel {
+    switch (type) {
+      case DestinationAccountType.liquidity:
+        return 'Compte Courant';
+      case DestinationAccountType.savings:
+        return 'Épargne';
+      case DestinationAccountType.pea:
+        return 'PEA (Espèces)';
+    }
+  }
+
+  IconData get icon {
+    switch (type) {
+      case DestinationAccountType.liquidity:
+        return Icons.euro_rounded;
+      case DestinationAccountType.savings:
+        return Icons.savings_rounded;
+      case DestinationAccountType.pea:
+        return Icons.show_chart_rounded;
+    }
+  }
 }
 
-class _SavingsDetailPageState extends State<SavingsDetailPage> {
-  // --- Palette de couleurs ---
+class LiquidityDetailPage extends StatefulWidget {
+  final UserLiquidityAccountView account;
+
+  const LiquidityDetailPage({super.key, required this.account});
+
+  @override
+  State<LiquidityDetailPage> createState() => _LiquidityDetailPageState();
+}
+
+class _LiquidityDetailPageState extends State<LiquidityDetailPage> {
   static const Color colorDarkBg = Color(0xFF060B26);
   static const Color colorBlueMain = Color(0xFF0D71EE);
-  static const Color colorGreenFlash = Color(0xFF65E046);
-  static const Color colorGreenDark = Color(0xFF15803D);
 
-  late TextEditingController _principalController;
-  late TextEditingController _interestController;
+  late TextEditingController _amountController;
   late TextEditingController _transferAmountController;
 
-  late double _currentPrincipal;
-  late double _currentInterest;
-
-  late double _lastSavedPrincipal;
-  late double _lastSavedInterest;
+  late double _currentAmount;
+  late double _lastSavedAmount;
 
   bool _hasChanges = false;
   bool _hasSavedAtLeastOnce = false;
-  bool _isLoadingLiquidity = true;
+  bool _isLoadingDestinations = true;
   bool _isTransferring = false;
 
-  final SavingsAccountService _service = SavingsAccountService();
   final LiquidityService _liquidityService = LiquidityService();
+  final SavingsAccountService _savingsService = SavingsAccountService();
+  final InvestmentService _investmentService = InvestmentService();
 
-  List<UserLiquidityAccountView> _liquidityAccounts = [];
-  UserLiquidityAccountView? _selectedLiquidityAccount;
+  List<TransferDestinationAccount> _destinations = [];
+  TransferDestinationAccount? _selectedDestination;
 
   @override
   void initState() {
     super.initState();
-    _currentPrincipal = widget.account.principal;
-    _currentInterest = widget.account.interest;
+    _currentAmount = widget.account.amount;
+    _lastSavedAmount = widget.account.amount;
 
-    _lastSavedPrincipal = widget.account.principal;
-    _lastSavedInterest = widget.account.interest;
-
-    _principalController = TextEditingController(
-      text: _currentPrincipal.toStringAsFixed(2).replaceAll('.', ','),
-    );
-
-    _interestController = TextEditingController(
-      text: _currentInterest.toStringAsFixed(2).replaceAll('.', ','),
+    _amountController = TextEditingController(
+      text: _currentAmount.toStringAsFixed(2).replaceAll('.', ','),
     );
 
     _transferAmountController = TextEditingController(
-      text: _currentPrincipal.toStringAsFixed(2).replaceAll('.', ','),
+      text: _currentAmount.toStringAsFixed(2).replaceAll('.', ','),
     );
 
-    _principalController.addListener(_checkChanges);
-    _interestController.addListener(_checkChanges);
-    _fetchLiquidityAccounts();
+    _amountController.addListener(_checkChanges);
+    _fetchDestinations();
   }
 
   @override
   void dispose() {
-    _principalController.dispose();
-    _interestController.dispose();
+    _amountController.dispose();
     _transferAmountController.dispose();
     super.dispose();
   }
 
-  Future<void> _fetchLiquidityAccounts() async {
+  Future<void> _fetchDestinations() async {
     try {
-      final accounts = await _liquidityService.getUserLiquidityAccounts();
+      final List<TransferDestinationAccount> list = [];
+
+      // 1. Autres comptes courants
+      final liquidities = await _liquidityService.getUserLiquidityAccounts();
+      for (final acc in liquidities) {
+        if (acc.id != widget.account.id) {
+          list.add(
+            TransferDestinationAccount(
+              id: acc.id,
+              label: acc.sourceName,
+              bankName: acc.bankName,
+              type: DestinationAccountType.liquidity,
+              currentBalance: acc.amount,
+              rawAccount: acc,
+            ),
+          );
+        }
+      }
+
+      // 2. Comptes épargne
+      final savings = await _savingsService.getUserSavingsAccounts();
+      for (final acc in savings) {
+        list.add(
+          TransferDestinationAccount(
+            id: acc.id,
+            label: acc.sourceName,
+            bankName: acc.bankName,
+            type: DestinationAccountType.savings,
+            currentBalance: acc.principal,
+            rawAccount: acc,
+          ),
+        );
+      }
+
+      // 3. Comptes investissement de type PEA
+      final investments = await _investmentService
+          .getInvestmentAccountsForUserWithPrices();
+      for (final acc in investments) {
+        if (acc.sourceName.toUpperCase().contains('PEA')) {
+          list.add(
+            TransferDestinationAccount(
+              id: acc.id,
+              label: acc.sourceName,
+              bankName: acc.bankName,
+              type: DestinationAccountType.pea,
+              currentBalance: acc.cashBalance,
+              rawAccount: acc,
+            ),
+          );
+        }
+      }
+
       if (!mounted) return;
       setState(() {
-        _liquidityAccounts = accounts;
-        _isLoadingLiquidity = false;
-        if (accounts.isNotEmpty) {
-          _selectedLiquidityAccount = accounts.firstWhere(
-            (a) =>
-                a.sourceName.toLowerCase().contains('ccp') ||
-                a.sourceName.toLowerCase().contains('courant') ||
-                a.sourceName.toLowerCase().contains('chèque'),
-            orElse: () => accounts.first,
-          );
+        _destinations = list;
+        _isLoadingDestinations = false;
+        if (list.isNotEmpty) {
+          if (_selectedDestination == null) {
+            _selectedDestination = list.first;
+          } else {
+            _selectedDestination = list.firstWhere(
+              (d) =>
+                  d.id == _selectedDestination!.id &&
+                  d.type == _selectedDestination!.type,
+              orElse: () => list.first,
+            );
+          }
         }
       });
     } catch (e) {
       if (!mounted) return;
       setState(() {
-        _isLoadingLiquidity = false;
+        _isLoadingDestinations = false;
       });
     }
   }
 
   void _checkChanges() {
-    final p = double.tryParse(_principalController.text.replaceAll(',', '.'));
-    final i = double.tryParse(_interestController.text.replaceAll(',', '.'));
-
-    if (p == null || i == null) return;
+    final a = double.tryParse(_amountController.text.replaceAll(',', '.'));
+    if (a == null) return;
 
     setState(() {
-      _currentPrincipal = p;
-      _currentInterest = i;
-      _hasChanges = p != _lastSavedPrincipal || i != _lastSavedInterest;
+      _currentAmount = a;
+      _hasChanges = a != _lastSavedAmount;
     });
   }
 
-  double get _fillPercentage =>
-      (widget.account.ceiling != null && widget.account.ceiling! > 0)
-      ? (_currentPrincipal / widget.account.ceiling!)
-      : 0.0;
-
   Future<bool> _saveChangesInline() async {
-    if (widget.account.ceiling != null &&
-        _currentPrincipal > widget.account.ceiling!) {
-      _showError('Le capital dépasse le plafond autorisé.');
+    try {
+      await _liquidityService.updateAmount(
+        accountId: widget.account.id,
+        amount: _currentAmount,
+      );
+
+      if (!mounted) return false;
+
+      widget.account.amount = _currentAmount;
+      _lastSavedAmount = _currentAmount;
+      _hasSavedAtLeastOnce = true;
+
+      setState(() {
+        _hasChanges = false;
+      });
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Modifications enregistrées'),
+          backgroundColor: Colors.green,
+          duration: Duration(seconds: 2),
+        ),
+      );
+
+      return true;
+    } catch (e) {
+      if (!mounted) return false;
+      _showError('Erreur lors de la sauvegarde : $e');
       return false;
     }
-
-    final success = await _service.updateSavingsAccount(
-      savingsAccountId: widget.account.id,
-      principal: _currentPrincipal,
-      interest: _currentInterest,
-      automaticInterestCalculation: false,
-    );
-
-    if (!mounted) return false;
-
-    if (!success) {
-      _showError('Impossible de sauvegarder les modifications.');
-      return false;
-    }
-
-    widget.account.principal = _currentPrincipal;
-    widget.account.interest = _currentInterest;
-
-    _lastSavedPrincipal = _currentPrincipal;
-    _lastSavedInterest = _currentInterest;
-    _hasSavedAtLeastOnce = true;
-
-    setState(() {
-      _hasChanges = false;
-    });
-
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text('Modifications enregistrées'),
-        backgroundColor: Colors.green,
-        duration: Duration(seconds: 2),
-      ),
-    );
-
-    return true;
   }
 
   Future<bool> _showUnsavedChangesDialog(BuildContext context) async {
@@ -205,7 +270,7 @@ class _SavingsDetailPageState extends State<SavingsDetailPage> {
   }
 
   Future<void> _performTransfer() async {
-    if (_selectedLiquidityAccount == null) return;
+    if (_selectedDestination == null) return;
 
     final transferAmount =
         double.tryParse(_transferAmountController.text.replaceAll(',', '.')) ??
@@ -216,19 +281,21 @@ class _SavingsDetailPageState extends State<SavingsDetailPage> {
       return;
     }
 
-    if (transferAmount > _currentPrincipal) {
-      _showError('Le montant du virement dépasse le capital déposé.');
+    if (transferAmount > _currentAmount) {
+      _showError('Le montant du virement dépasse le solde disponible.');
       return;
     }
 
     final currency = NumberFormat.currency(locale: 'fr_FR', symbol: '€');
+    final dest = _selectedDestination!;
+
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
         title: const Text('Confirmer le virement'),
         content: Text(
-          'Voulez-vous vraiment transférer ${currency.format(transferAmount)} depuis le capital de ce compte vers le compte CCP (${_selectedLiquidityAccount!.sourceName}) ?',
+          'Voulez-vous vraiment transférer ${currency.format(transferAmount)} de ${widget.account.sourceName} vers ${dest.label} (${dest.bankName}) ?',
         ),
         actions: [
           TextButton(
@@ -255,38 +322,50 @@ class _SavingsDetailPageState extends State<SavingsDetailPage> {
     setState(() => _isTransferring = true);
 
     try {
-      // 1. Créditer le compte CCP
-      final newCcpAmount = _selectedLiquidityAccount!.amount + transferAmount;
+      // 1. Déduire du solde source
+      final newSourceAmount = _currentAmount - transferAmount;
       await _liquidityService.updateAmount(
-        accountId: _selectedLiquidityAccount!.id,
-        amount: newCcpAmount,
+        accountId: widget.account.id,
+        amount: newSourceAmount,
       );
 
-      // 2. Déduire le montant du capital déposé (principal)
-      final newPrincipal = _currentPrincipal - transferAmount;
-      final success = await _service.updateSavingsAccount(
-        savingsAccountId: widget.account.id,
-        principal: newPrincipal,
-        interest: _currentInterest,
-        automaticInterestCalculation: false,
-      );
+      // 2. Créditer la destination
+      if (dest.type == DestinationAccountType.liquidity) {
+        final target = dest.rawAccount as UserLiquidityAccountView;
+        final newTargetAmount = target.amount + transferAmount;
+        await _liquidityService.updateAmount(
+          accountId: target.id,
+          amount: newTargetAmount,
+        );
+      } else if (dest.type == DestinationAccountType.savings) {
+        final target = dest.rawAccount as UserSavingsAccountView;
+        final newTargetPrincipal = target.principal + transferAmount;
+        await _savingsService.updateSavingsAccount(
+          savingsAccountId: target.id,
+          principal: newTargetPrincipal,
+          interest: target.interest,
+          automaticInterestCalculation: false,
+        );
+      } else if (dest.type == DestinationAccountType.pea) {
+        final target = dest.rawAccount as UserInvestmentAccountView;
+        final newCashBalance = target.cashBalance + transferAmount;
+        await _investmentService.updateInvestmentAccount(
+          userInvestmentAccountId: target.id,
+          cashBalance: newCashBalance,
+          cumulativeDeposits: target.totalContribution,
+          openedAt: target.openedAt,
+        );
+      }
 
       if (!mounted) return;
 
-      if (!success) {
-        _showError('Erreur lors de la mise à jour du compte épargne.');
-        setState(() => _isTransferring = false);
-        return;
-      }
-
-      // Mettre à jour l'état local
-      widget.account.principal = newPrincipal;
-      _currentPrincipal = newPrincipal;
-      _lastSavedPrincipal = newPrincipal;
-      _principalController.text = newPrincipal
+      widget.account.amount = newSourceAmount;
+      _currentAmount = newSourceAmount;
+      _lastSavedAmount = newSourceAmount;
+      _amountController.text = newSourceAmount
           .toStringAsFixed(2)
           .replaceAll('.', ',');
-      _transferAmountController.text = newPrincipal
+      _transferAmountController.text = newSourceAmount
           .toStringAsFixed(2)
           .replaceAll('.', ',');
 
@@ -300,13 +379,13 @@ class _SavingsDetailPageState extends State<SavingsDetailPage> {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(
-            'Virement de ${currency.format(transferAmount)} effectué vers le CCP.',
+            'Virement de ${currency.format(transferAmount)} effectué vers ${dest.label}.',
           ),
           backgroundColor: Colors.green,
         ),
       );
 
-      _fetchLiquidityAccounts();
+      _fetchDestinations();
     } catch (e) {
       if (!mounted) return;
       setState(() => _isTransferring = false);
@@ -323,8 +402,7 @@ class _SavingsDetailPageState extends State<SavingsDetailPage> {
   @override
   Widget build(BuildContext context) {
     final currency = NumberFormat.currency(locale: 'fr_FR', symbol: '€');
-    final theme = Theme.of(context);
-    final isDark = theme.brightness == Brightness.dark;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return PopScope(
       canPop: !_hasChanges,
@@ -363,8 +441,6 @@ class _SavingsDetailPageState extends State<SavingsDetailPage> {
                     const SizedBox(height: 20),
                     _buildMainBalance(context, currency),
                     const SizedBox(height: 40),
-                    _buildProgressSection(context, currency),
-                    const SizedBox(height: 24),
                     _buildEditableCard(context),
                     const SizedBox(height: 24),
                     _buildTransferSection(context, currency),
@@ -381,12 +457,11 @@ class _SavingsDetailPageState extends State<SavingsDetailPage> {
 
   Widget _buildMainBalance(BuildContext context, NumberFormat currency) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final displayValue = _currentPrincipal + _currentInterest;
 
     return Column(
       children: [
         Text(
-          "ÉPARGNE TOTALE",
+          "SOLDE DISPONIBLE",
           style: TextStyle(
             color: isDark
                 ? Colors.white.withValues(alpha: 0.5)
@@ -398,7 +473,7 @@ class _SavingsDetailPageState extends State<SavingsDetailPage> {
         ),
         const SizedBox(height: 8),
         Text(
-          currency.format(displayValue),
+          currency.format(_currentAmount),
           style: TextStyle(
             color: isDark ? Colors.white : const Color(0xFF0F172A),
             fontSize: 42,
@@ -407,126 +482,56 @@ class _SavingsDetailPageState extends State<SavingsDetailPage> {
           ),
         ),
         const SizedBox(height: 20),
-        Row(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            _buildBadge(
-              icon: Icons.account_balance,
-              label: widget.account.bankName,
-              color: isDark ? Colors.white : Colors.black87,
-              opacity: isDark ? 0.1 : 0.05,
-            ),
-            const SizedBox(width: 10),
-            if (widget.account.interestRate != null)
-              _buildBadge(
-                icon: Icons.show_chart,
-                label:
-                    "${NumberFormat.decimalPattern('fr_FR').format(widget.account.interestRate! * 100)} %",
-                color: isDark ? colorGreenFlash : colorGreenDark,
-                opacity: 0.15,
-                hasBorder: true,
-              ),
-          ],
+        _buildBadge(
+          icon: Icons.account_balance,
+          label: "${widget.account.sourceName} - ${widget.account.bankName}",
+          color: isDark ? Colors.white : Colors.black87,
+          opacity: isDark ? 0.1 : 0.05,
         ),
       ],
-    );
-  }
-
-  Widget _buildProgressSection(BuildContext context, NumberFormat currency) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-    return Container(
-      padding: const EdgeInsets.all(20),
-      decoration: _glassDecoration(context),
-      child: Column(
-        children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Text(
-                "Utilisation du plafond",
-                style: TextStyle(
-                  color: isDark ? Colors.white70 : Colors.black87,
-                  fontWeight: FontWeight.w500,
-                ),
-              ),
-              Text(
-                "${(_fillPercentage * 100).toStringAsFixed(1)}%",
-                style: const TextStyle(
-                  color: colorBlueMain,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 16),
-          ClipRRect(
-            borderRadius: BorderRadius.circular(10),
-            child: LinearProgressIndicator(
-              value: _fillPercentage,
-              minHeight: 8,
-              backgroundColor: isDark
-                  ? Colors.white.withValues(alpha: 0.05)
-                  : Colors.black.withValues(alpha: 0.05),
-              valueColor: AlwaysStoppedAnimation(
-                _fillPercentage > 0.9 ? Colors.redAccent : colorBlueMain,
-              ),
-            ),
-          ),
-          const SizedBox(height: 12),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Text(
-                currency.format(_currentPrincipal),
-                style: TextStyle(
-                  color: isDark ? Colors.white : Colors.black87,
-                  fontSize: 12,
-                  fontWeight: FontWeight.w600,
-                ),
-              ),
-              Text(
-                widget.account.ceiling != null
-                    ? currency.format(widget.account.ceiling)
-                    : "Sans plafond",
-                style: TextStyle(
-                  color: isDark
-                      ? Colors.white.withValues(alpha: 0.4)
-                      : Colors.black45,
-                  fontSize: 12,
-                ),
-              ),
-            ],
-          ),
-        ],
-      ),
     );
   }
 
   Widget _buildEditableCard(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     return Container(
+      padding: const EdgeInsets.all(20),
       decoration: _glassDecoration(context),
       child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          _buildElegantField(
-            context,
-            _principalController,
-            "Capital déposé",
-            Icons.account_balance_wallet_outlined,
+          Text(
+            "Mettre à jour le solde",
+            style: TextStyle(
+              fontWeight: FontWeight.bold,
+              fontSize: 16,
+              color: isDark ? Colors.white : Colors.black87,
+            ),
           ),
-          Divider(
-            color: isDark
-                ? Colors.white10
-                : Colors.black.withValues(alpha: 0.05),
-            height: 1,
-            indent: 20,
-            endIndent: 20,
-          ),
-          _buildElegantField(
-            context,
-            _interestController,
-            "Intérêts cumulés",
-            Icons.add_chart_rounded,
+          const SizedBox(height: 14),
+          TextField(
+            controller: _amountController,
+            keyboardType: const TextInputType.numberWithOptions(decimal: true),
+            style: TextStyle(
+              color: isDark ? Colors.white : Colors.black,
+              fontWeight: FontWeight.bold,
+              fontSize: 20,
+            ),
+            decoration: InputDecoration(
+              suffixText: "€",
+              suffixStyle: TextStyle(
+                color: isDark ? Colors.white38 : Colors.black38,
+                fontWeight: FontWeight.bold,
+              ),
+              filled: true,
+              fillColor: isDark
+                  ? Colors.white.withValues(alpha: 0.03)
+                  : Colors.black.withValues(alpha: 0.01),
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(16),
+                borderSide: BorderSide.none,
+              ),
+            ),
           ),
         ],
       ),
@@ -559,7 +564,7 @@ class _SavingsDetailPageState extends State<SavingsDetailPage> {
               const SizedBox(width: 14),
               Expanded(
                 child: Text(
-                  "Virement vers le CCP",
+                  "Virement vers un autre compte",
                   style: TextStyle(
                     fontWeight: FontWeight.bold,
                     fontSize: 18,
@@ -570,14 +575,14 @@ class _SavingsDetailPageState extends State<SavingsDetailPage> {
             ],
           ),
           const SizedBox(height: 16),
-          if (_isLoadingLiquidity)
+          if (_isLoadingDestinations)
             const Center(
               child: Padding(
                 padding: EdgeInsets.symmetric(vertical: 16),
                 child: CircularProgressIndicator(),
               ),
             )
-          else if (_liquidityAccounts.isEmpty)
+          else if (_destinations.isEmpty)
             Container(
               padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
@@ -594,7 +599,7 @@ class _SavingsDetailPageState extends State<SavingsDetailPage> {
                   const SizedBox(width: 12),
                   const Expanded(
                     child: Text(
-                      "Aucun compte CCP (liquidités) disponible pour recevoir un virement.",
+                      "Aucun autre compte (courant, épargne ou PEA) disponible pour effectuer un virement.",
                       style: TextStyle(fontSize: 13),
                     ),
                   ),
@@ -602,57 +607,68 @@ class _SavingsDetailPageState extends State<SavingsDetailPage> {
               ),
             )
           else ...[
-            if (_liquidityAccounts.length > 1) ...[
-              Text(
-                "Compte CCP destinataire",
-                style: TextStyle(
-                  fontSize: 13,
-                  fontWeight: FontWeight.w600,
-                  color: isDark ? Colors.white60 : Colors.black54,
+            Text(
+              "Compte destinataire",
+              style: TextStyle(
+                fontSize: 13,
+                fontWeight: FontWeight.w600,
+                color: isDark ? Colors.white60 : Colors.black54,
+              ),
+            ),
+            const SizedBox(height: 8),
+            DropdownButtonFormField<TransferDestinationAccount>(
+              initialValue: _selectedDestination,
+              isExpanded: true,
+              decoration: InputDecoration(
+                filled: true,
+                fillColor: isDark
+                    ? Colors.white.withValues(alpha: 0.03)
+                    : Colors.black.withValues(alpha: 0.02),
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(16),
+                  borderSide: BorderSide.none,
+                ),
+                contentPadding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 12,
                 ),
               ),
-              const SizedBox(height: 8),
-              DropdownButtonFormField<UserLiquidityAccountView>(
-                initialValue: _selectedLiquidityAccount,
-                isExpanded: true,
-                decoration: InputDecoration(
-                  filled: true,
-                  fillColor: isDark
-                      ? Colors.white.withValues(alpha: 0.03)
-                      : Colors.black.withValues(alpha: 0.02),
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(16),
-                    borderSide: BorderSide.none,
-                  ),
-                  contentPadding: const EdgeInsets.symmetric(
-                    horizontal: 16,
-                    vertical: 12,
-                  ),
-                ),
-                dropdownColor: isDark ? const Color(0xFF1E293B) : Colors.white,
-                items: _liquidityAccounts.map((account) {
-                  return DropdownMenuItem<UserLiquidityAccountView>(
-                    value: account,
-                    child: Text(
-                      "${account.sourceName} - ${account.bankName} (${currency.format(account.amount)})",
-                      style: TextStyle(
-                        fontSize: 14,
-                        color: isDark ? Colors.white : Colors.black87,
+              dropdownColor: isDark ? const Color(0xFF1E293B) : Colors.white,
+              items: _destinations.map((dest) {
+                return DropdownMenuItem<TransferDestinationAccount>(
+                  value: dest,
+                  child: Row(
+                    children: [
+                      Icon(
+                        dest.icon,
+                        size: 18,
+                        color: isDark ? Colors.amber.shade300 : colorBlueMain,
                       ),
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                  );
-                }).toList(),
-                onChanged: (val) {
-                  if (val != null) {
-                    setState(() => _selectedLiquidityAccount = val);
-                  }
-                },
-              ),
-              const SizedBox(height: 16),
-            ] else if (_selectedLiquidityAccount != null) ...[
+                      const SizedBox(width: 10),
+                      Expanded(
+                        child: Text(
+                          "${dest.label} (${dest.bankName}) - ${dest.typeLabel}",
+                          style: TextStyle(
+                            fontSize: 14,
+                            color: isDark ? Colors.white : Colors.black87,
+                          ),
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
+                    ],
+                  ),
+                );
+              }).toList(),
+              onChanged: (val) {
+                if (val != null) {
+                  setState(() => _selectedDestination = val);
+                }
+              },
+            ),
+            const SizedBox(height: 16),
+            if (_selectedDestination != null) ...[
               Container(
-                padding: const EdgeInsets.all(14),
+                padding: const EdgeInsets.all(12),
                 decoration: BoxDecoration(
                   color: isDark
                       ? Colors.white.withValues(alpha: 0.03)
@@ -662,27 +678,26 @@ class _SavingsDetailPageState extends State<SavingsDetailPage> {
                 child: Row(
                   children: [
                     Icon(
-                      Icons.account_balance_rounded,
-                      color: isDark ? Colors.white70 : Colors.black54,
-                      size: 20,
+                      _selectedDestination!.icon,
+                      size: 18,
+                      color: isDark ? Colors.amber.shade300 : colorBlueMain,
                     ),
                     const SizedBox(width: 10),
                     Expanded(
                       child: Text(
-                        "${_selectedLiquidityAccount!.sourceName} (${_selectedLiquidityAccount!.bankName})",
+                        "Solde actuel du destinataire",
                         style: TextStyle(
-                          fontWeight: FontWeight.w600,
-                          fontSize: 14,
-                          color: isDark ? Colors.white : Colors.black87,
+                          fontSize: 13,
+                          color: isDark ? Colors.white70 : Colors.black54,
                         ),
                       ),
                     ),
                     Text(
-                      currency.format(_selectedLiquidityAccount!.amount),
+                      currency.format(_selectedDestination!.currentBalance),
                       style: TextStyle(
                         fontWeight: FontWeight.bold,
                         fontSize: 13,
-                        color: isDark ? Colors.white70 : Colors.black54,
+                        color: isDark ? Colors.white : Colors.black87,
                       ),
                     ),
                   ],
@@ -690,9 +705,8 @@ class _SavingsDetailPageState extends State<SavingsDetailPage> {
               ),
               const SizedBox(height: 16),
             ],
-
             Text(
-              "Montant à transférer depuis le capital (€)",
+              "Montant à transférer (€)",
               style: TextStyle(
                 fontSize: 13,
                 fontWeight: FontWeight.w600,
@@ -722,9 +736,7 @@ class _SavingsDetailPageState extends State<SavingsDetailPage> {
                 ),
               ),
             ),
-
             const SizedBox(height: 20),
-
             SizedBox(
               width: double.infinity,
               height: 52,
@@ -749,7 +761,7 @@ class _SavingsDetailPageState extends State<SavingsDetailPage> {
                       )
                     : const Icon(Icons.send_rounded, size: 20),
                 label: const Text(
-                  "TRANSFÉRER SUR LE CCP",
+                  "EFFECTUER LE VIREMENT",
                   style: TextStyle(
                     fontWeight: FontWeight.bold,
                     fontSize: 14,
@@ -760,48 +772,6 @@ class _SavingsDetailPageState extends State<SavingsDetailPage> {
             ),
           ],
         ],
-      ),
-    );
-  }
-
-  Widget _buildElegantField(
-    BuildContext context,
-    TextEditingController controller,
-    String label,
-    IconData icon, {
-    String suffix = "€",
-  }) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
-      child: TextField(
-        controller: controller,
-        keyboardType: const TextInputType.numberWithOptions(decimal: true),
-        style: TextStyle(
-          color: isDark ? Colors.white : Colors.black,
-          fontWeight: FontWeight.bold,
-          fontSize: 18,
-        ),
-        decoration: InputDecoration(
-          icon: Icon(
-            icon,
-            color: colorBlueMain.withValues(alpha: 0.4),
-            size: 22,
-          ),
-          labelText: label,
-          labelStyle: TextStyle(
-            color: isDark
-                ? Colors.white.withValues(alpha: 0.3)
-                : Colors.black45,
-            fontSize: 14,
-          ),
-          suffixText: suffix,
-          suffixStyle: TextStyle(
-            color: isDark ? Colors.white24 : Colors.black26,
-            fontWeight: FontWeight.bold,
-          ),
-          border: InputBorder.none,
-        ),
       ),
     );
   }
@@ -860,26 +830,23 @@ class _SavingsDetailPageState extends State<SavingsDetailPage> {
     required String label,
     required Color color,
     required double opacity,
-    bool hasBorder = false,
   }) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
       decoration: BoxDecoration(
         color: color.withValues(alpha: opacity),
         borderRadius: BorderRadius.circular(14),
-        border: hasBorder
-            ? Border.all(color: color.withValues(alpha: 0.3))
-            : null,
       ),
       child: Row(
+        mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(icon, size: 14, color: color),
+          Icon(icon, size: 16, color: color),
           const SizedBox(width: 8),
           Text(
             label,
             style: TextStyle(
               color: color,
-              fontSize: 12,
+              fontSize: 13,
               fontWeight: FontWeight.bold,
             ),
           ),
