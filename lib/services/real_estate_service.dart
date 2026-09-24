@@ -30,14 +30,32 @@ class RealEstateService {
         .toList();
   }
 
-  Future<void> updateAssetAmount(int assetId, double amount) async {
+  Future<void> updateAsset({
+    required int assetId,
+    double? amount,
+    String? label,
+  }) async {
+    final Map<String, dynamic> updates = {
+      UserRealEstateAssetTable.updatedAt: DateTime.now().toIso8601String(),
+    };
+    if (amount != null) {
+      updates[UserRealEstateAssetTable.amount] = amount;
+    }
+    if (label != null) {
+      updates[UserRealEstateAssetTable.label] = label;
+    }
     await _supabase
         .from(UserRealEstateAssetTable.tableName)
-        .update({
-          UserRealEstateAssetTable.amount: amount,
-          UserRealEstateAssetTable.updatedAt: DateTime.now().toIso8601String(),
-        })
+        .update(updates)
         .eq(UserRealEstateAssetTable.id, assetId);
+  }
+
+  Future<void> updateAssetAmount(int assetId, double amount) async {
+    await updateAsset(assetId: assetId, amount: amount);
+  }
+
+  Future<void> updateAssetLabel(int assetId, String label) async {
+    await updateAsset(assetId: assetId, label: label);
   }
 
   Future<void> deleteAsset(int assetId) async {

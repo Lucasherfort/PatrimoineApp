@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import '../../models/liquidity/user_liquidity_account_view.dart';
 import '../../models/savings/user_savings_account_view.dart';
+import '../services/liquidity_service.dart';
 import '../services/savings_account_service.dart';
 
 class SavingsDetailPage extends StatefulWidget {
@@ -21,18 +23,33 @@ class _SavingsDetailPageState extends State<SavingsDetailPage> {
 
   late TextEditingController _principalController;
   late TextEditingController _interestController;
+  late TextEditingController _transferAmountController;
 
   late double _currentPrincipal;
   late double _currentInterest;
 
+  late double _lastSavedPrincipal;
+  late double _lastSavedInterest;
+
   bool _hasChanges = false;
+  bool _hasSavedAtLeastOnce = false;
+  bool _isLoadingLiquidity = true;
+  bool _isTransferring = false;
+
   final SavingsAccountService _service = SavingsAccountService();
+  final LiquidityService _liquidityService = LiquidityService();
+
+  List<UserLiquidityAccountView> _liquidityAccounts = [];
+  UserLiquidityAccountView? _selectedLiquidityAccount;
 
   @override
   void initState() {
     super.initState();
     _currentPrincipal = widget.account.principal;
     _currentInterest = widget.account.interest;
+
+    _lastSavedPrincipal = widget.account.principal;
+    _lastSavedInterest = widget.account.interest;
 
     _principalController = TextEditingController(
       text: _currentPrincipal.toStringAsFixed(2).replaceAll('.', ','),
@@ -42,15 +59,46 @@ class _SavingsDetailPageState extends State<SavingsDetailPage> {
       text: _currentInterest.toStringAsFixed(2).replaceAll('.', ','),
     );
 
+    _transferAmountController = TextEditingController(
+      text: _currentPrincipal.toStringAsFixed(2).replaceAll('.', ','),
+    );
+
     _principalController.addListener(_checkChanges);
     _interestController.addListener(_checkChanges);
+    _fetchLiquidityAccounts();
   }
 
   @override
   void dispose() {
     _principalController.dispose();
     _interestController.dispose();
+    _transferAmountController.dispose();
     super.dispose();
+  }
+
+  Future<void> _fetchLiquidityAccounts() async {
+    try {
+      final accounts = await _liquidityService.getUserLiquidityAccounts();
+      if (!mounted) return;
+      setState(() {
+        _liquidityAccounts = accounts;
+        _isLoadingLiquidity = false;
+        if (accounts.isNotEmpty) {
+          _selectedLiquidityAccount = accounts.firstWhere(
+            (a) =>
+                a.sourceName.toLowerCase().contains('ccp') ||
+                a.sourceName.toLowerCase().contains('courant') ||
+                a.sourceName.toLowerCase().contains('chèque'),
+            orElse: () => accounts.first,
+          );
+        }
+      });
+    } catch (e) {
+      if (!mounted) return;
+      setState(() {
+        _isLoadingLiquidity = false;
+      });
+    }
   }
 
   void _checkChanges() {
@@ -62,21 +110,20 @@ class _SavingsDetailPageState extends State<SavingsDetailPage> {
     setState(() {
       _currentPrincipal = p;
       _currentInterest = i;
-      _hasChanges =
-          p != widget.account.principal || i != widget.account.interest;
+      _hasChanges = p != _lastSavedPrincipal || i != _lastSavedInterest;
     });
   }
 
   double get _fillPercentage =>
       (widget.account.ceiling != null && widget.account.ceiling! > 0)
-      ? (_currentPrincipal / widget.account.ceiling!)
-      : 0.0;
+          ? (_currentPrincipal / widget.account.ceiling!)
+          : 0.0;
 
-  Future<void> _saveChanges() async {
+  Future<bool> _saveChangesInline() async {
     if (widget.account.ceiling != null &&
         _currentPrincipal > widget.account.ceiling!) {
       _showError('Le capital dépasse le plafond autorisé.');
-      return;
+      return false;
     }
 
     final success = await _service.updateSavingsAccount(
@@ -86,17 +133,183 @@ class _SavingsDetailPageState extends State<SavingsDetailPage> {
       automaticInterestCalculation: false,
     );
 
-    if (!mounted) return;
+    if (!mounted) return false;
 
     if (!success) {
       _showError('Impossible de sauvegarder les modifications.');
-      return;
+      return false;
     }
 
     widget.account.principal = _currentPrincipal;
     widget.account.interest = _currentInterest;
 
-    Navigator.of(context).pop(widget.account);
+    _lastSavedPrincipal = _currentPrincipal;
+    _lastSavedInterest = _currentInterest;
+    _hasSavedAtLeastOnce = true;
+
+    setState(() {
+      _hasChanges = false;
+    });
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(
+        content: Text('Modifications enregistrées'),
+        backgroundColor: Colors.green,
+        duration: Duration(seconds: 2),
+      ),
+    );
+
+    return true;
+  }
+
+  Future<bool> _showUnsavedChangesDialog(BuildContext context) async {
+    final result = await showDialog<String>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        title: const Text('Enregistrer les modifications ?'),
+        content: const Text(
+          'Vous avez des modifications non enregistrées. Voulez-vous les enregistrer avant de quitter ?',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, 'cancel'),
+            child: const Text('Annuler'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, 'discard'),
+            style: TextButton.styleFrom(foregroundColor: Colors.redAccent),
+            child: const Text('Ne pas enregistrer'),
+          ),
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(
+              backgroundColor: colorBlueMain,
+              foregroundColor: Colors.white,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(10),
+              ),
+            ),
+            onPressed: () => Navigator.pop(ctx, 'save'),
+            child: const Text('Enregistrer'),
+          ),
+        ],
+      ),
+    );
+
+    if (result == 'save') {
+      return await _saveChangesInline();
+    } else if (result == 'discard') {
+      return true;
+    }
+    return false;
+  }
+
+  Future<void> _performTransfer() async {
+    if (_selectedLiquidityAccount == null) return;
+
+    final transferAmount = double.tryParse(
+            _transferAmountController.text.replaceAll(',', '.')) ??
+        0.0;
+
+    if (transferAmount <= 0) {
+      _showError('Veuillez entrer un montant valide supérieur à 0 €');
+      return;
+    }
+
+    if (transferAmount > _currentPrincipal) {
+      _showError('Le montant du virement dépasse le capital déposé.');
+      return;
+    }
+
+    final currency = NumberFormat.currency(locale: 'fr_FR', symbol: '€');
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        title: const Text('Confirmer le virement'),
+        content: Text(
+          'Voulez-vous vraiment transférer ${currency.format(transferAmount)} depuis le capital de ce compte vers le compte CCP (${_selectedLiquidityAccount!.sourceName}) ?',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, false),
+            child: const Text('Annuler'),
+          ),
+          ElevatedButton(
+            style: ElevatedButton.styleFrom(
+              backgroundColor: colorBlueMain,
+              foregroundColor: Colors.white,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(10),
+              ),
+            ),
+            onPressed: () => Navigator.pop(ctx, true),
+            child: const Text('Confirmer'),
+          ),
+        ],
+      ),
+    );
+
+    if (confirmed != true) return;
+
+    setState(() => _isTransferring = true);
+
+    try {
+      // 1. Créditer le compte CCP
+      final newCcpAmount = _selectedLiquidityAccount!.amount + transferAmount;
+      await _liquidityService.updateAmount(
+        accountId: _selectedLiquidityAccount!.id,
+        amount: newCcpAmount,
+      );
+
+      // 2. Déduire le montant du capital déposé (principal)
+      final newPrincipal = _currentPrincipal - transferAmount;
+      final success = await _service.updateSavingsAccount(
+        savingsAccountId: widget.account.id,
+        principal: newPrincipal,
+        interest: _currentInterest,
+        automaticInterestCalculation: false,
+      );
+
+      if (!mounted) return;
+
+      if (!success) {
+        _showError('Erreur lors de la mise à jour du compte épargne.');
+        setState(() => _isTransferring = false);
+        return;
+      }
+
+      // Mettre à jour l'état local
+      widget.account.principal = newPrincipal;
+      _currentPrincipal = newPrincipal;
+      _lastSavedPrincipal = newPrincipal;
+      _principalController.text =
+          newPrincipal.toStringAsFixed(2).replaceAll('.', ',');
+      _transferAmountController.text =
+          newPrincipal.toStringAsFixed(2).replaceAll('.', ',');
+
+      _hasSavedAtLeastOnce = true;
+
+      setState(() {
+        _hasChanges = false;
+        _isTransferring = false;
+      });
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            'Virement de ${currency.format(transferAmount)} effectué vers le CCP.',
+          ),
+          backgroundColor: Colors.green,
+        ),
+      );
+
+      _fetchLiquidityAccounts();
+    } catch (e) {
+      if (!mounted) return;
+      setState(() => _isTransferring = false);
+      _showError('Erreur lors du virement : $e');
+    }
   }
 
   void _showError(String message) {
@@ -111,44 +324,55 @@ class _SavingsDetailPageState extends State<SavingsDetailPage> {
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
 
-    return Scaffold(
-      backgroundColor: isDark ? colorDarkBg : const Color(0xFFF8FAFC),
-      extendBodyBehindAppBar: true,
-      appBar: _buildAppBar(context),
-      body: Stack(
-        children: [
-          Positioned(
-            top: -150,
-            left: -50,
-            child: Container(
-              width: 400,
-              height: 400,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                color: colorBlueMain.withValues(alpha: isDark ? 0.1 : 0.05),
+    return PopScope(
+      canPop: !_hasChanges,
+      onPopInvokedWithResult: (didPop, result) async {
+        if (didPop) return;
+        final shouldPop = await _showUnsavedChangesDialog(context);
+        if (shouldPop && context.mounted) {
+          Navigator.of(context)
+              .pop(_hasSavedAtLeastOnce ? widget.account : null);
+        }
+      },
+      child: Scaffold(
+        backgroundColor: isDark ? colorDarkBg : const Color(0xFFF8FAFC),
+        extendBodyBehindAppBar: true,
+        appBar: _buildAppBar(context),
+        body: Stack(
+          children: [
+            Positioned(
+              top: -150,
+              left: -50,
+              child: Container(
+                width: 400,
+                height: 400,
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: colorBlueMain.withValues(alpha: isDark ? 0.1 : 0.05),
+                ),
               ),
             ),
-          ),
-          SafeArea(
-            child: SingleChildScrollView(
-              padding: const EdgeInsets.symmetric(horizontal: 20),
-              child: Column(
-                children: [
-                  const SizedBox(height: 20),
-                  _buildMainBalance(context, currency),
-                  const SizedBox(height: 40),
-                  _buildProgressSection(context, currency),
-                  const SizedBox(height: 24),
-                  _buildEditableCard(context),
-                  const SizedBox(height: 120),
-                ],
+            SafeArea(
+              child: SingleChildScrollView(
+                padding: const EdgeInsets.symmetric(horizontal: 20),
+                child: Column(
+                  children: [
+                    const SizedBox(height: 20),
+                    _buildMainBalance(context, currency),
+                    const SizedBox(height: 40),
+                    _buildProgressSection(context, currency),
+                    const SizedBox(height: 24),
+                    _buildEditableCard(context),
+                    const SizedBox(height: 24),
+                    _buildTransferSection(context, currency),
+                    const SizedBox(height: 120),
+                  ],
+                ),
               ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
-      floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
-      floatingActionButton: _hasChanges ? _buildSaveButton() : null,
     );
   }
 
@@ -306,6 +530,238 @@ class _SavingsDetailPageState extends State<SavingsDetailPage> {
     );
   }
 
+  Widget _buildTransferSection(BuildContext context, NumberFormat currency) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
+    return Container(
+      padding: const EdgeInsets.all(20),
+      decoration: _glassDecoration(context),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(10),
+                decoration: BoxDecoration(
+                  color: colorBlueMain.withValues(alpha: 0.15),
+                  borderRadius: BorderRadius.circular(14),
+                ),
+                child: const Icon(
+                  Icons.swap_horiz_rounded,
+                  color: colorBlueMain,
+                  size: 24,
+                ),
+              ),
+              const SizedBox(width: 14),
+              Expanded(
+                child: Text(
+                  "Virement vers le CCP",
+                  style: TextStyle(
+                    fontWeight: FontWeight.bold,
+                    fontSize: 18,
+                    color: isDark ? Colors.white : const Color(0xFF0F172A),
+                  ),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 16),
+          if (_isLoadingLiquidity)
+            const Center(
+              child: Padding(
+                padding: EdgeInsets.symmetric(vertical: 16),
+                child: CircularProgressIndicator(),
+              ),
+            )
+          else if (_liquidityAccounts.isEmpty)
+            Container(
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: Colors.amber.withValues(alpha: 0.1),
+                borderRadius: BorderRadius.circular(16),
+                border: Border.all(
+                  color: Colors.amber.withValues(alpha: 0.3),
+                ),
+              ),
+              child: Row(
+                children: [
+                  Icon(Icons.info_outline_rounded,
+                      color: Colors.amber.shade700),
+                  const SizedBox(width: 12),
+                  const Expanded(
+                    child: Text(
+                      "Aucun compte CCP (liquidités) disponible pour recevoir un virement.",
+                      style: TextStyle(fontSize: 13),
+                    ),
+                  ),
+                ],
+              ),
+            )
+          else ...[
+            if (_liquidityAccounts.length > 1) ...[
+              Text(
+                "Compte CCP destinataire",
+                style: TextStyle(
+                  fontSize: 13,
+                  fontWeight: FontWeight.w600,
+                  color: isDark ? Colors.white60 : Colors.black54,
+                ),
+              ),
+              const SizedBox(height: 8),
+              DropdownButtonFormField<UserLiquidityAccountView>(
+                initialValue: _selectedLiquidityAccount,
+                isExpanded: true,
+                decoration: InputDecoration(
+                  filled: true,
+                  fillColor: isDark
+                      ? Colors.white.withValues(alpha: 0.03)
+                      : Colors.black.withValues(alpha: 0.02),
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(16),
+                    borderSide: BorderSide.none,
+                  ),
+                  contentPadding: const EdgeInsets.symmetric(
+                    horizontal: 16,
+                    vertical: 12,
+                  ),
+                ),
+                dropdownColor:
+                    isDark ? const Color(0xFF1E293B) : Colors.white,
+                items: _liquidityAccounts.map((account) {
+                  return DropdownMenuItem<UserLiquidityAccountView>(
+                    value: account,
+                    child: Text(
+                      "${account.sourceName} - ${account.bankName} (${currency.format(account.amount)})",
+                      style: TextStyle(
+                        fontSize: 14,
+                        color: isDark ? Colors.white : Colors.black87,
+                      ),
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  );
+                }).toList(),
+                onChanged: (val) {
+                  if (val != null) {
+                    setState(() => _selectedLiquidityAccount = val);
+                  }
+                },
+              ),
+              const SizedBox(height: 16),
+            ] else if (_selectedLiquidityAccount != null) ...[
+              Container(
+                padding: const EdgeInsets.all(14),
+                decoration: BoxDecoration(
+                  color: isDark
+                      ? Colors.white.withValues(alpha: 0.03)
+                      : Colors.black.withValues(alpha: 0.02),
+                  borderRadius: BorderRadius.circular(16),
+                ),
+                child: Row(
+                  children: [
+                    Icon(
+                      Icons.account_balance_rounded,
+                      color: isDark ? Colors.white70 : Colors.black54,
+                      size: 20,
+                    ),
+                    const SizedBox(width: 10),
+                    Expanded(
+                      child: Text(
+                        "${_selectedLiquidityAccount!.sourceName} (${_selectedLiquidityAccount!.bankName})",
+                        style: TextStyle(
+                          fontWeight: FontWeight.w600,
+                          fontSize: 14,
+                          color: isDark ? Colors.white : Colors.black87,
+                        ),
+                      ),
+                    ),
+                    Text(
+                      currency.format(_selectedLiquidityAccount!.amount),
+                      style: TextStyle(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 13,
+                        color: isDark ? Colors.white70 : Colors.black54,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 16),
+            ],
+
+            Text(
+              "Montant à transférer depuis le capital (€)",
+              style: TextStyle(
+                fontSize: 13,
+                fontWeight: FontWeight.w600,
+                color: isDark ? Colors.white60 : Colors.black54,
+              ),
+            ),
+            const SizedBox(height: 8),
+            TextField(
+              controller: _transferAmountController,
+              keyboardType: const TextInputType.numberWithOptions(
+                decimal: true,
+              ),
+              style: TextStyle(
+                fontWeight: FontWeight.bold,
+                fontSize: 18,
+                color: isDark ? Colors.white : Colors.black,
+              ),
+              decoration: InputDecoration(
+                suffixText: "€",
+                filled: true,
+                fillColor: isDark
+                    ? Colors.white.withValues(alpha: 0.03)
+                    : Colors.black.withValues(alpha: 0.02),
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(16),
+                  borderSide: BorderSide.none,
+                ),
+              ),
+            ),
+
+            const SizedBox(height: 20),
+
+            SizedBox(
+              width: double.infinity,
+              height: 52,
+              child: ElevatedButton.icon(
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: colorBlueMain,
+                  foregroundColor: Colors.white,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(16),
+                  ),
+                  elevation: 4,
+                ),
+                onPressed: _isTransferring ? null : _performTransfer,
+                icon: _isTransferring
+                    ? const SizedBox(
+                        width: 20,
+                        height: 20,
+                        child: CircularProgressIndicator(
+                          color: Colors.white,
+                          strokeWidth: 2,
+                        ),
+                      )
+                    : const Icon(Icons.send_rounded, size: 20),
+                label: const Text(
+                  "TRANSFÉRER SUR LE CCP",
+                  style: TextStyle(
+                    fontWeight: FontWeight.bold,
+                    fontSize: 14,
+                    letterSpacing: 0.5,
+                  ),
+                ),
+              ),
+            ),
+          ],
+        ],
+      ),
+    );
+  }
+
   Widget _buildElegantField(
     BuildContext context,
     TextEditingController controller,
@@ -353,7 +809,24 @@ class _SavingsDetailPageState extends State<SavingsDetailPage> {
     return AppBar(
       backgroundColor: Colors.transparent,
       elevation: 0,
-      leading: BackButton(color: isDark ? Colors.white : Colors.black87),
+      leading: IconButton(
+        icon: Icon(
+          Icons.arrow_back,
+          color: isDark ? Colors.white : Colors.black87,
+        ),
+        onPressed: () async {
+          if (_hasChanges) {
+            final shouldPop = await _showUnsavedChangesDialog(context);
+            if (shouldPop && context.mounted) {
+              Navigator.of(context)
+                  .pop(_hasSavedAtLeastOnce ? widget.account : null);
+            }
+          } else {
+            Navigator.of(context)
+                .pop(_hasSavedAtLeastOnce ? widget.account : null);
+          }
+        },
+      ),
       centerTitle: true,
       title: Text(
         widget.account.sourceName,
@@ -363,6 +836,18 @@ class _SavingsDetailPageState extends State<SavingsDetailPage> {
           color: isDark ? Colors.white : Colors.black87,
         ),
       ),
+      actions: [
+        if (_hasChanges)
+          IconButton(
+            icon: const Icon(
+              Icons.check_rounded,
+              color: colorBlueMain,
+              size: 28,
+            ),
+            onPressed: _saveChangesInline,
+            tooltip: "Enregistrer les modifications",
+          ),
+      ],
     );
   }
 
@@ -395,36 +880,6 @@ class _SavingsDetailPageState extends State<SavingsDetailPage> {
             ),
           ),
         ],
-      ),
-    );
-  }
-
-  Widget _buildSaveButton() {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 30),
-      child: SizedBox(
-        width: double.infinity,
-        height: 60,
-        child: ElevatedButton(
-          style: ElevatedButton.styleFrom(
-            backgroundColor: colorBlueMain,
-            foregroundColor: Colors.white,
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(20),
-            ),
-            elevation: 10,
-            shadowColor: colorBlueMain.withValues(alpha: 0.4),
-          ),
-          onPressed: _saveChanges,
-          child: const Text(
-            "ENREGISTRER",
-            style: TextStyle(
-              fontWeight: FontWeight.w900,
-              fontSize: 16,
-              letterSpacing: 1.2,
-            ),
-          ),
-        ),
       ),
     );
   }
