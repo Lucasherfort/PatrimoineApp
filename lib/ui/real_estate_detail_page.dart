@@ -102,8 +102,9 @@ class _RealEstateDetailPageState extends State<RealEstateDetailPage> {
       _currentLabel = l.isNotEmpty ? l : _lastSavedLabel;
       _hasChanges = a != _lastSavedAmount || l != _lastSavedLabel;
       if (_closeAccountAfterTransfer) {
-        _transferAmountController.text =
-            a.toStringAsFixed(2).replaceAll('.', ',');
+        _transferAmountController.text = a
+            .toStringAsFixed(2)
+            .replaceAll('.', ',');
       }
     });
   }
@@ -193,8 +194,9 @@ class _RealEstateDetailPageState extends State<RealEstateDetailPage> {
     final transferAmount = _closeAccountAfterTransfer
         ? _currentAmount
         : (double.tryParse(
-                _transferAmountController.text.replaceAll(',', '.')) ??
-            0.0);
+                _transferAmountController.text.replaceAll(',', '.'),
+              ) ??
+              0.0);
 
     if (transferAmount <= 0) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -313,8 +315,9 @@ class _RealEstateDetailPageState extends State<RealEstateDetailPage> {
         }
       },
       child: Scaffold(
-        backgroundColor:
-            isDark ? const Color(0xFF060B26) : const Color(0xFFF8FAFC),
+        backgroundColor: isDark
+            ? const Color(0xFF060B26)
+            : const Color(0xFFF8FAFC),
         appBar: AppBar(
           backgroundColor: Colors.transparent,
           elevation: 0,
@@ -384,8 +387,10 @@ class _RealEstateDetailPageState extends State<RealEstateDetailPage> {
                   children: [
                     const Text(
                       "Informations du bien",
-                      style:
-                          TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+                      style: TextStyle(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 16,
+                      ),
                     ),
                     const SizedBox(height: 16),
                     TextField(
@@ -511,14 +516,14 @@ class _RealEstateDetailPageState extends State<RealEstateDetailPage> {
               decoration: BoxDecoration(
                 color: Colors.amber.withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(16),
-                border: Border.all(
-                  color: Colors.amber.withValues(alpha: 0.3),
-                ),
+                border: Border.all(color: Colors.amber.withValues(alpha: 0.3)),
               ),
               child: Row(
                 children: [
-                  Icon(Icons.info_outline_rounded,
-                      color: Colors.amber.shade700),
+                  Icon(
+                    Icons.info_outline_rounded,
+                    color: Colors.amber.shade700,
+                  ),
                   const SizedBox(width: 12),
                   const Expanded(
                     child: Text(
@@ -557,8 +562,7 @@ class _RealEstateDetailPageState extends State<RealEstateDetailPage> {
                     vertical: 12,
                   ),
                 ),
-                dropdownColor:
-                    isDark ? const Color(0xFF1E293B) : Colors.white,
+                dropdownColor: isDark ? const Color(0xFF1E293B) : Colors.white,
                 items: _liquidityAccounts.map((account) {
                   return DropdownMenuItem<UserLiquidityAccountView>(
                     value: account,
@@ -623,8 +627,7 @@ class _RealEstateDetailPageState extends State<RealEstateDetailPage> {
             // Checkbox pour clôturer le compte après le virement
             Theme(
               data: Theme.of(context).copyWith(
-                unselectedWidgetColor:
-                    isDark ? Colors.white54 : Colors.black45,
+                unselectedWidgetColor: isDark ? Colors.white54 : Colors.black45,
               ),
               child: CheckboxListTile(
                 contentPadding: EdgeInsets.zero,

@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
-import '../../services/liquidity_service.dart';
 import '../../models/liquidity/user_liquidity_account_view.dart';
+import '../../services/liquidity_service.dart';
+import '../../ui/liquidity_detail_page.dart';
 
 class LiquidityAccountCard extends StatelessWidget {
   final UserLiquidityAccountView account;
@@ -15,6 +16,31 @@ class LiquidityAccountCard extends StatelessWidget {
     this.onDeleted,
   });
 
+  Future<void> _openDetailPage(BuildContext context) async {
+    final result = await Navigator.of(context).push<UserLiquidityAccountView?>(
+      PageRouteBuilder(
+        barrierColor: Theme.of(context).scaffoldBackgroundColor,
+        transitionDuration: const Duration(milliseconds: 280),
+        pageBuilder: (_, _, _) => LiquidityDetailPage(account: account),
+        transitionsBuilder: (_, animation, _, child) {
+          final tween = Tween<Offset>(
+            begin: const Offset(1, 0),
+            end: Offset.zero,
+          ).chain(CurveTween(curve: Curves.easeOutCubic));
+
+          return SlideTransition(
+            position: animation.drive(tween),
+            child: child,
+          );
+        },
+      ),
+    );
+
+    if (result != null && onValueUpdated != null) {
+      onValueUpdated!(result.amount);
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final currencyFormat = NumberFormat.currency(locale: 'fr_FR', symbol: '€');
@@ -23,7 +49,7 @@ class LiquidityAccountCard extends StatelessWidget {
       margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
       child: InkWell(
         borderRadius: BorderRadius.circular(16),
-        onTap: () => _openEditPanel(context),
+        onTap: () => _openDetailPage(context),
         onLongPress: () => _confirmDelete(context),
         child: Container(
           decoration: BoxDecoration(
@@ -131,122 +157,6 @@ class LiquidityAccountCard extends StatelessWidget {
             strokeWidth: 2,
             valueColor: AlwaysStoppedAnimation<Color>(Colors.amber.shade300),
           ),
-        );
-      },
-    );
-  }
-
-  void _openEditPanel(BuildContext context) {
-    final controller = TextEditingController(
-      text: account.amount.toStringAsFixed(2).replaceAll('.', ','),
-    );
-
-    // 🔹 FocusNode pour gérer le focus automatique
-    final focusNode = FocusNode();
-
-    showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      backgroundColor: Colors.transparent,
-      builder: (context) {
-        // Utiliser un StatefulBuilder pour forcer le focus après build
-        return StatefulBuilder(
-          builder: (context, setState) {
-            // 🔹 Demander le focus après le premier frame
-            WidgetsBinding.instance.addPostFrameCallback((_) {
-              if (!focusNode.hasFocus) {
-                focusNode.requestFocus();
-                // 🔹 Placer le curseur à la fin
-                controller.selection = TextSelection.fromPosition(
-                  TextPosition(offset: controller.text.length),
-                );
-              }
-            });
-
-            return Container(
-              decoration: const BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-              ),
-              child: Padding(
-                padding: EdgeInsets.only(
-                  left: 16,
-                  right: 16,
-                  top: 16,
-                  bottom: MediaQuery.of(context).viewInsets.bottom + 16,
-                ),
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      "Modifier ${account.sourceName}",
-                      style: const TextStyle(
-                        fontSize: 20,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.black,
-                      ),
-                    ),
-                    const SizedBox(height: 16),
-                    TextField(
-                      controller: controller,
-                      focusNode: focusNode,
-                      keyboardType: const TextInputType.numberWithOptions(
-                        decimal: true,
-                      ),
-                      style: const TextStyle(color: Colors.black),
-                      decoration: InputDecoration(
-                        labelText: "Nouveau montant",
-                        labelStyle: const TextStyle(color: Colors.black),
-                        suffixText: "€",
-                        suffixStyle: const TextStyle(color: Colors.black),
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        focusedBorder: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(12),
-                          borderSide: BorderSide(
-                            color: Colors.amber.shade600,
-                            width: 2,
-                          ),
-                        ),
-                      ),
-                    ),
-                    const SizedBox(height: 20),
-                    SizedBox(
-                      width: double.infinity,
-                      child: ElevatedButton(
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.amber.shade600,
-                          padding: const EdgeInsets.symmetric(vertical: 14),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                        ),
-                        onPressed: () {
-                          final value = double.tryParse(
-                            controller.text.replaceAll(',', '.'),
-                          );
-                          if (value != null && onValueUpdated != null) {
-                            onValueUpdated!(value);
-                          }
-                          Navigator.pop(context);
-                        },
-                        child: const Text(
-                          "Valider",
-                          style: TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.bold,
-                            color: Colors.white,
-                          ),
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            );
-          },
         );
       },
     );
