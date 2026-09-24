@@ -314,7 +314,9 @@ class PatrimoineService {
   Future<Map<String, dynamic>?> getLatestHistoricalInvestment() async {
     final userId = _requireUserId();
 
-    // On récupère simplement la toute dernière valeur enregistrée pour cet utilisateur
+    final hasInvestments = await hasInvestmentAccounts();
+    if (!hasInvestments) return null;
+
     final response = await _supabase
         .from('wealth_history')
         .select('total_investments, recorded_at')

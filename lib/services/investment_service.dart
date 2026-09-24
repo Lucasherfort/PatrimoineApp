@@ -449,6 +449,17 @@ class InvestmentService {
         .from(UserInvestmentAccountTable.tableName)
         .delete()
         .eq(UserInvestmentAccountTable.id, accountId);
+
+    final remaining = await getUserInvestmentAccounts();
+    if (remaining.isEmpty) {
+      final user = _supabase.auth.currentUser;
+      if (user != null) {
+        await _supabase
+            .from('wealth_history')
+            .delete()
+            .eq('user_id', user.id);
+      }
+    }
   }
 
   // ─── Helpers privés ──────────────────────────────────────────────────────────
