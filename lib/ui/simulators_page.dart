@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../l10n/app_localizations.dart';
 import 'tools/real_estate_simulator_page.dart';
+import 'tools/monthly_allocation_simulator_page.dart';
 import 'retirement_page.dart';
 
 class SimulatorsPage extends StatelessWidget {
@@ -58,6 +59,19 @@ class SimulatorsPage extends StatelessWidget {
                   const SizedBox(height: 16),
                   _buildToolCard(
                     context,
+                    icon: Icons.account_balance_wallet_rounded,
+                    title: "Répartition Mensuelle",
+                    subtitle: "Simulateur d'allocation CCP, PEA & Livret A",
+                    onTap: () => Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (_) => const MonthlyAllocationSimulatorPage(),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  _buildToolCard(
+                    context,
                     icon: Icons.wb_sunny_rounded,
                     title: AppLocalizations.of(context)!.retirementSimulator,
                     subtitle: AppLocalizations.of(context)!.projectIndependence,
@@ -107,9 +121,9 @@ class SimulatorsPage extends StatelessWidget {
 
   Widget _buildToolCard(
     BuildContext context, {
-    required IconData icon,
     required String title,
     required String subtitle,
+    required IconData icon,
     required VoidCallback onTap,
   }) {
     final theme = Theme.of(context);
