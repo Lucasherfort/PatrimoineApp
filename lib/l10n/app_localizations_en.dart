@@ -283,14 +283,14 @@ class AppLocalizationsEn extends AppLocalizations {
   String get simulators => 'Simulators';
 
   @override
-  String get realEstateSimulator => 'Real Estate Simulator';
+  String get realEstateSimulator => 'Real Estate';
 
   @override
   String get calculatePurchaseCapacity =>
       'Calculate your real purchase capacity';
 
   @override
-  String get retirementSimulator => 'Retirement Simulator';
+  String get retirementSimulator => 'Retirement';
 
   @override
   String get projectIndependence => 'Project your financial independence';

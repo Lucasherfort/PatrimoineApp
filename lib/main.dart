@@ -59,7 +59,7 @@ class PatrimoineApp extends StatelessWidget {
           title: 'Patrimoine App',
           debugShowCheckedModeBanner: false,
           themeMode: themeManager.themeMode,
-          locale: themeManager.locale,
+          locale: themeManager.locale ?? const Locale('fr', 'FR'),
           localizationsDelegates: AppLocalizations.localizationsDelegates,
           supportedLocales: AppLocalizations.supportedLocales,
           // Thème Clair
