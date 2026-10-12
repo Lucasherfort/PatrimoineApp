@@ -283,14 +283,14 @@ class AppLocalizationsFr extends AppLocalizations {
   String get simulators => 'Simulateurs';
 
   @override
-  String get realEstateSimulator => 'Simulateur Immobilier';
+  String get realEstateSimulator => 'Immobilier';
 
   @override
   String get calculatePurchaseCapacity =>
       'Calculez votre capacité d\'achat réelle';
 
   @override
-  String get retirementSimulator => 'Simulateur Retraite';
+  String get retirementSimulator => 'Retraite';
 
   @override
   String get projectIndependence => 'Projetez votre indépendance financière';

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../l10n/app_localizations.dart';
 import 'tools/real_estate_simulator_page.dart';
+import 'tools/compound_interest_simulator_page.dart';
 import 'retirement_page.dart';
 
 class SimulatorsPage extends StatelessWidget {
@@ -52,6 +53,20 @@ class SimulatorsPage extends StatelessWidget {
                       context,
                       MaterialPageRoute(
                         builder: (_) => const RealEstateSimulatorPage(),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  _buildToolCard(
+                    context,
+                    icon: Icons.trending_up_rounded,
+                    title: "Intérêts Composés",
+                    subtitle:
+                        "Simulez la croissance de votre capital sur le long terme",
+                    onTap: () => Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (_) => const CompoundInterestSimulatorPage(),
                       ),
                     ),
                   ),

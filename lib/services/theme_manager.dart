@@ -9,7 +9,7 @@ class ThemeManager with ChangeNotifier {
 
   final SettingsService _settingsService = SettingsService();
   AppThemeMode _themeMode = AppThemeMode.adaptive;
-  Locale? _locale;
+  Locale? _locale = const Locale('fr', 'FR');
   String _fontName = 'Default';
   final bool _displayNetWealth = false; // 👈 Toujours brut par défaut
 
@@ -21,10 +21,7 @@ class ThemeManager with ChangeNotifier {
 
   Future<void> init() async {
     _themeMode = await _settingsService.getThemeMode();
-    final langCode = await _settingsService.getLanguageCode();
-    if (langCode != null) {
-      _locale = Locale(langCode);
-    }
+    _locale = const Locale('fr', 'FR');
     _fontName = await _settingsService.getAppFont();
     notifyListeners();
   }
@@ -36,12 +33,8 @@ class ThemeManager with ChangeNotifier {
   }
 
   Future<void> setLocale(String? langCode) async {
-    if (langCode == null) {
-      _locale = null;
-    } else {
-      _locale = Locale(langCode);
-    }
-    await _settingsService.setLanguageCode(langCode);
+    _locale = const Locale('fr', 'FR');
+    await _settingsService.setLanguageCode('fr');
     notifyListeners();
   }
 

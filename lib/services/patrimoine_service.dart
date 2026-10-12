@@ -332,4 +332,45 @@ class PatrimoineService {
       'date': response['recorded_at'] as String,
     };
   }
+
+  /// Calcule l'effort d'épargne/investissement mensuel moyen estimé
+  /// en fonction des montants versés sur les comptes d'épargne et d'investissement
+  /// et de leur ancienneté (en mois).
+  Future<double> calculateEstimatedMonthlyInvestment() async {
+    final now = DateTime.now();
+    double totalMonthlyEstimate = 0.0;
+
+    try {
+      // 1. Comptes Épargne (Principal / Ancienneté en mois)
+      final savingsAccounts = await _savingsService.getUserSavingsAccounts();
+      for (final account in savingsAccounts) {
+        if (account.principal <= 0) continue;
+        double months = 1.0;
+        final date = account.openedAt;
+        if (date != null && now.isAfter(date)) {
+          final days = now.difference(date).inDays;
+          months = (days / 30.4375).clamp(1.0, 1200.0);
+        }
+        totalMonthlyEstimate += (account.principal / months);
+      }
+
+      // 2. Comptes Investissement (Dépôts cumulés / Ancienneté en mois)
+      final investmentAccounts = await _investmentService
+          .getUserInvestmentAccountsView();
+      for (final account in investmentAccounts) {
+        if (account.totalContribution <= 0) continue;
+        double months = 1.0;
+        final date = account.openedAt;
+        if (date != null && now.isAfter(date)) {
+          final days = now.difference(date).inDays;
+          months = (days / 30.4375).clamp(1.0, 1200.0);
+        }
+        totalMonthlyEstimate += (account.totalContribution / months);
+      }
+    } catch (e) {
+      // On ignore silencieusement
+    }
+
+    return totalMonthlyEstimate;
+  }
 }

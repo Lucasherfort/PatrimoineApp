@@ -629,7 +629,7 @@ abstract class AppLocalizations {
   /// No description provided for @realEstateSimulator.
   ///
   /// In fr, this message translates to:
-  /// **'Simulateur Immobilier'**
+  /// **'Immobilier'**
   String get realEstateSimulator;
 
   /// No description provided for @calculatePurchaseCapacity.
@@ -641,7 +641,7 @@ abstract class AppLocalizations {
   /// No description provided for @retirementSimulator.
   ///
   /// In fr, this message translates to:
-  /// **'Simulateur Retraite'**
+  /// **'Retraite'**
   String get retirementSimulator;
 
   /// No description provided for @projectIndependence.
