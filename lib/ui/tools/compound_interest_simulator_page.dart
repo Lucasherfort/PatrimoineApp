@@ -50,7 +50,8 @@ class _CompoundInterestSimulatorPageState
         monthlyInv = profileManager.monthlyInvestment;
       }
       if (monthlyInv <= 0) {
-        monthlyInv = await patrimoineService.calculateEstimatedMonthlyInvestment();
+        monthlyInv = await patrimoineService
+            .calculateEstimatedMonthlyInvestment();
       }
       if (monthlyInv <= 0) {
         monthlyInv = 500.0;
@@ -127,7 +128,9 @@ class _CompoundInterestSimulatorPageState
     final List<Map<String, dynamic>> breakdown = results['yearlyBreakdown'];
 
     return Scaffold(
-      backgroundColor: isDark ? const Color(0xFF060B26) : const Color(0xFFF8FAFC),
+      backgroundColor: isDark
+          ? const Color(0xFF060B26)
+          : const Color(0xFFF8FAFC),
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         elevation: 0,
@@ -142,18 +145,30 @@ class _CompoundInterestSimulatorPageState
           ? const Center(child: CircularProgressIndicator())
           : SafeArea(
               child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 8,
+                ),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     // --- COMPACT HEADER SUMMARY BAR ---
                     Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 16,
+                        vertical: 12,
+                      ),
                       decoration: BoxDecoration(
                         gradient: LinearGradient(
                           colors: isDark
-                              ? [const Color(0xFF1E3A8A), const Color(0xFF0D71EE)]
-                              : [const Color(0xFF0D71EE), const Color(0xFF3B82F6)],
+                              ? [
+                                  const Color(0xFF1E3A8A),
+                                  const Color(0xFF0D71EE),
+                                ]
+                              : [
+                                  const Color(0xFF0D71EE),
+                                  const Color(0xFF3B82F6),
+                                ],
                           begin: Alignment.topLeft,
                           end: Alignment.bottomRight,
                         ),
@@ -162,11 +177,28 @@ class _CompoundInterestSimulatorPageState
                       child: Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
-                          _buildCompactSummaryItem("Capital Final", _currency.format(finalValue)),
-                          Container(width: 1, height: 28, color: Colors.white24),
-                          _buildCompactSummaryItem("Versé", _currency.format(totalContributed)),
-                          Container(width: 1, height: 28, color: Colors.white24),
-                          _buildCompactSummaryItem("Intérêts", _currency.format(totalInterest)),
+                          _buildCompactSummaryItem(
+                            "Capital Final",
+                            _currency.format(finalValue),
+                          ),
+                          Container(
+                            width: 1,
+                            height: 28,
+                            color: Colors.white24,
+                          ),
+                          _buildCompactSummaryItem(
+                            "Versé",
+                            _currency.format(totalContributed),
+                          ),
+                          Container(
+                            width: 1,
+                            height: 28,
+                            color: Colors.white24,
+                          ),
+                          _buildCompactSummaryItem(
+                            "Intérêts",
+                            _currency.format(totalInterest),
+                          ),
                         ],
                       ),
                     ),
@@ -227,7 +259,9 @@ class _CompoundInterestSimulatorPageState
                                   "Patrimoine initial: ${_currency.format(_initialCapital)}",
                                   style: TextStyle(
                                     fontSize: 12,
-                                    color: isDark ? Colors.white60 : Colors.black54,
+                                    color: isDark
+                                        ? Colors.white60
+                                        : Colors.black54,
                                     fontWeight: FontWeight.w600,
                                   ),
                                 ),
@@ -235,7 +269,9 @@ class _CompoundInterestSimulatorPageState
                                   "Mensuel: ${_currency.format(_monthlyContribution)}",
                                   style: TextStyle(
                                     fontSize: 12,
-                                    color: isDark ? Colors.white60 : Colors.black54,
+                                    color: isDark
+                                        ? Colors.white60
+                                        : Colors.black54,
                                     fontWeight: FontWeight.w600,
                                   ),
                                 ),
@@ -251,7 +287,9 @@ class _CompoundInterestSimulatorPageState
                                   style: TextStyle(
                                     fontWeight: FontWeight.bold,
                                     fontSize: 13,
-                                    color: isDark ? Colors.white70 : Colors.black87,
+                                    color: isDark
+                                        ? Colors.white70
+                                        : Colors.black87,
                                   ),
                                 ),
                               ],
@@ -264,7 +302,8 @@ class _CompoundInterestSimulatorPageState
                                 max: 40,
                                 divisions: 39,
                                 activeColor: colorBlue,
-                                onChanged: (val) => setState(() => _years = val),
+                                onChanged: (val) =>
+                                    setState(() => _years = val),
                               ),
                             ),
                             // Slider Taux
@@ -276,7 +315,9 @@ class _CompoundInterestSimulatorPageState
                                   style: TextStyle(
                                     fontWeight: FontWeight.bold,
                                     fontSize: 13,
-                                    color: isDark ? Colors.white70 : Colors.black87,
+                                    color: isDark
+                                        ? Colors.white70
+                                        : Colors.black87,
                                   ),
                                 ),
                               ],
@@ -289,7 +330,8 @@ class _CompoundInterestSimulatorPageState
                                 max: 15.0,
                                 divisions: 28,
                                 activeColor: colorGreen,
-                                onChanged: (val) => setState(() => _annualRate = val),
+                                onChanged: (val) =>
+                                    setState(() => _annualRate = val),
                               ),
                             ),
                           ],
@@ -309,7 +351,11 @@ class _CompoundInterestSimulatorPageState
       children: [
         Text(
           label,
-          style: const TextStyle(color: Colors.white70, fontSize: 10, fontWeight: FontWeight.w500),
+          style: const TextStyle(
+            color: Colors.white70,
+            fontSize: 10,
+            fontWeight: FontWeight.w500,
+          ),
         ),
         const SizedBox(height: 2),
         Text(
@@ -374,7 +420,9 @@ class _CompoundInterestSimulatorPageState
           show: true,
           drawVerticalLine: false,
           getDrawingHorizontalLine: (val) => FlLine(
-            color: isDark ? Colors.white10 : Colors.black.withValues(alpha: 0.05),
+            color: isDark
+                ? Colors.white10
+                : Colors.black.withValues(alpha: 0.05),
             strokeWidth: 1,
           ),
         ),
@@ -425,7 +473,12 @@ class _CompoundInterestSimulatorPageState
           // Total with interest (Green)
           LineChartBarData(
             spots: data
-                .map((p) => FlSpot((p['year'] as int).toDouble(), p['futureValue'] as double))
+                .map(
+                  (p) => FlSpot(
+                    (p['year'] as int).toDouble(),
+                    p['futureValue'] as double,
+                  ),
+                )
                 .toList(),
             isCurved: true,
             color: colorGreen,
@@ -440,7 +493,12 @@ class _CompoundInterestSimulatorPageState
           // Total contributed / Versé (Blue)
           LineChartBarData(
             spots: data
-                .map((p) => FlSpot((p['year'] as int).toDouble(), p['totalContributed'] as double))
+                .map(
+                  (p) => FlSpot(
+                    (p['year'] as int).toDouble(),
+                    p['totalContributed'] as double,
+                  ),
+                )
                 .toList(),
             isCurved: true,
             color: colorBlue,
@@ -462,10 +520,7 @@ class _CompoundInterestSimulatorPageState
         Container(
           width: 10,
           height: 10,
-          decoration: BoxDecoration(
-            shape: BoxShape.circle,
-            color: color,
-          ),
+          decoration: BoxDecoration(shape: BoxShape.circle, color: color),
         ),
         const SizedBox(width: 4),
         Text(

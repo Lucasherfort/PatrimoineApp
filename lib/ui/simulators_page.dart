@@ -61,7 +61,8 @@ class SimulatorsPage extends StatelessWidget {
                     context,
                     icon: Icons.trending_up_rounded,
                     title: "Intérêts Composés",
-                    subtitle: "Simulez la croissance de votre capital sur le long terme",
+                    subtitle:
+                        "Simulez la croissance de votre capital sur le long terme",
                     onTap: () => Navigator.push(
                       context,
                       MaterialPageRoute(

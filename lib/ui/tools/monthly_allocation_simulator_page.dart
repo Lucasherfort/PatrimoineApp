@@ -4,7 +4,6 @@ import '../../services/budget_service.dart';
 import '../../services/liquidity_service.dart';
 import '../../services/savings_account_service.dart';
 import '../../services/investment_service.dart';
-import '../../services/financial_profile_manager.dart';
 import '../../models/liquidity/user_liquidity_account_view.dart';
 import '../../models/savings/user_savings_account_view.dart';
 import '../../models/investments/user_investment_account_view.dart';
@@ -18,7 +17,8 @@ class AllocationTarget {
   double value; // Montant en € ou Pourcentage en %
   final String accountType; // 'ccp', 'savings', 'investment'
   final int accountId;
-  final bool isSystem; // true pour les CCP (non supprimable, montant fixe obligatoire en €)
+  final bool
+  isSystem; // true pour les CCP (non supprimable, montant fixe obligatoire en €)
   final dynamic rawAccount;
 
   AllocationTarget({
@@ -76,21 +76,22 @@ class _MonthlyAllocationSimulatorPageState
       final savingsService = SavingsAccountService();
       final investmentService = InvestmentService();
       final budgetService = BudgetService();
-      final profileManager = FinancialProfileManager();
 
       _liquidityAccounts = await liquidityService.getUserLiquidityAccounts();
       _savingsAccounts = await savingsService.getUserSavingsAccounts();
-      _investmentAccounts =
-          await investmentService.getInvestmentAccountsForUserWithPrices();
+      _investmentAccounts = await investmentService
+          .getInvestmentAccountsForUserWithPrices();
 
       double totalCcp = await liquidityService.getTotalLiquidityValue();
       double fixedExpenses = await budgetService.getTotalOutgoings();
 
       // Si le profil a défini un montant d'investissement ou des charges, on peut s'en inspirer si besoin
-      _totalLiquidityController.text =
-          totalCcp.toStringAsFixed(2).replaceAll('.', ',');
-      _fixedExpensesController.text =
-          fixedExpenses.toStringAsFixed(2).replaceAll('.', ',');
+      _totalLiquidityController.text = totalCcp
+          .toStringAsFixed(2)
+          .replaceAll('.', ',');
+      _fixedExpensesController.text = fixedExpenses
+          .toStringAsFixed(2)
+          .replaceAll('.', ',');
 
       _targets.clear();
       _overrideControllers.clear();
@@ -184,7 +185,8 @@ class _MonthlyAllocationSimulatorPageState
       double.tryParse(_totalLiquidityController.text.replaceAll(',', '.')) ??
       0.0;
   double get _fixedExpenses =>
-      double.tryParse(_fixedExpensesController.text.replaceAll(',', '.')) ?? 0.0;
+      double.tryParse(_fixedExpensesController.text.replaceAll(',', '.')) ??
+      0.0;
 
   double get _remainingAfterExpenses =>
       (_totalLiquidity - _fixedExpenses).clamp(0.0, double.infinity);
@@ -195,17 +197,22 @@ class _MonthlyAllocationSimulatorPageState
     final Map<String, double> results = {};
 
     // 1. D'abord déduire tous les montants fixes (CCP et autres fixes)
-    for (final target in _targets.where((t) => t.type == AllocationType.fixedAmount)) {
+    for (final target in _targets.where(
+      (t) => t.type == AllocationType.fixedAmount,
+    )) {
       final allocated = target.value.clamp(0.0, surplus);
       results[target.id] = allocated;
       surplus = (surplus - allocated).clamp(0.0, double.infinity);
     }
 
     // 2. Ensuite répartir le reste selon les pourcentages
-    final percentageTargets =
-        _targets.where((t) => t.type == AllocationType.percentage).toList();
-    final totalPercentage =
-        percentageTargets.fold<double>(0.0, (sum, t) => sum + t.value);
+    final percentageTargets = _targets
+        .where((t) => t.type == AllocationType.percentage)
+        .toList();
+    final totalPercentage = percentageTargets.fold<double>(
+      0.0,
+      (sum, t) => sum + t.value,
+    );
 
     for (final target in percentageTargets) {
       if (totalPercentage > 0 && surplus > 0) {
@@ -237,13 +244,26 @@ class _MonthlyAllocationSimulatorPageState
       builder: (ctx) => StatefulBuilder(
         builder: (context, setDialogState) {
           final List<dynamic> availableAccounts = [
-            ..._savingsAccounts.map((s) => {'type': 'savings', 'obj': s, 'name': '${s.sourceName} - ${s.bankName}'}),
-            ..._investmentAccounts.map((i) => {'type': 'investment', 'obj': i, 'name': '${i.sourceName} - ${i.bankName}'}),
+            ..._savingsAccounts.map(
+              (s) => {
+                'type': 'savings',
+                'obj': s,
+                'name': '${s.sourceName} - ${s.bankName}',
+              },
+            ),
+            ..._investmentAccounts.map(
+              (i) => {
+                'type': 'investment',
+                'obj': i,
+                'name': '${i.sourceName} - ${i.bankName}',
+              },
+            ),
           ];
 
           return AlertDialog(
-            shape:
-                RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(20),
+            ),
             title: const Text("Ajouter un compte cible"),
             content: Column(
               mainAxisSize: MainAxisSize.min,
@@ -256,10 +276,11 @@ class _MonthlyAllocationSimulatorPageState
                   )
                 else
                   DropdownButtonFormField<dynamic>(
-                    value: selectedAccount,
+                    initialValue: selectedAccount,
                     isExpanded: true,
-                    decoration:
-                        const InputDecoration(labelText: "Sélectionner un compte"),
+                    decoration: const InputDecoration(
+                      labelText: "Sélectionner un compte",
+                    ),
                     items: availableAccounts.map((acc) {
                       return DropdownMenuItem<dynamic>(
                         value: acc,
@@ -275,8 +296,9 @@ class _MonthlyAllocationSimulatorPageState
                   ),
                 const SizedBox(height: 16),
                 TextField(
-                  keyboardType:
-                      const TextInputType.numberWithOptions(decimal: true),
+                  keyboardType: const TextInputType.numberWithOptions(
+                    decimal: true,
+                  ),
                   decoration: const InputDecoration(
                     labelText: "Pourcentage (%)",
                   ),
@@ -305,7 +327,11 @@ class _MonthlyAllocationSimulatorPageState
                         final id = obj.id.toString();
 
                         setState(() {
-                          _targets.removeWhere((t) => t.accountId.toString() == id && t.accountType == typeStr);
+                          _targets.removeWhere(
+                            (t) =>
+                                t.accountId.toString() == id &&
+                                t.accountType == typeStr,
+                          );
                           final newTarget = AllocationTarget(
                             id: '${typeStr}_$id',
                             name: name,
@@ -317,7 +343,8 @@ class _MonthlyAllocationSimulatorPageState
                             rawAccount: obj,
                           );
                           _targets.add(newTarget);
-                          _overrideControllers[newTarget.id] = TextEditingController();
+                          _overrideControllers[newTarget.id] =
+                              TextEditingController();
                         });
                         Navigator.pop(ctx);
                       },
@@ -332,14 +359,14 @@ class _MonthlyAllocationSimulatorPageState
 
   Future<void> _applyAllocation() async {
     final calculated = _calculatedAllocations;
-    final validTargets = _targets
-        .where((t) => t.accountType != 'ccp')
-        .toList();
+    final validTargets = _targets.where((t) => t.accountType != 'ccp').toList();
 
     if (validTargets.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content: Text("Aucun virement valide à appliquer vers un compte cible."),
+          content: Text(
+            "Aucun virement valide à appliquer vers un compte cible.",
+          ),
           backgroundColor: Colors.redAccent,
         ),
       );
@@ -368,7 +395,9 @@ class _MonthlyAllocationSimulatorPageState
     if (totalTransfer > _totalLiquidity) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content: Text("Le total à virer dépasse le solde liquide disponible."),
+          content: Text(
+            "Le total à virer dépasse le solde liquide disponible.",
+          ),
           backgroundColor: Colors.redAccent,
         ),
       );
@@ -449,7 +478,9 @@ class _MonthlyAllocationSimulatorPageState
 
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content: Text("Répartition appliquée et virements effectués avec succès !"),
+          content: Text(
+            "Répartition appliquée et virements effectués avec succès !",
+          ),
           backgroundColor: Colors.green,
         ),
       );
@@ -474,7 +505,9 @@ class _MonthlyAllocationSimulatorPageState
     final calculated = _calculatedAllocations;
 
     return Scaffold(
-      backgroundColor: isDark ? const Color(0xFF060B26) : const Color(0xFFF8FAFC),
+      backgroundColor: isDark
+          ? const Color(0xFF060B26)
+          : const Color(0xFFF8FAFC),
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         elevation: 0,
@@ -510,7 +543,10 @@ class _MonthlyAllocationSimulatorPageState
                           _totalLiquidityController,
                         ),
                         const SizedBox(height: 12),
-                        _buildField("Dépenses fixes (Budget)", _fixedExpensesController),
+                        _buildField(
+                          "Dépenses fixes (Budget)",
+                          _fixedExpensesController,
+                        ),
                       ],
                     ),
                   ),
@@ -552,55 +588,86 @@ class _MonthlyAllocationSimulatorPageState
                                     target.name,
                                     style: TextStyle(
                                       fontWeight: FontWeight.w600,
-                                      color: isDark ? Colors.white70 : Colors.black87,
+                                      color: isDark
+                                          ? Colors.white70
+                                          : Colors.black87,
                                     ),
                                   ),
                                 ),
                                 Expanded(
                                   flex: 2,
                                   child: TextField(
-                                    controller: TextEditingController(
-                                      text: target.value
-                                          .toStringAsFixed(target.type == AllocationType.fixedAmount ? 2 : 0)
-                                          .replaceAll('.', ','),
-                                    )..selection = TextSelection.fromPosition(
-                                        TextPosition(
-                                          offset: target.value
-                                              .toStringAsFixed(
-                                                  target.type == AllocationType.fixedAmount ? 2 : 0)
-                                              .length,
-                                        ),
-                                      ),
+                                    controller:
+                                        TextEditingController(
+                                            text: target.value
+                                                .toStringAsFixed(
+                                                  target.type ==
+                                                          AllocationType
+                                                              .fixedAmount
+                                                      ? 2
+                                                      : 0,
+                                                )
+                                                .replaceAll('.', ','),
+                                          )
+                                          ..selection =
+                                              TextSelection.fromPosition(
+                                                TextPosition(
+                                                  offset: target.value
+                                                      .toStringAsFixed(
+                                                        target.type ==
+                                                                AllocationType
+                                                                    .fixedAmount
+                                                            ? 2
+                                                            : 0,
+                                                      )
+                                                      .length,
+                                                ),
+                                              ),
                                     keyboardType:
-                                        const TextInputType.numberWithOptions(decimal: true),
+                                        const TextInputType.numberWithOptions(
+                                          decimal: true,
+                                        ),
                                     onChanged: (val) {
                                       setState(() {
                                         target.value =
-                                            double.tryParse(val.replaceAll(',', '.')) ?? 0.0;
+                                            double.tryParse(
+                                              val.replaceAll(',', '.'),
+                                            ) ??
+                                            0.0;
                                       });
                                     },
                                     decoration: InputDecoration(
                                       suffixText:
-                                          target.type == AllocationType.fixedAmount ? "€" : "%",
+                                          target.type ==
+                                              AllocationType.fixedAmount
+                                          ? "€"
+                                          : "%",
                                       isDense: true,
                                       filled: true,
                                       fillColor: isDark
                                           ? Colors.white.withValues(alpha: 0.03)
-                                          : Colors.black.withValues(alpha: 0.02),
+                                          : Colors.black.withValues(
+                                              alpha: 0.02,
+                                            ),
                                       border: OutlineInputBorder(
                                         borderRadius: BorderRadius.circular(12),
                                         borderSide: BorderSide.none,
                                       ),
-                                      contentPadding: const EdgeInsets.symmetric(
-                                        horizontal: 12,
-                                        vertical: 8,
-                                      ),
+                                      contentPadding:
+                                          const EdgeInsets.symmetric(
+                                            horizontal: 12,
+                                            vertical: 8,
+                                          ),
                                     ),
                                   ),
                                 ),
                                 if (!target.isSystem)
                                   IconButton(
-                                    icon: const Icon(Icons.delete_outline, color: Colors.redAccent, size: 20),
+                                    icon: const Icon(
+                                      Icons.delete_outline,
+                                      color: Colors.redAccent,
+                                      size: 20,
+                                    ),
                                     onPressed: () {
                                       setState(() {
                                         _targets.remove(target);
@@ -625,7 +692,9 @@ class _MonthlyAllocationSimulatorPageState
                     decoration: BoxDecoration(
                       color: colorBlue.withValues(alpha: isDark ? 0.15 : 0.08),
                       borderRadius: BorderRadius.circular(24),
-                      border: Border.all(color: colorBlue.withValues(alpha: 0.3)),
+                      border: Border.all(
+                        color: colorBlue.withValues(alpha: 0.3),
+                      ),
                     ),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
@@ -639,86 +708,104 @@ class _MonthlyAllocationSimulatorPageState
                           ),
                         ),
                         const SizedBox(height: 20),
-                        _buildResultRow("Argent liquide disponible", _currency.format(_totalLiquidity)),
-                        _buildResultRow("Dépenses fixes", _currency.format(_fixedExpenses)),
-                        _buildResultRow("Restant après dépenses fixes", _currency.format(_remainingAfterExpenses)),
-                        const Divider(height: 24, thickness: 1.5),
-                        ..._targets.map(
-                          (target) {
-                            if (target.accountType == 'ccp') {
-                              return Padding(
-                                padding: const EdgeInsets.symmetric(vertical: 4),
-                                child: _buildResultRow(
-                                  target.name,
-                                  _currency.format(calculated[target.id] ?? 0.0),
-                                  isHighlighted: true,
-                                ),
-                              );
-                            }
-
-                            final calcVal = calculated[target.id] ?? 0.0;
-                            final ctrl = _overrideControllers.putIfAbsent(
-                              target.id,
-                              () => TextEditingController(
-                                text: calcVal.toStringAsFixed(2).replaceAll('.', ','),
-                              ),
-                            );
-                            if (ctrl.text.isEmpty || double.tryParse(ctrl.text.replaceAll(',', '.')) == null) {
-                              ctrl.text = calcVal.toStringAsFixed(2).replaceAll('.', ',');
-                            }
-
-                            return Padding(
-                              padding: const EdgeInsets.symmetric(vertical: 6),
-                              child: Row(
-                                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                                children: [
-                                  Expanded(
-                                    flex: 3,
-                                    child: Text(
-                                      "🎯 ${target.name}",
-                                      style: TextStyle(
-                                        fontSize: 14,
-                                        fontWeight: FontWeight.bold,
-                                        color: isDark ? Colors.white70 : Colors.black87,
-                                      ),
-                                    ),
-                                  ),
-                                  Expanded(
-                                    flex: 2,
-                                    child: TextField(
-                                      controller: ctrl,
-                                      keyboardType:
-                                          const TextInputType.numberWithOptions(decimal: true),
-                                      onChanged: (_) => setState(() {}),
-                                      style: const TextStyle(
-                                        fontWeight: FontWeight.w900,
-                                        fontSize: 15,
-                                        color: colorBlue,
-                                      ),
-                                      textAlign: TextAlign.right,
-                                      decoration: InputDecoration(
-                                        suffixText: "€",
-                                        isDense: true,
-                                        filled: true,
-                                        fillColor: isDark
-                                            ? Colors.white.withValues(alpha: 0.05)
-                                            : Colors.white,
-                                        border: OutlineInputBorder(
-                                          borderRadius: BorderRadius.circular(10),
-                                          borderSide: BorderSide.none,
-                                        ),
-                                        contentPadding: const EdgeInsets.symmetric(
-                                          horizontal: 10,
-                                          vertical: 8,
-                                        ),
-                                      ),
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            );
-                          },
+                        _buildResultRow(
+                          "Argent liquide disponible",
+                          _currency.format(_totalLiquidity),
                         ),
+                        _buildResultRow(
+                          "Dépenses fixes",
+                          _currency.format(_fixedExpenses),
+                        ),
+                        _buildResultRow(
+                          "Restant après dépenses fixes",
+                          _currency.format(_remainingAfterExpenses),
+                        ),
+                        const Divider(height: 24, thickness: 1.5),
+                        ..._targets.map((target) {
+                          if (target.accountType == 'ccp') {
+                            return Padding(
+                              padding: const EdgeInsets.symmetric(vertical: 4),
+                              child: _buildResultRow(
+                                target.name,
+                                _currency.format(calculated[target.id] ?? 0.0),
+                                isHighlighted: true,
+                              ),
+                            );
+                          }
+
+                          final calcVal = calculated[target.id] ?? 0.0;
+                          final ctrl = _overrideControllers.putIfAbsent(
+                            target.id,
+                            () => TextEditingController(
+                              text: calcVal
+                                  .toStringAsFixed(2)
+                                  .replaceAll('.', ','),
+                            ),
+                          );
+                          if (ctrl.text.isEmpty ||
+                              double.tryParse(ctrl.text.replaceAll(',', '.')) ==
+                                  null) {
+                            ctrl.text = calcVal
+                                .toStringAsFixed(2)
+                                .replaceAll('.', ',');
+                          }
+
+                          return Padding(
+                            padding: const EdgeInsets.symmetric(vertical: 6),
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                Expanded(
+                                  flex: 3,
+                                  child: Text(
+                                    "🎯 ${target.name}",
+                                    style: TextStyle(
+                                      fontSize: 14,
+                                      fontWeight: FontWeight.bold,
+                                      color: isDark
+                                          ? Colors.white70
+                                          : Colors.black87,
+                                    ),
+                                  ),
+                                ),
+                                Expanded(
+                                  flex: 2,
+                                  child: TextField(
+                                    controller: ctrl,
+                                    keyboardType:
+                                        const TextInputType.numberWithOptions(
+                                          decimal: true,
+                                        ),
+                                    onChanged: (_) => setState(() {}),
+                                    style: const TextStyle(
+                                      fontWeight: FontWeight.w900,
+                                      fontSize: 15,
+                                      color: colorBlue,
+                                    ),
+                                    textAlign: TextAlign.right,
+                                    decoration: InputDecoration(
+                                      suffixText: "€",
+                                      isDense: true,
+                                      filled: true,
+                                      fillColor: isDark
+                                          ? Colors.white.withValues(alpha: 0.05)
+                                          : Colors.white,
+                                      border: OutlineInputBorder(
+                                        borderRadius: BorderRadius.circular(10),
+                                        borderSide: BorderSide.none,
+                                      ),
+                                      contentPadding:
+                                          const EdgeInsets.symmetric(
+                                            horizontal: 10,
+                                            vertical: 8,
+                                          ),
+                                    ),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          );
+                        }),
                         const SizedBox(height: 24),
                         SizedBox(
                           width: double.infinity,
@@ -789,8 +876,10 @@ class _MonthlyAllocationSimulatorPageState
           borderRadius: BorderRadius.circular(16),
           borderSide: BorderSide.none,
         ),
-        contentPadding:
-            const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+        contentPadding: const EdgeInsets.symmetric(
+          horizontal: 16,
+          vertical: 12,
+        ),
       ),
     );
   }

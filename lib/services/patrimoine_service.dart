@@ -355,8 +355,8 @@ class PatrimoineService {
       }
 
       // 2. Comptes Investissement (Dépôts cumulés / Ancienneté en mois)
-      final investmentAccounts =
-          await _investmentService.getUserInvestmentAccountsView();
+      final investmentAccounts = await _investmentService
+          .getUserInvestmentAccountsView();
       for (final account in investmentAccounts) {
         if (account.totalContribution <= 0) continue;
         double months = 1.0;

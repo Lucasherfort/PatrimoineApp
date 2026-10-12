@@ -454,10 +454,7 @@ class InvestmentService {
     if (remaining.isEmpty) {
       final user = _supabase.auth.currentUser;
       if (user != null) {
-        await _supabase
-            .from('wealth_history')
-            .delete()
-            .eq('user_id', user.id);
+        await _supabase.from('wealth_history').delete().eq('user_id', user.id);
       }
     }
   }
