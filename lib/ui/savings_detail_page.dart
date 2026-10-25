@@ -23,7 +23,6 @@ class _SavingsDetailPageState extends State<SavingsDetailPage> {
 
   late TextEditingController _principalController;
   late TextEditingController _interestController;
-  late TextEditingController _transferAmountController;
 
   late double _currentPrincipal;
   late double _currentInterest;
@@ -35,6 +34,7 @@ class _SavingsDetailPageState extends State<SavingsDetailPage> {
   bool _hasSavedAtLeastOnce = false;
   bool _isLoadingLiquidity = true;
   bool _isTransferring = false;
+  bool _automaticInterestCalculation = false;
 
   final SavingsAccountService _service = SavingsAccountService();
   final LiquidityService _liquidityService = LiquidityService();
@@ -47,6 +47,7 @@ class _SavingsDetailPageState extends State<SavingsDetailPage> {
     super.initState();
     _currentPrincipal = widget.account.principal;
     _currentInterest = widget.account.interest;
+    _automaticInterestCalculation = widget.account.automaticInterestCalculation;
 
     _lastSavedPrincipal = widget.account.principal;
     _lastSavedInterest = widget.account.interest;
@@ -59,10 +60,6 @@ class _SavingsDetailPageState extends State<SavingsDetailPage> {
       text: _currentInterest.toStringAsFixed(2).replaceAll('.', ','),
     );
 
-    _transferAmountController = TextEditingController(
-      text: _currentPrincipal.toStringAsFixed(2).replaceAll('.', ','),
-    );
-
     _principalController.addListener(_checkChanges);
     _interestController.addListener(_checkChanges);
     _fetchLiquidityAccounts();
@@ -72,7 +69,6 @@ class _SavingsDetailPageState extends State<SavingsDetailPage> {
   void dispose() {
     _principalController.dispose();
     _interestController.dispose();
-    _transferAmountController.dispose();
     super.dispose();
   }
 
@@ -110,7 +106,11 @@ class _SavingsDetailPageState extends State<SavingsDetailPage> {
     setState(() {
       _currentPrincipal = p;
       _currentInterest = i;
-      _hasChanges = p != _lastSavedPrincipal || i != _lastSavedInterest;
+      _hasChanges =
+          p != _lastSavedPrincipal ||
+          i != _lastSavedInterest ||
+          _automaticInterestCalculation !=
+              widget.account.automaticInterestCalculation;
     });
   }
 
@@ -130,7 +130,7 @@ class _SavingsDetailPageState extends State<SavingsDetailPage> {
       savingsAccountId: widget.account.id,
       principal: _currentPrincipal,
       interest: _currentInterest,
-      automaticInterestCalculation: false,
+      automaticInterestCalculation: _automaticInterestCalculation,
     );
 
     if (!mounted) return false;
@@ -142,6 +142,7 @@ class _SavingsDetailPageState extends State<SavingsDetailPage> {
 
     widget.account.principal = _currentPrincipal;
     widget.account.interest = _currentInterest;
+    widget.account.automaticInterestCalculation = _automaticInterestCalculation;
 
     _lastSavedPrincipal = _currentPrincipal;
     _lastSavedInterest = _currentInterest;
@@ -204,94 +205,288 @@ class _SavingsDetailPageState extends State<SavingsDetailPage> {
     return false;
   }
 
-  Future<void> _performTransfer() async {
+  void _openTransferModal(BuildContext context) {
+    final currency = NumberFormat.currency(locale: 'fr_FR', symbol: '€');
+    final transferController = TextEditingController(
+      text: _currentPrincipal.toStringAsFixed(2).replaceAll('.', ','),
+    );
+    bool isTransferringModal = false;
+
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (context) {
+        return StatefulBuilder(
+          builder: (context, setModalState) {
+            return Container(
+              decoration: BoxDecoration(
+                color: Theme.of(context).cardColor,
+                borderRadius: const BorderRadius.vertical(
+                  top: Radius.circular(28),
+                ),
+              ),
+              padding: EdgeInsets.only(
+                left: 24,
+                right: 24,
+                top: 24,
+                bottom: MediaQuery.of(context).viewInsets.bottom + 24,
+              ),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.all(10),
+                        decoration: BoxDecoration(
+                          color: colorBlueMain.withValues(alpha: 0.15),
+                          borderRadius: BorderRadius.circular(14),
+                        ),
+                        child: const Icon(
+                          Icons.swap_horiz_rounded,
+                          color: colorBlueMain,
+                          size: 24,
+                        ),
+                      ),
+                      const SizedBox(width: 14),
+                      const Text(
+                        "Virement vers le CCP",
+                        style: TextStyle(
+                          fontWeight: FontWeight.bold,
+                          fontSize: 18,
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 20),
+                  if (_isLoadingLiquidity)
+                    const Center(child: CircularProgressIndicator())
+                  else if (_liquidityAccounts.isEmpty)
+                    Container(
+                      padding: const EdgeInsets.all(16),
+                      decoration: BoxDecoration(
+                        color: Colors.amber.withValues(alpha: 0.1),
+                        borderRadius: BorderRadius.circular(16),
+                      ),
+                      child: const Text(
+                        "Aucun compte CCP disponible pour recevoir un virement.",
+                        style: TextStyle(fontSize: 13),
+                      ),
+                    )
+                  else ...[
+                    if (_liquidityAccounts.length > 1) ...[
+                      const Text(
+                        "Compte CCP destinataire (Banque)",
+                        style: TextStyle(
+                          fontSize: 13,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      DropdownButtonFormField<UserLiquidityAccountView>(
+                        initialValue: _selectedLiquidityAccount,
+                        isExpanded: true,
+                        decoration: InputDecoration(
+                          filled: true,
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(16),
+                            borderSide: BorderSide.none,
+                          ),
+                        ),
+                        items: _liquidityAccounts.map((account) {
+                          return DropdownMenuItem<UserLiquidityAccountView>(
+                            value: account,
+                            child: Text(
+                              "${account.sourceName} — Banque : ${account.bankName} (${currency.format(account.amount)})",
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          );
+                        }).toList(),
+                        onChanged: (val) {
+                          if (val != null) {
+                            setModalState(
+                              () => _selectedLiquidityAccount = val,
+                            );
+                          }
+                        },
+                      ),
+                      const SizedBox(height: 16),
+                    ] else if (_selectedLiquidityAccount != null) ...[
+                      Container(
+                        padding: const EdgeInsets.all(14),
+                        decoration: BoxDecoration(
+                          color: Theme.of(context).brightness == Brightness.dark
+                              ? Colors.white.withValues(alpha: 0.03)
+                              : Colors.black.withValues(alpha: 0.02),
+                          borderRadius: BorderRadius.circular(16),
+                        ),
+                        child: Row(
+                          children: [
+                            const Icon(
+                              Icons.account_balance_rounded,
+                              size: 20,
+                              color: colorBlueMain,
+                            ),
+                            const SizedBox(width: 10),
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  const Text(
+                                    "Banque destinataire",
+                                    style: TextStyle(
+                                      fontSize: 11,
+                                      color: Colors.grey,
+                                    ),
+                                  ),
+                                  Text(
+                                    "${_selectedLiquidityAccount!.bankName} (${_selectedLiquidityAccount!.sourceName})",
+                                    style: const TextStyle(
+                                      fontWeight: FontWeight.bold,
+                                      fontSize: 14,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                            Text(
+                              currency.format(
+                                _selectedLiquidityAccount!.amount,
+                              ),
+                              style: const TextStyle(
+                                fontWeight: FontWeight.bold,
+                                fontSize: 13,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                      const SizedBox(height: 16),
+                    ],
+                    const Text(
+                      "Montant à transférer (€)",
+                      style: TextStyle(
+                        fontSize: 13,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                    const SizedBox(height: 8),
+                    TextField(
+                      controller: transferController,
+                      keyboardType: const TextInputType.numberWithOptions(
+                        decimal: true,
+                      ),
+                      style: const TextStyle(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 18,
+                      ),
+                      decoration: InputDecoration(
+                        suffixText: "€",
+                        filled: true,
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(16),
+                          borderSide: BorderSide.none,
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 24),
+                    SizedBox(
+                      width: double.infinity,
+                      height: 52,
+                      child: ElevatedButton.icon(
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: colorBlueMain,
+                          foregroundColor: Colors.white,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(16),
+                          ),
+                        ),
+                        onPressed:
+                            isTransferringModalLoading(isTransferringModal)
+                            ? null
+                            : () async {
+                                final amount =
+                                    double.tryParse(
+                                      transferController.text.replaceAll(
+                                        ',',
+                                        '.',
+                                      ),
+                                    ) ??
+                                    0.0;
+                                if (amount <= 0 || amount > _currentPrincipal) {
+                                  _showError(
+                                    "Montant invalide ou supérieur au capital.",
+                                  );
+                                  return;
+                                }
+
+                                setModalState(() => isTransferringModal = true);
+                                Navigator.pop(context);
+                                await _executeTransfer(amount);
+                              },
+                        icon: const Icon(Icons.send_rounded, size: 20),
+                        label: const Text(
+                          "TRANSFÉRER",
+                          style: TextStyle(
+                            fontWeight: FontWeight.bold,
+                            fontSize: 15,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ],
+                ],
+              ),
+            );
+          },
+        );
+      },
+    );
+  }
+
+  bool isTransferringModalLoading(bool val) => val || _isTransferring;
+
+  Future<void> _executeTransfer(double transferAmount) async {
     if (_selectedLiquidityAccount == null) return;
 
-    final transferAmount =
-        double.tryParse(_transferAmountController.text.replaceAll(',', '.')) ??
-        0.0;
-
-    if (transferAmount <= 0) {
-      _showError('Veuillez entrer un montant valide supérieur à 0 €');
-      return;
-    }
-
-    if (transferAmount > _currentPrincipal) {
-      _showError('Le montant du virement dépasse le capital déposé.');
-      return;
-    }
-
-    final currency = NumberFormat.currency(locale: 'fr_FR', symbol: '€');
-    final confirmed = await showDialog<bool>(
-      context: context,
-      builder: (ctx) => AlertDialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-        title: const Text('Confirmer le virement'),
-        content: Text(
-          'Voulez-vous vraiment transférer ${currency.format(transferAmount)} depuis le capital de ce compte vers le compte CCP (${_selectedLiquidityAccount!.sourceName}) ?',
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(ctx, false),
-            child: const Text('Annuler'),
-          ),
-          ElevatedButton(
-            style: ElevatedButton.styleFrom(
-              backgroundColor: colorBlueMain,
-              foregroundColor: Colors.white,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(10),
-              ),
-            ),
-            onPressed: () => Navigator.pop(ctx, true),
-            child: const Text('Confirmer'),
-          ),
-        ],
-      ),
-    );
-
-    if (confirmed != true) return;
-
     setState(() => _isTransferring = true);
+    final currency = NumberFormat.currency(locale: 'fr_FR', symbol: '€');
 
     try {
-      // 1. Créditer le compte CCP
+      // 1. Créditer le CCP
       final newCcpAmount = _selectedLiquidityAccount!.amount + transferAmount;
       await _liquidityService.updateAmount(
         accountId: _selectedLiquidityAccount!.id,
         amount: newCcpAmount,
       );
 
-      // 2. Déduire le montant du capital déposé (principal)
+      // 2. Déduire du capital déposé (principal)
       final newPrincipal = _currentPrincipal - transferAmount;
       final success = await _service.updateSavingsAccount(
         savingsAccountId: widget.account.id,
         principal: newPrincipal,
         interest: _currentInterest,
-        automaticInterestCalculation: false,
+        automaticInterestCalculation: _automaticInterestCalculation,
       );
 
       if (!mounted) return;
 
       if (!success) {
-        _showError('Erreur lors de la mise à jour du compte épargne.');
+        _showError('Erreur lors du virement.');
         setState(() => _isTransferring = false);
         return;
       }
 
-      // Mettre à jour l'état local
       widget.account.principal = newPrincipal;
       _currentPrincipal = newPrincipal;
       _lastSavedPrincipal = newPrincipal;
       _principalController.text = newPrincipal
           .toStringAsFixed(2)
           .replaceAll('.', ',');
-      _transferAmountController.text = newPrincipal
-          .toStringAsFixed(2)
-          .replaceAll('.', ',');
 
       _hasSavedAtLeastOnce = true;
-
       setState(() {
         _hasChanges = false;
         _isTransferring = false;
@@ -300,7 +495,7 @@ class _SavingsDetailPageState extends State<SavingsDetailPage> {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text(
-            'Virement de ${currency.format(transferAmount)} effectué vers le CCP.',
+            'Virement de ${currency.format(transferAmount)} effectué vers le CCP (${_selectedLiquidityAccount!.bankName}).',
           ),
           backgroundColor: Colors.green,
         ),
@@ -366,8 +561,6 @@ class _SavingsDetailPageState extends State<SavingsDetailPage> {
                     _buildProgressSection(context, currency),
                     const SizedBox(height: 24),
                     _buildEditableCard(context),
-                    const SizedBox(height: 24),
-                    _buildTransferSection(context, currency),
                     const SizedBox(height: 120),
                   ],
                 ),
@@ -528,237 +721,35 @@ class _SavingsDetailPageState extends State<SavingsDetailPage> {
             "Intérêts cumulés",
             Icons.add_chart_rounded,
           ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildTransferSection(BuildContext context, NumberFormat currency) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-
-    return Container(
-      padding: const EdgeInsets.all(20),
-      decoration: _glassDecoration(context),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              Container(
-                padding: const EdgeInsets.all(10),
-                decoration: BoxDecoration(
-                  color: colorBlueMain.withValues(alpha: 0.15),
-                  borderRadius: BorderRadius.circular(14),
-                ),
-                child: const Icon(
-                  Icons.swap_horiz_rounded,
-                  color: colorBlueMain,
-                  size: 24,
-                ),
-              ),
-              const SizedBox(width: 14),
-              Expanded(
-                child: Text(
-                  "Virement vers le CCP",
-                  style: TextStyle(
-                    fontWeight: FontWeight.bold,
-                    fontSize: 18,
-                    color: isDark ? Colors.white : const Color(0xFF0F172A),
-                  ),
-                ),
-              ),
-            ],
+          Divider(
+            color: isDark
+                ? Colors.white10
+                : Colors.black.withValues(alpha: 0.05),
+            height: 1,
+            indent: 20,
+            endIndent: 20,
           ),
-          const SizedBox(height: 16),
-          if (_isLoadingLiquidity)
-            const Center(
-              child: Padding(
-                padding: EdgeInsets.symmetric(vertical: 16),
-                child: CircularProgressIndicator(),
-              ),
-            )
-          else if (_liquidityAccounts.isEmpty)
-            Container(
-              padding: const EdgeInsets.all(16),
-              decoration: BoxDecoration(
-                color: Colors.amber.withValues(alpha: 0.1),
-                borderRadius: BorderRadius.circular(16),
-                border: Border.all(color: Colors.amber.withValues(alpha: 0.3)),
-              ),
-              child: Row(
-                children: [
-                  Icon(
-                    Icons.info_outline_rounded,
-                    color: Colors.amber.shade700,
-                  ),
-                  const SizedBox(width: 12),
-                  const Expanded(
-                    child: Text(
-                      "Aucun compte CCP (liquidités) disponible pour recevoir un virement.",
-                      style: TextStyle(fontSize: 13),
-                    ),
-                  ),
-                ],
-              ),
-            )
-          else ...[
-            if (_liquidityAccounts.length > 1) ...[
-              Text(
-                "Compte CCP destinataire",
-                style: TextStyle(
-                  fontSize: 13,
-                  fontWeight: FontWeight.w600,
-                  color: isDark ? Colors.white60 : Colors.black54,
-                ),
-              ),
-              const SizedBox(height: 8),
-              DropdownButtonFormField<UserLiquidityAccountView>(
-                initialValue: _selectedLiquidityAccount,
-                isExpanded: true,
-                decoration: InputDecoration(
-                  filled: true,
-                  fillColor: isDark
-                      ? Colors.white.withValues(alpha: 0.03)
-                      : Colors.black.withValues(alpha: 0.02),
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(16),
-                    borderSide: BorderSide.none,
-                  ),
-                  contentPadding: const EdgeInsets.symmetric(
-                    horizontal: 16,
-                    vertical: 12,
-                  ),
-                ),
-                dropdownColor: isDark ? const Color(0xFF1E293B) : Colors.white,
-                items: _liquidityAccounts.map((account) {
-                  return DropdownMenuItem<UserLiquidityAccountView>(
-                    value: account,
-                    child: Text(
-                      "${account.sourceName} - ${account.bankName} (${currency.format(account.amount)})",
-                      style: TextStyle(
-                        fontSize: 14,
-                        color: isDark ? Colors.white : Colors.black87,
-                      ),
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                  );
-                }).toList(),
-                onChanged: (val) {
-                  if (val != null) {
-                    setState(() => _selectedLiquidityAccount = val);
-                  }
-                },
-              ),
-              const SizedBox(height: 16),
-            ] else if (_selectedLiquidityAccount != null) ...[
-              Container(
-                padding: const EdgeInsets.all(14),
-                decoration: BoxDecoration(
-                  color: isDark
-                      ? Colors.white.withValues(alpha: 0.03)
-                      : Colors.black.withValues(alpha: 0.02),
-                  borderRadius: BorderRadius.circular(16),
-                ),
-                child: Row(
-                  children: [
-                    Icon(
-                      Icons.account_balance_rounded,
-                      color: isDark ? Colors.white70 : Colors.black54,
-                      size: 20,
-                    ),
-                    const SizedBox(width: 10),
-                    Expanded(
-                      child: Text(
-                        "${_selectedLiquidityAccount!.sourceName} (${_selectedLiquidityAccount!.bankName})",
-                        style: TextStyle(
-                          fontWeight: FontWeight.w600,
-                          fontSize: 14,
-                          color: isDark ? Colors.white : Colors.black87,
-                        ),
-                      ),
-                    ),
-                    Text(
-                      currency.format(_selectedLiquidityAccount!.amount),
-                      style: TextStyle(
-                        fontWeight: FontWeight.bold,
-                        fontSize: 13,
-                        color: isDark ? Colors.white70 : Colors.black54,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              const SizedBox(height: 16),
-            ],
-
-            Text(
-              "Montant à transférer depuis le capital (€)",
+          SwitchListTile(
+            title: const Text(
+              "Calcul automatique des intérêts",
+              style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
+            ),
+            subtitle: Text(
+              "Mise à jour automatique selon le taux",
               style: TextStyle(
-                fontSize: 13,
-                fontWeight: FontWeight.w600,
+                fontSize: 12,
                 color: isDark ? Colors.white60 : Colors.black54,
               ),
             ),
-            const SizedBox(height: 8),
-            TextField(
-              controller: _transferAmountController,
-              keyboardType: const TextInputType.numberWithOptions(
-                decimal: true,
-              ),
-              style: TextStyle(
-                fontWeight: FontWeight.bold,
-                fontSize: 18,
-                color: isDark ? Colors.white : Colors.black,
-              ),
-              decoration: InputDecoration(
-                suffixText: "€",
-                filled: true,
-                fillColor: isDark
-                    ? Colors.white.withValues(alpha: 0.03)
-                    : Colors.black.withValues(alpha: 0.02),
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(16),
-                  borderSide: BorderSide.none,
-                ),
-              ),
-            ),
-
-            const SizedBox(height: 20),
-
-            SizedBox(
-              width: double.infinity,
-              height: 52,
-              child: ElevatedButton.icon(
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: colorBlueMain,
-                  foregroundColor: Colors.white,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(16),
-                  ),
-                  elevation: 4,
-                ),
-                onPressed: _isTransferring ? null : _performTransfer,
-                icon: _isTransferring
-                    ? const SizedBox(
-                        width: 20,
-                        height: 20,
-                        child: CircularProgressIndicator(
-                          color: Colors.white,
-                          strokeWidth: 2,
-                        ),
-                      )
-                    : const Icon(Icons.send_rounded, size: 20),
-                label: const Text(
-                  "TRANSFÉRER SUR LE CCP",
-                  style: TextStyle(
-                    fontWeight: FontWeight.bold,
-                    fontSize: 14,
-                    letterSpacing: 0.5,
-                  ),
-                ),
-              ),
-            ),
-          ],
+            value: _automaticInterestCalculation,
+            activeThumbColor: colorBlueMain,
+            onChanged: (val) {
+              setState(() {
+                _automaticInterestCalculation = val;
+                _hasChanges = true;
+              });
+            },
+          ),
         ],
       ),
     );
@@ -841,6 +832,15 @@ class _SavingsDetailPageState extends State<SavingsDetailPage> {
         ),
       ),
       actions: [
+        IconButton(
+          icon: const Icon(
+            Icons.swap_horiz_rounded,
+            color: colorBlueMain,
+            size: 24,
+          ),
+          onPressed: () => _openTransferModal(context),
+          tooltip: "Virer vers le CCP",
+        ),
         if (_hasChanges)
           IconButton(
             icon: const Icon(

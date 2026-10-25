@@ -17,6 +17,7 @@ class SavingsAccountService {
     ${UserSavingsAccountTable.id},
     ${UserSavingsAccountTable.principal},
     ${UserSavingsAccountTable.interest},
+    ${UserSavingsAccountTable.automaticInterestCalculation},
     ${SavingsSourceTable.tableName} (
       ${SavingsSourceTable.id},
       ${SavingsSourceTable.savingsCategoryId},
@@ -217,6 +218,10 @@ class SavingsAccountService {
         interestRate: (category[SavingsCategoryTable.interestRate] as num?)
             ?.toDouble(),
         ceiling: (category[SavingsCategoryTable.ceiling] as num?)?.toDouble(),
+        automaticInterestCalculation:
+            (item[UserSavingsAccountTable.automaticInterestCalculation]
+                as bool?) ??
+            false,
       );
     } catch (e) {
       debugPrint('ERREUR _mapToView Savings: $e');

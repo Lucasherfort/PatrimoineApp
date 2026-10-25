@@ -8,6 +8,7 @@ class UserSavingsAccountView {
   double? interestRate;
   final double? ceiling;
   DateTime? openedAt;
+  bool automaticInterestCalculation;
 
   UserSavingsAccountView({
     required this.id,
@@ -19,5 +20,6 @@ class UserSavingsAccountView {
     this.interestRate,
     this.ceiling,
     this.openedAt,
+    this.automaticInterestCalculation = false,
   });
 }

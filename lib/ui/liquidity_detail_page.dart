@@ -647,7 +647,7 @@ class _LiquidityDetailPageState extends State<LiquidityDetailPage> {
                       const SizedBox(width: 10),
                       Expanded(
                         child: Text(
-                          "${dest.label} (${dest.bankName}) - ${dest.typeLabel}",
+                          "${dest.label} (${dest.bankName})",
                           style: TextStyle(
                             fontSize: 14,
                             color: isDark ? Colors.white : Colors.black87,
