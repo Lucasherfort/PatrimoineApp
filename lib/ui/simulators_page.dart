@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../l10n/app_localizations.dart';
 import 'tools/real_estate_simulator_page.dart';
 import 'tools/compound_interest_simulator_page.dart';
+import 'tools/withdrawal_simulator_page.dart';
 import 'retirement_page.dart';
 
 class SimulatorsPage extends StatelessWidget {
@@ -73,8 +74,22 @@ class SimulatorsPage extends StatelessWidget {
                   const SizedBox(height: 16),
                   _buildToolCard(
                     context,
+                    icon: Icons.account_balance_wallet_outlined,
+                    title: "Plan de Décaissement",
+                    subtitle:
+                        "Simulez l'utilisation et la pérennité de votre capital à la retraite",
+                    onTap: () => Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (_) => const WithdrawalSimulatorPage(),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  _buildToolCard(
+                    context,
                     icon: Icons.wb_sunny_rounded,
-                    title: AppLocalizations.of(context)!.retirementSimulator,
+                    title: "Objectif Retraite & FIRE",
                     subtitle: AppLocalizations.of(context)!.projectIndependence,
                     onTap: () => Navigator.push(
                       context,
