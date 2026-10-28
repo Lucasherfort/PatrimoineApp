@@ -466,7 +466,7 @@ class _MonthlyAllocationSimulatorPageState
           await investmentService.updateInvestmentAccount(
             userInvestmentAccountId: inv.id,
             cashBalance: newCash,
-            cumulativeDeposits: inv.totalContribution,
+            cumulativeDeposits: inv.totalContribution + amount,
             openedAt: inv.openedAt,
           );
         }

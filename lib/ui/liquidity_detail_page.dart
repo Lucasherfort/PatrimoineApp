@@ -352,7 +352,7 @@ class _LiquidityDetailPageState extends State<LiquidityDetailPage> {
         await _investmentService.updateInvestmentAccount(
           userInvestmentAccountId: target.id,
           cashBalance: newCashBalance,
-          cumulativeDeposits: target.totalContribution,
+          cumulativeDeposits: target.totalContribution + transferAmount,
           openedAt: target.openedAt,
         );
       }
