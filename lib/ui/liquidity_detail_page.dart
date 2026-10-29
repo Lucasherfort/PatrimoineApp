@@ -269,6 +269,188 @@ class _LiquidityDetailPageState extends State<LiquidityDetailPage> {
     return false;
   }
 
+  void _openTransferModal(BuildContext context) {
+    final transferController = TextEditingController(
+      text: _currentAmount.toStringAsFixed(2).replaceAll('.', ','),
+    );
+    bool isTransferringModal = false;
+
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (context) {
+        return StatefulBuilder(
+          builder: (context, setModalState) {
+            final isDark = Theme.of(context).brightness == Brightness.dark;
+            return Container(
+              decoration: BoxDecoration(
+                color: Theme.of(context).cardColor,
+                borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
+              ),
+              padding: EdgeInsets.only(
+                left: 24,
+                right: 24,
+                top: 24,
+                bottom: MediaQuery.of(context).viewInsets.bottom + 24,
+              ),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.all(10),
+                        decoration: BoxDecoration(
+                          color: colorBlueMain.withValues(alpha: 0.15),
+                          borderRadius: BorderRadius.circular(14),
+                        ),
+                        child: const Icon(
+                          Icons.swap_horiz_rounded,
+                          color: colorBlueMain,
+                          size: 24,
+                        ),
+                      ),
+                      const SizedBox(width: 14),
+                      const Text(
+                        "Virement vers un autre compte",
+                        style: TextStyle(
+                          fontWeight: FontWeight.bold,
+                          fontSize: 18,
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 20),
+                  if (_isLoadingDestinations)
+                    const Center(child: CircularProgressIndicator())
+                  else if (_destinations.isEmpty)
+                    Container(
+                      padding: const EdgeInsets.all(16),
+                      decoration: BoxDecoration(
+                        color: Colors.amber.withValues(alpha: 0.1),
+                        borderRadius: BorderRadius.circular(16),
+                      ),
+                      child: const Text(
+                        "Aucun autre compte disponible pour effectuer un virement.",
+                        style: TextStyle(fontSize: 13),
+                      ),
+                    )
+                  else ...[
+                    const Text(
+                      "Compte destinataire",
+                      style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600),
+                    ),
+                    const SizedBox(height: 8),
+                    DropdownButtonFormField<TransferDestinationAccount>(
+                      initialValue: _selectedDestination,
+                      isExpanded: true,
+                      decoration: InputDecoration(
+                        filled: true,
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(16),
+                          borderSide: BorderSide.none,
+                        ),
+                      ),
+                      items: _destinations.map((dest) {
+                        return DropdownMenuItem<TransferDestinationAccount>(
+                          value: dest,
+                          child: Row(
+                            children: [
+                              Icon(
+                                dest.icon,
+                                size: 18,
+                                color: isDark ? Colors.amber.shade300 : colorBlueMain,
+                              ),
+                              const SizedBox(width: 10),
+                              Expanded(
+                                child: Text(
+                                  "${dest.label} (${dest.bankName})",
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                              ),
+                            ],
+                          ),
+                        );
+                      }).toList(),
+                      onChanged: (val) {
+                        if (val != null) {
+                          setModalState(() => _selectedDestination = val);
+                        }
+                      },
+                    ),
+                    const SizedBox(height: 16),
+                    const Text(
+                      "Montant à transférer (€)",
+                      style: TextStyle(fontSize: 13, fontWeight: FontWeight.w600),
+                    ),
+                    const SizedBox(height: 8),
+                    TextField(
+                      controller: transferController,
+                      keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                      style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 18),
+                      decoration: InputDecoration(
+                        suffixText: "€",
+                        filled: true,
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(16),
+                          borderSide: BorderSide.none,
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 24),
+                    SizedBox(
+                      width: double.infinity,
+                      height: 52,
+                      child: ElevatedButton.icon(
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: colorBlueMain,
+                          foregroundColor: Colors.white,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(16),
+                          ),
+                        ),
+                        onPressed: isTransferringModalLoading(isTransferringModal)
+                            ? null
+                            : () async {
+                                final amount = double.tryParse(
+                                      transferController.text.replaceAll(',', '.'),
+                                    ) ??
+                                    0.0;
+                                if (amount <= 0 || amount > _currentAmount) {
+                                  _showError("Montant invalide ou supérieur au solde.");
+                                  return;
+                                }
+
+                                setModalState(() => isTransferringModal = true);
+                                Navigator.pop(context);
+                                await _executeTransferModal(amount);
+                              },
+                        icon: const Icon(Icons.send_rounded, size: 20),
+                        label: const Text(
+                          "EFFECTUER LE VIREMENT",
+                          style: TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
+                        ),
+                      ),
+                    ),
+                  ],
+                ],
+              ),
+            );
+          },
+        );
+      },
+    );
+  }
+
+  bool isTransferringModalLoading(bool val) => val || _isTransferring;
+
+  Future<void> _executeTransferModal(double transferAmount) async {
+    _transferAmountController.text = transferAmount.toStringAsFixed(2).replaceAll('.', ',');
+    await _performTransfer();
+  }
+
   Future<void> _performTransfer() async {
     if (_selectedDestination == null) return;
 
@@ -288,36 +470,6 @@ class _LiquidityDetailPageState extends State<LiquidityDetailPage> {
 
     final currency = NumberFormat.currency(locale: 'fr_FR', symbol: '€');
     final dest = _selectedDestination!;
-
-    final confirmed = await showDialog<bool>(
-      context: context,
-      builder: (ctx) => AlertDialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-        title: const Text('Confirmer le virement'),
-        content: Text(
-          'Voulez-vous vraiment transférer ${currency.format(transferAmount)} de ${widget.account.sourceName} vers ${dest.label} (${dest.bankName}) ?',
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(ctx, false),
-            child: const Text('Annuler'),
-          ),
-          ElevatedButton(
-            style: ElevatedButton.styleFrom(
-              backgroundColor: colorBlueMain,
-              foregroundColor: Colors.white,
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(10),
-              ),
-            ),
-            onPressed: () => Navigator.pop(ctx, true),
-            child: const Text('Confirmer'),
-          ),
-        ],
-      ),
-    );
-
-    if (confirmed != true) return;
 
     setState(() => _isTransferring = true);
 
@@ -442,8 +594,6 @@ class _LiquidityDetailPageState extends State<LiquidityDetailPage> {
                     _buildMainBalance(context, currency),
                     const SizedBox(height: 40),
                     _buildEditableCard(context),
-                    const SizedBox(height: 24),
-                    _buildTransferSection(context, currency),
                     const SizedBox(height: 120),
                   ],
                 ),
@@ -538,244 +688,6 @@ class _LiquidityDetailPageState extends State<LiquidityDetailPage> {
     );
   }
 
-  Widget _buildTransferSection(BuildContext context, NumberFormat currency) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-
-    return Container(
-      padding: const EdgeInsets.all(20),
-      decoration: _glassDecoration(context),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              Container(
-                padding: const EdgeInsets.all(10),
-                decoration: BoxDecoration(
-                  color: colorBlueMain.withValues(alpha: 0.15),
-                  borderRadius: BorderRadius.circular(14),
-                ),
-                child: const Icon(
-                  Icons.swap_horiz_rounded,
-                  color: colorBlueMain,
-                  size: 24,
-                ),
-              ),
-              const SizedBox(width: 14),
-              Expanded(
-                child: Text(
-                  "Virement vers un autre compte",
-                  style: TextStyle(
-                    fontWeight: FontWeight.bold,
-                    fontSize: 18,
-                    color: isDark ? Colors.white : const Color(0xFF0F172A),
-                  ),
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 16),
-          if (_isLoadingDestinations)
-            const Center(
-              child: Padding(
-                padding: EdgeInsets.symmetric(vertical: 16),
-                child: CircularProgressIndicator(),
-              ),
-            )
-          else if (_destinations.isEmpty)
-            Container(
-              padding: const EdgeInsets.all(16),
-              decoration: BoxDecoration(
-                color: Colors.amber.withValues(alpha: 0.1),
-                borderRadius: BorderRadius.circular(16),
-                border: Border.all(color: Colors.amber.withValues(alpha: 0.3)),
-              ),
-              child: Row(
-                children: [
-                  Icon(
-                    Icons.info_outline_rounded,
-                    color: Colors.amber.shade700,
-                  ),
-                  const SizedBox(width: 12),
-                  const Expanded(
-                    child: Text(
-                      "Aucun autre compte (courant, épargne ou PEA) disponible pour effectuer un virement.",
-                      style: TextStyle(fontSize: 13),
-                    ),
-                  ),
-                ],
-              ),
-            )
-          else ...[
-            Text(
-              "Compte destinataire",
-              style: TextStyle(
-                fontSize: 13,
-                fontWeight: FontWeight.w600,
-                color: isDark ? Colors.white60 : Colors.black54,
-              ),
-            ),
-            const SizedBox(height: 8),
-            DropdownButtonFormField<TransferDestinationAccount>(
-              initialValue: _selectedDestination,
-              isExpanded: true,
-              decoration: InputDecoration(
-                filled: true,
-                fillColor: isDark
-                    ? Colors.white.withValues(alpha: 0.03)
-                    : Colors.black.withValues(alpha: 0.02),
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(16),
-                  borderSide: BorderSide.none,
-                ),
-                contentPadding: const EdgeInsets.symmetric(
-                  horizontal: 16,
-                  vertical: 12,
-                ),
-              ),
-              dropdownColor: isDark ? const Color(0xFF1E293B) : Colors.white,
-              items: _destinations.map((dest) {
-                return DropdownMenuItem<TransferDestinationAccount>(
-                  value: dest,
-                  child: Row(
-                    children: [
-                      Icon(
-                        dest.icon,
-                        size: 18,
-                        color: isDark ? Colors.amber.shade300 : colorBlueMain,
-                      ),
-                      const SizedBox(width: 10),
-                      Expanded(
-                        child: Text(
-                          "${dest.label} (${dest.bankName})",
-                          style: TextStyle(
-                            fontSize: 14,
-                            color: isDark ? Colors.white : Colors.black87,
-                          ),
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                      ),
-                    ],
-                  ),
-                );
-              }).toList(),
-              onChanged: (val) {
-                if (val != null) {
-                  setState(() => _selectedDestination = val);
-                }
-              },
-            ),
-            const SizedBox(height: 16),
-            if (_selectedDestination != null) ...[
-              Container(
-                padding: const EdgeInsets.all(12),
-                decoration: BoxDecoration(
-                  color: isDark
-                      ? Colors.white.withValues(alpha: 0.03)
-                      : Colors.black.withValues(alpha: 0.02),
-                  borderRadius: BorderRadius.circular(16),
-                ),
-                child: Row(
-                  children: [
-                    Icon(
-                      _selectedDestination!.icon,
-                      size: 18,
-                      color: isDark ? Colors.amber.shade300 : colorBlueMain,
-                    ),
-                    const SizedBox(width: 10),
-                    Expanded(
-                      child: Text(
-                        "Solde actuel du destinataire",
-                        style: TextStyle(
-                          fontSize: 13,
-                          color: isDark ? Colors.white70 : Colors.black54,
-                        ),
-                      ),
-                    ),
-                    Text(
-                      currency.format(_selectedDestination!.currentBalance),
-                      style: TextStyle(
-                        fontWeight: FontWeight.bold,
-                        fontSize: 13,
-                        color: isDark ? Colors.white : Colors.black87,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              const SizedBox(height: 16),
-            ],
-            Text(
-              "Montant à transférer (€)",
-              style: TextStyle(
-                fontSize: 13,
-                fontWeight: FontWeight.w600,
-                color: isDark ? Colors.white60 : Colors.black54,
-              ),
-            ),
-            const SizedBox(height: 8),
-            TextField(
-              controller: _transferAmountController,
-              keyboardType: const TextInputType.numberWithOptions(
-                decimal: true,
-              ),
-              style: TextStyle(
-                fontWeight: FontWeight.bold,
-                fontSize: 18,
-                color: isDark ? Colors.white : Colors.black,
-              ),
-              decoration: InputDecoration(
-                suffixText: "€",
-                filled: true,
-                fillColor: isDark
-                    ? Colors.white.withValues(alpha: 0.03)
-                    : Colors.black.withValues(alpha: 0.02),
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(16),
-                  borderSide: BorderSide.none,
-                ),
-              ),
-            ),
-            const SizedBox(height: 20),
-            SizedBox(
-              width: double.infinity,
-              height: 52,
-              child: ElevatedButton.icon(
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: colorBlueMain,
-                  foregroundColor: Colors.white,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(16),
-                  ),
-                  elevation: 4,
-                ),
-                onPressed: _isTransferring ? null : _performTransfer,
-                icon: _isTransferring
-                    ? const SizedBox(
-                        width: 20,
-                        height: 20,
-                        child: CircularProgressIndicator(
-                          color: Colors.white,
-                          strokeWidth: 2,
-                        ),
-                      )
-                    : const Icon(Icons.send_rounded, size: 20),
-                label: const Text(
-                  "EFFECTUER LE VIREMENT",
-                  style: TextStyle(
-                    fontWeight: FontWeight.bold,
-                    fontSize: 14,
-                    letterSpacing: 0.5,
-                  ),
-                ),
-              ),
-            ),
-          ],
-        ],
-      ),
-    );
-  }
-
   PreferredSizeWidget _buildAppBar(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
     return AppBar(
@@ -811,6 +723,15 @@ class _LiquidityDetailPageState extends State<LiquidityDetailPage> {
         ),
       ),
       actions: [
+        IconButton(
+          icon: const Icon(
+            Icons.swap_horiz_rounded,
+            color: colorBlueMain,
+            size: 24,
+          ),
+          onPressed: () => _openTransferModal(context),
+          tooltip: "Virement vers un autre compte",
+        ),
         if (_hasChanges)
           IconButton(
             icon: const Icon(
