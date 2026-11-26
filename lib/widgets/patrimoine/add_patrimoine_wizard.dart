@@ -167,7 +167,81 @@ class _AddPatrimoineWizardState extends State<AddPatrimoineWizard> {
       'Début sauvegarde patrimoine. Type source: ${selectedSource?.type}',
     );
 
+    final String sourceNameLower = selectedSource!.name.toLowerCase();
+
     try {
+      // 1. Contrôle Livret A (un seul toute banque confondu)
+      if (sourceNameLower.contains('livret a')) {
+        final existingLivretA = await Supabase.instance.client
+            .from(UserSavingsAccountTable.tableName)
+            .select('id, savings_source:savings_source_id(savings_category:savings_category_id(name))')
+            .eq('user_id', user.id);
+
+        bool hasLivretA = false;
+        for (final item in existingLivretA) {
+          final src = item['savings_source'] as Map<String, dynamic>?;
+          final cat = src?['savings_category'] as Map<String, dynamic>?;
+          final name = (cat?['name'] as String? ?? '').toLowerCase();
+          if (name.contains('livret a')) {
+            hasLivretA = true;
+            break;
+          }
+        }
+        if (hasLivretA) {
+          setState(() => isSaving = false);
+          _showError("Vous possédez déjà un Livret A. La loi n'en autorise qu'un seul par personne, toutes banques confondues.");
+          return;
+        }
+      }
+
+      // 2. Contrôle LDDS (un seul toute banque confondu)
+      if (sourceNameLower.contains('ldds') || sourceNameLower.contains('ldd')) {
+        final existingLdds = await Supabase.instance.client
+            .from(UserSavingsAccountTable.tableName)
+            .select('id, savings_source:savings_source_id(savings_category:savings_category_id(name))')
+            .eq('user_id', user.id);
+
+        bool hasLdds = false;
+        for (final item in existingLdds) {
+          final src = item['savings_source'] as Map<String, dynamic>?;
+          final cat = src?['savings_category'] as Map<String, dynamic>?;
+          final name = (cat?['name'] as String? ?? '').toLowerCase();
+          if (name.contains('ldds') || name.contains('ldd')) {
+            hasLdds = true;
+            break;
+          }
+        }
+        if (hasLdds) {
+          setState(() => isSaving = false);
+          _showError("Vous possédez déjà un LDDS. La loi n'en autorise qu'un seul par personne, toutes banques confondues.");
+          return;
+        }
+      }
+
+      // 3. Contrôle PEA (un seul toute banque confondu)
+      if (sourceNameLower.contains('pea')) {
+        final existingPea = await Supabase.instance.client
+            .from(UserInvestmentAccountTable.tableName)
+            .select('id, investment_source:investment_source_id(investment_category:investment_category_id(name))')
+            .eq('user_id', user.id);
+
+        bool hasPea = false;
+        for (final item in existingPea) {
+          final src = item['investment_source'] as Map<String, dynamic>?;
+          final cat = src?['investment_category'] as Map<String, dynamic>?;
+          final name = (cat?['name'] as String? ?? '').toLowerCase();
+          if (name.contains('pea')) {
+            hasPea = true;
+            break;
+          }
+        }
+        if (hasPea) {
+          setState(() => isSaving = false);
+          _showError("Vous possédez déjà un PEA. La loi n'en autorise qu'un seul par personne, toutes banques confondues.");
+          return;
+        }
+      }
+
       if (selectedSource!.type == 'liquidity') {
         final existing = await Supabase.instance.client
             .from(LiquiditySourceTable.tableName)

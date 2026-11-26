@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 import '../../models/investments/user_investment_account_view.dart';
 import '../../services/investment_service.dart';
 import '../../ui/investment_detail_page.dart';
@@ -13,8 +14,8 @@ class InvestmentCard extends StatelessWidget {
   final double totalValue;
   final double totalContribution;
   final DateTime? openedAt;
-  final VoidCallback? onTap;
   final VoidCallback? onDelete;
+  final VoidCallback? onTap;
 
   const InvestmentCard({
     super.key,
@@ -26,73 +27,51 @@ class InvestmentCard extends StatelessWidget {
     required this.totalValue,
     required this.totalContribution,
     this.openedAt,
-    this.onTap,
     this.onDelete,
+    this.onTap,
   });
 
   String _formatAmount(double amount) {
     final formatter = NumberFormat.currency(
       locale: 'fr_FR',
       symbol: '€',
-      decimalDigits: 2,
+      decimalDigits: 0,
     );
     return formatter.format(amount);
   }
 
-  Future<void> _confirmDelete(BuildContext context) async {
-    final confirmed = await showDialog<bool>(
+  void _confirmDelete(BuildContext context) {
+    showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        backgroundColor: Theme.of(context).cardColor,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        title: const Text(
-          'Confirmer la suppression',
-          style: TextStyle(fontWeight: FontWeight.bold),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(16),
         ),
-        content: RichText(
-          text: TextSpan(
-            style: TextStyle(
-              fontSize: 16,
-              color: Theme.of(context).textTheme.bodyLarge?.color,
-            ),
-            children: [
-              const TextSpan(
-                text: 'Êtes-vous sûr de vouloir supprimer le compte ',
-              ),
-              TextSpan(
-                text: type,
-                style: const TextStyle(fontWeight: FontWeight.bold),
-              ),
-              const TextSpan(text: ' de '),
-              TextSpan(
-                text: bankName,
-                style: const TextStyle(fontWeight: FontWeight.bold),
-              ),
-              const TextSpan(text: ' ?'),
-            ],
-          ),
+        title: const Text("Supprimer le compte"),
+        content: Text(
+          "Voulez-vous vraiment supprimer le compte $type chez $bankName ?",
         ),
         actions: [
           TextButton(
-            onPressed: () => Navigator.pop(context, false),
-            child: const Text('Annuler'),
+            onPressed: () => Navigator.pop(context),
+            child: const Text("Annuler"),
           ),
           ElevatedButton(
-            onPressed: () => Navigator.pop(context, true),
             style: ElevatedButton.styleFrom(
               backgroundColor: Colors.red,
-              foregroundColor: Colors.white,
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(8),
               ),
             ),
-            child: const Text('Supprimer'),
+            onPressed: () {
+              Navigator.pop(context);
+              if (onDelete != null) onDelete!();
+            },
+            child: const Text("Supprimer"),
           ),
         ],
       ),
     );
-
-    if (confirmed == true && onDelete != null) onDelete!();
   }
 
   Widget _buildBankLogo(BuildContext context) {
@@ -100,24 +79,21 @@ class InvestmentCard extends StatelessWidget {
       return Icon(Icons.trending_up, color: Colors.purple.shade300, size: 26);
     }
 
-    return Image.network(
-      logoUrl,
+    return CachedNetworkImage(
+      imageUrl: logoUrl,
       fit: BoxFit.contain,
-      errorBuilder: (_, _, _) =>
-          Icon(Icons.trending_up, color: Colors.purple.shade300, size: 26),
-      loadingBuilder: (context, child, loadingProgress) {
-        if (loadingProgress == null) return child;
-        return Center(
-          child: SizedBox(
-            width: 24,
-            height: 24,
-            child: CircularProgressIndicator(
-              strokeWidth: 2,
-              valueColor: AlwaysStoppedAnimation<Color>(Colors.purple.shade300),
-            ),
+      placeholder: (context, url) => Center(
+        child: SizedBox(
+          width: 24,
+          height: 24,
+          child: CircularProgressIndicator(
+            strokeWidth: 2,
+            valueColor: AlwaysStoppedAnimation<Color>(Colors.purple.shade300),
           ),
-        );
-      },
+        ),
+      ),
+      errorWidget: (context, url, error) =>
+          Icon(Icons.trending_up, color: Colors.purple.shade300, size: 26),
     );
   }
 

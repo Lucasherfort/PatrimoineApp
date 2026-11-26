@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 import '../../models/savings/user_savings_account_view.dart';
 import '../../ui/savings_detail_page.dart';
 
@@ -150,24 +151,21 @@ class SavingsAccountCard extends StatelessWidget {
       return Icon(Icons.account_balance, color: Colors.blue.shade300, size: 26);
     }
 
-    return Image.network(
-      account.logoUrl,
+    return CachedNetworkImage(
+      imageUrl: account.logoUrl,
       fit: BoxFit.contain,
-      errorBuilder: (_, _, _) =>
-          Icon(Icons.account_balance, color: Colors.blue.shade300, size: 26),
-      loadingBuilder: (context, child, loadingProgress) {
-        if (loadingProgress == null) return child;
-        return Center(
-          child: SizedBox(
-            width: 20,
-            height: 20,
-            child: CircularProgressIndicator(
-              strokeWidth: 2,
-              valueColor: AlwaysStoppedAnimation<Color>(Colors.blue.shade300),
-            ),
+      placeholder: (context, url) => Center(
+        child: SizedBox(
+          width: 20,
+          height: 20,
+          child: CircularProgressIndicator(
+            strokeWidth: 2,
+            valueColor: AlwaysStoppedAnimation<Color>(Colors.blue.shade300),
           ),
-        );
-      },
+        ),
+      ),
+      errorWidget: (context, url, error) =>
+          Icon(Icons.account_balance, color: Colors.blue.shade300, size: 26),
     );
   }
 

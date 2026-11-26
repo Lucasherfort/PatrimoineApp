@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 import '../../models/liquidity/user_liquidity_account_view.dart';
 import '../../services/liquidity_service.dart';
 import '../../ui/liquidity_detail_page.dart';
@@ -16,40 +17,39 @@ class LiquidityAccountCard extends StatelessWidget {
     this.onDeleted,
   });
 
-  Future<void> _openDetailPage(BuildContext context) async {
-    final result = await Navigator.of(context).push<UserLiquidityAccountView?>(
-      PageRouteBuilder(
-        barrierColor: Theme.of(context).scaffoldBackgroundColor,
-        transitionDuration: const Duration(milliseconds: 280),
-        pageBuilder: (_, _, _) => LiquidityDetailPage(account: account),
-        transitionsBuilder: (_, animation, _, child) {
-          final tween = Tween<Offset>(
-            begin: const Offset(1, 0),
-            end: Offset.zero,
-          ).chain(CurveTween(curve: Curves.easeOutCubic));
-
-          return SlideTransition(
-            position: animation.drive(tween),
-            child: child,
-          );
-        },
-      ),
-    );
-
-    if (result != null && onValueUpdated != null) {
-      onValueUpdated!(result.amount);
-    }
-  }
-
   @override
   Widget build(BuildContext context) {
     final currencyFormat = NumberFormat.currency(locale: 'fr_FR', symbol: '€');
 
-    return Container(
-      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
       child: InkWell(
         borderRadius: BorderRadius.circular(16),
-        onTap: () => _openDetailPage(context),
+        onTap: () async {
+          final updatedAccount = await Navigator.of(context).push<UserLiquidityAccountView?>(
+            PageRouteBuilder(
+              opaque: true,
+              barrierColor: Theme.of(context).scaffoldBackgroundColor,
+              transitionDuration: const Duration(milliseconds: 280),
+              pageBuilder: (_, _, _) => LiquidityDetailPage(account: account),
+              transitionsBuilder: (_, animation, _, child) {
+                final tween = Tween<Offset>(
+                  begin: const Offset(1, 0),
+                  end: Offset.zero,
+                ).chain(CurveTween(curve: Curves.easeOutCubic));
+
+                return SlideTransition(
+                  position: animation.drive(tween),
+                  child: child,
+                );
+              },
+            ),
+          );
+
+          if (updatedAccount != null) {
+            onValueUpdated?.call(updatedAccount.amount);
+          }
+        },
         onLongPress: () => _confirmDelete(context),
         child: Container(
           decoration: BoxDecoration(
@@ -94,6 +94,7 @@ class LiquidityAccountCard extends StatelessWidget {
                   ),
                 ),
                 const SizedBox(width: 14),
+                // Nom + banque
                 Expanded(
                   child: Padding(
                     padding: const EdgeInsets.symmetric(vertical: 14),
@@ -120,6 +121,7 @@ class LiquidityAccountCard extends StatelessWidget {
                     ),
                   ),
                 ),
+                // Montant
                 Padding(
                   padding: const EdgeInsets.only(right: 16),
                   child: Text(
@@ -143,22 +145,19 @@ class LiquidityAccountCard extends StatelessWidget {
     if (account.logoUrl.isEmpty) {
       return Icon(Icons.euro_rounded, color: Colors.amber.shade300, size: 26);
     }
-    return Image.network(
-      account.logoUrl,
+    return CachedNetworkImage(
+      imageUrl: account.logoUrl,
       fit: BoxFit.contain,
-      errorBuilder: (context, error, stackTrace) =>
+      placeholder: (context, url) => SizedBox(
+        width: 26,
+        height: 26,
+        child: CircularProgressIndicator(
+          strokeWidth: 2,
+          valueColor: AlwaysStoppedAnimation<Color>(Colors.amber.shade300),
+        ),
+      ),
+      errorWidget: (context, url, error) =>
           Icon(Icons.euro_rounded, color: Colors.amber.shade300, size: 26),
-      loadingBuilder: (context, child, loadingProgress) {
-        if (loadingProgress == null) return child;
-        return SizedBox(
-          width: 26,
-          height: 26,
-          child: CircularProgressIndicator(
-            strokeWidth: 2,
-            valueColor: AlwaysStoppedAnimation<Color>(Colors.amber.shade300),
-          ),
-        );
-      },
     );
   }
 
