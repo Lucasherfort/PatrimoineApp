@@ -35,7 +35,7 @@ class InvestmentCard extends StatelessWidget {
     final formatter = NumberFormat.currency(
       locale: 'fr_FR',
       symbol: '€',
-      decimalDigits: 0,
+      decimalDigits: 2,
     );
     return formatter.format(amount);
   }
